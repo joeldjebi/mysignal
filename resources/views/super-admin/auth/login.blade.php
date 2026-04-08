@@ -49,7 +49,7 @@
     <div class="container login-shell d-flex align-items-center py-5">
         <div class="row g-4 align-items-center w-100">
             <div class="col-lg-6">
-                <span class="brand-badge mb-4">ACEPEN ALERTE · Super Admin</span>
+                <span class="brand-badge mb-4">SIGNAL ALERTE · Super Admin</span>
                 <h1 class="display-5 fw-bold text-white mb-3">Un espace central pour piloter la plateforme.</h1>
                 <p class="lead hero-copy mb-0">Cette première version accueille la connexion super admin et prépare le terrain pour le paramétrage global des localités, signaux, tarifs, organisations et accès.</p>
             </div>
@@ -57,7 +57,7 @@
                 <div class="login-card p-4 p-lg-5">
                     <div class="mb-4">
                         <h2 class="h3 fw-bold mb-2">Connexion super admin</h2>
-                        <p class="text-secondary mb-0">Accès réservé aux administrateurs système ACEPEN ALERTE.</p>
+                        <p class="text-secondary mb-0">Accès réservé aux administrateurs système SIGNAL ALERTE.</p>
                     </div>
 
                     @if ($errors->any())

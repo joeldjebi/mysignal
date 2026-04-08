@@ -371,7 +371,7 @@
                 <div class="d-flex align-items-center gap-3 mb-3">
                     <div class="brand-mark">{{ strtoupper(substr((string) ($organization?->code ?? 'IN'), 0, 2)) }}</div>
                     <div>
-                        <div class="small text-white-50 fw-semibold">{{ $application?->name ?? 'ACEPEN ALERTE' }}</div>
+                        <div class="small text-white-50 fw-semibold">{{ $application?->name ?? 'SIGNAL ALERTE' }}</div>
                         <div class="fw-bold fs-5">Portail institutionnel</div>
                     </div>
                 </div>

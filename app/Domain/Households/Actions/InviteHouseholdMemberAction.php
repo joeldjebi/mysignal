@@ -42,14 +42,16 @@ class InviteHouseholdMemberAction
             ]);
         }
 
-        $sharedMeter = $actor->meters()
-            ->whereKey($payload['meter_id'])
-            ->first();
+        if (! empty($payload['meter_id'])) {
+            $sharedMeter = $actor->meters()
+                ->whereKey($payload['meter_id'])
+                ->first();
 
-        if (! $sharedMeter instanceof Meter) {
-            throw ValidationException::withMessages([
-                'meter_id' => ['Le compteur commun selectionne ne vous appartient pas.'],
-            ]);
+            if (! $sharedMeter instanceof Meter) {
+                throw ValidationException::withMessages([
+                    'meter_id' => ['Le compteur commun selectionne ne vous appartient pas.'],
+                ]);
+            }
         }
 
         $code = (string) random_int(100000, 999999);
@@ -64,7 +66,7 @@ class InviteHouseholdMemberAction
 
             return HouseholdInvitation::query()->create([
                 'household_id' => $household->id,
-                'meter_id' => $payload['meter_id'],
+                'meter_id' => $payload['meter_id'] ?? null,
                 'phone' => $payload['phone'],
                 'relationship' => $payload['relationship'],
                 'code' => $code,

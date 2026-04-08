@@ -1,4 +1,4 @@
-# ACEPEN ALERTE - Architecture V1
+# SIGNAL ALERTE - Architecture V1
 
 ## Principes directeurs
 

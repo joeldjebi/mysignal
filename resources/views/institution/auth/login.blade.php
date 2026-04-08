@@ -47,7 +47,7 @@
     <div class="container login-shell d-flex align-items-center py-5">
         <div class="row g-4 align-items-center w-100">
             <div class="col-lg-6">
-                <span class="pill mb-4">ACEPEN ALERTE · Portail institutionnel</span>
+                <span class="pill mb-4">SIGNAL ALERTE · Portail institutionnel</span>
                 <h1 class="display-5 fw-bold text-white mb-3">Connexion commune pour les institutions partenaires.</h1>
                 <p class="lead text-white-50 mb-0">Une fois connecté, le bon portail s'affiche selon l'organisation du compte : CIE, SODECI ou une autre institution autorisée.</p>
             </div>

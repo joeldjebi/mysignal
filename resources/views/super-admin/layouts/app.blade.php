@@ -234,7 +234,7 @@
                 <div class="d-flex align-items-center gap-3 mb-3">
                     <div class="brand-mark">SA</div>
                     <div>
-                        <div class="small text-white-50 fw-semibold">ACEPEN ALERTE</div>
+                        <div class="small text-white-50 fw-semibold">SIGNAL ALERTE</div>
                         <div class="fw-bold fs-5">Super Admin</div>
                     </div>
                 </div>
@@ -328,7 +328,7 @@
                 <div>
                     <div class="small text-secondary fw-semibold mb-1">Back office central</div>
                     <div class="h5 mb-1 fw-bold">@yield('page-title', 'Super Admin')</div>
-                    <div class="text-secondary small">@yield('page-description', 'Parametrage global ACEPEN ALERTE')</div>
+                    <div class="text-secondary small">@yield('page-description', 'Parametrage global SIGNAL ALERTE')</div>
                 </div>
                 <div class="d-flex align-items-center gap-2 flex-wrap">
                     @yield('header-badges')
@@ -339,8 +339,21 @@
                 <div class="alert alert-success">{{ session('success') }}</div>
             @endif
 
-            @if ($errors->any())
-                <div class="alert alert-danger">{{ $errors->first() }}</div>
+            @php
+                $firstPageError = null;
+
+                if (($errors ?? null) instanceof \Illuminate\Support\ViewErrorBag && $errors->any()) {
+                    $firstPageError = $errors->first();
+                } elseif (is_array($errors ?? null) && $errors !== []) {
+                    $firstErrorEntry = reset($errors);
+                    $firstPageError = is_array($firstErrorEntry)
+                        ? (string) (reset($firstErrorEntry) ?: 'Une erreur est survenue.')
+                        : (string) $firstErrorEntry;
+                }
+            @endphp
+
+            @if ($firstPageError)
+                <div class="alert alert-danger">{{ $firstPageError }}</div>
             @endif
 
             @yield('content')

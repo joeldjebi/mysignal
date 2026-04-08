@@ -4,6 +4,7 @@ namespace App\Http\Requests\Api\V1\Public\Meters;
 
 use App\Models\Application;
 use App\Models\Organization;
+use App\Support\ApplicationCatalog;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
@@ -14,11 +15,53 @@ class StoreMeterRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        if ($this->filled('application_id') && $this->filled('organization_id')) {
+            return;
+        }
+
+        $networkType = strtoupper((string) $this->input('network_type'));
+
+        if ($networkType === '') {
+            return;
+        }
+
+        $applicationId = $this->input('application_id');
+
+        if (! $applicationId) {
+            $applicationId = ApplicationCatalog::findByNetworkType($networkType)?->id;
+        }
+
+        $organizationId = $this->input('organization_id');
+
+        if (! $organizationId) {
+            $organizationId = Organization::query()
+                ->where('code', $networkType)
+                ->when($applicationId, fn ($query) => $query->where('application_id', $applicationId))
+                ->value('id');
+        }
+
+        $payload = [];
+
+        if ($applicationId) {
+            $payload['application_id'] = $applicationId;
+        }
+
+        if ($organizationId) {
+            $payload['organization_id'] = $organizationId;
+        }
+
+        if ($payload !== []) {
+            $this->merge($payload);
+        }
+    }
+
     public function rules(): array
     {
         return [
-            'application_id' => ['required', 'integer', 'exists:applications,id'],
-            'organization_id' => ['required', 'integer', 'exists:organizations,id'],
+            'application_id' => ['nullable', 'integer', 'exists:applications,id'],
+            'organization_id' => ['nullable', 'integer', 'exists:organizations,id'],
             'network_type' => ['nullable', 'string', 'max:60'],
             'meter_number' => ['required', 'string', 'max:50', 'regex:/^[A-Z0-9\\-]+$/i'],
             'label' => ['nullable', 'string', 'max:120'],
