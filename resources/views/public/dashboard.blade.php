@@ -310,6 +310,165 @@
                 font-size: 0.82rem;
                 margin-top: 0.45rem;
             }
+            .select-search-input {
+                display: block;
+                width: 100%;
+                margin-bottom: 0.55rem;
+                min-height: 2.85rem;
+                border-radius: 16px;
+                background: #fff;
+                padding-right: 3.4rem;
+                cursor: pointer;
+            }
+            .select-search-shell {
+                position: relative;
+            }
+            .select-search-toggle {
+                position: absolute;
+                top: 0;
+                right: 0;
+                width: 3rem;
+                height: 2.85rem;
+                border: 0;
+                background: transparent;
+                color: var(--acepen-muted);
+                border-radius: 0 16px 16px 0;
+            }
+            .select-search-toggle::before,
+            .select-search-toggle::after {
+                content: "";
+                position: absolute;
+                top: 50%;
+                width: 7px;
+                height: 2px;
+                background: currentColor;
+            }
+            .select-search-toggle::before {
+                right: 18px;
+                transform: translateY(-50%) rotate(45deg);
+            }
+            .select-search-toggle::after {
+                right: 13px;
+                transform: translateY(-50%) rotate(-45deg);
+            }
+            .required-star {
+                color: #d6005a;
+                font-weight: 800;
+                margin-left: 0.15rem;
+            }
+            .select-search-help {
+                margin-top: -0.2rem;
+                margin-bottom: 0.55rem;
+                color: var(--acepen-muted);
+                font-size: 0.76rem;
+            }
+            .select-search-results {
+                display: none;
+                margin-top: -0.2rem;
+                margin-bottom: 0.55rem;
+                background: #fff;
+                border: 1px solid rgba(24, 52, 71, 0.12);
+                border-radius: 16px;
+                box-shadow: 0 18px 34px rgba(15, 39, 56, 0.08);
+                max-height: 220px;
+                overflow: auto;
+                padding: 0.35rem;
+            }
+            .select-search-results.is-open {
+                display: block;
+            }
+            .select-search-option {
+                width: 100%;
+                text-align: left;
+                border: 0;
+                background: transparent;
+                border-radius: 12px;
+                padding: 0.65rem 0.8rem;
+                color: var(--acepen-ink);
+            }
+            .select-search-option:hover,
+            .select-search-option.is-active {
+                background: rgba(103, 145, 255, 0.08);
+            }
+            .select-search-empty {
+                padding: 0.65rem 0.8rem;
+                color: var(--acepen-muted);
+                font-size: 0.86rem;
+            }
+            .public-select-shell {
+                position: relative;
+            }
+            .public-select-input {
+                display: block;
+                width: 100%;
+                margin-bottom: 0.55rem;
+                min-height: 2.85rem;
+                border-radius: 16px;
+                background: #fff;
+                padding-right: 3.4rem;
+                cursor: pointer;
+            }
+            .public-select-toggle {
+                position: absolute;
+                top: 0;
+                right: 0;
+                width: 3rem;
+                height: 2.85rem;
+                border: 0;
+                background: transparent;
+                color: var(--acepen-muted);
+                border-radius: 0 16px 16px 0;
+            }
+            .public-select-toggle::before,
+            .public-select-toggle::after {
+                content: "";
+                position: absolute;
+                top: 50%;
+                width: 7px;
+                height: 2px;
+                background: currentColor;
+            }
+            .public-select-toggle::before {
+                right: 18px;
+                transform: translateY(-50%) rotate(45deg);
+            }
+            .public-select-toggle::after {
+                right: 13px;
+                transform: translateY(-50%) rotate(-45deg);
+            }
+            .public-select-help {
+                margin-top: -0.2rem;
+                margin-bottom: 0.55rem;
+                color: var(--acepen-muted);
+                font-size: 0.76rem;
+            }
+            .public-select-results {
+                display: none;
+                margin-top: -0.2rem;
+                margin-bottom: 0.55rem;
+                background: #fff;
+                border: 1px solid rgba(24, 52, 71, 0.12);
+                border-radius: 16px;
+                box-shadow: 0 18px 34px rgba(15, 39, 56, 0.08);
+                max-height: 220px;
+                overflow: auto;
+                padding: 0.35rem;
+            }
+            .public-select-results.is-open {
+                display: block;
+            }
+            .public-select-option {
+                width: 100%;
+                text-align: left;
+                border: 0;
+                background: transparent;
+                border-radius: 12px;
+                padding: 0.65rem 0.8rem;
+                color: var(--acepen-ink);
+            }
+            .public-select-option:hover {
+                background: rgba(103, 145, 255, 0.08);
+            }
             .report-table-shell {
                 overflow: hidden;
                 border-radius: 24px;
@@ -1147,28 +1306,82 @@
                             <div class="modal-body p-4 p-lg-4">
                         <form id="reportForm" class="row g-3">
                             <div class="col-md-4">
-                                <label class="form-label fw-semibold">Application concernee</label>
-                                <select class="form-select" id="reportApplicationId" required></select>
+                                <label class="form-label fw-semibold">Application concernee<span class="required-star">*</span></label>
+                                <div class="select-search-shell">
+                                    <input class="form-control select-search-input" style="display:block;width:100%;" type="search" data-search-select-target="reportApplicationId" autocomplete="off" placeholder="Rechercher une application">
+                                    <button class="select-search-toggle" type="button" data-search-toggle-target="reportApplicationId" aria-label="Afficher les options"></button>
+                                </div>
+                                <div class="select-search-help">Champ de selection avec recherche.</div>
+                                <select class="form-select d-none" id="reportApplicationId" required></select>
+                                <div class="select-search-results" id="reportApplicationIdResults"></div>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label fw-semibold">Organisation concernee</label>
-                                <select class="form-select" id="reportOrganizationType" required></select>
+                                <label class="form-label fw-semibold">Organisation concernee<span class="required-star">*</span></label>
+                                <div class="select-search-shell">
+                                    <input class="form-control select-search-input" style="display:block;width:100%;" type="search" data-search-select-target="reportOrganizationType" autocomplete="off" placeholder="Rechercher une organisation">
+                                    <button class="select-search-toggle" type="button" data-search-toggle-target="reportOrganizationType" aria-label="Afficher les options"></button>
+                                </div>
+                                <div class="select-search-help">Champ de selection avec recherche.</div>
+                                <select class="form-select d-none" id="reportOrganizationType" required></select>
+                                <div class="select-search-results" id="reportOrganizationTypeResults"></div>
                                 <div class="location-search-hint">Choisissez d abord l application, puis l organisation concernee, pour afficher uniquement les identifiants et types de signal compatibles.</div>
                             </div>
-                            <div class="col-md-4"><label class="form-label fw-semibold">identifiant</label><select class="form-select" name="meter_id" id="reportMeterId" required></select></div>
                             <div class="col-md-4">
-                                <label class="form-label fw-semibold">Type de signal</label>
-                                <select class="form-select" name="signal_code" id="reportSignalCode" required></select>
+                                <label class="form-label fw-semibold">identifiant<span class="required-star">*</span></label>
+                                <div class="select-search-shell">
+                                    <input class="form-control select-search-input" style="display:block;width:100%;" type="search" data-search-select-target="reportMeterId" autocomplete="off" placeholder="Rechercher un identifiant">
+                                    <button class="select-search-toggle" type="button" data-search-toggle-target="reportMeterId" aria-label="Afficher les options"></button>
+                                </div>
+                                <div class="select-search-help">Champ de selection avec recherche.</div>
+                                <select class="form-select d-none" name="meter_id" id="reportMeterId" required></select>
+                                <div class="select-search-results" id="reportMeterIdResults"></div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Type de signal<span class="required-star">*</span></label>
+                                <div class="select-search-shell">
+                                    <input class="form-control select-search-input" style="display:block;width:100%;" type="search" data-search-select-target="reportSignalCode" autocomplete="off" placeholder="Rechercher un type de signal">
+                                    <button class="select-search-toggle" type="button" data-search-toggle-target="reportSignalCode" aria-label="Afficher les options"></button>
+                                </div>
+                                <div class="select-search-help">Champ de selection avec recherche.</div>
+                                <select class="form-select d-none" name="signal_code" id="reportSignalCode" required></select>
+                                <div class="select-search-results" id="reportSignalCodeResults"></div>
                                 <div class="location-search-hint mt-2" id="reportSignalInlineDescription">Selectionnez un type de signal pour afficher sa description et son delai de resolution.</div>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label fw-semibold">Date et heure</label>
+                                <label class="form-label fw-semibold">Date et heure<span class="required-star">*</span></label>
                                 <input class="form-control" type="datetime-local" name="occurred_at" id="reportOccurredAt" readonly>
                                 <div class="location-search-hint">La date et l heure actuelles sont appliquees automatiquement au signalement.</div>
                             </div>
-                            <div class="col-md-4"><label class="form-label fw-semibold">Pays</label><select class="form-select" name="country_id" id="reportCountryId" required></select></div>
-                            <div class="col-md-4"><label class="form-label fw-semibold">Ville</label><select class="form-select" name="city_id" id="reportCityId" required></select></div>
-                            <div class="col-md-4"><label class="form-label fw-semibold">Commune</label><select class="form-select" name="commune_id" id="reportCommuneId" required></select></div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Pays<span class="required-star">*</span></label>
+                                <div class="select-search-shell">
+                                    <input class="form-control select-search-input" style="display:block;width:100%;" type="search" data-search-select-target="reportCountryId" autocomplete="off" placeholder="Rechercher un pays">
+                                    <button class="select-search-toggle" type="button" data-search-toggle-target="reportCountryId" aria-label="Afficher les options"></button>
+                                </div>
+                                <div class="select-search-help">Champ de selection avec recherche.</div>
+                                <select class="form-select d-none" name="country_id" id="reportCountryId" required></select>
+                                <div class="select-search-results" id="reportCountryIdResults"></div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Ville<span class="required-star">*</span></label>
+                                <div class="select-search-shell">
+                                    <input class="form-control select-search-input" style="display:block;width:100%;" type="search" data-search-select-target="reportCityId" autocomplete="off" placeholder="Rechercher une ville">
+                                    <button class="select-search-toggle" type="button" data-search-toggle-target="reportCityId" aria-label="Afficher les options"></button>
+                                </div>
+                                <div class="select-search-help">Champ de selection avec recherche.</div>
+                                <select class="form-select d-none" name="city_id" id="reportCityId" required></select>
+                                <div class="select-search-results" id="reportCityIdResults"></div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Commune<span class="required-star">*</span></label>
+                                <div class="select-search-shell">
+                                    <input class="form-control select-search-input" style="display:block;width:100%;" type="search" data-search-select-target="reportCommuneId" autocomplete="off" placeholder="Rechercher une commune">
+                                    <button class="select-search-toggle" type="button" data-search-toggle-target="reportCommuneId" aria-label="Afficher les options"></button>
+                                </div>
+                                <div class="select-search-help">Champ de selection avec recherche.</div>
+                                <select class="form-select d-none" name="commune_id" id="reportCommuneId" required></select>
+                                <div class="select-search-results" id="reportCommuneIdResults"></div>
+                            </div>
                             <div class="col-12">
                                 <label class="form-label fw-semibold">Adresse du lieu</label>
                                 <input class="form-control" name="address" id="reportAddressSearch" placeholder="Rechercher une adresse ou utiliser la position automatique">
@@ -1395,6 +1608,338 @@
                         .replace(/[\u0300-\u036f]/g, '')
                         .trim()
                         .toLowerCase();
+                }
+
+                function ensurePublicSelectId(select) {
+                    if (select.id) {
+                        return select.id;
+                    }
+
+                    const baseId = String(select.name || 'public-select')
+                        .replace(/[^a-zA-Z0-9_-]+/g, '-')
+                        .replace(/^-+|-+$/g, '');
+
+                    select.id = `${baseId || 'public-select'}-${Math.random().toString(36).slice(2, 8)}`;
+                    return select.id;
+                }
+
+                function annotateRequiredFields(root = document) {
+                    root.querySelectorAll('form input[required], form select[required], form textarea[required]').forEach((field) => {
+                        if (field.type === 'hidden' || field.classList.contains('d-none') || field.closest('#reportFormModal')) {
+                            return;
+                        }
+
+                        const group = field.closest('.col-12, .col-md-3, .col-md-4, .col-md-6, .col-md-8, .col-lg-1, .col-lg-2, .col-lg-3, .col-lg-4, .col-lg-5, .col-lg-7, .col-lg-8, .col-xl-5, .col-xl-7');
+                        const label = group?.querySelector('label.form-label');
+
+                        if (!label || label.querySelector('.required-star')) {
+                            return;
+                        }
+
+                        const star = document.createElement('span');
+                        star.className = 'required-star';
+                        star.textContent = '*';
+                        label.appendChild(star);
+                    });
+                }
+
+                function syncPublicEnhancedSelect(select) {
+                    if (select.dataset.publicEnhanced !== '1') {
+                        return;
+                    }
+
+                    const input = document.getElementById(`${select.id}PublicInput`);
+                    const results = document.getElementById(`${select.id}PublicResults`);
+
+                    if (!input || !results) {
+                        return;
+                    }
+
+                    const options = Array.from(select.options).map((option) => ({
+                        value: option.value,
+                        label: option.textContent,
+                    }));
+                    const selectedLabel = select.options[select.selectedIndex]?.textContent || '';
+
+                    select.dataset.publicEnhancedOptions = JSON.stringify(options);
+                    if (document.activeElement !== input) {
+                        input.value = selectedLabel;
+                    }
+                    results.classList.remove('is-open');
+                }
+
+                function renderPublicEnhancedSelectOptions(select, query = '', forceOpen = false) {
+                    if (select.dataset.publicEnhanced !== '1') {
+                        return;
+                    }
+
+                    const results = document.getElementById(`${select.id}PublicResults`);
+                    const options = JSON.parse(select.dataset.publicEnhancedOptions || '[]');
+                    const normalizedQuery = normalizeText(query);
+                    const selectedLabel = normalizeText(select.options[select.selectedIndex]?.textContent || '');
+                    const matches = normalizedQuery
+                        ? options.filter((option) => normalizeText(option.label).includes(normalizedQuery))
+                        : options;
+                    const hasExactMatch = options.some((option) => normalizeText(option.label) === normalizedQuery);
+
+                    if (!results) {
+                        return;
+                    }
+
+                    results.innerHTML = matches.length
+                        ? matches.map((option) => `<button class="public-select-option" type="button" data-public-select-value="${option.value}" data-public-select-label="${option.label}">${option.label}</button>`).join('')
+                        : '<div class="select-search-empty">Aucun resultat</div>';
+
+                    const shouldOpen = forceOpen || normalizedQuery === '' || (!hasExactMatch && normalizedQuery !== selectedLabel);
+                    results.classList.toggle('is-open', shouldOpen);
+                }
+
+                function enhancePublicFormSelects(root = document) {
+                    root.querySelectorAll('form select.form-select:not([data-dial-code-select]):not(.d-none)').forEach((select) => {
+                        if (select.closest('#reportForm') || select.dataset.publicEnhanced === '1') {
+                            return;
+                        }
+
+                        const selectId = ensurePublicSelectId(select);
+                        const shell = document.createElement('div');
+                        shell.className = 'public-select-shell';
+                        shell.innerHTML = `
+                            <input class="form-control public-select-input" id="${selectId}PublicInput" type="search" autocomplete="off" placeholder="Rechercher ou selectionner">
+                            <button class="public-select-toggle" id="${selectId}PublicToggle" type="button" aria-label="Afficher les options"></button>
+                        `;
+                        const help = document.createElement('div');
+                        help.className = 'public-select-help';
+                        help.textContent = 'Champ de selection avec recherche.';
+                        const results = document.createElement('div');
+                        results.className = 'public-select-results';
+                        results.id = `${selectId}PublicResults`;
+
+                        select.parentNode.insertBefore(shell, select);
+                        select.parentNode.insertBefore(help, select);
+                        select.parentNode.insertBefore(results, select);
+                        select.classList.add('d-none');
+                        select.dataset.publicEnhanced = '1';
+
+                        const input = document.getElementById(`${selectId}PublicInput`);
+                        const toggle = document.getElementById(`${selectId}PublicToggle`);
+                        const observer = new MutationObserver(() => syncPublicEnhancedSelect(select));
+                        observer.observe(select, { childList: true, subtree: true });
+
+                        input.addEventListener('focus', () => renderPublicEnhancedSelectOptions(select, input.value));
+                        input.addEventListener('input', () => renderPublicEnhancedSelectOptions(select, input.value));
+                        input.addEventListener('change', () => {
+                            const options = JSON.parse(select.dataset.publicEnhancedOptions || '[]');
+                            const exactMatch = options.find((option) => normalizeText(option.label) === normalizeText(input.value));
+
+                            if (!exactMatch) {
+                                input.value = select.options[select.selectedIndex]?.textContent || '';
+                                return;
+                            }
+
+                            const previousValue = select.value;
+                            select.value = exactMatch.value;
+                            input.value = exactMatch.label;
+
+                            if (String(previousValue) !== String(select.value)) {
+                                select.dispatchEvent(new Event('change', { bubbles: true }));
+                            }
+                        });
+                        input.addEventListener('blur', () => {
+                            const resultsPanel = document.getElementById(`${selectId}PublicResults`);
+                            window.setTimeout(() => {
+                                resultsPanel?.classList.remove('is-open');
+                                input.value = select.options[select.selectedIndex]?.textContent || '';
+                            }, 150);
+                        });
+                        toggle.addEventListener('mousedown', (event) => event.preventDefault());
+                        toggle.addEventListener('click', () => {
+                            const resultsPanel = document.getElementById(`${selectId}PublicResults`);
+                            const shouldOpen = !resultsPanel?.classList.contains('is-open');
+                            renderPublicEnhancedSelectOptions(select, '', true);
+                            resultsPanel?.classList.toggle('is-open', shouldOpen);
+                            input.focus();
+                        });
+                        results.addEventListener('click', (event) => {
+                            const option = event.target.closest('[data-public-select-value]');
+
+                            if (!option) {
+                                return;
+                            }
+
+                            const previousValue = select.value;
+                            select.value = option.dataset.publicSelectValue;
+                            input.value = option.dataset.publicSelectLabel || '';
+                            results.classList.remove('is-open');
+
+                            if (String(previousValue) !== String(select.value)) {
+                                select.dispatchEvent(new Event('change', { bubbles: true }));
+                            }
+                        });
+
+                        syncPublicEnhancedSelect(select);
+                    });
+                }
+
+                function cacheSearchableSelectOptions(select) {
+                    if (!select) {
+                        return;
+                    }
+
+                    select.dataset.searchOptions = JSON.stringify(
+                        Array.from(select.options).map((option) => ({
+                            value: option.value,
+                            label: option.textContent,
+                        }))
+                    );
+                }
+
+                function getSearchableSelectInput(selectId) {
+                    return document.querySelector(`[data-search-select-target="${selectId}"]`);
+                }
+
+                function getSearchableSelectResults(selectId) {
+                    return document.getElementById(`${selectId}Results`);
+                }
+
+                function applySearchableSelectFilter(selectId, forceOpenAll = false) {
+                    const select = document.getElementById(selectId);
+                    const searchInput = getSearchableSelectInput(selectId);
+                    const results = getSearchableSelectResults(selectId);
+
+                    if (!select || !searchInput || !results) {
+                        return;
+                    }
+
+                    const cachedOptions = JSON.parse(select.dataset.searchOptions || '[]');
+                    const query = normalizeText(searchInput.value);
+                    const selectedLabel = normalizeText(select.options[select.selectedIndex]?.textContent || '');
+                    const filteredOptions = forceOpenAll
+                        ? cachedOptions
+                        : query
+                        ? cachedOptions.filter((option) => normalizeText(option.label).includes(query))
+                        : cachedOptions;
+                    const hasExactMatch = cachedOptions.some((option) => normalizeText(option.label) === query);
+
+                    results.innerHTML = filteredOptions.length
+                        ? filteredOptions.map((option) => `<button class="select-search-option" type="button" data-search-select-value="${option.value}" data-search-select-label="${option.label}">${option.label}</button>`).join('')
+                        : '<div class="select-search-empty">Aucun resultat</div>';
+
+                    const shouldOpen = forceOpenAll || query === '' || (!hasExactMatch && query !== selectedLabel);
+                    results.classList.toggle('is-open', shouldOpen);
+                }
+
+                function refreshSearchableSelect(selectId) {
+                    const select = document.getElementById(selectId);
+                    const searchInput = getSearchableSelectInput(selectId);
+
+                    if (!select || !searchInput) {
+                        return;
+                    }
+
+                    cacheSearchableSelectOptions(select);
+                    searchInput.value = select.options[select.selectedIndex]?.textContent || '';
+                    applySearchableSelectFilter(selectId);
+                }
+
+                function bindSearchableSelects() {
+                    document.querySelectorAll('[data-search-select-target]').forEach((input) => {
+                        if (input.dataset.searchBound === '1') {
+                            return;
+                        }
+
+                        const targetId = input.dataset.searchSelectTarget;
+                        input.addEventListener('input', () => applySearchableSelectFilter(targetId));
+                        input.addEventListener('change', () => {
+                            const select = document.getElementById(targetId);
+                            const cachedOptions = JSON.parse(select?.dataset.searchOptions || '[]');
+                            const exactMatch = cachedOptions.find((option) => normalizeText(option.label) === normalizeText(input.value));
+
+                            if (!select || !exactMatch) {
+                                return;
+                            }
+
+                            const previousValue = select.value;
+                            select.value = exactMatch.value;
+                            input.value = exactMatch.label;
+
+                            if (String(previousValue) !== String(select.value)) {
+                                select.dispatchEvent(new Event('change', { bubbles: true }));
+                            }
+                        });
+                        input.addEventListener('blur', () => {
+                            const select = document.getElementById(targetId);
+                            const results = getSearchableSelectResults(targetId);
+
+                            if (!select) {
+                                return;
+                            }
+
+                            window.setTimeout(() => results?.classList.remove('is-open'), 150);
+                            input.value = select.options[select.selectedIndex]?.textContent || '';
+                        });
+                        input.dataset.searchBound = '1';
+                        refreshSearchableSelect(targetId);
+                    });
+
+                    document.querySelectorAll('[data-search-toggle-target]').forEach((button) => {
+                        if (button.dataset.searchBound === '1') {
+                            return;
+                        }
+
+                        button.addEventListener('mousedown', (event) => {
+                            event.preventDefault();
+                        });
+
+                        button.addEventListener('click', () => {
+                            const targetId = button.dataset.searchToggleTarget;
+                            const input = getSearchableSelectInput(targetId);
+                            const results = getSearchableSelectResults(targetId);
+
+                            if (!input || !results) {
+                                return;
+                            }
+
+                            const shouldOpen = !results.classList.contains('is-open');
+                            applySearchableSelectFilter(targetId, true);
+                            results.classList.toggle('is-open', shouldOpen);
+                            input.focus();
+                        });
+
+                        button.dataset.searchBound = '1';
+                    });
+
+                    document.querySelectorAll('.select-search-results').forEach((results) => {
+                        if (results.dataset.searchBound === '1') {
+                            return;
+                        }
+
+                        results.addEventListener('click', (event) => {
+                            const option = event.target.closest('[data-search-select-value]');
+
+                            if (!option) {
+                                return;
+                            }
+
+                            const selectId = results.id.replace(/Results$/, '');
+                            const select = document.getElementById(selectId);
+                            const input = getSearchableSelectInput(selectId);
+                            const previousValue = select?.value;
+
+                            if (!select || !input) {
+                                return;
+                            }
+
+                            select.value = option.dataset.searchSelectValue;
+                            input.value = option.dataset.searchSelectLabel || '';
+                            results.classList.remove('is-open');
+
+                            if (String(previousValue) !== String(select.value)) {
+                                select.dispatchEvent(new Event('change', { bubbles: true }));
+                            }
+                        });
+
+                        results.dataset.searchBound = '1';
+                    });
                 }
 
                 function populateDialCodeSelects() {
@@ -1846,6 +2391,9 @@
                     citySelect.value = city.id;
                     communeSelect.innerHTML = buildOptions(city.communes || [], 'Aucune commune');
                     communeSelect.value = city.communes?.[0]?.id || '';
+                    refreshSearchableSelect('reportCountryId');
+                    refreshSearchableSelect('reportCityId');
+                    refreshSearchableSelect('reportCommuneId');
                 }
 
                 function getAvailableReportOrganizations() {
@@ -1900,6 +2448,7 @@
 
                     const preferredApplication = serviceApplications.find((application) => application.code === preferredNetwork || application.network_type === preferredNetwork);
                     applicationSelect.value = String(preferredApplication?.id || serviceApplications[0]?.id || '');
+                    refreshSearchableSelect('reportApplicationId');
 
                     renderReportOrganizationOptions();
                 }
@@ -1919,6 +2468,7 @@
 
                     const preferredExists = preferredOrganizationId && organizations.some((organization) => String(organization.id) === String(preferredOrganizationId));
                     organizationSelect.value = preferredExists ? String(preferredOrganizationId) : String(organizations[0]?.id || '');
+                    refreshSearchableSelect('reportOrganizationType');
                 }
 
                 function populateMeterApplicationOptions(preferredApplicationCode = null) {
@@ -1985,6 +2535,7 @@
                         : String((filteredMeters.find((meter) => meter.is_primary) || filteredMeters[0]).id);
 
                     meterSelect.value = meterToSelect;
+                    refreshSearchableSelect('reportMeterId');
                 }
 
                 function getSignalTypesForCurrentMeter() {
@@ -2098,6 +2649,7 @@
                         ? signalTypes.map((type) => `<option value="${type.code}">${type.label}</option>`).join('')
                         : '<option value="">Aucun type disponible</option>';
                     signalSelect.disabled = signalTypes.length === 0;
+                    refreshSearchableSelect('reportSignalCode');
                     renderSignalPayloadFields();
                 }
 
@@ -2127,7 +2679,7 @@
                     const slaLabel = resolvedSlaTarget?.label ? String(resolvedSlaTarget.label).trim() : '';
 
                     signalSelect.value = signal.code;
-                    title.textContent = `${signal.code} · ${signal.label}`;
+                    title.textContent = signal.label || signal.code;
 
                     if (signalDescription) {
                         signalDescriptionParts.push(signalDescription);
@@ -3559,6 +4111,7 @@
                 reportFormModalElement?.addEventListener('shown.bs.modal', () => {
                     const primaryMeter = state.meters.find((meter) => meter.is_primary) || state.meters[0] || null;
                     document.getElementById('reportOccurredAt').value = currentLocalDateTimeValue();
+                    bindSearchableSelects();
                     renderReportNetworkOptions(primaryMeter?.application_code || primaryMeter?.network_type || null);
                     renderReportMeterOptions(primaryMeter?.id || null);
                     renderSignalOptions();
@@ -3787,6 +4340,8 @@
 
                 document.getElementById('logoutButton').addEventListener('click', () => logout(true));
 
+                enhancePublicFormSelects();
+                annotateRequiredFields();
                 setGeoManualMode('profile', false);
                 syncPublicUserTypeFields('profilePublicUserTypeSelect', 'profileBusinessFields');
                 setGeoManualMode('meter', false);
