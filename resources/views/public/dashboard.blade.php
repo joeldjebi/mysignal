@@ -55,7 +55,10 @@
                 padding: 0.85rem;
                 position: sticky;
                 top: 1rem;
-                min-height: calc(100vh - 2rem);
+                align-self: start;
+                height: calc(100vh - 2rem);
+                max-height: calc(100vh - 2rem);
+                overflow: hidden;
                 display: flex;
                 flex-direction: column;
                 background: var(--acepen-navy);
@@ -2345,7 +2348,7 @@
                     document.getElementById('topbarReportsBadge').textContent = `${reports.length} signalement${reports.length > 1 ? 's' : ''}`;
                     const latestReport = reports[0];
                     document.getElementById('overviewReportSummary').textContent = latestReport
-                        ? `${latestReport.signal_code} · ${latestReport.status}`
+                        ? `${latestReport.signal_label || latestReport.incident_type || latestReport.signal_code} · ${getPublicStatusLabel(latestReport.status)}`
                         : 'Aucun signalement pour le moment';
                     document.getElementById('overviewReportMeta').textContent = latestReport
                         ? `${latestReport.location.commune} · ${latestReport.payment_status === 'paid' ? 'Paiement confirme' : 'Paiement en attente'}`
