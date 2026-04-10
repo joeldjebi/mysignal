@@ -5,6 +5,7 @@ namespace App\Domain\Auth\Actions;
 use App\Domain\Auth\Enums\PublicUserStatus;
 use App\Models\PublicUser;
 use App\Models\PublicUserPhoneVerification;
+use App\Models\PublicUserType;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +15,11 @@ class RegisterPublicUserAction
 {
     public function handle(array $payload): array
     {
+        $publicUserTypeId = $payload['public_user_type_id'] ?? PublicUserType::query()
+            ->where('code', 'UP')
+            ->where('status', 'active')
+            ->value('id');
+
         $verification = PublicUserPhoneVerification::query()
             ->where('phone', $payload['phone'])
             ->where('token', $payload['verification_token'])
@@ -27,9 +33,9 @@ class RegisterPublicUserAction
             ]);
         }
 
-        $publicUser = DB::transaction(function () use ($payload, $verification): PublicUser {
+        $publicUser = DB::transaction(function () use ($payload, $verification, $publicUserTypeId): PublicUser {
             $user = PublicUser::query()->create([
-                'public_user_type_id' => $payload['public_user_type_id'],
+                'public_user_type_id' => $publicUserTypeId,
                 'first_name' => $payload['first_name'],
                 'last_name' => $payload['last_name'],
                 'phone' => $payload['phone'],

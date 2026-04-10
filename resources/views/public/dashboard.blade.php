@@ -288,13 +288,18 @@
                 min-height: 2.85rem;
                 border-radius: 18px;
                 background: var(--acepen-copper);
-                color: white;
+                color: #102a43;
                 font-weight: 800;
                 box-shadow: 0 18px 34px rgba(255, 161, 23, 0.24);
             }
-            .btn-premium:hover {
-                color: white;
+            .btn-premium:hover,
+            .btn-premium:focus,
+            .btn-premium:focus-visible,
+            .btn-premium:active {
+                background: #ffb540;
+                color: #102a43;
                 transform: translateY(-1px);
+                box-shadow: 0 18px 34px rgba(255, 161, 23, 0.28);
             }
             .btn-ghost-premium {
                 min-height: 2.85rem;
@@ -767,7 +772,7 @@
                         <div class="d-flex align-items-center gap-3 mb-3">
                             <div class="brand-mark">AA</div>
                             <div>
-                                <div class="small text-white-50 fw-semibold">ACEPEN ALERTE</div>
+                                <div class="small text-white-50 fw-semibold">SIGNAL ALERTE</div>
                                 <div class="fw-bold fs-5">Espace public</div>
                             </div>
                         </div>
@@ -1579,7 +1584,7 @@
                     'currency' => $type->pricingRule->currency,
                 ] : null,
             ])->values();
-            $serviceApplicationsPayload = collect($serviceApplications ?? [])->values();
+            $serviceApplicationsPayload = collect($serviceApplications ?? [])->values()->all();
         @endphp
         <script>
             (() => {
@@ -4550,6 +4555,10 @@
                 setGeoManualMode('report', false);
                 restoreActivePanel();
                 populateDialCodeSelects();
+                populateMeterApplicationOptions();
+                renderReportNetworkOptions();
+                renderReportMeterOptions();
+                renderSignalOptions();
                 refreshDashboard().catch((error) => {
                     if (error?.status === 401) {
                         logout(false);

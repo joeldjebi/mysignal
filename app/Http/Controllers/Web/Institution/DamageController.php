@@ -34,7 +34,18 @@ class DamageController extends Controller
         }
 
         if (filled(request('damage_resolution_status'))) {
-            $query->whereRaw("COALESCE(damage_resolution_status, 'submitted') = ?", [request('damage_resolution_status')]);
+            $damageResolutionStatus = (string) request('damage_resolution_status');
+
+            $query->where(function ($builder) use ($damageResolutionStatus): void {
+                if ($damageResolutionStatus === 'submitted') {
+                    $builder->whereNull('damage_resolution_status')
+                        ->orWhere('damage_resolution_status', 'submitted');
+
+                    return;
+                }
+
+                $builder->where('damage_resolution_status', $damageResolutionStatus);
+            });
         }
 
         if (filled(request('attachment'))) {

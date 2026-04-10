@@ -412,8 +412,21 @@
                 <div class="alert alert-success">{{ session('success') }}</div>
             @endif
 
-            @if ($errors->any())
-                <div class="alert alert-danger">{{ $errors->first() }}</div>
+            @php
+                $firstPageError = null;
+
+                if (($errors ?? null) instanceof \Illuminate\Support\ViewErrorBag && $errors->any()) {
+                    $firstPageError = $errors->first();
+                } elseif (is_array($errors ?? null) && $errors !== []) {
+                    $firstErrorEntry = reset($errors);
+                    $firstPageError = is_array($firstErrorEntry)
+                        ? (string) (reset($firstErrorEntry) ?: 'Une erreur est survenue.')
+                        : (string) $firstErrorEntry;
+                }
+            @endphp
+
+            @if ($firstPageError)
+                <div class="alert alert-danger">{{ $firstPageError }}</div>
             @endif
 
             @yield('content')

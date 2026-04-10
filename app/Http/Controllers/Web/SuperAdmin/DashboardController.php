@@ -85,18 +85,36 @@ class DashboardController extends Controller
                 organizations.code,
                 COUNT(incident_reports.id) as reports_count,
                 SUM(CASE WHEN incident_reports.status = ? THEN 1 ELSE 0 END) as resolved_count,
-                SUM(CASE WHEN incident_reports.damage_declared_at IS NOT NULL THEN 1 ELSE 0 END) as damages_count,
-                SUM(CASE WHEN incident_reports.target_sla_hours IS NOT NULL
-                          AND incident_reports.created_at IS NOT NULL
-                          AND (
-                              EXTRACT(EPOCH FROM (COALESCE(incident_reports.resolved_at, NOW()) - incident_reports.created_at)) / 3600
-                          ) >= incident_reports.target_sla_hours
-                    THEN 1 ELSE 0 END) as sla_breached_count
+                SUM(CASE WHEN incident_reports.damage_declared_at IS NOT NULL THEN 1 ELSE 0 END) as damages_count
             ', ['resolved'])
             ->groupBy('organizations.id', 'organizations.name', 'organizations.code')
             ->orderByDesc('reports_count')
             ->limit(8)
             ->get();
+
+        $organizationIds = $organizationPerformance->pluck('id')->filter()->values();
+        $organizationSlaCandidates = IncidentReport::query()
+            ->whereIn('organization_id', $organizationIds)
+            ->whereNotNull('target_sla_hours')
+            ->whereNotNull('created_at')
+            ->get(['organization_id', 'target_sla_hours', 'created_at', 'resolved_at']);
+
+        $organizationSlaBreachedCounts = $organizationSlaCandidates
+            ->groupBy('organization_id')
+            ->map(function ($reports): int {
+                return $reports->reduce(function (int $carry, IncidentReport $report): int {
+                    $endReference = $report->resolved_at ?? now();
+                    $elapsedHours = $report->created_at->diffInMinutes($endReference) / 60;
+
+                    return $carry + (($report->target_sla_hours > 0 && $elapsedHours >= $report->target_sla_hours) ? 1 : 0);
+                }, 0);
+            });
+
+        $organizationPerformance = $organizationPerformance->map(function ($organization) use ($organizationSlaBreachedCounts) {
+            $organization->sla_breached_count = (int) ($organizationSlaBreachedCounts[$organization->id] ?? 0);
+
+            return $organization;
+        });
 
         $reportStatusBreakdown = [
             'submitted' => 0,

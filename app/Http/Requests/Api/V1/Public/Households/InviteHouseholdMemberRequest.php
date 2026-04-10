@@ -23,7 +23,7 @@ class InviteHouseholdMemberRequest extends FormRequest
                 'different:actor_phone',
             ],
             'relationship' => ['required', 'string', 'max:50'],
-            'meter_id' => ['required', 'integer', 'exists:meters,id'],
+            'meter_id' => ['nullable', 'integer', 'exists:meters,id'],
             'actor_phone' => ['nullable', 'string'],
         ];
     }
@@ -40,7 +40,6 @@ class InviteHouseholdMemberRequest extends FormRequest
         return [
             'phone.exists' => 'Ce numero ne correspond a aucun compte public existant.',
             'phone.different' => 'Vous ne pouvez pas vous inviter vous-meme dans votre propre foyer.',
-            'meter_id.required' => 'Veuillez selectionner le compteur commun du Gonhi.',
         ];
     }
 }

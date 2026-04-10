@@ -7,7 +7,9 @@ use App\Models\Application;
 use App\Models\Meter;
 use App\Models\MeterAssignment;
 use App\Models\Organization;
+use App\Models\OrganizationType;
 use App\Models\PublicUser;
+use App\Support\ApplicationCatalog;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -16,12 +18,10 @@ class CreateMeterAction
     public function handle(PublicUser $user, array $payload): Meter
     {
         return DB::transaction(function () use ($user, $payload): Meter {
-            $application = Application::query()->whereKey($payload['application_id'])->where('status', 'active')->firstOrFail();
-            $organization = Organization::query()
-                ->whereKey($payload['organization_id'])
-                ->where('application_id', $application->id)
-                ->where('status', 'active')
-                ->first();
+            $networkType = strtoupper((string) ($payload['network_type'] ?? ''));
+
+            $application = $this->resolveApplication($payload, $networkType);
+            $organization = $this->resolveOrganization($payload, $application, $networkType);
 
             if ($organization === null) {
                 throw ValidationException::withMessages([
@@ -29,7 +29,7 @@ class CreateMeterAction
                 ]);
             }
 
-            $networkType = $payload['network_type'] ?: $organization->code ?: $application->code;
+            $networkType = $networkType !== '' ? $networkType : ($organization->code ?: $application->code);
             $this->ensureMeterLimitIsNotExceeded($user, $organization->id);
 
             $meter = Meter::query()->firstOrCreate(
@@ -90,6 +90,105 @@ class CreateMeterAction
         });
     }
 
+    private function resolveApplication(array $payload, string $networkType): Application
+    {
+        if (! empty($payload['application_id'])) {
+            return Application::query()
+                ->whereKey($payload['application_id'])
+                ->where('status', 'active')
+                ->firstOrFail();
+        }
+
+        $catalogApplication = ApplicationCatalog::findByNetworkType($networkType);
+
+        if ($catalogApplication instanceof Application) {
+            return $catalogApplication;
+        }
+
+        $applicationCode = match ($networkType) {
+            'CIE' => 'MON_NRJ',
+            'SODECI' => 'MON_EAU',
+            default => $networkType !== '' ? $networkType : 'GENERIC',
+        };
+
+        $applicationName = match ($networkType) {
+            'CIE' => 'MON NRJ',
+            'SODECI' => 'MON EAU',
+            default => $applicationCode,
+        };
+
+        return Application::query()->firstOrCreate(
+            ['code' => $applicationCode],
+            [
+                'name' => $applicationName,
+                'slug' => strtolower(str_replace('_', '-', $applicationCode)),
+                'status' => 'active',
+                'sort_order' => 99,
+            ],
+        );
+    }
+
+    private function resolveOrganization(array $payload, Application $application, string $networkType): ?Organization
+    {
+        if (! empty($payload['organization_id'])) {
+            return Organization::query()
+                ->whereKey($payload['organization_id'])
+                ->where('application_id', $application->id)
+                ->where('status', 'active')
+                ->first();
+        }
+
+        if ($networkType === '') {
+            return null;
+        }
+
+        $defaultNames = [
+            'CIE' => 'Compagnie Ivoirienne d Electricite',
+            'SODECI' => 'SODECI',
+        ];
+
+        $organizationType = $this->resolveOrganizationType($networkType);
+
+        return Organization::query()->firstOrCreate(
+            [
+                'application_id' => $application->id,
+                'code' => $networkType,
+            ],
+            [
+                'organization_type_id' => $organizationType?->id,
+                'name' => $defaultNames[$networkType] ?? $networkType,
+                'portal_key' => strtolower($networkType),
+                'status' => 'active',
+            ],
+        );
+    }
+
+    private function resolveOrganizationType(string $networkType): ?OrganizationType
+    {
+        $code = match ($networkType) {
+            'CIE' => 'ELECTRICITE',
+            'SODECI' => 'EAU_POTABLE',
+            default => null,
+        };
+
+        if ($code === null) {
+            return OrganizationType::query()->where('status', 'active')->first();
+        }
+
+        return OrganizationType::query()->firstOrCreate(
+            ['code' => $code],
+            [
+                'name' => match ($code) {
+                    'ELECTRICITE' => 'Electricite',
+                    'EAU_POTABLE' => 'Eau potable',
+                    default => $code,
+                },
+                'description' => 'Type historique cree automatiquement pour compatibilite.',
+                'status' => 'active',
+            ],
+        );
+    }
+
     private function ensureMeterLimitIsNotExceeded(PublicUser $user, int $organizationId): void
     {
         $limit = config('acepen.public.max_meters_per_network', 1);
@@ -100,7 +199,7 @@ class CreateMeterAction
 
         if ($count >= $limit) {
             throw ValidationException::withMessages([
-                'organization_id' => ['Le nombre maximal de compteurs pour cette organisation est atteint.'],
+                'network_type' => ['Le nombre maximal de compteurs pour cette organisation est atteint.'],
             ]);
         }
     }

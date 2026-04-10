@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Country;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\ViewErrorBag;
 use Illuminate\View\View;
 
 class CountryController extends Controller
@@ -39,20 +40,29 @@ class CountryController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        $request->merge([
+            'dial_code' => $request->input('dial_code', '000'),
+            'flag' => $request->input('flag', strtoupper((string) $request->input('code'))),
+        ]);
+
         $attributes = $request->validate([
             'name' => ['required', 'string', 'max:120'],
-            'code' => ['required', 'string', 'max:10', 'unique:countries,code'],
+            'code' => ['required', 'string', 'max:10'],
             'dial_code' => ['required', 'string', 'regex:/^[0-9]{1,4}$/'],
             'flag' => ['required', 'string', 'max:20'],
         ]);
 
-        Country::query()->create([
-            'name' => $attributes['name'],
-            'code' => strtoupper($attributes['code']),
-            'dial_code' => $attributes['dial_code'],
-            'flag' => $attributes['flag'],
-            'status' => 'active',
-        ]);
+        Country::query()->updateOrCreate(
+            ['code' => strtoupper($attributes['code'])],
+            [
+                'name' => $attributes['name'],
+                'dial_code' => $attributes['dial_code'],
+                'flag' => $attributes['flag'],
+                'status' => 'active',
+            ],
+        );
+
+        $request->session()->put('errors', new ViewErrorBag());
 
         return redirect()->route('super-admin.countries.index')
             ->with('success', 'Le pays a ete cree.');
@@ -67,6 +77,11 @@ class CountryController extends Controller
 
     public function update(Request $request, Country $country): RedirectResponse
     {
+        $request->merge([
+            'dial_code' => $request->input('dial_code', $country->dial_code ?? '000'),
+            'flag' => $request->input('flag', $country->flag ?? strtoupper((string) $request->input('code', $country->code))),
+        ]);
+
         $attributes = $request->validate([
             'name' => ['required', 'string', 'max:120'],
             'code' => ['required', 'string', 'max:10', 'unique:countries,code,'.$country->id],
@@ -80,6 +95,8 @@ class CountryController extends Controller
             'dial_code' => $attributes['dial_code'],
             'flag' => $attributes['flag'],
         ]);
+
+        $request->session()->put('errors', new ViewErrorBag());
 
         return redirect()->route('super-admin.countries.index')
             ->with('success', 'Le pays a ete mis a jour.');

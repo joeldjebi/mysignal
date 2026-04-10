@@ -147,10 +147,18 @@ class InstitutionAdminController extends Controller
             ->unique()
             ->values();
 
-        return collect($featureIds)
+        $selectedFeatureIds = collect($featureIds)
             ->map(fn ($id) => (int) $id)
-            ->filter(fn ($id) => $allowedFeatureIds->contains($id))
+            ->filter(fn ($id) => $id > 0)
             ->unique()
+            ->values();
+
+        if ($allowedFeatureIds->isEmpty()) {
+            return $selectedFeatureIds->all();
+        }
+
+        return $selectedFeatureIds
+            ->filter(fn ($id) => $allowedFeatureIds->contains($id))
             ->values()
             ->all();
     }

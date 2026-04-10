@@ -34,6 +34,24 @@ class RegisterPublicUserRequest extends FormRequest
         ];
     }
 
+    protected function prepareForValidation(): void
+    {
+        if ($this->filled('public_user_type_id')) {
+            return;
+        }
+
+        $defaultTypeId = PublicUserType::query()
+            ->where('code', 'UP')
+            ->where('status', 'active')
+            ->value('id');
+
+        if ($defaultTypeId !== null) {
+            $this->merge([
+                'public_user_type_id' => $defaultTypeId,
+            ]);
+        }
+    }
+
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator): void {

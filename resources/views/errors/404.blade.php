@@ -363,7 +363,7 @@
                     @endunless
                 </div>
 
-                <div class="brand">ACEPEN ALERTE • Interface de navigation securisee</div>
+                <div class="brand">SIGNAL ALERTE • Interface de navigation securisee</div>
             </div>
         </section>
     </main>

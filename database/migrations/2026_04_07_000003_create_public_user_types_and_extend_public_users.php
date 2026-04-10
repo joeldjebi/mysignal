@@ -101,7 +101,11 @@ return new class extends Migration
             ->whereNull('public_user_type_id')
             ->update(['public_user_type_id' => $defaultPublicUserTypeId]);
 
-        DB::statement('ALTER TABLE public_users ALTER COLUMN public_user_type_id SET NOT NULL');
+        match (DB::getDriverName()) {
+            'pgsql' => DB::statement('ALTER TABLE public_users ALTER COLUMN public_user_type_id SET NOT NULL'),
+            'mysql', 'mariadb' => DB::statement('ALTER TABLE public_users MODIFY public_user_type_id BIGINT UNSIGNED NOT NULL'),
+            default => null,
+        };
     }
 
     public function down(): void

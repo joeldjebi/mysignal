@@ -54,7 +54,7 @@ class SimplePaymentReceiptPdf
             ['line', 36, 408, 559, 408],
             ['text', 36, 384, 'F1', 10, '0.42 0.48 0.54', 'Document genere le'],
             ['text', 36, 366, 'F2', 12, '0.13 0.19 0.25', now()->format('d/m/Y H:i')],
-            ['text', 36, 332, 'F1', 11, '0.30 0.36 0.42', 'ACEPEN ALERTE - Recu numerique de paiement'],
+            ['text', 36, 332, 'F1', 11, '0.30 0.36 0.42', 'SIGNAL ALERTE - Recu numerique de paiement'],
         ];
 
         $stream = $this->buildContentStream($lines);
