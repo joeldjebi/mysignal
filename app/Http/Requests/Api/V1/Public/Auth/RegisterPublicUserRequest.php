@@ -51,7 +51,13 @@ class RegisterPublicUserRequest extends FormRequest
                 return;
             }
 
-            if ($publicUserType->profile_kind !== 'business') {
+            $typeCode = strtoupper((string) $publicUserType->code);
+
+            if (in_array($typeCode, ['UPE', 'UPTI'], true) && ! filled($this->input('business_sector'))) {
+                $validator->errors()->add('business_sector', 'Le secteur d activite est obligatoire.');
+            }
+
+            if ($typeCode !== 'UPE') {
                 return;
             }
 
@@ -59,7 +65,6 @@ class RegisterPublicUserRequest extends FormRequest
                 'company_name' => 'La raison sociale est obligatoire.',
                 'company_registration_number' => 'Le RCCM ou numero d immatriculation est obligatoire.',
                 'tax_identifier' => 'L identifiant fiscal est obligatoire.',
-                'business_sector' => 'Le secteur d activite est obligatoire.',
                 'company_address' => 'L adresse de l entreprise est obligatoire.',
             ] as $field => $message) {
                 if (! filled($this->input($field))) {

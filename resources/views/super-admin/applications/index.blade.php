@@ -226,6 +226,7 @@
 
                         <div class="actions-wrap mt-3">
                             <a href="{{ route('super-admin.organizations.index', ['application_id' => $application->id]) }}" class="btn btn-sm btn-outline-dark">Voir les organisations</a>
+                            <a href="{{ route('super-admin.signal-types.index', ['application_id' => $application->id]) }}" class="btn btn-sm btn-outline-dark">Voir les types de signaux</a>
                             <a href="{{ route('super-admin.applications.edit', $application) }}" class="btn btn-sm btn-outline-dark">Modifier</a>
                             <form method="POST" action="{{ route('super-admin.applications.toggle-status', $application) }}">
                                 @csrf

@@ -74,6 +74,10 @@
                     <span class="status-chip">Ordre {{ $application->sort_order }}</span>
                 </div>
                 <div class="text-secondary small mb-4">{{ $application->tagline ?: 'Aucun slogan renseigne.' }}</div>
+                <div class="d-flex flex-wrap gap-2 mb-4">
+                    <a href="{{ route('super-admin.signal-types.index', ['application_id' => $application->id]) }}" class="btn btn-sm btn-outline-dark">Voir les types de signaux</a>
+                    <a href="{{ route('super-admin.organizations.index', ['application_id' => $application->id]) }}" class="btn btn-sm btn-outline-dark">Voir les organisations</a>
+                </div>
                 <div class="vstack gap-3">
                     <div>
                         <div class="small text-secondary">Institutions</div>

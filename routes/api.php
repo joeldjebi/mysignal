@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\V1\Public\Locations\PublicLocationController;
 use App\Http\Controllers\Api\V1\Public\Meters\PublicMeterController;
 use App\Http\Controllers\Api\V1\Public\Payments\PublicReportPaymentController;
 use App\Http\Controllers\Api\V1\Public\Profile\PublicProfileController;
+use App\Http\Controllers\Api\V1\Public\ReparationCases\PublicReparationCaseController;
 use App\Http\Controllers\Api\V1\Public\Reports\PublicIncidentReportController;
 use App\Http\Controllers\Api\V1\Public\Signals\PublicSignalTypeController;
 use Illuminate\Support\Facades\Route;
@@ -51,6 +52,7 @@ Route::prefix('v1/public')->group(function (): void {
         Route::get('reports/{report}', [PublicIncidentReportController::class, 'show']);
         Route::post('reports/{report}/confirm-resolution', [PublicIncidentReportController::class, 'confirmResolution']);
         Route::post('reports/{report}/damages', [PublicIncidentReportController::class, 'storeDamage']);
+        Route::get('reparation-cases', [PublicReparationCaseController::class, 'index']);
         Route::get('payments', [PublicReportPaymentController::class, 'index']);
         Route::post('reports/{report}/payments', [PublicReportPaymentController::class, 'store']);
         Route::post('payments/{payment}/confirm', [PublicReportPaymentController::class, 'confirm']);

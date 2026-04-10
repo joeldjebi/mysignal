@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web\SuperAdmin;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -13,7 +14,7 @@ class AuthController extends Controller
     public function create(): View|RedirectResponse
     {
         if (Auth::check() && Auth::user()?->is_super_admin) {
-            return redirect()->route('super-admin.dashboard');
+            return redirect()->route($this->resolveRedirectRoute(Auth::user()));
         }
 
         return view('super-admin.auth.login');
@@ -36,19 +37,21 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
-        if (! $request->user()?->is_super_admin) {
+        $user = $request->user();
+
+        if (! $user || ! $user->is_super_admin) {
             Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
 
             return back()
                 ->withErrors([
-                    'email' => 'Ce compte ne dispose pas d\'un acces super admin.',
+                    'email' => 'Ce compte ne dispose pas d un acces super admin.',
                 ])
                 ->onlyInput('email');
         }
 
-        return redirect()->intended(route('super-admin.dashboard'));
+        return redirect()->intended(route($this->resolveRedirectRoute($user)));
     }
 
     public function destroy(Request $request): RedirectResponse
@@ -59,5 +62,30 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('super-admin.login');
+    }
+
+    private function resolveRedirectRoute(?User $user): string
+    {
+        if (! $user) {
+            return 'super-admin.login';
+        }
+
+        foreach ([
+            'SA_DASHBOARD_VIEW' => 'super-admin.dashboard',
+            'SA_SYSTEM_USERS_MANAGE' => 'super-admin.system-users.index',
+            'SA_REPARATION_CASES_MANAGE' => 'super-admin.reparation-cases.index',
+            'SA_PAYMENTS_VIEW' => 'super-admin.payments.index',
+            'SA_PUBLIC_USERS_MANAGE' => 'super-admin.public-users.index',
+            'SA_ORGANIZATIONS_MANAGE' => 'super-admin.organizations.index',
+            'SA_APPLICATIONS_MANAGE' => 'super-admin.applications.index',
+            'SA_ROLES_MANAGE' => 'super-admin.roles.index',
+            'SA_PERMISSIONS_MANAGE' => 'super-admin.permissions.index',
+        ] as $permissionCode => $routeName) {
+            if ($user->hasPermissionCode($permissionCode)) {
+                return $routeName;
+            }
+        }
+
+        return 'super-admin.login';
     }
 }

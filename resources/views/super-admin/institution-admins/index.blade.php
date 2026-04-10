@@ -144,11 +144,13 @@
                             <td class="text-end">
                                 <div class="actions-wrap">
                                     <a href="{{ route('super-admin.institution-admins.edit', $admin) }}" class="btn btn-sm btn-outline-dark">Modifier</a>
-                                    <form method="POST" action="{{ route('super-admin.institution-admins.toggle-status', $admin) }}">
-                                        @csrf
-                                        @method('PATCH')
-                                        <button class="btn btn-sm btn-outline-warning">{{ $admin->status === 'active' ? 'Desactiver' : 'Activer' }}</button>
-                                    </form>
+                                    @if (auth()->user()?->hasPermissionCode('SA_INSTITUTION_ADMINS_TOGGLE_STATUS'))
+                                        <form method="POST" action="{{ route('super-admin.institution-admins.toggle-status', $admin) }}">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button class="btn btn-sm btn-outline-warning">{{ $admin->status === 'active' ? 'Desactiver' : 'Activer' }}</button>
+                                        </form>
+                                    @endif
                                     <form method="POST" action="{{ route('super-admin.institution-admins.destroy', $admin) }}">
                                         @csrf
                                         @method('DELETE')

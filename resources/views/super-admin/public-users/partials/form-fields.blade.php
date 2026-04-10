@@ -3,7 +3,9 @@
     $selectedTypeId = old('public_user_type_id', $publicUser?->public_user_type_id ?? $defaultPublicUserType?->id);
     $selectedType = $publicUserTypes->firstWhere('id', (int) $selectedTypeId) ?? $defaultPublicUserType;
     $selectedPricingRule = $selectedType?->pricingRule;
-    $isBusinessProfile = $selectedType?->profile_kind === 'business';
+    $selectedTypeCode = strtoupper((string) ($selectedType?->code ?? ''));
+    $showBusinessFields = $selectedTypeCode === 'UPE';
+    $showSectorField = in_array($selectedTypeCode, ['UPE', 'UPTI'], true);
 @endphp
 
 <style>
@@ -115,6 +117,7 @@
                             <option
                                 value="{{ $publicUserType->id }}"
                                 data-profile-kind="{{ $publicUserType->profile_kind }}"
+                                data-type-code="{{ strtoupper((string) $publicUserType->code) }}"
                                 data-type-name="{{ $publicUserType->name }}"
                                 data-pricing-label="{{ $publicUserType->pricingRule?->label }}"
                                 data-pricing-amount="{{ $publicUserType->pricingRule ? number_format($publicUserType->pricingRule->amount, 0, ',', ' ') . ' ' . $publicUserType->pricingRule->currency : '' }}"
@@ -144,7 +147,7 @@
             <div class="public-user-summary-kicker">Synthese</div>
             <div class="public-user-summary-title" id="publicUserSummaryType-{{ $mode }}">{{ $selectedType?->name ?: 'Type non selectionne' }}</div>
             <div class="public-user-summary-copy" id="publicUserSummaryProfile-{{ $mode }}">
-                {{ $selectedType?->profile_kind === 'business' ? 'Compte entreprise avec informations juridiques et administratives.' : 'Compte particulier avec informations personnelles simplifiees.' }}
+                {{ $selectedTypeCode === 'UPE' ? 'Compte entreprise avec informations juridiques et administratives.' : ($selectedTypeCode === 'UPTI' ? 'Compte professionnel simplifie pour travailleur independant.' : 'Compte particulier avec informations personnelles simplifiees.') }}
             </div>
             <div class="public-user-summary-grid">
                 <div class="public-user-summary-box">
@@ -154,7 +157,7 @@
                 </div>
                 <div class="public-user-summary-box">
                     <div class="public-user-summary-label">Mode de profil</div>
-                    <div class="fw-semibold" id="publicUserSummaryKind-{{ $mode }}">{{ $selectedType?->profile_kind === 'business' ? 'Entreprise' : 'Particulier' }}</div>
+                    <div class="fw-semibold" id="publicUserSummaryKind-{{ $mode }}">{{ $selectedTypeCode === 'UPE' ? 'Entreprise' : ($selectedTypeCode === 'UPTI' ? 'Travailleur independant' : 'Particulier') }}</div>
                     <div class="small text-white-50 mt-1">Le formulaire s ajuste automatiquement.</div>
                 </div>
             </div>
@@ -205,7 +208,22 @@
         </div>
     </section>
 
-    <section class="public-user-section {{ $isBusinessProfile ? '' : 'business-fields-hidden' }}" id="publicUserBusinessFields-{{ $mode }}">
+    <section class="public-user-section {{ $showSectorField ? '' : 'business-fields-hidden' }}" id="publicUserSectorFields-{{ $mode }}">
+        <div class="public-user-section-title">Activite</div>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label">Secteur d activite</label>
+                <select class="form-select" name="business_sector">
+                    <option value="">Selectionner un secteur</option>
+                    @foreach ($businessSectors as $businessSector)
+                        <option value="{{ $businessSector->name }}" @selected(old('business_sector', $publicUser?->business_sector) === $businessSector->name)>{{ $businessSector->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+    </section>
+
+    <section class="public-user-section {{ $showBusinessFields ? '' : 'business-fields-hidden' }}" id="publicUserBusinessFields-{{ $mode }}">
         <div class="public-user-section-title">Informations Entreprise</div>
         <div class="row g-3">
             <div class="col-md-6">
@@ -219,15 +237,6 @@
             <div class="col-md-6">
                 <label class="form-label">Identifiant fiscal</label>
                 <input class="form-control" name="tax_identifier" value="{{ old('tax_identifier', $publicUser?->tax_identifier) }}">
-            </div>
-            <div class="col-md-6">
-                <label class="form-label">Secteur d activite</label>
-                <select class="form-select" name="business_sector">
-                    <option value="">Selectionner un secteur</option>
-                    @foreach ($businessSectors as $businessSector)
-                        <option value="{{ $businessSector->name }}" @selected(old('business_sector', $publicUser?->business_sector) === $businessSector->name)>{{ $businessSector->name }}</option>
-                    @endforeach
-                </select>
             </div>
             <div class="col-12">
                 <label class="form-label">Adresse de l entreprise</label>

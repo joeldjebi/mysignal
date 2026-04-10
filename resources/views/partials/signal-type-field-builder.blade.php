@@ -27,10 +27,11 @@
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Type de champ</label>
-                        <select name="field_types[]" class="form-select">
+                        <select name="field_types[]" class="form-select" data-signal-field-type-select>
                             <option value="text" @selected(old('field_types.'.$index, $field['type'] ?? 'text') === 'text')>Texte court</option>
                             <option value="number" @selected(old('field_types.'.$index, $field['type'] ?? 'text') === 'number')>Nombre</option>
                             <option value="textarea" @selected(old('field_types.'.$index, $field['type'] ?? 'text') === 'textarea')>Texte long</option>
+                            <option value="select" @selected(old('field_types.'.$index, $field['type'] ?? 'text') === 'select')>Liste déroulante</option>
                         </select>
                     </div>
                     <div class="col-md-1">
@@ -41,6 +42,11 @@
                     </div>
                     <div class="col-md-1 d-grid">
                         <button type="button" class="btn btn-outline-danger btn-sm" data-remove-signal-field>Retirer</button>
+                    </div>
+                    <div class="col-12 @if (old('field_types.'.$index, $field['type'] ?? 'text') !== 'select') d-none @endif" data-signal-field-options-wrap>
+                        <label class="form-label">Options de la liste</label>
+                        <textarea name="field_options[]" class="form-control" rows="3" placeholder="Internet&#10;SMS&#10;Voix">{{ old('field_options.'.$index, collect($field['options'] ?? [])->join("\n")) }}</textarea>
+                        <div class="small text-secondary mt-1">Une option par ligne. Ces valeurs seront proposées à l usager dans une liste.</div>
                     </div>
                 </div>
             </div>
@@ -58,10 +64,11 @@
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Type de champ</label>
-                        <select name="field_types[]" class="form-select">
+                        <select name="field_types[]" class="form-select" data-signal-field-type-select>
                             <option value="text">Texte court</option>
                             <option value="number">Nombre</option>
                             <option value="textarea">Texte long</option>
+                            <option value="select">Liste déroulante</option>
                         </select>
                     </div>
                     <div class="col-md-1">
@@ -72,6 +79,11 @@
                     </div>
                     <div class="col-md-1 d-grid">
                         <button type="button" class="btn btn-outline-danger btn-sm" data-remove-signal-field>Retirer</button>
+                    </div>
+                    <div class="col-12 d-none" data-signal-field-options-wrap>
+                        <label class="form-label">Options de la liste</label>
+                        <textarea name="field_options[]" class="form-control" rows="3" placeholder="Internet&#10;SMS&#10;Voix"></textarea>
+                        <div class="small text-secondary mt-1">Une option par ligne. Ces valeurs seront proposées à l usager dans une liste.</div>
                     </div>
                 </div>
             </div>
@@ -94,10 +106,11 @@
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Type de champ</label>
-                    <select name="field_types[]" class="form-select">
+                    <select name="field_types[]" class="form-select" data-signal-field-type-select>
                         <option value="text">Texte court</option>
                         <option value="number">Nombre</option>
                         <option value="textarea">Texte long</option>
+                        <option value="select">Liste déroulante</option>
                     </select>
                 </div>
                 <div class="col-md-1">
@@ -109,17 +122,37 @@
                 <div class="col-md-1 d-grid">
                     <button type="button" class="btn btn-outline-danger btn-sm" data-remove-signal-field>Retirer</button>
                 </div>
+                <div class="col-12 d-none" data-signal-field-options-wrap>
+                    <label class="form-label">Options de la liste</label>
+                    <textarea name="field_options[]" class="form-control" rows="3" placeholder="Internet&#10;SMS&#10;Voix"></textarea>
+                    <div class="small text-secondary mt-1">Une option par ligne. Ces valeurs seront proposées à l usager dans une liste.</div>
+                </div>
             </div>
         </div>
     </template>
     <script>
         (() => {
+            function syncFieldTypeUi(row) {
+                const typeSelect = row.querySelector('[data-signal-field-type-select]');
+                const optionsWrap = row.querySelector('[data-signal-field-options-wrap]');
+                const optionsInput = optionsWrap?.querySelector('textarea');
+                const isSelect = typeSelect?.value === 'select';
+
+                optionsWrap?.classList.toggle('d-none', !isSelect);
+
+                if (optionsInput) {
+                    optionsInput.disabled = !isSelect;
+                }
+            }
+
             function syncBuilderIndexes(builder) {
                 builder.querySelectorAll('[data-signal-field-row]').forEach((row, index) => {
                     const checkbox = row.querySelector('[data-field-required]');
                     if (checkbox) {
                         checkbox.value = String(index);
                     }
+
+                    syncFieldTypeUi(row);
                 });
             }
 
@@ -161,6 +194,16 @@
 
                     removeButton.closest('[data-signal-field-row]')?.remove();
                     syncBuilderIndexes(builder);
+                });
+
+                builder.addEventListener('change', (event) => {
+                    const typeSelect = event.target.closest('[data-signal-field-type-select]');
+
+                    if (!typeSelect) {
+                        return;
+                    }
+
+                    syncFieldTypeUi(typeSelect.closest('[data-signal-field-row]'));
                 });
             });
         })();

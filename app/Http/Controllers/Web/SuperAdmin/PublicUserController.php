@@ -9,6 +9,7 @@ use App\Models\PublicUser;
 use App\Models\PublicUserType;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -91,10 +92,90 @@ class PublicUserController extends Controller
                 'incidentReports.organization',
                 'incidentReports.meter',
                 'incidentReports.payments',
+                'incidentReports.reparationCase',
             ]),
             'publicUserTypes' => PublicUserType::query()->with('pricingRule')->where('status', 'active')->orderBy('sort_order')->orderBy('name')->get(),
             'communes' => Commune::query()->where('status', 'active')->orderBy('name')->get(),
             'businessSectors' => BusinessSector::query()->where('status', 'active')->orderBy('sort_order')->orderBy('name')->get(),
+        ]);
+    }
+
+    public function show(PublicUser $publicUser): View
+    {
+        $reports = $publicUser->incidentReports()
+            ->with([
+                'application',
+                'organization',
+                'meter',
+                'payments',
+                'reparationCase',
+                'commune',
+            ])
+            ->latest()
+            ->get()
+            ->filter(function ($report): bool {
+                if (filled(request('report_search'))) {
+                    $search = mb_strtolower(trim((string) request('report_search')));
+                    $haystack = mb_strtolower(implode(' ', array_filter([
+                        $report->reference,
+                        $report->signal_label,
+                        $report->signal_code,
+                        $report->description,
+                        $report->application?->name,
+                        $report->organization?->name,
+                    ])));
+
+                    if (! str_contains($haystack, $search)) {
+                        return false;
+                    }
+                }
+
+                if (filled(request('report_status')) && $report->status !== request('report_status')) {
+                    return false;
+                }
+
+                if (filled(request('report_case_status'))) {
+                    $hasDamage = $report->damage_declared_at !== null || filled($report->damage_summary) || filled($report->damage_amount_estimated);
+                    $slaBreached = filled($report->target_sla_hours) && $report->created_at !== null
+                        ? (($report->created_at->diffInMinutes($report->resolved_at ?? now()) / 60) >= (float) $report->target_sla_hours)
+                        : false;
+                    $isEligibleForReparationCase = $slaBreached || $hasDamage;
+                    $caseStatus = (string) request('report_case_status');
+
+                    if ($caseStatus === 'opened' && ! $report->reparationCase) {
+                        return false;
+                    }
+
+                    if ($caseStatus === 'to_open' && ($report->reparationCase || ! $isEligibleForReparationCase)) {
+                        return false;
+                    }
+
+                    if ($caseStatus === 'not_eligible' && ($report->reparationCase || $isEligibleForReparationCase)) {
+                        return false;
+                    }
+                }
+
+                return true;
+            })
+            ->values();
+
+        $perPage = 8;
+        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+        $paginatedReports = new LengthAwarePaginator(
+            $reports->forPage($currentPage, $perPage)->values(),
+            $reports->count(),
+            $perPage,
+            $currentPage,
+            [
+                'path' => request()->url(),
+                'query' => request()->query(),
+            ]
+        );
+
+        return view('super-admin.public-users.show', [
+            'publicUser' => $publicUser->load('publicUserType.pricingRule'),
+            'reports' => $paginatedReports,
+            'reportStatuses' => ['submitted', 'in_progress', 'resolved', 'rejected', 'closed'],
         ]);
     }
 
@@ -166,12 +247,17 @@ class PublicUserController extends Controller
 
         $publicUserType = PublicUserType::query()->findOrFail($attributes['public_user_type_id']);
 
-        if ($publicUserType->profile_kind === 'business') {
+        $typeCode = strtoupper((string) $publicUserType->code);
+
+        if (in_array($typeCode, ['UPE', 'UPTI'], true) && ! filled($attributes['business_sector'] ?? null)) {
+            throw ValidationException::withMessages(['business_sector' => ['Le secteur d activite est obligatoire.']]);
+        }
+
+        if ($typeCode === 'UPE') {
             foreach ([
                 'company_name' => 'La raison sociale est obligatoire.',
                 'company_registration_number' => 'Le RCCM ou numero d immatriculation est obligatoire.',
                 'tax_identifier' => 'L identifiant fiscal est obligatoire.',
-                'business_sector' => 'Le secteur d activite est obligatoire.',
                 'company_address' => 'L adresse de l entreprise est obligatoire.',
             ] as $field => $message) {
                 if (! filled($attributes[$field] ?? null)) {
