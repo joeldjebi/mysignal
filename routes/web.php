@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Web\Public\PublicPortalController;
 use App\Http\Controllers\Web\Institution\AuthController as InstitutionAuthController;
+use App\Http\Controllers\Web\Institution\ActivityLogController as InstitutionActivityLogController;
 use App\Http\Controllers\Web\Institution\DashboardController as InstitutionDashboardController;
 use App\Http\Controllers\Web\Institution\DamageController as InstitutionDamageController;
 use App\Http\Controllers\Web\Institution\MeterController as InstitutionMeterController;
@@ -19,6 +20,7 @@ use App\Http\Controllers\Web\SuperAdmin\CommuneController;
 use App\Http\Controllers\Web\SuperAdmin\CountryController;
 use App\Http\Controllers\Web\SuperAdmin\BusinessSectorController;
 use App\Http\Controllers\Web\SuperAdmin\FeatureController;
+use App\Http\Controllers\Web\SuperAdmin\ActivityLogController as SuperAdminActivityLogController;
 use App\Http\Controllers\Web\SuperAdmin\InstitutionAdminController;
 use App\Http\Controllers\Web\SuperAdmin\InternalAccessController;
 use App\Http\Controllers\Web\SuperAdmin\InternalHomeController;
@@ -133,6 +135,9 @@ Route::prefix('institution')->name('institution.')->group(function (): void {
         Route::get('permissions', [InstitutionPermissionController::class, 'index'])
             ->middleware('institution_permission:INSTITUTION_MANAGE_PERMISSIONS')
             ->name('permissions.index');
+        Route::get('activity-logs', [InstitutionActivityLogController::class, 'index'])
+            ->middleware('institution_feature:INSTITUTION_ACTIVITY_LOGS')
+            ->name('activity-logs.index');
         Route::post('logout', [InstitutionAuthController::class, 'destroy'])->name('logout');
     });
 });
@@ -188,13 +193,14 @@ Route::prefix('sa')->name('super-admin.')->group(function (): void {
         Route::patch('public-users/{publicUser}/toggle-status', [PublicUserController::class, 'toggleStatus'])->middleware('super_admin_permission:SA_PUBLIC_USERS_TOGGLE_STATUS')->name('public-users.toggle-status');
         Route::get('public-reports', [PublicIncidentReportController::class, 'index'])->middleware('super_admin_permission:SA_PUBLIC_REPORTS_VIEW')->name('public-reports.index');
         Route::get('payments', [PaymentController::class, 'index'])->middleware('super_admin_permission:SA_PAYMENTS_VIEW')->name('payments.index');
+        Route::get('activity-logs', [SuperAdminActivityLogController::class, 'index'])->name('activity-logs.index');
         Route::get('reparation-cases', [ReparationCaseController::class, 'index'])->middleware('super_admin_permission:SA_REPARATION_CASES_MANAGE')->name('reparation-cases.index');
         Route::post('reparation-cases', [ReparationCaseController::class, 'store'])->middleware('super_admin_permission:SA_REPARATION_CASES_MANAGE')->name('reparation-cases.store');
         Route::get('reparation-cases/{reparationCase}', [ReparationCaseController::class, 'show'])->middleware('super_admin_permission:SA_REPARATION_CASES_MANAGE')->name('reparation-cases.show');
         Route::put('reparation-cases/{reparationCase}', [ReparationCaseController::class, 'update'])->middleware('super_admin_permission:SA_REPARATION_CASES_MANAGE')->name('reparation-cases.update');
         Route::post('reparation-cases/{reparationCase}/steps', [ReparationCaseController::class, 'storeStep'])->middleware('super_admin_permission:SA_REPARATION_CASES_MANAGE')->name('reparation-cases.steps.store');
 
-        Route::resource('roles', RoleController::class)->except(['create', 'show'])->middleware('super_admin_permission:SA_ROLES_MANAGE');
+        Route::resource('roles', RoleController::class)->except(['create'])->middleware('super_admin_permission:SA_ROLES_MANAGE');
         Route::patch('roles/{role}/toggle-status', [RoleController::class, 'toggleStatus'])->middleware('super_admin_permission:SA_ROLES_MANAGE')->name('roles.toggle-status');
 
         Route::resource('permissions', PermissionController::class)->except(['create', 'show'])->middleware('super_admin_permission:SA_PERMISSIONS_MANAGE');

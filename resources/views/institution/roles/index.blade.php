@@ -32,17 +32,35 @@
                     </div>
                     @if ($authorization['canManageInstitutionPermissions'])
                         <div>
-                            <label class="form-label">Permissions</label>
-                            <div class="border rounded-3 p-3" style="max-height: 260px; overflow:auto;">
+                            <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                                <label class="form-label mb-0">Permissions</label>
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-sm btn-outline-dark" data-check-all-permissions>Tout cocher</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" data-uncheck-all-permissions>Tout decocher</button>
+                                </div>
+                            </div>
+                            <div class="small text-secondary mb-2">Choisis les permissions qui seront heritees automatiquement par les utilisateurs de ce role local.</div>
+                            <div class="border rounded-3 p-3" style="max-height: 420px; overflow:auto;">
                                 @forelse ($groupedPermissions as $groupLabel => $groupPermissions)
-                                    <div class="mb-3">
-                                        <div class="small text-uppercase fw-bold text-secondary mb-2">{{ $groupLabel }}</div>
-                                        @foreach ($groupPermissions as $permission)
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" value="{{ $permission->id }}" name="permission_ids[]" id="role-permission-create-{{ $permission->id }}" @checked(in_array($permission->id, old('permission_ids', [])))>
-                                                <label class="form-check-label" for="role-permission-create-{{ $permission->id }}">{{ $permission->name }}</label>
-                                            </div>
-                                        @endforeach
+                                    <div class="mb-3" data-permission-group>
+                                        <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                                            <div class="small text-uppercase fw-bold text-secondary">{{ $groupLabel }}</div>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary" data-check-group-permissions>Cocher le groupe</button>
+                                        </div>
+                                        <div class="vstack gap-2">
+                                            @foreach ($groupPermissions as $permission)
+                                                <div class="border rounded-3 p-2">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" value="{{ $permission->id }}" name="permission_ids[]" id="role-permission-create-{{ $permission->id }}" @checked(in_array($permission->id, old('permission_ids', [])))>
+                                                        <label class="form-check-label w-100" for="role-permission-create-{{ $permission->id }}">
+                                                            <div class="fw-semibold">{{ $permission->name }}</div>
+                                                            <div class="small text-secondary">{{ $permission->code }}</div>
+                                                            <div class="small text-secondary">{{ $permission->description ?: 'Aucune description renseignee.' }}</div>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
                                     </div>
                                 @empty
                                     <div class="text-secondary small">Aucune permission disponible.</div>
@@ -133,4 +151,38 @@
             </section>
         </div>
     </div>
+@endsection
+
+@section('scripts')
+    <script>
+        (() => {
+            document.querySelectorAll('form').forEach((form) => {
+                if (!form.querySelector('input[name="permission_ids[]"]')) {
+                    return;
+                }
+
+                const permissionCheckboxes = () => Array.from(form.querySelectorAll('input[name="permission_ids[]"]'));
+
+                form.querySelector('[data-check-all-permissions]')?.addEventListener('click', () => {
+                    permissionCheckboxes().forEach((checkbox) => {
+                        checkbox.checked = true;
+                    });
+                });
+
+                form.querySelector('[data-uncheck-all-permissions]')?.addEventListener('click', () => {
+                    permissionCheckboxes().forEach((checkbox) => {
+                        checkbox.checked = false;
+                    });
+                });
+
+                form.querySelectorAll('[data-permission-group]').forEach((group) => {
+                    group.querySelector('[data-check-group-permissions]')?.addEventListener('click', () => {
+                        group.querySelectorAll('input[name="permission_ids[]"]').forEach((checkbox) => {
+                            checkbox.checked = true;
+                        });
+                    });
+                });
+            });
+        })();
+    </script>
 @endsection

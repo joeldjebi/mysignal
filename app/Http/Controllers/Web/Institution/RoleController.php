@@ -102,13 +102,14 @@ class RoleController extends Controller
         $authorization = $this->institutionAuthorizationFlags();
         abort_unless($this->canManageInstitutionRoleRecord($role, $context['feature_codes']), 403);
 
+        $role->load('permissions');
         $permissions = $this->delegableInstitutionPermissions($context['feature_codes']);
 
         return view('institution/roles/edit', [
             'organization' => $organization,
             'features' => $context['feature_codes'],
             'activeNav' => 'roles',
-            'role' => $role->load('permissions'),
+            'role' => $role,
             'permissions' => $permissions,
             'groupedPermissions' => $permissions->groupBy(function ($permission): string {
                 return match (true) {
@@ -120,6 +121,7 @@ class RoleController extends Controller
             })->sortKeys(),
             'displayCode' => Str::after($role->code, strtoupper((string) $organization->code).'_'),
             'authorization' => $authorization,
+            'assignedPermissionIds' => $role->permissions->pluck('id')->all(),
         ]);
     }
 

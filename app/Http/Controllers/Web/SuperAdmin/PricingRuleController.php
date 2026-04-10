@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web\SuperAdmin;
 
 use App\Http\Controllers\Controller;
 use App\Models\PricingRule;
+use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -21,7 +22,7 @@ class PricingRuleController extends Controller
         ]);
     }
 
-    public function update(Request $request): RedirectResponse
+    public function update(Request $request, ActivityLogger $activityLogger): RedirectResponse
     {
         $attributes = $request->validate([
             'pricing_rule_id' => ['nullable', 'exists:pricing_rules,id'],
@@ -37,7 +38,7 @@ class PricingRuleController extends Controller
             ? PricingRule::query()->find($attributes['pricing_rule_id'])
             : null;
 
-        PricingRule::query()->updateOrCreate(
+        $pricingRule = PricingRule::query()->updateOrCreate(
             ['id' => $attributes['pricing_rule_id'] ?? null],
             [
                 'code' => strtolower(trim((string) $attributes['code'])),
@@ -50,23 +51,50 @@ class PricingRuleController extends Controller
             ],
         );
 
+        $activityLogger->log(
+            $existingRule ? 'pricing_rule.updated' : 'pricing_rule.created',
+            $existingRule ? 'Mise a jour d une tarification.' : 'Creation d une tarification.',
+            $pricingRule,
+            [
+                'code' => $pricingRule->code,
+                'label' => $pricingRule->label,
+                'amount' => $pricingRule->amount,
+                'currency' => $pricingRule->currency,
+                'status' => $pricingRule->status,
+            ],
+            $request
+        );
+
         return redirect()->route('super-admin.pricing.edit')
             ->with('success', 'La tarification a ete enregistree.');
     }
 
-    public function destroy(): RedirectResponse
+    public function destroy(Request $request, ActivityLogger $activityLogger): RedirectResponse
     {
         $pricingRuleId = request()->integer('pricing_rule_id');
 
         if ($pricingRuleId > 0) {
-            PricingRule::query()->whereKey($pricingRuleId)->delete();
+            $pricingRule = PricingRule::query()->find($pricingRuleId);
+
+            if ($pricingRule !== null) {
+                $snapshot = $pricingRule->only(['id', 'code', 'label', 'amount', 'currency', 'status']);
+                $pricingRule->delete();
+
+                $activityLogger->log(
+                    'pricing_rule.deleted',
+                    'Suppression d une tarification.',
+                    PricingRule::class,
+                    $snapshot,
+                    $request
+                );
+            }
         }
 
         return redirect()->route('super-admin.pricing.edit')
             ->with('success', 'La tarification a ete supprimee.');
     }
 
-    public function toggleStatus(): RedirectResponse
+    public function toggleStatus(Request $request, ActivityLogger $activityLogger): RedirectResponse
     {
         $pricingRule = PricingRule::query()->find(request()->integer('pricing_rule_id'));
 
@@ -74,6 +102,16 @@ class PricingRuleController extends Controller
             $pricingRule->update([
                 'status' => $pricingRule->status === 'active' ? 'inactive' : 'active',
             ]);
+
+            $activityLogger->log(
+                'pricing_rule.status_toggled',
+                'Changement de statut d une tarification.',
+                $pricingRule,
+                [
+                    'status' => $pricingRule->status,
+                ],
+                $request
+            );
         }
 
         return back()->with('success', 'Le statut de la tarification a ete mis a jour.');

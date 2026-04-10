@@ -2,49 +2,15 @@
 
 @section('title', config('app.name').' | Utilisateurs internes')
 @section('page-title', 'Utilisateurs internes')
-@section('page-description', 'Creer les comptes internes, puis leur attribuer roles et permissions pour le pilotage des dossiers et operations.')
+@section('page-description', 'Creer les comptes internes, puis leur attribuer des roles pour le pilotage des dossiers et operations.')
 
 @section('header-badges')
     <span class="badge-soft">{{ $systemUsers->total() }} utilisateurs</span>
     <span class="badge-soft">{{ $roles->count() }} roles actifs</span>
-    <span class="badge-soft">{{ $permissions->count() }} permissions actives</span>
     <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#createSystemUserModal">Nouvel utilisateur</button>
 @endsection
 
 @section('content')
-    @php
-        $permissionGroups = $permissions
-            ->groupBy(function ($permission) {
-                $segments = explode('_', (string) $permission->code);
-
-                if (($segments[0] ?? null) === 'SA') {
-                    return match ($segments[1] ?? null) {
-                        'ACCESS' => 'Acces au portail',
-                        'DASHBOARD' => 'Dashboard',
-                        'PUBLIC' => 'Usagers publics et signalements',
-                        'PAYMENTS' => 'Paiements',
-                        'INSTITUTION' => 'Admins institutionnels',
-                        'SYSTEM' => 'Utilisateurs internes',
-                        'ROLES' => 'Roles',
-                        'PERMISSIONS' => 'Permissions',
-                        'REPARATION' => 'Dossiers contentieux',
-                        'APPLICATIONS' => 'Applications',
-                        'FEATURES' => 'Fonctionnalites',
-                        'SLA' => 'SLA',
-                        'ORGANIZATIONS' => 'Organisations',
-                        'ORGANIZATION' => 'Types d organisation',
-                        'PRICING' => 'Tarification',
-                        'COUNTRIES', 'CITIES', 'COMMUNES' => 'Geographie',
-                        'BUSINESS' => 'Secteurs',
-                        default => 'Autres permissions SA',
-                    };
-                }
-
-                return 'Autres permissions';
-            })
-            ->sortKeys();
-    @endphp
-
     <section class="panel-card">
         <div class="fw-bold mb-3">Liste des utilisateurs internes</div>
         <form method="GET" class="filter-bar">
@@ -137,7 +103,7 @@
                 <div class="modal-header">
                     <div>
                         <h5 class="modal-title fw-bold">Nouvel utilisateur interne</h5>
-                        <div class="small text-secondary">Creer un compte et attribuer ses roles et permissions.</div>
+                        <div class="small text-secondary">Creer un compte et attribuer ses roles.</div>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
                 </div>
@@ -146,9 +112,9 @@
                     <div class="modal-body">
                         <div class="alert alert-light border rounded-4 mb-4">
                             <div class="fw-bold mb-2">Comment attribuer les droits</div>
-                            <div class="small text-secondary mb-1">Utilise d abord un ou plusieurs roles pour donner un ensemble coherent de droits.</div>
-                            <div class="small text-secondary mb-1">Ajoute ensuite des permissions directes seulement pour completer un besoin precis.</div>
-                            <div class="small text-secondary mb-0">Exemple : un huissier peut recevoir un role metier, puis une permission supplementaire de consultation si necessaire.</div>
+                            <div class="small text-secondary mb-1">Les utilisateurs internes heritent maintenant de leurs droits uniquement via les roles.</div>
+                            <div class="small text-secondary mb-1">Choisis donc un ou plusieurs roles coherents avec le metier du compte.</div>
+                            <div class="small text-secondary mb-0">Exemple : un huissier ou un avocat recoit un role metier, et ses permissions viennent automatiquement de ce role.</div>
                         </div>
 
                         <div class="row g-3">
@@ -169,8 +135,8 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Roles</label>
-                                <div class="small text-secondary mb-2">Les roles regroupent plusieurs permissions. C est la methode recommandee.</div>
-                                <div class="border rounded-3 p-3" style="max-height: 280px; overflow:auto;">
+                                <div class="small text-secondary mb-2">Les roles regroupent plusieurs permissions. C est desormais l unique methode d attribution des droits.</div>
+                                <div class="border rounded-3 p-3" style="max-height: 360px; overflow:auto;">
                                     @forelse ($roles as $role)
                                         <div class="border rounded-3 p-2 mb-2">
                                             <div class="form-check">
@@ -187,30 +153,21 @@
                                     @endforelse
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Permissions directes</label>
-                                <div class="small text-secondary mb-2">A utiliser pour un ajustement fin, permission par permission.</div>
-                                <div class="border rounded-3 p-3" style="max-height: 280px; overflow:auto;">
-                                    @forelse ($permissionGroups as $groupLabel => $groupPermissions)
-                                        <div class="mb-3">
-                                            <div class="fw-bold small text-uppercase text-secondary mb-2">{{ $groupLabel }}</div>
-                                            <div class="vstack gap-2">
-                                                @foreach ($groupPermissions as $permission)
-                                                    <div class="border rounded-3 p-2">
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="checkbox" value="{{ $permission->id }}" name="permission_ids[]" id="create-permission-{{ $permission->id }}" @checked(in_array($permission->id, old('permission_ids', [])))>
-                                                            <label class="form-check-label w-100" for="create-permission-{{ $permission->id }}">
-                                                                <div class="fw-semibold">{{ $permission->name }}</div>
-                                                                <div class="small text-secondary">{{ $permission->code }}</div>
-                                                                <div class="small text-secondary">{{ $permission->description ?: 'Aucune description renseignee.' }}</div>
-                                                            </label>
-                                                        </div>
-                                                    </div>
-                                                @endforeach
-                                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Utilisateurs internes dont l activite est visible</label>
+                                <div class="small text-secondary mb-1">Ce parametre est utile si ce compte doit voir les activites de certains utilisateurs internes choisis par le super admin.</div>
+                                <div class="small text-secondary mb-2">Le role attribue doit alors contenir la permission <span class="fw-semibold">Voir activites utilisateurs internes</span> (<code>SA_ACTIVITY_LOGS_VIEW_INTERNAL</code>) dans la categorie <span class="fw-semibold">Journaux d activite</span>.</div>
+                                <div class="border rounded-3 p-3" style="max-height: 220px; overflow:auto;">
+                                    @forelse ($visibleActivityUsers as $visibleUser)
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="checkbox" value="{{ $visibleUser->id }}" name="activity_visible_user_ids[]" id="create-activity-visible-user-{{ $visibleUser->id }}" @checked(in_array($visibleUser->id, old('activity_visible_user_ids', [])))>
+                                            <label class="form-check-label" for="create-activity-visible-user-{{ $visibleUser->id }}">
+                                                <span class="d-block fw-semibold">{{ $visibleUser->name }}</span>
+                                                <span class="small text-secondary">{{ $visibleUser->email }}</span>
+                                            </label>
                                         </div>
                                     @empty
-                                        <div class="text-secondary small">Aucune permission active disponible.</div>
+                                        <div class="text-secondary small">Aucun utilisateur interne disponible.</div>
                                     @endforelse
                                 </div>
                             </div>

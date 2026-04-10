@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Web\Institution;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
+use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -25,7 +27,7 @@ class AuthController extends Controller
         return view('institution.auth.login');
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, ActivityLogger $activityLogger): RedirectResponse
     {
         $credentials = $request->validate([
             'email' => ['required', 'email'],
@@ -56,11 +58,37 @@ class AuthController extends Controller
                 ->onlyInput('email');
         }
 
+        if ($user instanceof User) {
+            $activityLogger->log(
+                'institution.login',
+                'Connexion au portail institutionnel.',
+                $user,
+                [],
+                $request,
+                $user,
+                'institution',
+            );
+        }
+
         return redirect()->intended(route('institution.dashboard'));
     }
 
-    public function destroy(Request $request): RedirectResponse
+    public function destroy(Request $request, ActivityLogger $activityLogger): RedirectResponse
     {
+        $user = $request->user();
+
+        if ($user instanceof User) {
+            $activityLogger->log(
+                'institution.logout',
+                'Deconnexion du portail institutionnel.',
+                $user,
+                [],
+                $request,
+                $user,
+                'institution',
+            );
+        }
+
         Auth::logout();
 
         $request->session()->invalidate();

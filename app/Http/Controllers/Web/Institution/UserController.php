@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web\Institution;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Web\Institution\Concerns\InteractsWithInstitutionContext;
 use App\Models\User;
+use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -60,7 +61,7 @@ class UserController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, ActivityLogger $activityLogger): RedirectResponse
     {
         $context = $this->institutionContext();
         $organization = $context['organization'];
@@ -77,8 +78,10 @@ class UserController extends Controller
 
         $this->assertAllowedSelections($attributes, $allowedRoleIds, $allowedPermissionIds);
 
-        DB::transaction(function () use ($attributes, $organization, $request, $authorization): void {
-            $user = User::query()->create([
+        $createdUser = null;
+
+        DB::transaction(function () use ($attributes, $organization, $request, $authorization, &$createdUser): void {
+            $createdUser = User::query()->create([
                 'organization_id' => $organization->id,
                 'name' => $attributes['name'],
                 'email' => $attributes['email'],
@@ -90,13 +93,25 @@ class UserController extends Controller
             ]);
 
             if ($authorization['canManageInstitutionRoles']) {
-                $user->roles()->sync($attributes['role_ids'] ?? []);
+                $createdUser->roles()->sync($attributes['role_ids'] ?? []);
             }
 
             if ($authorization['canManageInstitutionPermissions']) {
-                $user->permissions()->sync($attributes['permission_ids'] ?? []);
+                $createdUser->permissions()->sync($attributes['permission_ids'] ?? []);
             }
         });
+
+        if ($createdUser instanceof User) {
+            $activityLogger->log(
+                'institution.user.created',
+                'Creation d un collaborateur institutionnel.',
+                $createdUser,
+                [],
+                $request,
+                $request->user(),
+                'institution',
+            );
+        }
 
         return redirect()->route('institution.users.index')
             ->with('success', 'Le collaborateur a ete cree.');
@@ -129,7 +144,7 @@ class UserController extends Controller
         ]);
     }
 
-    public function update(Request $request, User $user): RedirectResponse
+    public function update(Request $request, User $user, ActivityLogger $activityLogger): RedirectResponse
     {
         $context = $this->institutionContext();
         $organization = $context['organization'];
@@ -170,11 +185,21 @@ class UserController extends Controller
             }
         });
 
+        $activityLogger->log(
+            'institution.user.updated',
+            'Mise a jour d un collaborateur institutionnel.',
+            $user,
+            [],
+            $request,
+            $request->user(),
+            'institution',
+        );
+
         return redirect()->route('institution.users.index')
             ->with('success', 'Le collaborateur a ete mis a jour.');
     }
 
-    public function destroy(User $user): RedirectResponse
+    public function destroy(Request $request, User $user, ActivityLogger $activityLogger): RedirectResponse
     {
         $context = $this->institutionContext();
         $organization = $context['organization'];
@@ -187,13 +212,23 @@ class UserController extends Controller
             ]);
         }
 
+        $activityLogger->log(
+            'institution.user.deleted',
+            'Suppression d un collaborateur institutionnel.',
+            $user,
+            [],
+            $request,
+            $request->user(),
+            'institution',
+        );
+
         $user->delete();
 
         return redirect()->route('institution.users.index')
             ->with('success', 'Le collaborateur a ete supprime.');
     }
 
-    public function toggleStatus(User $user): RedirectResponse
+    public function toggleStatus(Request $request, User $user, ActivityLogger $activityLogger): RedirectResponse
     {
         $context = $this->institutionContext();
         $organization = $context['organization'];
@@ -209,6 +244,18 @@ class UserController extends Controller
         $user->update([
             'status' => $user->status === 'active' ? 'inactive' : 'active',
         ]);
+
+        $activityLogger->log(
+            'institution.user.status_toggled',
+            'Changement de statut d un collaborateur institutionnel.',
+            $user,
+            [
+                'status' => $user->status,
+            ],
+            $request,
+            $request->user(),
+            'institution',
+        );
 
         return back()->with('success', 'Le statut du collaborateur a ete mis a jour.');
     }

@@ -441,6 +441,17 @@
                     </a>
                 @endif
 
+                @if (in_array('INSTITUTION_ACTIVITY_LOGS', $features, true))
+                    <div class="sidebar-label">Journal</div>
+                    <a href="{{ route('institution.activity-logs.index') }}" class="nav-pill {{ $activeNav === 'activity-logs' ? 'active' : '' }}">
+                        <span class="nav-icon">LG</span>
+                        <span>
+                            <span class="d-block fw-semibold">Mes activites</span>
+                            <span class="small text-white-50">Historique de mes actions</span>
+                        </span>
+                    </a>
+                @endif
+
                 @if ($canViewSla || $canManageSignalTypes)
                     <div class="sidebar-label">Gouvernance</div>
                     @if ($canManageSignalTypes)

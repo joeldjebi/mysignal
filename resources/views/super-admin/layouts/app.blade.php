@@ -228,11 +228,15 @@
     </style>
 </head>
 <body>
-    @php($authUser = auth()->user())
-    @php($isInternalPortalUser = $authUser && ! $authUser->is_super_admin)
-    @php($portalTitle = $isInternalPortalUser ? 'Backoffice' : 'Super Admin')
-    @php($portalDescription = $isInternalPortalUser ? 'Espace operationnel reserve aux utilisateurs internes autorises.' : 'Parametrage global, gouvernance et referentiels de la plateforme.')
-    @php($logoutRoute = $isInternalPortalUser ? 'backoffice.logout' : 'super-admin.logout')
+    @php
+        $authUser = auth()->user();
+        $isInternalPortalUser = $authUser && ! $authUser->is_super_admin;
+        $portalTitle = $isInternalPortalUser ? 'Backoffice' : 'Super Admin';
+        $portalDescription = $isInternalPortalUser
+            ? 'Espace operationnel reserve aux utilisateurs internes autorises.'
+            : 'Parametrage global, gouvernance et referentiels de la plateforme.';
+        $logoutRoute = $isInternalPortalUser ? 'backoffice.logout' : 'super-admin.logout';
+    @endphp
     <div class="dashboard-shell">
         <aside class="sidebar">
             <div class="sidebar-brand">
@@ -340,6 +344,12 @@
                     <a href="{{ route('super-admin.payments.index') }}" class="nav-pill {{ request()->routeIs('super-admin.payments.*') ? 'active' : '' }}">
                         <span class="nav-icon">PY</span>
                         <span><span class="d-block fw-semibold">Paiements</span><span class="small text-white-50">Historique des transactions</span></span>
+                    </a>
+                @endif
+                @if ($authUser?->is_super_admin || $authUser?->hasPermissionCode('SA_ACTIVITY_LOGS_VIEW_SELF') || $authUser?->hasPermissionCode('SA_ACTIVITY_LOGS_VIEW_INSTITUTION') || $authUser?->hasPermissionCode('SA_ACTIVITY_LOGS_VIEW_PUBLIC') || $authUser?->hasPermissionCode('SA_ACTIVITY_LOGS_VIEW_INTERNAL'))
+                    <a href="{{ route('super-admin.activity-logs.index') }}" class="nav-pill {{ request()->routeIs('super-admin.activity-logs.*') ? 'active' : '' }}">
+                        <span class="nav-icon">LG</span>
+                        <span><span class="d-block fw-semibold">Journaux d activite</span><span class="small text-white-50">Historique des actions</span></span>
                     </a>
                 @endif
                 @if ($authUser?->hasPermissionCode('SA_REPARATION_CASES_MANAGE'))

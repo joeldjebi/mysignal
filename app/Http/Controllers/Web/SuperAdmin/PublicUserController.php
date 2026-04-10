@@ -7,6 +7,7 @@ use App\Models\BusinessSector;
 use App\Models\Commune;
 use App\Models\PublicUser;
 use App\Models\PublicUserType;
+use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -57,11 +58,11 @@ class PublicUserController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, ActivityLogger $activityLogger): RedirectResponse
     {
         $attributes = $this->validatedAttributes($request);
 
-        PublicUser::query()->create([
+        $publicUser = PublicUser::query()->create([
             'public_user_type_id' => $attributes['public_user_type_id'],
             'first_name' => $attributes['first_name'],
             'last_name' => $attributes['last_name'],
@@ -78,6 +79,18 @@ class PublicUserController extends Controller
             'password' => Hash::make($attributes['password']),
             'status' => 'active',
         ]);
+
+        $activityLogger->log(
+            'public_user.created',
+            'Creation d un usager public.',
+            $publicUser,
+            [
+                'public_user_type_id' => $publicUser->public_user_type_id,
+                'phone' => $publicUser->phone,
+            ],
+            $request,
+            $request->user(),
+        );
 
         return redirect()->route('super-admin.public-users.index')
             ->with('success', 'L usager public a ete cree.');
@@ -179,9 +192,18 @@ class PublicUserController extends Controller
         ]);
     }
 
-    public function update(Request $request, PublicUser $publicUser): RedirectResponse
+    public function update(Request $request, PublicUser $publicUser, ActivityLogger $activityLogger): RedirectResponse
     {
         $attributes = $this->validatedAttributes($request, $publicUser);
+        $before = [
+            'public_user_type_id' => $publicUser->public_user_type_id,
+            'first_name' => $publicUser->first_name,
+            'last_name' => $publicUser->last_name,
+            'phone' => $publicUser->phone,
+            'email' => $publicUser->email,
+            'business_sector' => $publicUser->business_sector,
+            'commune' => $publicUser->commune,
+        ];
 
         $payload = [
             'public_user_type_id' => $attributes['public_user_type_id'],
@@ -205,23 +227,68 @@ class PublicUserController extends Controller
 
         $publicUser->update($payload);
 
+        $activityLogger->log(
+            'public_user.updated',
+            'Mise a jour d un usager public.',
+            $publicUser,
+            [
+                'before' => $before,
+                'after' => [
+                    'public_user_type_id' => $publicUser->public_user_type_id,
+                    'first_name' => $publicUser->first_name,
+                    'last_name' => $publicUser->last_name,
+                    'phone' => $publicUser->phone,
+                    'email' => $publicUser->email,
+                    'business_sector' => $publicUser->business_sector,
+                    'commune' => $publicUser->commune,
+                ],
+            ],
+            $request,
+            $request->user(),
+        );
+
         return redirect()->route('super-admin.public-users.index')
             ->with('success', 'L usager public a ete mis a jour.');
     }
 
-    public function destroy(PublicUser $publicUser): RedirectResponse
+    public function destroy(Request $request, PublicUser $publicUser, ActivityLogger $activityLogger): RedirectResponse
     {
+        $activityLogger->log(
+            'public_user.deleted',
+            'Suppression d un usager public.',
+            $publicUser,
+            [
+                'phone' => $publicUser->phone,
+                'email' => $publicUser->email,
+            ],
+            $request,
+            $request->user(),
+        );
         $publicUser->delete();
 
         return redirect()->route('super-admin.public-users.index')
             ->with('success', 'L usager public a ete supprime.');
     }
 
-    public function toggleStatus(PublicUser $publicUser): RedirectResponse
+    public function toggleStatus(Request $request, PublicUser $publicUser, ActivityLogger $activityLogger): RedirectResponse
     {
+        $previousStatus = $publicUser->status;
+
         $publicUser->update([
             'status' => $publicUser->status === 'active' ? 'inactive' : 'active',
         ]);
+
+        $activityLogger->log(
+            'public_user.status_toggled',
+            'Changement de statut d un usager public.',
+            $publicUser,
+            [
+                'before' => $previousStatus,
+                'after' => $publicUser->status,
+            ],
+            $request,
+            $request->user(),
+        );
 
         return back()->with('success', 'Le statut de l usager public a ete mis a jour.');
     }

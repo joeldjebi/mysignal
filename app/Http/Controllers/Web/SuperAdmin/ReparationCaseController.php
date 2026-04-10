@@ -9,6 +9,7 @@ use App\Models\ReparationCaseHistory;
 use App\Models\ReparationCaseStep;
 use App\Models\Role;
 use App\Models\User;
+use App\Support\Audit\ActivityLogger;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -83,7 +84,7 @@ class ReparationCaseController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, ActivityLogger $activityLogger): RedirectResponse
     {
         $attributes = $request->validate([
             'incident_report_id' => ['required', 'integer', 'exists:incident_reports,id'],
@@ -151,6 +152,21 @@ class ReparationCaseController extends Controller
             $request->user()?->id
         );
 
+        $activityLogger->log(
+            'reparation_case.opened',
+            'Ouverture d un dossier contentieux.',
+            $case,
+            [
+                'reference' => $case->reference,
+                'case_type' => $case->case_type,
+                'priority' => $case->priority,
+                'status' => $case->status,
+                'incident_report_id' => $case->incident_report_id,
+                'eligibility_reason' => $case->eligibility_reason,
+            ],
+            $request
+        );
+
         return redirect()->route('super-admin.reparation-cases.show', $case)
             ->with('success', 'Le dossier de réparation a été ouvert.');
     }
@@ -187,7 +203,7 @@ class ReparationCaseController extends Controller
         ]);
     }
 
-    public function update(Request $request, ReparationCase $reparationCase): RedirectResponse
+    public function update(Request $request, ReparationCase $reparationCase, ActivityLogger $activityLogger): RedirectResponse
     {
         $attributes = $request->validate([
             'case_type' => ['required', 'in:precontentieux,judiciaire'],
@@ -364,10 +380,42 @@ class ReparationCaseController extends Controller
             );
         }
 
+        $activityLogger->log(
+            'reparation_case.updated',
+            'Mise a jour d un dossier contentieux.',
+            $reparationCase,
+            [
+                'reference' => $reparationCase->reference,
+                'before' => [
+                    'case_type' => $originalCaseType,
+                    'priority' => $originalPriority,
+                    'status' => $originalStatus,
+                    'assigned_to_user_id' => $originalAssignedToUserId,
+                    'bailiff_user_id' => $originalBailiffUserId,
+                    'lawyer_user_id' => $originalLawyerUserId,
+                    'damage_amount_validated' => $originalValidatedAmount,
+                    'resolution_notes' => $originalResolutionNotes,
+                    'closure_reason' => $originalClosureReason,
+                ],
+                'after' => [
+                    'case_type' => $reparationCase->case_type,
+                    'priority' => $reparationCase->priority,
+                    'status' => $reparationCase->status,
+                    'assigned_to_user_id' => $reparationCase->assigned_to_user_id,
+                    'bailiff_user_id' => $reparationCase->bailiff_user_id,
+                    'lawyer_user_id' => $reparationCase->lawyer_user_id,
+                    'damage_amount_validated' => $reparationCase->damage_amount_validated,
+                    'resolution_notes' => $reparationCase->resolution_notes,
+                    'closure_reason' => $reparationCase->closure_reason,
+                ],
+            ],
+            $request
+        );
+
         return back()->with('success', 'Le dossier de réparation a été mis à jour.');
     }
 
-    public function storeStep(Request $request, ReparationCase $reparationCase): RedirectResponse
+    public function storeStep(Request $request, ReparationCase $reparationCase, ActivityLogger $activityLogger): RedirectResponse
     {
         $attributes = $request->validate([
             'step_type' => ['required', 'in:'.implode(',', array_keys(self::STEP_TYPES))],
@@ -402,6 +450,21 @@ class ReparationCaseController extends Controller
             $step->title.'. '.$this->stepStatusLabel($step->status).'.'.$assignedName,
             $request->user()?->id,
             ['step_type' => $step->step_type, 'step_id' => $step->id]
+        );
+
+        $activityLogger->log(
+            'reparation_case.step_added',
+            'Ajout d une etape de procedure.',
+            $reparationCase,
+            [
+                'reference' => $reparationCase->reference,
+                'step_id' => $step->id,
+                'step_type' => $step->step_type,
+                'status' => $step->status,
+                'assigned_to_user_id' => $step->assigned_to_user_id,
+                'is_visible_to_public' => $step->is_visible_to_public,
+            ],
+            $request
         );
 
         return back()->with('success', 'L etape de procedure a ete enregistree.');

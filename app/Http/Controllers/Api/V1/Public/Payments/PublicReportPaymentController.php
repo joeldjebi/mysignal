@@ -10,6 +10,7 @@ use App\Models\IncidentReport;
 use App\Models\Payment;
 use App\Support\Pdf\SimplePaymentReceiptPdf;
 use App\Support\Api\ApiResponse;
+use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\Request;
 
 class PublicReportPaymentController extends Controller
@@ -27,19 +28,47 @@ class PublicReportPaymentController extends Controller
         ]);
     }
 
-    public function store(Request $request, IncidentReport $report, CreateReportPaymentAction $action)
+    public function store(Request $request, IncidentReport $report, CreateReportPaymentAction $action, ActivityLogger $activityLogger)
     {
         $payment = $action->handle($request->user('public_api'), $report);
         $payment->load(['pricingRule', 'incidentReport']);
+
+        $activityLogger->log(
+            'public.payment.created',
+            'Initialisation d un paiement public.',
+            $payment,
+            [
+                'reference' => $payment->reference,
+                'status' => $payment->status,
+                'amount' => $payment->amount,
+                'provider' => $payment->provider,
+                'incident_report_id' => $payment->incident_report_id,
+            ],
+            $request
+        );
 
         return ApiResponse::success([
             'payment' => new PaymentResource($payment),
         ], 'Paiement initialise avec succes.', 201);
     }
 
-    public function confirm(Request $request, Payment $payment, ConfirmReportPaymentAction $action)
+    public function confirm(Request $request, Payment $payment, ConfirmReportPaymentAction $action, ActivityLogger $activityLogger)
     {
         $payment = $action->handle($request->user('public_api'), $payment);
+
+        $activityLogger->log(
+            'public.payment.confirmed',
+            'Confirmation d un paiement public.',
+            $payment,
+            [
+                'reference' => $payment->reference,
+                'status' => $payment->status,
+                'amount' => $payment->amount,
+                'provider' => $payment->provider,
+                'incident_report_id' => $payment->incident_report_id,
+            ],
+            $request
+        );
 
         return ApiResponse::success([
             'payment' => new PaymentResource($payment),

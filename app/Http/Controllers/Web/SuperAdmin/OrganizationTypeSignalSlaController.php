@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web\SuperAdmin;
 use App\Http\Controllers\Controller;
 use App\Models\OrganizationType;
 use App\Models\OrganizationTypeSignalSla;
+use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -51,16 +52,31 @@ class OrganizationTypeSignalSlaController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, ActivityLogger $activityLogger): RedirectResponse
     {
         $attributes = $this->validateRequest($request);
 
-        OrganizationTypeSignalSla::query()->create([
+        $slaPolicy = OrganizationTypeSignalSla::query()->create([
             ...$attributes,
             'network_type' => strtoupper($attributes['network_type']),
             'signal_code' => strtoupper($attributes['signal_code']),
             'status' => 'active',
         ]);
+
+        $activityLogger->log(
+            'sla_policy.created',
+            'Creation d une regle SLA.',
+            $slaPolicy,
+            [
+                'organization_type_id' => $slaPolicy->organization_type_id,
+                'network_type' => $slaPolicy->network_type,
+                'signal_code' => $slaPolicy->signal_code,
+                'signal_label' => $slaPolicy->signal_label,
+                'sla_hours' => $slaPolicy->sla_hours,
+                'status' => $slaPolicy->status,
+            ],
+            $request
+        );
 
         return redirect()->route('super-admin.sla-policies.index')
             ->with('success', 'La regle SLA a ete creee.');
@@ -86,9 +102,10 @@ class OrganizationTypeSignalSlaController extends Controller
         ]);
     }
 
-    public function update(Request $request, OrganizationTypeSignalSla $slaPolicy): RedirectResponse
+    public function update(Request $request, OrganizationTypeSignalSla $slaPolicy, ActivityLogger $activityLogger): RedirectResponse
     {
         $attributes = $this->validateRequest($request);
+        $before = $slaPolicy->only(['organization_type_id', 'network_type', 'signal_code', 'signal_label', 'sla_hours', 'description', 'status']);
 
         $slaPolicy->update([
             ...$attributes,
@@ -96,23 +113,53 @@ class OrganizationTypeSignalSlaController extends Controller
             'signal_code' => strtoupper($attributes['signal_code']),
         ]);
 
+        $activityLogger->log(
+            'sla_policy.updated',
+            'Mise a jour d une regle SLA.',
+            $slaPolicy,
+            [
+                'before' => $before,
+                'after' => $slaPolicy->only(['organization_type_id', 'network_type', 'signal_code', 'signal_label', 'sla_hours', 'description', 'status']),
+            ],
+            $request
+        );
+
         return redirect()->route('super-admin.sla-policies.index')
             ->with('success', 'La regle SLA a ete mise a jour.');
     }
 
-    public function destroy(OrganizationTypeSignalSla $slaPolicy): RedirectResponse
+    public function destroy(Request $request, OrganizationTypeSignalSla $slaPolicy, ActivityLogger $activityLogger): RedirectResponse
     {
+        $snapshot = $slaPolicy->only(['id', 'organization_type_id', 'network_type', 'signal_code', 'signal_label', 'sla_hours', 'status']);
         $slaPolicy->delete();
+
+        $activityLogger->log(
+            'sla_policy.deleted',
+            'Suppression d une regle SLA.',
+            OrganizationTypeSignalSla::class,
+            $snapshot,
+            $request
+        );
 
         return redirect()->route('super-admin.sla-policies.index')
             ->with('success', 'La regle SLA a ete supprimee.');
     }
 
-    public function toggleStatus(OrganizationTypeSignalSla $slaPolicy): RedirectResponse
+    public function toggleStatus(Request $request, OrganizationTypeSignalSla $slaPolicy, ActivityLogger $activityLogger): RedirectResponse
     {
         $slaPolicy->update([
             'status' => $slaPolicy->status === 'active' ? 'inactive' : 'active',
         ]);
+
+        $activityLogger->log(
+            'sla_policy.status_toggled',
+            'Changement de statut d une regle SLA.',
+            $slaPolicy,
+            [
+                'status' => $slaPolicy->status,
+            ],
+            $request
+        );
 
         return back()->with('success', 'Le statut de la regle SLA a ete mis a jour.');
     }

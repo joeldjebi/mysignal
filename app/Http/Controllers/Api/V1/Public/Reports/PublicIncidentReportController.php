@@ -11,6 +11,7 @@ use App\Http\Resources\Api\V1\Public\Reports\IncidentReportResource;
 use App\Models\IncidentReport;
 use App\Services\WasabiService;
 use App\Support\Api\ApiResponse;
+use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -29,10 +30,25 @@ class PublicIncidentReportController extends Controller
         ]);
     }
 
-    public function store(StoreIncidentReportRequest $request, CreateIncidentReportAction $action)
+    public function store(StoreIncidentReportRequest $request, CreateIncidentReportAction $action, ActivityLogger $activityLogger)
     {
         $report = $action->handle($request->user('public_api'), $request->validated());
         $report->load(['application', 'organization', 'meter.organization', 'country', 'city', 'commune', 'payments.pricingRule']);
+
+        $activityLogger->log(
+            'public.report.created',
+            'Creation d un signalement public.',
+            $report,
+            [
+                'reference' => $report->reference,
+                'status' => $report->status,
+                'application_id' => $report->application_id,
+                'organization_id' => $report->organization_id,
+                'signal_code' => $report->signal_code,
+                'signal_label' => $report->signal_label,
+            ],
+            $request
+        );
 
         return ApiResponse::success([
             'report' => new IncidentReportResource($report),
@@ -49,7 +65,7 @@ class PublicIncidentReportController extends Controller
         ]);
     }
 
-    public function confirmResolution(Request $request, IncidentReport $report)
+    public function confirmResolution(Request $request, IncidentReport $report, ActivityLogger $activityLogger)
     {
         abort_unless((int) $report->public_user_id === (int) $request->user('public_api')->id, 404);
         abort_unless($report->status === IncidentReportStatus::Resolved->value, 422, 'Ce signalement n est pas encore marque comme resolu.');
@@ -62,12 +78,24 @@ class PublicIncidentReportController extends Controller
 
         $report->load(['application', 'organization', 'meter.organization', 'country', 'city', 'commune', 'payments.pricingRule']);
 
+        $activityLogger->log(
+            'public.report.resolution_confirmed',
+            'Confirmation de resolution d un signalement par l usager.',
+            $report,
+            [
+                'reference' => $report->reference,
+                'status' => $report->status,
+                'resolution_confirmation_status' => $report->resolution_confirmation_status,
+            ],
+            $request
+        );
+
         return ApiResponse::success([
             'report' => new IncidentReportResource($report),
         ], 'La resolution du signalement a ete confirmee.');
     }
 
-    public function storeDamage(StoreIncidentReportDamageRequest $request, IncidentReport $report, WasabiService $wasabiService)
+    public function storeDamage(StoreIncidentReportDamageRequest $request, IncidentReport $report, WasabiService $wasabiService, ActivityLogger $activityLogger)
     {
         abort_unless((int) $report->public_user_id === (int) $request->user('public_api')->id, 404);
         abort_unless($report->resolution_confirmation_status === 'confirmed', 422, 'Confirmez d abord la resolution du signalement avant d enregistrer un dommage.');
@@ -112,6 +140,19 @@ class PublicIncidentReportController extends Controller
         ]);
 
         $report->load(['application', 'organization', 'meter.organization', 'country', 'city', 'commune', 'payments.pricingRule']);
+
+        $activityLogger->log(
+            'public.report.damage_declared',
+            'Declaration d un dommage sur un signalement.',
+            $report,
+            [
+                'reference' => $report->reference,
+                'damage_resolution_status' => $report->damage_resolution_status,
+                'damage_amount_estimated' => $report->damage_amount_estimated,
+                'has_damage_attachment' => filled($report->damage_attachment),
+            ],
+            $request
+        );
 
         return ApiResponse::success([
             'report' => new IncidentReportResource($report),

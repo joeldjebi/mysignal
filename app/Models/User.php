@@ -93,6 +93,18 @@ class User extends Authenticatable
         return $this->hasMany(ReparationCaseStep::class, 'assigned_to_user_id');
     }
 
+    public function activityLogVisibleUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(self::class, 'activity_log_user_accesses', 'viewer_user_id', 'target_user_id')
+            ->withTimestamps();
+    }
+
+    public function activityLogViewers(): BelongsToMany
+    {
+        return $this->belongsToMany(self::class, 'activity_log_user_accesses', 'target_user_id', 'viewer_user_id')
+            ->withTimestamps();
+    }
+
     public function permissionCodes(): Collection
     {
         $this->loadMissing(['permissions', 'roles.permissions']);
