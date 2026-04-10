@@ -187,6 +187,7 @@ class StatisticController extends Controller
         $slaCandidates = (clone $reportsQuery)
             ->select([
                 'id',
+                'status',
                 'target_sla_hours',
                 'created_at',
                 'resolved_at',
@@ -225,11 +226,12 @@ class StatisticController extends Controller
         }
 
         $mapReports = $slaCandidates
-            ->filter(fn (IncidentReport $report) => $report->latitude !== null && $report->longitude !== null)
+            ->filter(fn (IncidentReport $report) => $report->status !== 'resolved' && $report->latitude !== null && $report->longitude !== null)
             ->take(200)
             ->map(function (IncidentReport $report): array {
                 return [
                     'reference' => $report->reference,
+                    'status' => $report->status,
                     'signal_code' => $report->signal_code,
                     'signal_label' => $report->signal_label,
                     'latitude' => (float) $report->latitude,

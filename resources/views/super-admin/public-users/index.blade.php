@@ -78,12 +78,15 @@
                             <td><span class="status-chip">{{ $publicUser->status }}</span></td>
                             <td class="text-end">
                                 <div class="actions-wrap">
+                                    <a href="{{ route('super-admin.public-users.show', $publicUser) }}" class="btn btn-sm btn-dark">Voir les signalements</a>
                                     <a href="{{ route('super-admin.public-users.edit', $publicUser) }}" class="btn btn-sm btn-outline-dark">Modifier</a>
-                                    <form method="POST" action="{{ route('super-admin.public-users.toggle-status', $publicUser) }}">
-                                        @csrf
-                                        @method('PATCH')
-                                        <button class="btn btn-sm btn-outline-warning">{{ $publicUser->status === 'active' ? 'Desactiver' : 'Activer' }}</button>
-                                    </form>
+                                    @if (auth()->user()?->hasPermissionCode('SA_PUBLIC_USERS_TOGGLE_STATUS'))
+                                        <form method="POST" action="{{ route('super-admin.public-users.toggle-status', $publicUser) }}">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button class="btn btn-sm btn-outline-warning">{{ $publicUser->status === 'active' ? 'Desactiver' : 'Activer' }}</button>
+                                        </form>
+                                    @endif
                                     <form method="POST" action="{{ route('super-admin.public-users.destroy', $publicUser) }}">
                                         @csrf
                                         @method('DELETE')

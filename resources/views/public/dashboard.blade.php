@@ -67,7 +67,6 @@
             .sidebar-brand {
                 padding: 0.15rem 0.15rem 0.8rem;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-                margin-bottom: 0.8rem;
             }
             .brand-mark {
                 width: 42px;
@@ -156,6 +155,37 @@
                 padding: 0.85rem 1rem;
                 margin-bottom: 1rem;
                 border-top: 4px solid var(--acepen-blue, #6791ff);
+            }
+            .topbar-session {
+                min-width: min(100%, 380px);
+                border-radius: 22px;
+                padding: 0.85rem 0.95rem;
+                background: linear-gradient(145deg, rgba(24, 52, 71, 0.98), rgba(40, 83, 112, 0.94));
+                color: white;
+                box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+            }
+            .topbar-session-meta {
+                color: rgba(255, 255, 255, 0.72);
+                font-size: 0.78rem;
+            }
+            .topbar-session-actions {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.55rem;
+                margin-top: 0.8rem;
+            }
+            .btn-topbar-session {
+                min-height: 2.5rem;
+                border-radius: 16px;
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                color: white;
+                background: rgba(255, 255, 255, 0.08);
+                font-weight: 700;
+                padding-inline: 0.95rem;
+            }
+            .btn-topbar-session:hover {
+                background: rgba(255, 255, 255, 0.14);
+                color: white;
             }
             .hero-card,
             .dashboard-card,
@@ -746,7 +776,6 @@
                                 <div class="fw-bold fs-5">Espace public</div>
                             </div>
                         </div>
-                        <div class="small text-white-50">Un espace personnel structuré pour gérer votre profil, vos identifiants, votre Gbonhi et vos signalements.</div>
                     </div>
 
                     <div class="sidebar-menu">
@@ -800,22 +829,15 @@
                                 <span class="small text-white-50">Historique et suivi</span>
                             </span>
                         </button>
+                        <button class="nav-pill" type="button" data-panel-target="cases">
+                            <span class="nav-icon">DC</span>
+                            <span>
+                                <span class="d-block fw-semibold">Mes dossiers</span>
+                                <span class="small text-white-50">Avancement et historique</span>
+                            </span>
+                        </button>
                     </div>
 
-                    <div class="sidebar-footer">
-                        <div class="sidebar-card mb-3">
-                            <div class="small text-white-50 mb-1">Session active</div>
-                            <div class="fw-semibold" id="sidebarUserName">Utilisateur</div>
-                            <div class="small text-white-50" id="sidebarUserPhone">-</div>
-                            <div class="small text-white-50 mt-1" id="sidebarUserLocation">Localisation non renseignee</div>
-                            <div class="small text-white-50 mt-1" id="sidebarUserGps">GPS non renseigne</div>
-                            <button type="button" class="btn btn-sm btn-sidebar mt-2 d-none" id="sidebarRequestGpsButton">Renseigner le GPS</button>
-                        </div>
-                        <div class="d-grid gap-2">
-                            <a class="btn btn-sidebar" href="{{ route('public.landing') }}">Retour accueil</a>
-                            <button id="logoutButton" class="btn btn-sidebar" type="button">Se deconnecter</button>
-                        </div>
-                    </div>
                 </aside>
 
                 <main class="content">
@@ -831,6 +853,15 @@
                             <span class="status-pill" id="topbarMetersBadge">0 identifiant</span>
                             <span class="status-pill" id="topbarReportsBadge">0 signalement</span>
                             <span class="status-pill" id="topbarPaymentsBadge">0 paiement</span>
+                        </div>
+                        <div class="topbar-session">
+                            <div class="small text-white-50 mb-1">Session active</div>
+                            <div class="topbar-session-meta mt-1" id="sidebarUserLocation">Localisation non renseignee</div>
+                            <div class="topbar-session-meta mt-1" id="sidebarUserGps">GPS non renseigne</div>
+                            <div class="topbar-session-actions">
+                                <button type="button" class="btn btn-sm btn-topbar-session d-none" id="sidebarRequestGpsButton">Renseigner le GPS</button>
+                                <button id="logoutButton" class="btn btn-sm btn-topbar-session" type="button">Se deconnecter</button>
+                            </div>
                         </div>
                     </header>
 
@@ -943,7 +974,7 @@
                                             <label class="form-label fw-semibold">Type d usager public</label>
                                             <select class="form-select" id="profilePublicUserTypeSelect" required disabled>
                                                 @foreach ($publicUserTypes as $publicUserType)
-                                                    <option value="{{ $publicUserType->id }}" data-profile-kind="{{ $publicUserType->profile_kind }}">{{ $publicUserType->name }}</option>
+                                                    <option value="{{ $publicUserType->id }}" data-profile-kind="{{ $publicUserType->profile_kind }}" data-type-code="{{ $publicUserType->code }}">{{ $publicUserType->name }}</option>
                                                 @endforeach
                                             </select>
                                             <div class="location-search-hint">Ce type est defini a la creation du compte et ne peut pas etre modifie ici.</div>
@@ -958,11 +989,8 @@
                                             </select>
                                         </div>
                                         <div class="col-12"><label class="form-label fw-semibold">Email</label><input class="form-control" type="email" name="email"></div>
-                                        <div class="col-12 hidden" id="profileBusinessFields">
+                                        <div class="col-12 hidden" id="profileSectorFields">
                                             <div class="row g-3">
-                                                <div class="col-md-6"><label class="form-label fw-semibold">Raison sociale</label><input class="form-control" name="company_name"></div>
-                                                <div class="col-md-6"><label class="form-label fw-semibold">RCCM / Immatriculation</label><input class="form-control" name="company_registration_number"></div>
-                                                <div class="col-md-6"><label class="form-label fw-semibold">Identifiant fiscal</label><input class="form-control" name="tax_identifier"></div>
                                                 <div class="col-md-6">
                                                     <label class="form-label fw-semibold">Secteur d activite</label>
                                                     <select class="form-select" name="business_sector">
@@ -972,6 +1000,13 @@
                                                         @endforeach
                                                     </select>
                                                 </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 hidden" id="profileBusinessFields">
+                                            <div class="row g-3">
+                                                <div class="col-md-6"><label class="form-label fw-semibold">Raison sociale</label><input class="form-control" name="company_name"></div>
+                                                <div class="col-md-6"><label class="form-label fw-semibold">RCCM / Immatriculation</label><input class="form-control" name="company_registration_number"></div>
+                                                <div class="col-md-6"><label class="form-label fw-semibold">Identifiant fiscal</label><input class="form-control" name="tax_identifier"></div>
                                                 <div class="col-12"><label class="form-label fw-semibold">Adresse de l entreprise</label><input class="form-control" name="company_address"></div>
                                             </div>
                                         </div>
@@ -1294,6 +1329,19 @@
                             <div id="damagesList"></div>
                         </div>
                     </section>
+
+                    <section class="public-panel" data-panel="cases">
+                        <div class="dashboard-card">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+                                <div>
+                                    <div class="section-title">Historique de mes dossiers</div>
+                                    <div class="muted-label">Consulte l avancement des dossiers ouverts a partir de tes signalements et les mises a jour enregistrees par le traitement du dossier.</div>
+                                </div>
+                                <button class="btn btn-ghost-premium px-4" type="button" data-panel-target="reports">Voir les signalements</button>
+                            </div>
+                            <div id="reparationCasesList"></div>
+                        </div>
+                    </section>
                 </main>
             </div>
         </div>
@@ -1527,6 +1575,7 @@
         @php
             $publicUserTypesPayload = $publicUserTypes->map(fn ($type) => [
                 'id' => $type->id,
+                'code' => $type->code,
                 'name' => $type->name,
                 'profile_kind' => $type->profile_kind,
                 'pricing_rule' => $type->pricingRule ? [
@@ -1543,6 +1592,7 @@
                 const landingUrl = '{{ route('public.landing') }}';
                 const googleMapsApiKey = @json(config('services.google_maps.key'));
                 const tokenKey = 'acepen_public_token';
+                const dashboardPanelStorageKey = 'acepen_public_dashboard_panel';
                 const dialCodeOptions = @json($dialCodeOptions);
                 const publicUserTypes = @json($publicUserTypesPayload);
                 const serviceApplications = @json($serviceApplicationsPayload);
@@ -1553,6 +1603,7 @@
                     pendingHouseholdInvitations: [],
                     meters: [],
                     payments: [],
+                    reparationCases: [],
                     countries: [],
                     communes: [],
                     reports: [],
@@ -1956,21 +2007,33 @@
                     });
                 }
 
-                function syncPublicUserTypeFields(selectId, fieldsContainerId) {
+                function syncPublicUserTypeFields(selectId, businessFieldsContainerId, sectorFieldsContainerId = null) {
                     const select = document.getElementById(selectId);
-                    const fieldsContainer = document.getElementById(fieldsContainerId);
+                    const businessFieldsContainer = document.getElementById(businessFieldsContainerId);
+                    const sectorFieldsContainer = sectorFieldsContainerId ? document.getElementById(sectorFieldsContainerId) : null;
 
-                    if (!select || !fieldsContainer) {
+                    if (!select || !businessFieldsContainer) {
                         return;
                     }
 
                     const selectedType = publicUserTypes.find((type) => String(type.id) === String(select.value));
-                    const showBusinessFields = selectedType?.profile_kind === 'business';
+                    const typeCode = String(selectedType?.code || '').toUpperCase();
+                    const showBusinessFields = typeCode === 'UPE';
+                    const showSectorFields = typeCode === 'UPE' || typeCode === 'UPTI';
 
-                    fieldsContainer.classList.toggle('hidden', !showBusinessFields);
-                    fieldsContainer.querySelectorAll('input, select, textarea').forEach((field) => {
+                    businessFieldsContainer.classList.toggle('hidden', !showBusinessFields);
+                    businessFieldsContainer.querySelectorAll('input, select, textarea').forEach((field) => {
                         field.disabled = !showBusinessFields;
+                        field.required = showBusinessFields;
                     });
+
+                    if (sectorFieldsContainer) {
+                        sectorFieldsContainer.classList.toggle('hidden', !showSectorFields);
+                        sectorFieldsContainer.querySelectorAll('input, select, textarea').forEach((field) => {
+                            field.disabled = !showSectorFields;
+                            field.required = showSectorFields;
+                        });
+                    }
                 }
 
                 function composePhoneNumber(form) {
@@ -2183,22 +2246,31 @@
                 }
 
                 function activatePanel(panelName) {
+                    const targetPanel = document.querySelector(`.public-panel[data-panel="${panelName}"]`) ? panelName : 'overview';
+
                     document.querySelectorAll('[data-panel-target]').forEach((button) => {
-                        button.classList.toggle('active', button.dataset.panelTarget === panelName);
+                        button.classList.toggle('active', button.dataset.panelTarget === targetPanel);
                     });
                     document.querySelectorAll('.public-panel').forEach((panel) => {
-                        panel.classList.toggle('active', panel.dataset.panel === panelName);
+                        panel.classList.toggle('active', panel.dataset.panel === targetPanel);
                     });
 
-                    if (panelName === 'profile') {
+                    sessionStorage.setItem(dashboardPanelStorageKey, targetPanel);
+
+                    if (targetPanel === 'profile') {
                         maybeCaptureCurrentPosition('profile');
                     }
 
-                    if (panelName === 'meters' && !document.getElementById('meterForm')?.dataset.editId) {
+                    if (targetPanel === 'meters' && !document.getElementById('meterForm')?.dataset.editId) {
                         maybeCaptureCurrentPosition('meter');
                     }
 
                     closeSidebar();
+                }
+
+                function restoreActivePanel() {
+                    const savedPanel = sessionStorage.getItem(dashboardPanelStorageKey);
+                    activatePanel(savedPanel || 'overview');
                 }
 
                 function openSidebar() {
@@ -2701,7 +2773,7 @@
 
                     container.innerHTML = signal.data_fields.map((field) => `
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">${field.label}</label>
+                            <label class="form-label fw-semibold">${field.label}${field.required ? '<span class="required-star">*</span>' : ''}</label>
                             ${isPhotoSignalField(field)
                                 ? `
                                     <div class="d-flex gap-2 flex-wrap">
@@ -2719,9 +2791,16 @@
                                 `
                                 : isGpsSignalField(field)
                                     ? `<input class="form-control" type="text" data-signal-key="${field.key}" data-signal-auto-gps="1" placeholder="${field.label}" readonly ${field.required ? 'required' : ''}>`
-                                    : field.type === 'textarea'
-                                        ? `<textarea class="form-control" rows="3" data-signal-key="${field.key}" placeholder="${field.label}" ${field.required ? 'required' : ''}></textarea>`
-                                        : `<input class="form-control" type="${field.type === 'number' ? 'number' : 'text'}" data-signal-key="${field.key}" placeholder="${field.label}" ${field.required ? 'required' : ''}>`}
+                                    : field.type === 'select'
+                                        ? `
+                                            <select class="form-select" data-signal-key="${field.key}" ${field.required ? 'required' : ''}>
+                                                <option value="">Selectionner</option>
+                                                ${(field.options || []).map((option) => `<option value="${escapeHtml(option)}">${escapeHtml(option)}</option>`).join('')}
+                                            </select>
+                                        `
+                                        : field.type === 'textarea'
+                                            ? `<textarea class="form-control" rows="3" data-signal-key="${field.key}" placeholder="${field.label}" ${field.required ? 'required' : ''}></textarea>`
+                                            : `<input class="form-control" type="${field.type === 'number' ? 'number' : 'text'}" data-signal-key="${field.key}" placeholder="${field.label}" ${field.required ? 'required' : ''}>`}
                         </div>
                     `).join('');
 
@@ -2737,8 +2816,6 @@
                     document.getElementById('dashboardGreeting').textContent = `Bienvenue ${user.first_name} ${user.last_name}`;
                     document.getElementById('userStatus').textContent = user.status || '-';
                     document.getElementById('profileStatusPill').textContent = user.status || '-';
-                    document.getElementById('sidebarUserName').textContent = `${user.first_name} ${user.last_name}`;
-                    document.getElementById('sidebarUserPhone').textContent = user.phone || '-';
                     document.getElementById('sidebarUserLocation').textContent = [user.commune, user.address].filter(Boolean).join(' · ') || 'Localisation non renseignee';
                     const hasSidebarGps = !!(user.latitude && user.longitude);
                     document.getElementById('sidebarUserGps').textContent = hasSidebarGps
@@ -2773,7 +2850,16 @@
                     document.getElementById('profileLongitude').value = user.longitude || '';
                     document.getElementById('profileAccuracy').value = user.location_accuracy || '';
                     document.getElementById('profileLocationSource').value = user.location_source || '';
-                    syncPublicUserTypeFields('profilePublicUserTypeSelect', 'profileBusinessFields');
+                    syncPublicUserTypeFields('profilePublicUserTypeSelect', 'profileBusinessFields', 'profileSectorFields');
+                }
+
+                function escapeHtml(value) {
+                    return String(value ?? '')
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#39;');
                 }
 
                 function renderMeters(meters) {
@@ -3033,6 +3119,120 @@
 
                 function formatMoney(amount, currency = 'FCFA') {
                     return `${Number(amount || 0).toLocaleString()} ${currency}`;
+                }
+
+                function getReparationCaseStatusLabel(status) {
+                    const labels = {
+                        submitted: 'Soumis',
+                        under_review: 'En analyse',
+                        awaiting_documents: 'Pieces requises',
+                        sent_to_organization: 'Transmis a l organisation',
+                        organization_responded: 'Reponse organisation',
+                        approved: 'Valide',
+                        rejected: 'Rejete',
+                        compensated: 'Compense',
+                        closed: 'Clos',
+                    };
+
+                    return labels[status] || status || '-';
+                }
+
+                function getReparationCaseStatusClass(status) {
+                    const classes = {
+                        submitted: 'status-report-submitted',
+                        under_review: 'status-report-in-progress',
+                        awaiting_documents: 'status-resolution-waiting',
+                        sent_to_organization: 'status-report-in-progress',
+                        organization_responded: 'status-report-in-progress',
+                        approved: 'status-report-resolved',
+                        compensated: 'status-report-resolved',
+                        closed: 'status-report-resolved',
+                        rejected: 'status-report-rejected',
+                    };
+
+                    return classes[status] || '';
+                }
+
+                function renderReparationCases(cases) {
+                    state.reparationCases = cases;
+                    const list = document.getElementById('reparationCasesList');
+
+                    if (!cases.length) {
+                        list.innerHTML = '<div class="mini-card"><div class="fw-bold mb-1">Aucun dossier ouvert</div><div class="muted-label">Si un dossier est ouvert a partir d un signalement, son historique apparaitra ici.</div></div>';
+                        return;
+                    }
+
+                    list.innerHTML = `
+                        <div class="vstack gap-3">
+                            ${cases.map((repairCase) => `
+                                <div class="mini-card">
+                                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
+                                        <div>
+                                            <div class="fw-bold">${repairCase.reference}</div>
+                                            <div class="muted-label">${repairCase.incident_report?.reference || '-'} · ${repairCase.incident_report?.signal_label || repairCase.incident_report?.signal_code || 'Signalement'}</div>
+                                            <div class="muted-label">${repairCase.incident_report?.organization_name || 'Organisation non definie'} · ${repairCase.incident_report?.application_name || 'Application non definie'}</div>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="status-pill ${getReparationCaseStatusClass(repairCase.status)}">${getReparationCaseStatusLabel(repairCase.status)}</span>
+                                            <div class="muted-label mt-2">${repairCase.opened_at ? `Ouvert le ${formatDateTime(repairCase.opened_at)}` : 'Date indisponible'}</div>
+                                        </div>
+                                    </div>
+                                    <div class="soft-panel mb-3">
+                                        <div class="small text-secondary fw-semibold mb-1">Objet du dossier</div>
+                                        <div class="fw-bold mb-1">${repairCase.damage_summary || 'Aucun resume de dommage renseigne.'}</div>
+                                        <div class="muted-label">
+                                            Montant reclame: ${repairCase.damage_amount_claimed !== null ? formatMoney(repairCase.damage_amount_claimed) : 'Non renseigne'}
+                                            ${repairCase.damage_amount_validated !== null ? ` · Montant valide: ${formatMoney(repairCase.damage_amount_validated)}` : ''}
+                                        </div>
+                                        <div class="muted-label mt-2">
+                                            Type: ${repairCase.case_type || '-'} · Priorite: ${repairCase.priority || '-'}
+                                            ${repairCase.bailiff ? ` · Huissier: ${repairCase.bailiff}` : ''}
+                                            ${repairCase.lawyer ? ` · Avocat: ${repairCase.lawyer}` : ''}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="section-title mb-3" style="font-size: 0.95rem;">Historique du dossier</div>
+                                        <div class="vstack gap-2">
+                                            ${(repairCase.steps || []).length
+                                                ? repairCase.steps.map((step) => `
+                                                    <div class="soft-panel">
+                                                        <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                                                            <div>
+                                                                <div class="fw-bold mb-1">${step.title}</div>
+                                                                <div class="muted-label">${step.summary || 'Aucun detail complementaire fourni.'}</div>
+                                                                <div class="muted-label mt-1">${step.assigned_to ? `Responsable: ${step.assigned_to}` : 'Responsable non assigne'}</div>
+                                                            </div>
+                                                            <div class="text-end">
+                                                                <div class="small fw-semibold">${step.completed_at ? formatDateTime(step.completed_at) : (step.created_at ? formatDateTime(step.created_at) : '-')}</div>
+                                                                <div class="muted-label">${step.status || '-'}</div>
+                                                                <div class="muted-label">${step.due_at ? `Echeance ${formatDateTime(step.due_at)}` : ''}</div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                `).join('')
+                                                : (repairCase.histories || []).length
+                                                    ? repairCase.histories.map((history) => `
+                                                        <div class="soft-panel">
+                                                            <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                                                                <div>
+                                                                    <div class="fw-bold mb-1">${history.title}</div>
+                                                                    <div class="muted-label">${history.description || 'Aucun detail complementaire fourni.'}</div>
+                                                                </div>
+                                                                <div class="text-end">
+                                                                    <div class="small fw-semibold">${history.created_at ? formatDateTime(history.created_at) : '-'}</div>
+                                                                    <div class="muted-label">${history.created_by || 'Systeme'}</div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    `).join('')
+                                                : '<div class="soft-panel"><div class="fw-bold mb-1">Aucun historique visible</div><div class="muted-label">Les prochaines etapes enregistrees apparaitront ici.</div></div>'
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
                 }
 
                 function renderPayments(payments) {
@@ -3808,13 +4008,14 @@
 
                 async function refreshDashboard() {
                     await loadReferenceData();
-                    const [me, meters, household, reports, payments, invitations] = await Promise.all([
+                    const [me, meters, household, reports, payments, invitations, reparationCases] = await Promise.all([
                         apiFetch('/me'),
                         apiFetch('/meters'),
                         apiFetch('/households/me'),
                         apiFetch('/reports'),
                         apiFetch('/payments'),
                         apiFetch('/households/invitations/pending'),
+                        apiFetch('/reparation-cases'),
                     ]);
                     renderUser(me.data.user);
                     renderMeters(meters.data.meters);
@@ -3823,6 +4024,7 @@
                     renderDamages(reports.data.reports);
                     renderPayments(payments.data.payments);
                     renderIncomingHouseholdInvitations(invitations.data.invitations);
+                    renderReparationCases(reparationCases.data.reparation_cases);
                 }
 
                 window.AcepenPortal = {
@@ -4100,7 +4302,7 @@
                     activatePanel('profile');
                     captureCurrentPosition('profile', { force: true });
                 });
-                document.getElementById('profilePublicUserTypeSelect').addEventListener('change', () => syncPublicUserTypeFields('profilePublicUserTypeSelect', 'profileBusinessFields'));
+                document.getElementById('profilePublicUserTypeSelect').addEventListener('change', () => syncPublicUserTypeFields('profilePublicUserTypeSelect', 'profileBusinessFields', 'profileSectorFields'));
                 document.getElementById('toggleProfileManualLocationButton').addEventListener('click', () => {
                     const enabled = document.getElementById('profileLatitude').readOnly;
                     setGeoManualMode('profile', enabled);
@@ -4348,10 +4550,10 @@
                 enhancePublicFormSelects();
                 annotateRequiredFields();
                 setGeoManualMode('profile', false);
-                syncPublicUserTypeFields('profilePublicUserTypeSelect', 'profileBusinessFields');
+                syncPublicUserTypeFields('profilePublicUserTypeSelect', 'profileBusinessFields', 'profileSectorFields');
                 setGeoManualMode('meter', false);
                 setGeoManualMode('report', false);
-                activatePanel('overview');
+                restoreActivePanel();
                 populateDialCodeSelects();
                 populateMeterApplicationOptions();
                 renderReportNetworkOptions();

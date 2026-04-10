@@ -808,7 +808,7 @@
                                             <label class="form-label fw-semibold">Type d usager public</label>
                                             <select class="form-select" name="public_user_type_id" id="registerPublicUserTypeSelect" required>
                                                 @foreach ($publicUserTypes as $publicUserType)
-                                                    <option value="{{ $publicUserType->id }}" data-profile-kind="{{ $publicUserType->profile_kind }}">{{ $publicUserType->name }}</option>
+                                                    <option value="{{ $publicUserType->id }}" data-profile-kind="{{ $publicUserType->profile_kind }}" data-type-code="{{ $publicUserType->code }}">{{ $publicUserType->name }}</option>
                                                 @endforeach
                                             </select>
                                         </div>
@@ -831,20 +831,24 @@
                                             </select>
                                         </div>
                                         <div class="col-12"><label class="form-label fw-semibold">Email</label><input class="form-control" type="email" name="email"></div>
+                                        <div class="col-12 hidden" id="registerSectorFields">
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <label class="form-label fw-semibold">Secteur d activite</label>
+                                                    <select class="form-select" name="business_sector">
+                                                        <option value="">Selectionner un secteur</option>
+                                                        @foreach ($businessSectors as $businessSector)
+                                                            <option value="{{ $businessSector->name }}">{{ $businessSector->name }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
                                         <div class="col-12 hidden" id="registerBusinessFields">
                                             <div class="row g-3">
                                                 <div class="col-md-6"><label class="form-label fw-semibold">Raison sociale</label><input class="form-control" name="company_name"></div>
                                                 <div class="col-md-6"><label class="form-label fw-semibold">RCCM / Immatriculation</label><input class="form-control" name="company_registration_number"></div>
                                                 <div class="col-md-6"><label class="form-label fw-semibold">Identifiant fiscal</label><input class="form-control" name="tax_identifier"></div>
-                                        <div class="col-md-6">
-                                            <label class="form-label fw-semibold">Secteur d activite</label>
-                                            <select class="form-select" name="business_sector">
-                                                <option value="">Selectionner un secteur</option>
-                                                @foreach ($businessSectors as $businessSector)
-                                                    <option value="{{ $businessSector->name }}">{{ $businessSector->name }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
                                                 <div class="col-12"><label class="form-label fw-semibold">Adresse de l entreprise</label><input class="form-control" name="company_address"></div>
                                             </div>
                                         </div>
@@ -874,6 +878,7 @@
             $publicUserTypesPayload = $publicUserTypes->map(function ($type) {
                 return [
                     'id' => $type->id,
+                    'code' => $type->code,
                     'name' => $type->name,
                     'profile_kind' => $type->profile_kind,
                     'pricing_rule' => $type->pricingRule ? [
@@ -1129,20 +1134,33 @@
                     });
                 }
 
-                function syncPublicUserTypeFields(selectId, fieldsContainerId, pricingLabelId = null, pricingAmountId = null) {
+                function syncPublicUserTypeFields(selectId, businessFieldsContainerId, pricingLabelId = null, pricingAmountId = null, sectorFieldsContainerId = null) {
                     const select = document.getElementById(selectId);
-                    const fieldsContainer = document.getElementById(fieldsContainerId);
+                    const businessFieldsContainer = document.getElementById(businessFieldsContainerId);
+                    const sectorFieldsContainer = sectorFieldsContainerId ? document.getElementById(sectorFieldsContainerId) : null;
 
-                    if (!select || !fieldsContainer) {
+                    if (!select || !businessFieldsContainer) {
                         return;
                     }
 
                     const selectedType = publicUserTypes.find((type) => String(type.id) === String(select.value));
-                    const isBusiness = selectedType?.profile_kind === 'business';
-                    fieldsContainer.classList.toggle('hidden', !isBusiness);
-                    fieldsContainer.querySelectorAll('input, select, textarea').forEach((field) => {
-                        field.disabled = !isBusiness;
+                    const typeCode = String(selectedType?.code || '').toUpperCase();
+                    const showBusinessFields = typeCode === 'UPE';
+                    const showSectorFields = typeCode === 'UPE' || typeCode === 'UPTI';
+
+                    businessFieldsContainer.classList.toggle('hidden', !showBusinessFields);
+                    businessFieldsContainer.querySelectorAll('input, select, textarea').forEach((field) => {
+                        field.disabled = !showBusinessFields;
+                        field.required = showBusinessFields;
                     });
+
+                    if (sectorFieldsContainer) {
+                        sectorFieldsContainer.classList.toggle('hidden', !showSectorFields);
+                        sectorFieldsContainer.querySelectorAll('input, select, textarea').forEach((field) => {
+                            field.disabled = !showSectorFields;
+                            field.required = showSectorFields;
+                        });
+                    }
 
                     if (pricingLabelId) {
                         document.getElementById(pricingLabelId).textContent = selectedType?.pricing_rule?.label || '-';
@@ -1189,7 +1207,7 @@
                 });
 
                 document.getElementById('registerPublicUserTypeSelect')?.addEventListener('change', () => {
-                    syncPublicUserTypeFields('registerPublicUserTypeSelect', 'registerBusinessFields', 'registerPricingHint', 'registerPricingAmount');
+                    syncPublicUserTypeFields('registerPublicUserTypeSelect', 'registerBusinessFields', 'registerPricingHint', 'registerPricingAmount', 'registerSectorFields');
                 });
 
                 document.getElementById('otpRequestForm').addEventListener('submit', async (event) => {
@@ -1268,7 +1286,7 @@
                 populateDialCodeSelects();
                 enhancePublicFormSelects();
                 annotateRequiredFields();
-                syncPublicUserTypeFields('registerPublicUserTypeSelect', 'registerBusinessFields', 'registerPricingHint', 'registerPricingAmount');
+                syncPublicUserTypeFields('registerPublicUserTypeSelect', 'registerBusinessFields', 'registerPricingHint', 'registerPricingAmount', 'registerSectorFields');
                 loadReferences().catch(() => {});
             })();
         </script>
