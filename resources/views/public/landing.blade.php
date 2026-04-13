@@ -805,7 +805,7 @@
                                 <div class="col-12 hidden" id="registerAccountStep">
                                     <form id="registerForm" class="row g-3">
                                         <div class="col-md-6">
-                                            <label class="form-label fw-semibold">Type d usager public</label>
+                                            <label class="form-label fw-semibold">Personne physique</label>
                                             <select class="form-select" name="public_user_type_id" id="registerPublicUserTypeSelect" required>
                                                 @foreach ($publicUserTypes as $publicUserType)
                                                     <option value="{{ $publicUserType->id }}" data-profile-kind="{{ $publicUserType->profile_kind }}" data-type-code="{{ $publicUserType->code }}">{{ $publicUserType->name }}</option>
@@ -834,7 +834,7 @@
                                         <div class="col-12 hidden" id="registerSectorFields">
                                             <div class="row g-3">
                                                 <div class="col-md-6">
-                                                    <label class="form-label fw-semibold">Secteur d activite</label>
+                                                    <label class="form-label fw-semibold">Domaine d'activite</label>
                                                     <select class="form-select" name="business_sector">
                                                         <option value="">Selectionner un secteur</option>
                                                         @foreach ($businessSectors as $businessSector)

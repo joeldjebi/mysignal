@@ -630,20 +630,92 @@
             .overview-grid {
                 display: grid;
                 gap: 1.5rem;
-                grid-template-columns: 1.25fr 0.75fr;
             }
             .quick-action {
                 width: 100%;
                 border: 1px solid rgba(24, 52, 71, 0.08);
-                border-radius: 22px;
-                padding: 1rem 1.1rem;
-                background: white;
+                border-radius: 26px;
+                padding: 1.15rem;
+                background:
+                    radial-gradient(circle at top right, rgba(255, 161, 23, 0.14), transparent 34%),
+                    linear-gradient(145deg, #ffffff 0%, #f8fbff 100%);
                 text-align: left;
                 transition: 0.2s ease;
+                min-height: 158px;
+                position: relative;
+                overflow: hidden;
+                box-shadow: 0 18px 38px rgba(15, 39, 56, 0.05);
             }
             .quick-action:hover {
-                transform: translateY(-1px);
-                box-shadow: 0 18px 28px rgba(15, 39, 56, 0.08);
+                transform: translateY(-3px);
+                box-shadow: 0 24px 44px rgba(15, 39, 56, 0.1);
+            }
+            .quick-action::after {
+                content: "";
+                position: absolute;
+                width: 92px;
+                height: 92px;
+                right: -34px;
+                bottom: -34px;
+                border-radius: 999px;
+                background: rgba(255, 0, 104, 0.08);
+            }
+            .quick-action-icon {
+                width: 46px;
+                height: 46px;
+                border-radius: 17px;
+                display: grid;
+                place-items: center;
+                font-weight: 900;
+                color: #102a43;
+                background: var(--acepen-copper);
+                box-shadow: 0 18px 30px rgba(255, 161, 23, 0.2);
+            }
+            .quick-action-title {
+                font-size: 1.02rem;
+                font-weight: 900;
+                color: var(--acepen-navy);
+                letter-spacing: -0.03em;
+            }
+            .quick-action-arrow {
+                width: 34px;
+                height: 34px;
+                border-radius: 999px;
+                display: grid;
+                place-items: center;
+                background: rgba(24, 52, 71, 0.06);
+                color: var(--acepen-navy);
+                font-weight: 900;
+            }
+            .overview-report-table {
+                width: 100%;
+                min-width: 760px;
+                margin-bottom: 0;
+            }
+            .overview-report-table th {
+                padding: 0.85rem 1rem;
+                background: #f8fbff;
+                color: var(--acepen-muted);
+                font-size: 0.73rem;
+                font-weight: 900;
+                letter-spacing: 0.07em;
+                text-transform: uppercase;
+                border-bottom: 1px solid rgba(24, 52, 71, 0.07);
+                white-space: nowrap;
+            }
+            .overview-report-table td {
+                padding: 0.9rem 1rem;
+                border-bottom: 1px solid rgba(24, 52, 71, 0.06);
+                vertical-align: middle;
+            }
+            .overview-report-table tr:last-child td {
+                border-bottom: 0;
+            }
+            .overview-report-empty {
+                border: 1px dashed rgba(24, 52, 71, 0.14);
+                border-radius: 24px;
+                padding: 1.2rem;
+                background: #f8fbff;
             }
             .payment-history-grid {
                 gap: 1rem;
@@ -708,8 +780,7 @@
                 z-index: 1090;
             }
             @media (max-width: 1199.98px) {
-                .app-grid,
-                .overview-grid {
+                .app-grid {
                     grid-template-columns: 1fr;
                 }
                 .sidebar {
@@ -893,31 +964,47 @@
                                         </div>
                                     </div>
                                     <div class="row g-3">
-                                        <div class="col-md-6">
+                                        <div class="col-md-6 col-xl-3">
                                             <button class="quick-action" type="button" data-panel-target="meters">
-                                                <div class="small text-secondary fw-semibold mb-2">identifiants</div>
-                                                <div class="fw-bold mb-1">Ajouter ou mettre a jour un identifiant</div>
+                                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                                    <div class="quick-action-icon">ID</div>
+                                                    <div class="quick-action-arrow">›</div>
+                                                </div>
+                                                <div class="small text-secondary fw-semibold mb-2">Identifiants</div>
+                                                <div class="quick-action-title mb-2">Ajouter ou mettre a jour un identifiant</div>
                                                 <div class="muted-label">CIE, SODECI, commune, adresse et position GPS.</div>
                                             </button>
                                         </div>
-                                        <div class="col-md-6">
+                                        <div class="col-md-6 col-xl-3">
                                             <button class="quick-action" type="button" data-panel-target="reports">
+                                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                                    <div class="quick-action-icon">SG</div>
+                                                    <div class="quick-action-arrow">›</div>
+                                                </div>
                                                 <div class="small text-secondary fw-semibold mb-2">Signalements</div>
-                                                <div class="fw-bold mb-1">Faire un nouveau signalement</div>
+                                                <div class="quick-action-title mb-2">Faire un nouveau signalement</div>
                                                 <div class="muted-label">Declaration, geolocalisation, paiement et suivi.</div>
                                             </button>
                                         </div>
-                                        <div class="col-md-6">
+                                        <div class="col-md-6 col-xl-3">
                                             <button class="quick-action" type="button" data-panel-target="profile">
+                                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                                    <div class="quick-action-icon">PR</div>
+                                                    <div class="quick-action-arrow">›</div>
+                                                </div>
                                                 <div class="small text-secondary fw-semibold mb-2">Profil</div>
-                                                <div class="fw-bold mb-1">Verifier mes informations</div>
+                                                <div class="quick-action-title mb-2">Verifier mes informations</div>
                                                 <div class="muted-label">Identite, email et commune de rattachement.</div>
                                             </button>
                                         </div>
-                                        <div class="col-md-6">
+                                        <div class="col-md-6 col-xl-3">
                                             <button class="quick-action" type="button" data-panel-target="household">
+                                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                                    <div class="quick-action-icon">GB</div>
+                                                    <div class="quick-action-arrow">›</div>
+                                                </div>
                                                 <div class="small text-secondary fw-semibold mb-2">Gbonhi</div>
-                                                <div class="fw-bold mb-1">Inviter ma famille</div>
+                                                <div class="quick-action-title mb-2">Inviter ma famille</div>
                                                 <div class="muted-label">Membres, invitations et identifiant commun du Gbonhi.</div>
                                             </button>
                                         </div>
@@ -925,34 +1012,35 @@
                                 </section>
 
                                 <section class="dashboard-card">
-                                    <div class="section-title mb-4">Synthese rapide</div>
-                                    <div class="vstack gap-3">
-                                        <div class="soft-panel">
-                                            <div class="small text-secondary fw-semibold mb-2">Profil</div>
-                                            <div class="summary-value" id="overviewUserName">-</div>
-                                            <div class="muted-label" id="overviewProfileLine">Commune et identite utilisateur</div>
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+                                        <div>
+                                            <div class="section-title">Mes derniers signalements</div>
+                                            <div class="muted-label">Suivi rapide de vos declarations, avec recherche, filtre et pagination.</div>
                                         </div>
-                                        <div class="soft-panel">
-                                            <div class="small text-secondary fw-semibold mb-2">identifiant principal</div>
-                                            <div class="fw-bold mb-1" id="overviewPrimaryMeter">Aucun identifiant principal</div>
-                                            <div class="muted-label" id="overviewPrimaryMeterMeta">Ajoute un identifiant pour accelerer tes declarations.</div>
-                                        </div>
-                                        <div class="soft-panel">
-                                            <div class="small text-secondary fw-semibold mb-2">Gbonhi</div>
-                                            <div class="fw-bold mb-1" id="overviewHouseholdSummary">Aucun Gbonhi enregistre</div>
-                                            <div class="muted-label" id="overviewHouseholdMeta">Cree un Gbonhi pour centraliser les signalements familiaux.</div>
-                                        </div>
-                                        <div class="soft-panel">
-                                            <div class="small text-secondary fw-semibold mb-2">Signalements</div>
-                                            <div class="fw-bold mb-1" id="overviewReportSummary">Aucun signalement pour le moment</div>
-                                            <div class="muted-label" id="overviewReportMeta">Tes declarations et leur statut apparaitront ici.</div>
-                                        </div>
-                                        <div class="soft-panel">
-                                            <div class="small text-secondary fw-semibold mb-2">Paiements</div>
-                                            <div class="fw-bold mb-1" id="overviewPaymentSummary">Aucun paiement confirme</div>
-                                            <div class="muted-label" id="overviewPaymentMeta">Ton historique de paiements et tes recus apparaitront ici.</div>
+                                        <button class="btn btn-premium px-4" type="button" data-panel-target="reports">Nouveau signalement</button>
+                                    </div>
+                                    <div class="mini-card mb-3">
+                                        <div class="row g-3 align-items-end">
+                                            <div class="col-lg-6">
+                                                <label class="form-label fw-semibold">Recherche</label>
+                                                <input class="form-control" id="overviewReportSearchFilter" placeholder="Reference, type, commune...">
+                                            </div>
+                                            <div class="col-md-6 col-lg-3">
+                                                <label class="form-label fw-semibold">Statut</label>
+                                                <select class="form-select" id="overviewReportStatusFilter">
+                                                    <option value="">Tous</option>
+                                                    <option value="submitted">Soumis</option>
+                                                    <option value="in_progress">En cours</option>
+                                                    <option value="resolved">Resolu</option>
+                                                    <option value="rejected">Non retenu</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6 col-lg-3">
+                                                <button class="btn btn-ghost-premium w-100" type="button" id="resetOverviewReportFiltersButton">Reset</button>
+                                            </div>
                                         </div>
                                     </div>
+                                    <div id="overviewReportsList"></div>
                                 </section>
                             </div>
                         </div>
@@ -1610,8 +1698,14 @@
                     signalTypes: [],
                     reportsPage: 1,
                     reportsPageSize: 5,
+                    overviewReportsPage: 1,
+                    overviewReportsPageSize: 5,
                     damagesPage: 1,
                     damagesPageSize: 4,
+                    overviewReportFilters: {
+                        search: '',
+                        status: '',
+                    },
                     reportFilters: {
                         search: '',
                         status: '',
@@ -2811,6 +2905,14 @@
                     syncAutoSignalPayloadFields();
                 }
 
+                function setTextIfExists(id, value) {
+                    const element = document.getElementById(id);
+
+                    if (element) {
+                        element.textContent = value;
+                    }
+                }
+
                 function renderUser(user) {
                     state.currentUser = user;
                     document.getElementById('dashboardGreeting').textContent = `Bienvenue ${user.first_name} ${user.last_name}`;
@@ -2822,8 +2924,8 @@
                         ? `GPS ${user.latitude}, ${user.longitude}`
                         : 'GPS non renseigne';
                     document.getElementById('sidebarRequestGpsButton')?.classList.toggle('d-none', hasSidebarGps);
-                    document.getElementById('overviewUserName').textContent = `${user.first_name} ${user.last_name}`;
-                    document.getElementById('overviewProfileLine').textContent = [user.phone, user.commune].filter(Boolean).join(' · ') || 'Informations de profil a completer';
+                    setTextIfExists('overviewUserName', `${user.first_name} ${user.last_name}`);
+                    setTextIfExists('overviewProfileLine', [user.phone, user.commune].filter(Boolean).join(' · ') || 'Informations de profil a completer');
                     document.getElementById('profileFullNameCard').textContent = `${user.first_name} ${user.last_name}`;
                     document.getElementById('profilePhoneCard').textContent = user.phone || '-';
                     document.getElementById('profileCommuneCard').textContent = user.commune || '-';
@@ -2878,12 +2980,12 @@
                     }
                     renderSignalOptions();
 
-                    document.getElementById('overviewPrimaryMeter').textContent = primaryMeter
+                    setTextIfExists('overviewPrimaryMeter', primaryMeter
                         ? `${primaryMeter.organization_name || primaryMeter.network_type} · ${primaryMeter.meter_number}`
-                        : 'Aucun identifiant principal';
-                    document.getElementById('overviewPrimaryMeterMeta').textContent = primaryMeter
+                        : 'Aucun identifiant principal');
+                    setTextIfExists('overviewPrimaryMeterMeta', primaryMeter
                         ? [primaryMeter.label, primaryMeter.commune, primaryMeter.address].filter(Boolean).join(' · ') || 'identifiant pret pour les declarations'
-                        : 'Ajoute un identifiant pour accelerer tes declarations.';
+                        : 'Ajoute un identifiant pour accelerer tes declarations.');
 
                     const list = document.getElementById('metersList');
                     if (!meters.length) {
@@ -2909,12 +3011,12 @@
                 function renderHousehold(household) {
                     state.household = household;
                     document.getElementById('householdMemberCount').textContent = household?.members?.length ?? 0;
-                    document.getElementById('overviewHouseholdSummary').textContent = household
+                    setTextIfExists('overviewHouseholdSummary', household
                         ? household.name || 'Gbonhi principal'
-                        : 'Aucun Gbonhi enregistre';
-                    document.getElementById('overviewHouseholdMeta').textContent = household
+                        : 'Aucun Gbonhi enregistre');
+                    setTextIfExists('overviewHouseholdMeta', household
                         ? `${household.members?.length ?? 0} membre(s) · ${household.pending_invitations?.length ?? 0} invitation(s) en attente`
-                        : 'Cree un Gbonhi pour centraliser les signalements familiaux.';
+                        : 'Cree un Gbonhi pour centraliser les signalements familiaux.');
 
                     const emptyState = document.getElementById('householdEmptyState');
                     const panel = document.getElementById('householdPanel');
@@ -2979,18 +3081,124 @@
                     button.dataset.reportId = firstEligibleReport ? String(firstEligibleReport.id) : '';
                 }
 
+                function getOverviewFilteredReports(reports) {
+                    const search = state.overviewReportFilters.search.trim().toLowerCase();
+
+                    return reports.filter((report) => {
+                        const matchesSearch = !search || [
+                            report.reference,
+                            report.signal_code,
+                            report.signal_label,
+                            report.incident_type,
+                            report.description,
+                            report.organization?.name,
+                            report.location?.commune,
+                            report.location?.city,
+                            report.location?.country,
+                        ].filter(Boolean).join(' ').toLowerCase().includes(search);
+
+                        const matchesStatus = !state.overviewReportFilters.status || report.status === state.overviewReportFilters.status;
+
+                        return matchesSearch && matchesStatus;
+                    });
+                }
+
+                function renderOverviewReports(reports) {
+                    const list = document.getElementById('overviewReportsList');
+
+                    if (!list) {
+                        return;
+                    }
+
+                    if (!reports.length) {
+                        list.innerHTML = `
+                            <div class="overview-report-empty">
+                                <div class="fw-bold mb-1">Aucun signalement pour le moment</div>
+                                <div class="muted-label mb-3">Vos futures declarations apparaitront ici avec leur statut, leur organisation et leur paiement.</div>
+                                <button class="btn btn-premium px-4" type="button" data-panel-target="reports">Faire un signalement</button>
+                            </div>
+                        `;
+                        list.querySelectorAll('[data-panel-target]').forEach((button) => {
+                            button.addEventListener('click', () => activatePanel(button.dataset.panelTarget));
+                        });
+                        return;
+                    }
+
+                    const filteredReports = getOverviewFilteredReports(reports);
+                    const totalPages = Math.max(1, Math.ceil(filteredReports.length / state.overviewReportsPageSize));
+                    state.overviewReportsPage = Math.min(state.overviewReportsPage, totalPages);
+
+                    if (!filteredReports.length) {
+                        list.innerHTML = `
+                            <div class="overview-report-empty">
+                                <div class="fw-bold mb-1">Aucun signalement ne correspond aux filtres</div>
+                                <div class="muted-label">Modifiez la recherche ou le statut pour retrouver vos declarations.</div>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    const start = (state.overviewReportsPage - 1) * state.overviewReportsPageSize;
+                    const currentReports = filteredReports.slice(start, start + state.overviewReportsPageSize);
+                    const end = start + currentReports.length;
+
+                    list.innerHTML = `
+                        <div class="report-table-shell">
+                            <div class="report-table-wrap">
+                                <table class="overview-report-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Reference</th>
+                                            <th>Signalement</th>
+                                            <th>Organisation</th>
+                                            <th>Statut</th>
+                                            <th>Paiement</th>
+                                            <th class="text-end">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${currentReports.map((report) => `
+                                            <tr>
+                                                <td>
+                                                    <div class="report-ref">${report.reference}</div>
+                                                    <div class="report-sub">${formatDateTime(report.created_at)}</div>
+                                                </td>
+                                                <td>
+                                                    <div class="report-main">${report.signal_label || report.incident_type || report.signal_code}</div>
+                                                    <div class="report-sub">${report.location?.commune || '-'}${report.location?.city ? ' · ' + report.location.city : ''}</div>
+                                                </td>
+                                                <td>
+                                                    <div class="report-main">${report.organization?.name || report.network_type || '-'}</div>
+                                                    <div class="report-sub">${report.application?.name || 'Application non definie'}</div>
+                                                </td>
+                                                <td><span class="status-pill status-report-${report.status}">${getPublicStatusLabel(report.status)}</span></td>
+                                                <td><span class="status-pill status-payment-${report.payment_status}">${report.payment_status === 'paid' ? 'Paye' : 'En attente'}</span></td>
+                                                <td class="text-end">
+                                                    <button class="btn btn-sm btn-ghost-premium px-3" type="button" onclick="window.AcepenPortal.showReportDetails(${report.id})">Details</button>
+                                                </td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="pagination-shell">
+                                <div class="pagination-info">Affichage ${start + 1} à ${end} sur ${filteredReports.length} signalement${filteredReports.length > 1 ? 's' : ''}</div>
+                                <div class="pagination-actions">
+                                    <button class="pagination-chip" type="button" ${state.overviewReportsPage === 1 ? 'disabled' : ''} onclick="window.AcepenPortal.changeOverviewReportsPage(${state.overviewReportsPage - 1})">‹</button>
+                                    <div class="small fw-semibold text-secondary">Page ${state.overviewReportsPage} / ${totalPages}</div>
+                                    <button class="pagination-chip" type="button" ${state.overviewReportsPage === totalPages ? 'disabled' : ''} onclick="window.AcepenPortal.changeOverviewReportsPage(${state.overviewReportsPage + 1})">›</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
                 function renderReports(reports) {
                     state.reports = reports;
                     updateDamageDeclarationAction(reports);
                     document.getElementById('reportCount').textContent = reports.length;
                     document.getElementById('topbarReportsBadge').textContent = `${reports.length} signalement${reports.length > 1 ? 's' : ''}`;
-                    const latestReport = reports[0];
-                    document.getElementById('overviewReportSummary').textContent = latestReport
-                        ? `${latestReport.signal_label || latestReport.incident_type || latestReport.signal_code} · ${getPublicStatusLabel(latestReport.status)}`
-                        : 'Aucun signalement pour le moment';
-                    document.getElementById('overviewReportMeta').textContent = latestReport
-                        ? `${latestReport.location.commune} · ${latestReport.payment_status === 'paid' ? 'Paiement confirme' : 'Paiement en attente'}`
-                        : 'Tes declarations et leur statut apparaitront ici.';
+                    renderOverviewReports(reports);
 
                     const list = document.getElementById('reportsList');
                     renderReportOrganizationFilter(reports);
@@ -3240,12 +3448,12 @@
                     document.getElementById('topbarPaymentsBadge').textContent = `${payments.length} paiement${payments.length > 1 ? 's' : ''}`;
 
                     const latestPaidPayment = payments.find((payment) => payment.status === 'paid') || payments[0];
-                    document.getElementById('overviewPaymentSummary').textContent = latestPaidPayment
+                    setTextIfExists('overviewPaymentSummary', latestPaidPayment
                         ? `${formatMoney(latestPaidPayment.amount, latestPaidPayment.currency)} · ${getPaymentStatusLabel(latestPaidPayment.status)}`
-                        : 'Aucun paiement confirme';
-                    document.getElementById('overviewPaymentMeta').textContent = latestPaidPayment
+                        : 'Aucun paiement confirme');
+                    setTextIfExists('overviewPaymentMeta', latestPaidPayment
                         ? `${latestPaidPayment.incident_report?.reference || 'Signalement'} · ${latestPaidPayment.reference}`
-                        : 'Ton historique de paiements et tes recus apparaitront ici.';
+                        : 'Ton historique de paiements et tes recus apparaitront ici.');
 
                     const list = document.getElementById('paymentsList');
                     if (!payments.length) {
@@ -4158,9 +4366,14 @@
                         paymentReceiptPreviewModal?.show();
                     },
                     changeReportsPage(page) {
-                        const totalPages = Math.max(1, Math.ceil(state.reports.length / state.reportsPageSize));
+                        const totalPages = Math.max(1, Math.ceil(getFilteredReports(state.reports).length / state.reportsPageSize));
                         state.reportsPage = Math.min(Math.max(1, page), totalPages);
                         renderReports(state.reports);
+                    },
+                    changeOverviewReportsPage(page) {
+                        const totalPages = Math.max(1, Math.ceil(getOverviewFilteredReports(state.reports).length / state.overviewReportsPageSize));
+                        state.overviewReportsPage = Math.min(Math.max(1, page), totalPages);
+                        renderOverviewReports(state.reports);
                     },
                     changeDamagesPage(page) {
                         const totalPages = Math.max(1, Math.ceil(getFilteredDamages(state.reports).length / state.damagesPageSize));
@@ -4180,6 +4393,23 @@
 
                 document.querySelectorAll('[data-panel-target]').forEach((button) => {
                     button.addEventListener('click', () => activatePanel(button.dataset.panelTarget));
+                });
+                document.getElementById('overviewReportSearchFilter')?.addEventListener('input', (event) => {
+                    state.overviewReportFilters.search = event.currentTarget.value || '';
+                    state.overviewReportsPage = 1;
+                    renderOverviewReports(state.reports);
+                });
+                document.getElementById('overviewReportStatusFilter')?.addEventListener('change', (event) => {
+                    state.overviewReportFilters.status = event.currentTarget.value || '';
+                    state.overviewReportsPage = 1;
+                    renderOverviewReports(state.reports);
+                });
+                document.getElementById('resetOverviewReportFiltersButton')?.addEventListener('click', () => {
+                    state.overviewReportFilters = { search: '', status: '' };
+                    state.overviewReportsPage = 1;
+                    document.getElementById('overviewReportSearchFilter').value = '';
+                    document.getElementById('overviewReportStatusFilter').value = '';
+                    renderOverviewReports(state.reports);
                 });
                 document.getElementById('reportSearchFilter').addEventListener('input', (event) => {
                     state.reportFilters.search = event.currentTarget.value || '';
