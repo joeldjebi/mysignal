@@ -47,6 +47,34 @@ class PublicPortalController extends Controller
 
     public function dashboard()
     {
+        $serviceApplications = Application::query()
+            ->where('status', 'active')
+            ->whereHas('organizations', fn ($query) => $query->where('status', 'active'))
+            ->with(['organizations' => fn ($query) => $query
+                ->where('status', 'active')
+                ->orderBy('name')])
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get()
+            ->map(function (Application $application) {
+                $networkType = ApplicationCatalog::networkTypeForApplicationCode($application->code);
+
+                return [
+                    'id' => $application->id,
+                    'code' => $application->code,
+                    'name' => $application->name,
+                    'network_type' => $networkType,
+                    'organizations' => $application->organizations->map(fn ($organization) => [
+                        'id' => $organization->id,
+                        'code' => $organization->code,
+                        'name' => $organization->name,
+                        'network_type' => $organization->code ?: $networkType,
+                    ])->values()->all(),
+                ];
+            })
+            ->values()
+            ->all();
+
         return view('public.dashboard', [
             'publicUserTypes' => PublicUserType::query()
                 ->with('pricingRule')
@@ -63,29 +91,7 @@ class PublicPortalController extends Controller
                 ->where('status', 'active')
                 ->orderBy('name')
                 ->get(),
-            'serviceApplications' => Application::query()
-                ->with(['organizations' => fn ($query) => $query->where('status', 'active')->orderBy('name')])
-                ->where('status', 'active')
-                ->orderBy('sort_order')
-                ->orderBy('name')
-                ->get()
-                ->map(function (Application $application) {
-                    $networkType = ApplicationCatalog::networkTypeForApplicationCode($application->code);
-
-                    return [
-                        'id' => $application->id,
-                        'code' => $application->code,
-                        'name' => $application->name,
-                        'network_type' => $networkType,
-                        'organizations' => $application->organizations->map(fn ($organization) => [
-                            'id' => $organization->id,
-                            'code' => $organization->code,
-                            'name' => $organization->name,
-                            'network_type' => $networkType,
-                        ])->values(),
-                    ];
-                })
-                ->values(),
+            'serviceApplications' => $serviceApplications,
         ]);
     }
 }

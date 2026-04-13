@@ -1,0 +1,516 @@
+{
+  "info": {
+    "_postman_id": "d9fc140d-3013-4373-b6cf-cd1fbc59c205",
+    "name": "MYSIGNAL UP Mobile API",
+    "description": "Collection Postman pour l integration mobile des usagers publics (UP). Elle couvre l authentification OTP, la gestion du profil, des compteurs, des foyers Gonhi, des signalements, des paiements et des dossiers contentieux.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://127.0.0.1:8000/api" },
+    { "key": "accessToken", "value": "" },
+    { "key": "verificationToken", "value": "" },
+    { "key": "phone", "value": "0700000000" },
+    { "key": "password", "value": "12345678" },
+    { "key": "publicUserTypeId", "value": "1" },
+    { "key": "meterId", "value": "" },
+    { "key": "reportId", "value": "" },
+    { "key": "paymentId", "value": "" },
+    { "key": "householdId", "value": "" },
+    { "key": "invitationId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "01 - Catalogues publics",
+      "description": "Routes accessibles sans authentification pour initialiser les catalogues de l application mobile.",
+      "item": [
+        {
+          "name": "Locations",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/locations",
+            "description": "Retourne l arbre geographique complet."
+          }
+        },
+        {
+          "name": "Signal Types",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/signal-types",
+            "description": "Retourne les types de signaux actifs avec leurs champs dynamiques data_fields."
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Auth UP",
+      "description": "Workflow OTP puis creation de compte ou connexion.",
+      "item": [
+        {
+          "name": "Request OTP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "if (json?.data?.phone) pm.environment.set('phone', json.data.phone);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{phone}}\"\n}"
+            },
+            "url": "{{baseUrl}}/v1/public/auth/request-otp",
+            "description": "Demande un OTP. En local, le code de test peut etre retourne."
+          }
+        },
+        {
+          "name": "Verify OTP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "if (json?.data?.verification_token) pm.environment.set('verificationToken', json.data.verification_token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{phone}}\",\n  \"code\": \"1234\"\n}"
+            },
+            "url": "{{baseUrl}}/v1/public/auth/verify-otp",
+            "description": "Verifie le code OTP et stocke verificationToken."
+          }
+        },
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+                  "const json = pm.response.json();",
+                  "if (json?.data?.access_token) pm.environment.set('accessToken', json.data.access_token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"public_user_type_id\": {{publicUserTypeId}},\n  \"first_name\": \"Jean\",\n  \"last_name\": \"Doe\",\n  \"phone\": \"{{phone}}\",\n  \"commune\": \"Cocody\",\n  \"password\": \"{{password}}\",\n  \"password_confirmation\": \"{{password}}\",\n  \"verification_token\": \"{{verificationToken}}\"\n}"
+            },
+            "url": "{{baseUrl}}/v1/public/auth/register",
+            "description": "Cree un compte UP et retourne directement un access token."
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "if (json?.data?.access_token) pm.environment.set('accessToken', json.data.access_token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{phone}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": "{{baseUrl}}/v1/public/auth/login",
+            "description": "Connexion classique UP."
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Session et profil",
+      "item": [
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/me"
+          }
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/profile"
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"jean@example.com\",\n  \"address\": \"Rue 12\",\n  \"latitude\": 5.348,\n  \"longitude\": -4.001,\n  \"location_source\": \"gps\"\n}"
+            },
+            "url": "{{baseUrl}}/v1/public/profile"
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Compteurs",
+      "item": [
+        {
+          "name": "List Meters",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/meters"
+          }
+        },
+        {
+          "name": "Create Meter",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json?.data?.meter?.id) pm.environment.set('meterId', json.data.meter.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"application_id\": 1,\n  \"organization_id\": 1,\n  \"meter_number\": \"AB12345678\",\n  \"label\": \"Compteur principal\",\n  \"commune\": \"Cocody\",\n  \"address\": \"Rue 12\",\n  \"is_primary\": true\n}"
+            },
+            "url": "{{baseUrl}}/v1/public/meters"
+          }
+        },
+        {
+          "name": "Show Meter",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/meters/{{meterId}}"
+          }
+        },
+        {
+          "name": "Update Meter",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"label\": \"Compteur salon\",\n  \"address\": \"Rue 12 bis\",\n  \"is_primary\": true\n}"
+            },
+            "url": "{{baseUrl}}/v1/public/meters/{{meterId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Foyers Gonhi",
+      "item": [
+        {
+          "name": "Create Household",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json?.data?.household?.id) pm.environment.set('householdId', json.data.household.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Famille Doe\",\n  \"commune\": \"Cocody\",\n  \"address\": \"Rue 12\"\n}"
+            },
+            "url": "{{baseUrl}}/v1/public/households"
+          }
+        },
+        {
+          "name": "Get My Household",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/households/me"
+          }
+        },
+        {
+          "name": "Pending Invitations",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/households/invitations/pending"
+          }
+        },
+        {
+          "name": "Invite Household Member",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"0711111111\",\n  \"relationship\": \"conjoint\",\n  \"meter_id\": {{meterId}}\n}"
+            },
+            "url": "{{baseUrl}}/v1/public/households/{{householdId}}/invitations"
+          }
+        },
+        {
+          "name": "Accept Invitation",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"invitation_id\": {{invitationId}}\n}"
+            },
+            "url": "{{baseUrl}}/v1/public/households/invitations/accept"
+          }
+        },
+        {
+          "name": "Decline Invitation",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"invitation_id\": {{invitationId}}\n}"
+            },
+            "url": "{{baseUrl}}/v1/public/households/invitations/decline"
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 - Signalements",
+      "item": [
+        {
+          "name": "List Reports",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/reports"
+          }
+        },
+        {
+          "name": "Create Report",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json?.data?.report?.id) pm.environment.set('reportId', json.data.report.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"meter_id\": {{meterId}},\n  \"application_id\": 1,\n  \"organization_id\": 1,\n  \"country_id\": 1,\n  \"city_id\": 1,\n  \"commune_id\": 1,\n  \"signal_code\": \"NETWORK_OUTAGE\",\n  \"description\": \"Coupure depuis 2 heures\",\n  \"address\": \"Rue 12\",\n  \"occurred_at\": \"2026-04-10T12:00:00Z\",\n  \"latitude\": 5.348,\n  \"longitude\": -4.001,\n  \"location_source\": \"gps\",\n  \"signal_payload\": {\n    \"service_category\": \"Internet\"\n  }\n}"
+            },
+            "url": "{{baseUrl}}/v1/public/reports"
+          }
+        },
+        {
+          "name": "Show Report",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/reports/{{reportId}}"
+          }
+        },
+        {
+          "name": "Confirm Resolution",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/v1/public/reports/{{reportId}}/confirm-resolution"
+          }
+        },
+        {
+          "name": "Declare Damage",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"damage_summary\": \"Materiel endommage\",\n  \"damage_amount_estimated\": 25000,\n  \"damage_notes\": \"Routeur grille\",\n  \"damage_attachment\": {\n    \"name\": \"preuve.jpg\",\n    \"mime_type\": \"image/jpeg\",\n    \"data_url\": \"data:image/jpeg;base64,...\"\n  }\n}"
+            },
+            "url": "{{baseUrl}}/v1/public/reports/{{reportId}}/damages"
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 - Paiements",
+      "description": "Le flux de paiement actuel est simule.",
+      "item": [
+        {
+          "name": "List Payments",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/payments"
+          }
+        },
+        {
+          "name": "Create Payment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json?.data?.payment?.id) pm.environment.set('paymentId', json.data.payment.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/v1/public/reports/{{reportId}}/payments"
+          }
+        },
+        {
+          "name": "Confirm Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/v1/public/payments/{{paymentId}}/confirm"
+          }
+        },
+        {
+          "name": "Receipt PDF",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/pdf" }],
+            "url": "{{baseUrl}}/v1/public/payments/{{paymentId}}/receipt",
+            "description": "Retourne un PDF uniquement si le paiement est paid."
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 - Dossiers contentieux",
+      "item": [
+        {
+          "name": "List Reparation Cases",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/reparation-cases",
+            "description": "Liste les dossiers ouverts par le SA et visibles pour l usager public."
+          }
+        }
+      ]
+    }
+  ]
+}

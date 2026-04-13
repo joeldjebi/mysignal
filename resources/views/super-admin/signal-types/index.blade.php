@@ -167,7 +167,19 @@
                             <label class="form-label">Description</label>
                             <textarea name="description" class="form-control" rows="3"></textarea>
                         </div>
-                        @include('partials.signal-type-field-builder', ['builderId' => 'sa-signal-type-create', 'fields' => []])
+                        @include('partials.signal-type-field-builder', ['builderId' => 'sa-signal-type-create', 'fields' => old() ? collect(old('field_keys', []))->map(function ($key, $index) {
+                            return [
+                                'key' => $key,
+                                'label' => old('field_labels.'.$index),
+                                'type' => old('field_types.'.$index, 'text'),
+                                'options' => collect(preg_split('/\r\n|\r|\n/', (string) old('field_options.'.$index)))
+                                    ->map(fn ($option) => trim((string) $option))
+                                    ->filter()
+                                    ->values()
+                                    ->all(),
+                                'required' => in_array((string) $index, array_map('strval', old('field_required', [])), true),
+                            ];
+                        })->all() : []])
                         <button type="submit" class="btn btn-dark">Creer</button>
                     </form>
                 </div>

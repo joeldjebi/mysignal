@@ -67,21 +67,27 @@ class DashboardController extends Controller
         ];
 
         if ($canViewDamageDeclarationsChart) {
-            $damageResolutionRaw = DB::table('incident_reports')
-                ->when(
-                    fn ($query) => $query->where('incident_reports.organization_id', $context['organization_id'])
-                )
-                ->when(
-                    $context['application_id'] !== null,
-                    fn ($query) => $query->where('incident_reports.application_id', $context['application_id'])
-                )
-                ->when(
-                    $context['network_type'] !== null,
-                    fn ($query) => $query->where('incident_reports.network_type', $context['network_type'])
-                )
+            $damageResolutionQuery = DB::table('incident_reports')
                 ->whereNotNull('damage_declared_at')
-                ->whereBetween('incident_reports.damage_declared_at', [$filters['date_from'], $filters['date_to']])
-                ->when($filters['commune_id'] !== null, fn ($query) => $query->where('incident_reports.commune_id', $filters['commune_id']))
+                ->whereBetween('incident_reports.damage_declared_at', [$filters['date_from'], $filters['date_to']]);
+
+            if ($context['organization_id'] !== null) {
+                $damageResolutionQuery->where('incident_reports.organization_id', $context['organization_id']);
+            }
+
+            if ($context['application_id'] !== null) {
+                $damageResolutionQuery->where('incident_reports.application_id', $context['application_id']);
+            }
+
+            if ($context['network_type'] !== null) {
+                $damageResolutionQuery->where('incident_reports.network_type', $context['network_type']);
+            }
+
+            if ($filters['commune_id'] !== null) {
+                $damageResolutionQuery->where('incident_reports.commune_id', $filters['commune_id']);
+            }
+
+            $damageResolutionRaw = $damageResolutionQuery
                 ->selectRaw("COALESCE(damage_resolution_status, 'submitted') as status, COUNT(*) as total")
                 ->groupByRaw("COALESCE(damage_resolution_status, 'submitted')")
                 ->pluck('total', 'status');
@@ -126,6 +132,7 @@ class DashboardController extends Controller
         $slaCandidates = (clone $reportsQuery)
             ->select([
                 'id',
+                'status',
                 'reference',
                 'signal_code',
                 'signal_label',
@@ -164,11 +171,12 @@ class DashboardController extends Controller
         }
 
         $mapReports = $slaCandidates
-            ->filter(fn (IncidentReport $report) => $report->latitude !== null && $report->longitude !== null)
+            ->filter(fn (IncidentReport $report) => $report->status !== 'resolved' && $report->latitude !== null && $report->longitude !== null)
             ->take(200)
             ->map(function (IncidentReport $report): array {
                 return [
                     'reference' => $report->reference,
+                    'status' => $report->status,
                     'signal_code' => $report->signal_code,
                     'signal_label' => $report->signal_label,
                     'latitude' => (float) $report->latitude,
@@ -187,23 +195,28 @@ class DashboardController extends Controller
             $paidReports = (clone $reportsQuery)->where('payment_status', 'paid')->count();
             $pendingReports = (clone $reportsQuery)->where('payment_status', 'pending')->count();
 
-            $collectedAmount = DB::table('payments')
+            $paymentsQuery = DB::table('payments')
                 ->join('incident_reports', 'incident_reports.id', '=', 'payments.incident_report_id')
-                ->when(
-                    fn ($query) => $query->where('incident_reports.organization_id', $context['organization_id'])
-                )
-                ->when(
-                    $context['application_id'] !== null,
-                    fn ($query) => $query->where('incident_reports.application_id', $context['application_id'])
-                )
-                ->when(
-                    $context['network_type'] !== null,
-                    fn ($query) => $query->where('incident_reports.network_type', $context['network_type'])
-                )
                 ->whereBetween('incident_reports.created_at', [$filters['date_from'], $filters['date_to']])
-                ->when($filters['commune_id'] !== null, fn ($query) => $query->where('incident_reports.commune_id', $filters['commune_id']))
-                ->where('payments.status', 'paid')
-                ->sum('payments.amount');
+                ->where('payments.status', 'paid');
+
+            if ($context['organization_id'] !== null) {
+                $paymentsQuery->where('incident_reports.organization_id', $context['organization_id']);
+            }
+
+            if ($context['application_id'] !== null) {
+                $paymentsQuery->where('incident_reports.application_id', $context['application_id']);
+            }
+
+            if ($context['network_type'] !== null) {
+                $paymentsQuery->where('incident_reports.network_type', $context['network_type']);
+            }
+
+            if ($filters['commune_id'] !== null) {
+                $paymentsQuery->where('incident_reports.commune_id', $filters['commune_id']);
+            }
+
+            $collectedAmount = $paymentsQuery->sum('payments.amount');
         }
 
         if ($canViewPaymentInfo && $canViewPaymentBreakdownChart) {

@@ -12,14 +12,28 @@ use App\Http\Requests\Api\V1\Public\Auth\RegisterPublicUserRequest;
 use App\Http\Requests\Api\V1\Public\Auth\RequestOtpRequest;
 use App\Http\Requests\Api\V1\Public\Auth\VerifyOtpRequest;
 use App\Http\Resources\Api\V1\Public\Auth\PublicUserResource;
+use App\Support\Audit\ActivityLogger;
 use App\Support\Api\ApiResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class PublicAuthController extends Controller
 {
-    public function requestOtp(RequestOtpRequest $request, RequestPublicOtpAction $action)
+    public function requestOtp(RequestOtpRequest $request, RequestPublicOtpAction $action, ActivityLogger $activityLogger)
     {
         $result = $action->handle($request->string('phone')->value());
+
+        $activityLogger->log(
+            'public.otp_requested',
+            'Demande de code OTP.',
+            'public_auth',
+            [
+                'phone' => $request->string('phone')->value(),
+            ],
+            $request,
+            null,
+            'public',
+        );
 
         return ApiResponse::success([
             'phone' => $result->phone,
@@ -28,11 +42,23 @@ class PublicAuthController extends Controller
         ], 'OTP envoye avec succes.');
     }
 
-    public function verifyOtp(VerifyOtpRequest $request, VerifyPublicOtpAction $action)
+    public function verifyOtp(VerifyOtpRequest $request, VerifyPublicOtpAction $action, ActivityLogger $activityLogger)
     {
         $verification = $action->handle(
             $request->string('phone')->value(),
             $request->string('code')->value(),
+        );
+
+        $activityLogger->log(
+            'public.otp_verified',
+            'Verification OTP reussie.',
+            'public_auth',
+            [
+                'phone' => $request->string('phone')->value(),
+            ],
+            $request,
+            null,
+            'public',
         );
 
         return ApiResponse::success([
@@ -42,30 +68,57 @@ class PublicAuthController extends Controller
         ], 'Numero verifie avec succes.');
     }
 
-    public function register(RegisterPublicUserRequest $request, RegisterPublicUserAction $action)
+    public function register(RegisterPublicUserRequest $request, RegisterPublicUserAction $action, ActivityLogger $activityLogger)
     {
         $result = $action->handle($request->validated());
+        $user = $result['user'];
 
-        return ApiResponse::success([
-            'access_token' => $result['token'],
-            'token_type' => 'bearer',
-            'expires_in' => Auth::guard('public_api')->factory()->getTTL() * 60,
-            'user' => new PublicUserResource($result['user']->loadMissing('publicUserType.pricingRule')),
-        ], 'Compte public cree avec succes.', 201);
-    }
-
-    public function login(LoginPublicUserRequest $request, LoginPublicUserAction $action)
-    {
-        $result = $action->handle(
-            $request->string('phone')->value(),
-            $request->string('password')->value(),
+        $activityLogger->log(
+            'public.registered',
+            'Creation de compte usager public.',
+            $user,
+            [
+                'public_user_type_id' => $user->public_user_type_id,
+                'phone' => $user->phone,
+            ],
+            $request,
+            $user,
+            'public',
         );
 
         return ApiResponse::success([
             'access_token' => $result['token'],
             'token_type' => 'bearer',
             'expires_in' => Auth::guard('public_api')->factory()->getTTL() * 60,
-            'user' => new PublicUserResource($result['user']->loadMissing('publicUserType.pricingRule')),
+            'user' => new PublicUserResource($user->loadMissing('publicUserType.pricingRule')),
+        ], 'Compte public cree avec succes.', 201);
+    }
+
+    public function login(LoginPublicUserRequest $request, LoginPublicUserAction $action, ActivityLogger $activityLogger)
+    {
+        $result = $action->handle(
+            $request->string('phone')->value(),
+            $request->string('password')->value(),
+        );
+        $user = $result['user'];
+
+        $activityLogger->log(
+            'public.login',
+            'Connexion usager public.',
+            $user,
+            [
+                'phone' => $user->phone,
+            ],
+            $request,
+            $user,
+            'public',
+        );
+
+        return ApiResponse::success([
+            'access_token' => $result['token'],
+            'token_type' => 'bearer',
+            'expires_in' => Auth::guard('public_api')->factory()->getTTL() * 60,
+            'user' => new PublicUserResource($user->loadMissing('publicUserType.pricingRule')),
         ], 'Connexion reussie.');
     }
 }

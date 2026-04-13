@@ -76,6 +76,20 @@ class CreateIncidentReportAction
                     'signal_payload.'.$field['key'] => ['La donnee ['.$field['label'].'] est requise pour ce type de signal.'],
                 ]);
             }
+
+            if (($field['type'] ?? 'text') === 'select' && array_key_exists($field['key'], $signalPayload) && filled($signalPayload[$field['key']])) {
+                $allowedOptions = collect($field['options'] ?? [])
+                    ->map(fn ($option) => trim((string) $option))
+                    ->filter()
+                    ->values()
+                    ->all();
+
+                if (! in_array((string) $signalPayload[$field['key']], $allowedOptions, true)) {
+                    throw ValidationException::withMessages([
+                        'signal_payload.'.$field['key'] => ['La valeur selectionnee pour ['.$field['label'].'] est invalide.'],
+                    ]);
+                }
+            }
         }
 
         $organizationTypeId = $meter->organization_id

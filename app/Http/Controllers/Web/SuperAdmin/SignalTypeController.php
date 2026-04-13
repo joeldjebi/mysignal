@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Application;
 use App\Models\Organization;
 use App\Models\SignalType;
+use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -52,9 +53,23 @@ class SignalTypeController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, ActivityLogger $activityLogger): RedirectResponse
     {
-        SignalType::query()->create($this->validatedAttributes($request));
+        $signalType = SignalType::query()->create($this->validatedAttributes($request));
+
+        $activityLogger->log(
+            'signal_type.created',
+            'Creation d un type de signal.',
+            $signalType,
+            [
+                'code' => $signalType->code,
+                'label' => $signalType->label,
+                'application_id' => $signalType->application_id,
+                'organization_id' => $signalType->organization_id,
+                'status' => $signalType->status,
+            ],
+            $request
+        );
 
         return redirect()->route('super-admin.signal-types.index')
             ->with('success', 'Le type de signal a ete creee.');
@@ -77,27 +92,62 @@ class SignalTypeController extends Controller
         ]);
     }
 
-    public function update(Request $request, SignalType $signalType): RedirectResponse
+    public function update(Request $request, SignalType $signalType, ActivityLogger $activityLogger): RedirectResponse
     {
+        $before = $signalType->only([
+            'code', 'label', 'application_id', 'organization_id', 'default_sla_hours', 'description', 'status', 'data_fields',
+        ]);
         $signalType->update($this->validatedAttributes($request, $signalType));
+
+        $activityLogger->log(
+            'signal_type.updated',
+            'Mise a jour d un type de signal.',
+            $signalType,
+            [
+                'before' => $before,
+                'after' => $signalType->only([
+                    'code', 'label', 'application_id', 'organization_id', 'default_sla_hours', 'description', 'status', 'data_fields',
+                ]),
+            ],
+            $request
+        );
 
         return redirect()->route('super-admin.signal-types.index')
             ->with('success', 'Le type de signal a ete mis a jour.');
     }
 
-    public function destroy(SignalType $signalType): RedirectResponse
+    public function destroy(Request $request, SignalType $signalType, ActivityLogger $activityLogger): RedirectResponse
     {
+        $snapshot = $signalType->only(['id', 'code', 'label', 'application_id', 'organization_id', 'status']);
         $signalType->delete();
+
+        $activityLogger->log(
+            'signal_type.deleted',
+            'Suppression d un type de signal.',
+            SignalType::class,
+            $snapshot,
+            $request
+        );
 
         return redirect()->route('super-admin.signal-types.index')
             ->with('success', 'Le type de signal a ete supprime.');
     }
 
-    public function toggleStatus(SignalType $signalType): RedirectResponse
+    public function toggleStatus(Request $request, SignalType $signalType, ActivityLogger $activityLogger): RedirectResponse
     {
         $signalType->update([
             'status' => $signalType->status === 'active' ? 'inactive' : 'active',
         ]);
+
+        $activityLogger->log(
+            'signal_type.status_toggled',
+            'Changement de statut d un type de signal.',
+            $signalType,
+            [
+                'status' => $signalType->status,
+            ],
+            $request
+        );
 
         return back()->with('success', 'Le statut du type de signal a ete mis a jour.');
     }
@@ -134,7 +184,9 @@ class SignalTypeController extends Controller
             'field_labels' => ['nullable', 'array'],
             'field_labels.*' => ['nullable', 'string', 'max:180'],
             'field_types' => ['nullable', 'array'],
-            'field_types.*' => ['nullable', 'in:text,number,textarea'],
+            'field_types.*' => ['nullable', 'in:text,number,textarea,select'],
+            'field_options' => ['nullable', 'array'],
+            'field_options.*' => ['nullable', 'string'],
             'field_required' => ['nullable', 'array'],
         ]);
 
@@ -167,12 +219,13 @@ class SignalTypeController extends Controller
                 $attributes['field_keys'] ?? [],
                 $attributes['field_labels'] ?? [],
                 $attributes['field_types'] ?? [],
+                $attributes['field_options'] ?? [],
                 $attributes['field_required'] ?? [],
             ),
         ];
     }
 
-    private function normalizeDataFields(array $keys, array $labels, array $types, array $requiredFlags): array
+    private function normalizeDataFields(array $keys, array $labels, array $types, array $options, array $requiredFlags): array
     {
         $rows = [];
 
@@ -180,6 +233,11 @@ class SignalTypeController extends Controller
             $normalizedKey = trim((string) $key);
             $normalizedLabel = trim((string) ($labels[$index] ?? ''));
             $normalizedType = (string) ($types[$index] ?? 'text');
+            $normalizedOptions = collect(preg_split('/\r\n|\r|\n/', (string) ($options[$index] ?? '')))
+                ->map(fn ($option) => trim((string) $option))
+                ->filter()
+                ->values()
+                ->all();
 
             if ($normalizedKey === '' && $normalizedLabel === '') {
                 continue;
@@ -194,9 +252,16 @@ class SignalTypeController extends Controller
             $rows[] = [
                 'key' => $normalizedKey,
                 'label' => $normalizedLabel,
-                'type' => in_array($normalizedType, ['text', 'number', 'textarea'], true) ? $normalizedType : 'text',
+                'type' => in_array($normalizedType, ['text', 'number', 'textarea', 'select'], true) ? $normalizedType : 'text',
                 'required' => in_array((string) $index, array_map('strval', $requiredFlags), true),
+                'options' => $normalizedType === 'select' ? $normalizedOptions : [],
             ];
+
+            if ($normalizedType === 'select' && count($normalizedOptions) === 0) {
+                throw ValidationException::withMessages([
+                    'field_options' => ['Chaque champ de type liste doit contenir au moins une option.'],
+                ]);
+            }
         }
 
         return $rows;

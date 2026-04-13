@@ -607,37 +607,47 @@
                 scrollWheelZoom: false
             });
 
-            const signalIcon = L.divIcon({
-                className: 'signal-map-icon',
-                html: `
-                    <div style="
-                        width: 22px;
-                        height: 22px;
-                        border-radius: 50% 50% 50% 0;
-                        background: #ffa117;
-                        transform: rotate(-45deg);
-                        border: 2px solid #ffffff;
-                        box-shadow: 0 8px 18px rgba(255,161,23,.35);
-                        position: relative;
-                    ">
-                        <span style="
-                            position: absolute;
-                            inset: 0;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            transform: rotate(45deg);
-                            color: #ffffff;
-                            font-size: 11px;
-                            font-weight: 800;
-                            line-height: 1;
-                        ">!</span>
-                    </div>
-                `,
-                iconSize: [22, 22],
-                iconAnchor: [11, 22],
-                popupAnchor: [0, -18]
-            });
+            const reportStatusMeta = {
+                submitted: { label: 'Soumis', color: '#ffa117', shadow: 'rgba(255,161,23,.35)' },
+                in_progress: { label: 'En cours', color: '#6791ff', shadow: 'rgba(103,145,255,.35)' },
+                rejected: { label: 'Rejete', color: '#ff0068', shadow: 'rgba(255,0,104,.32)' }
+            };
+
+            function buildSignalIcon(status) {
+                const meta = reportStatusMeta[status] || reportStatusMeta.submitted;
+
+                return L.divIcon({
+                    className: 'signal-map-icon',
+                    html: `
+                        <div style="
+                            width: 22px;
+                            height: 22px;
+                            border-radius: 50% 50% 50% 0;
+                            background: ${meta.color};
+                            transform: rotate(-45deg);
+                            border: 2px solid #ffffff;
+                            box-shadow: 0 8px 18px ${meta.shadow};
+                            position: relative;
+                        ">
+                            <span style="
+                                position: absolute;
+                                inset: 0;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                transform: rotate(45deg);
+                                color: #ffffff;
+                                font-size: 11px;
+                                font-weight: 800;
+                                line-height: 1;
+                            ">!</span>
+                        </div>
+                    `,
+                    iconSize: [22, 22],
+                    iconAnchor: [11, 22],
+                    popupAnchor: [0, -18]
+                });
+            }
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
@@ -648,14 +658,16 @@
                 const bounds = [];
 
                 mapReports.forEach((report) => {
+                    const statusMeta = reportStatusMeta[report.status] || reportStatusMeta.submitted;
                     const marker = L.marker([report.latitude, report.longitude], {
-                        icon: signalIcon
+                        icon: buildSignalIcon(report.status)
                     }).addTo(map);
 
                     marker.bindPopup(`
                         <div style="min-width: 180px;">
                             <div style="font-weight: 700; margin-bottom: 4px;">${report.reference}</div>
-                            <div style="font-size: 12px; color: #5b6b7a;">${report.signal_code} · ${report.signal_label ?? ''}</div>
+                            <div style="font-size: 12px; color: #5b6b7a;">${report.signal_label || report.signal_code || '-'}</div>
+                            <div style="font-size: 12px; margin-top: 6px;">Statut: ${statusMeta.label}</div>
                             <div style="font-size: 12px; margin-top: 6px;">SLA cible: ${report.target_sla_hours ?? '-'} h</div>
                         </div>
                     `);

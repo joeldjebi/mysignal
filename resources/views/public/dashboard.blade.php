@@ -67,7 +67,6 @@
             .sidebar-brand {
                 padding: 0.15rem 0.15rem 0.8rem;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-                margin-bottom: 0.8rem;
             }
             .brand-mark {
                 width: 42px;
@@ -156,6 +155,37 @@
                 padding: 0.85rem 1rem;
                 margin-bottom: 1rem;
                 border-top: 4px solid var(--acepen-blue, #6791ff);
+            }
+            .topbar-session {
+                min-width: min(100%, 380px);
+                border-radius: 22px;
+                padding: 0.85rem 0.95rem;
+                background: linear-gradient(145deg, rgba(24, 52, 71, 0.98), rgba(40, 83, 112, 0.94));
+                color: white;
+                box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+            }
+            .topbar-session-meta {
+                color: rgba(255, 255, 255, 0.72);
+                font-size: 0.78rem;
+            }
+            .topbar-session-actions {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.55rem;
+                margin-top: 0.8rem;
+            }
+            .btn-topbar-session {
+                min-height: 2.5rem;
+                border-radius: 16px;
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                color: white;
+                background: rgba(255, 255, 255, 0.08);
+                font-weight: 700;
+                padding-inline: 0.95rem;
+            }
+            .btn-topbar-session:hover {
+                background: rgba(255, 255, 255, 0.14);
+                color: white;
             }
             .hero-card,
             .dashboard-card,
@@ -258,13 +288,18 @@
                 min-height: 2.85rem;
                 border-radius: 18px;
                 background: var(--acepen-copper);
-                color: white;
+                color: #102a43;
                 font-weight: 800;
                 box-shadow: 0 18px 34px rgba(255, 161, 23, 0.24);
             }
-            .btn-premium:hover {
-                color: white;
+            .btn-premium:hover,
+            .btn-premium:focus,
+            .btn-premium:focus-visible,
+            .btn-premium:active {
+                background: #ffb540;
+                color: #102a43;
                 transform: translateY(-1px);
+                box-shadow: 0 18px 34px rgba(255, 161, 23, 0.28);
             }
             .btn-ghost-premium {
                 min-height: 2.85rem;
@@ -309,6 +344,165 @@
                 color: var(--acepen-muted);
                 font-size: 0.82rem;
                 margin-top: 0.45rem;
+            }
+            .select-search-input {
+                display: block;
+                width: 100%;
+                margin-bottom: 0.55rem;
+                min-height: 2.85rem;
+                border-radius: 16px;
+                background: #fff;
+                padding-right: 3.4rem;
+                cursor: pointer;
+            }
+            .select-search-shell {
+                position: relative;
+            }
+            .select-search-toggle {
+                position: absolute;
+                top: 0;
+                right: 0;
+                width: 3rem;
+                height: 2.85rem;
+                border: 0;
+                background: transparent;
+                color: var(--acepen-muted);
+                border-radius: 0 16px 16px 0;
+            }
+            .select-search-toggle::before,
+            .select-search-toggle::after {
+                content: "";
+                position: absolute;
+                top: 50%;
+                width: 7px;
+                height: 2px;
+                background: currentColor;
+            }
+            .select-search-toggle::before {
+                right: 18px;
+                transform: translateY(-50%) rotate(45deg);
+            }
+            .select-search-toggle::after {
+                right: 13px;
+                transform: translateY(-50%) rotate(-45deg);
+            }
+            .required-star {
+                color: #d6005a;
+                font-weight: 800;
+                margin-left: 0.15rem;
+            }
+            .select-search-help {
+                margin-top: -0.2rem;
+                margin-bottom: 0.55rem;
+                color: var(--acepen-muted);
+                font-size: 0.76rem;
+            }
+            .select-search-results {
+                display: none;
+                margin-top: -0.2rem;
+                margin-bottom: 0.55rem;
+                background: #fff;
+                border: 1px solid rgba(24, 52, 71, 0.12);
+                border-radius: 16px;
+                box-shadow: 0 18px 34px rgba(15, 39, 56, 0.08);
+                max-height: 220px;
+                overflow: auto;
+                padding: 0.35rem;
+            }
+            .select-search-results.is-open {
+                display: block;
+            }
+            .select-search-option {
+                width: 100%;
+                text-align: left;
+                border: 0;
+                background: transparent;
+                border-radius: 12px;
+                padding: 0.65rem 0.8rem;
+                color: var(--acepen-ink);
+            }
+            .select-search-option:hover,
+            .select-search-option.is-active {
+                background: rgba(103, 145, 255, 0.08);
+            }
+            .select-search-empty {
+                padding: 0.65rem 0.8rem;
+                color: var(--acepen-muted);
+                font-size: 0.86rem;
+            }
+            .public-select-shell {
+                position: relative;
+            }
+            .public-select-input {
+                display: block;
+                width: 100%;
+                margin-bottom: 0.55rem;
+                min-height: 2.85rem;
+                border-radius: 16px;
+                background: #fff;
+                padding-right: 3.4rem;
+                cursor: pointer;
+            }
+            .public-select-toggle {
+                position: absolute;
+                top: 0;
+                right: 0;
+                width: 3rem;
+                height: 2.85rem;
+                border: 0;
+                background: transparent;
+                color: var(--acepen-muted);
+                border-radius: 0 16px 16px 0;
+            }
+            .public-select-toggle::before,
+            .public-select-toggle::after {
+                content: "";
+                position: absolute;
+                top: 50%;
+                width: 7px;
+                height: 2px;
+                background: currentColor;
+            }
+            .public-select-toggle::before {
+                right: 18px;
+                transform: translateY(-50%) rotate(45deg);
+            }
+            .public-select-toggle::after {
+                right: 13px;
+                transform: translateY(-50%) rotate(-45deg);
+            }
+            .public-select-help {
+                margin-top: -0.2rem;
+                margin-bottom: 0.55rem;
+                color: var(--acepen-muted);
+                font-size: 0.76rem;
+            }
+            .public-select-results {
+                display: none;
+                margin-top: -0.2rem;
+                margin-bottom: 0.55rem;
+                background: #fff;
+                border: 1px solid rgba(24, 52, 71, 0.12);
+                border-radius: 16px;
+                box-shadow: 0 18px 34px rgba(15, 39, 56, 0.08);
+                max-height: 220px;
+                overflow: auto;
+                padding: 0.35rem;
+            }
+            .public-select-results.is-open {
+                display: block;
+            }
+            .public-select-option {
+                width: 100%;
+                text-align: left;
+                border: 0;
+                background: transparent;
+                border-radius: 12px;
+                padding: 0.65rem 0.8rem;
+                color: var(--acepen-ink);
+            }
+            .public-select-option:hover {
+                background: rgba(103, 145, 255, 0.08);
             }
             .report-table-shell {
                 overflow: hidden;
@@ -436,20 +630,92 @@
             .overview-grid {
                 display: grid;
                 gap: 1.5rem;
-                grid-template-columns: 1.25fr 0.75fr;
             }
             .quick-action {
                 width: 100%;
                 border: 1px solid rgba(24, 52, 71, 0.08);
-                border-radius: 22px;
-                padding: 1rem 1.1rem;
-                background: white;
+                border-radius: 26px;
+                padding: 1.15rem;
+                background:
+                    radial-gradient(circle at top right, rgba(255, 161, 23, 0.14), transparent 34%),
+                    linear-gradient(145deg, #ffffff 0%, #f8fbff 100%);
                 text-align: left;
                 transition: 0.2s ease;
+                min-height: 158px;
+                position: relative;
+                overflow: hidden;
+                box-shadow: 0 18px 38px rgba(15, 39, 56, 0.05);
             }
             .quick-action:hover {
-                transform: translateY(-1px);
-                box-shadow: 0 18px 28px rgba(15, 39, 56, 0.08);
+                transform: translateY(-3px);
+                box-shadow: 0 24px 44px rgba(15, 39, 56, 0.1);
+            }
+            .quick-action::after {
+                content: "";
+                position: absolute;
+                width: 92px;
+                height: 92px;
+                right: -34px;
+                bottom: -34px;
+                border-radius: 999px;
+                background: rgba(255, 0, 104, 0.08);
+            }
+            .quick-action-icon {
+                width: 46px;
+                height: 46px;
+                border-radius: 17px;
+                display: grid;
+                place-items: center;
+                font-weight: 900;
+                color: #102a43;
+                background: var(--acepen-copper);
+                box-shadow: 0 18px 30px rgba(255, 161, 23, 0.2);
+            }
+            .quick-action-title {
+                font-size: 1.02rem;
+                font-weight: 900;
+                color: var(--acepen-navy);
+                letter-spacing: -0.03em;
+            }
+            .quick-action-arrow {
+                width: 34px;
+                height: 34px;
+                border-radius: 999px;
+                display: grid;
+                place-items: center;
+                background: rgba(24, 52, 71, 0.06);
+                color: var(--acepen-navy);
+                font-weight: 900;
+            }
+            .overview-report-table {
+                width: 100%;
+                min-width: 760px;
+                margin-bottom: 0;
+            }
+            .overview-report-table th {
+                padding: 0.85rem 1rem;
+                background: #f8fbff;
+                color: var(--acepen-muted);
+                font-size: 0.73rem;
+                font-weight: 900;
+                letter-spacing: 0.07em;
+                text-transform: uppercase;
+                border-bottom: 1px solid rgba(24, 52, 71, 0.07);
+                white-space: nowrap;
+            }
+            .overview-report-table td {
+                padding: 0.9rem 1rem;
+                border-bottom: 1px solid rgba(24, 52, 71, 0.06);
+                vertical-align: middle;
+            }
+            .overview-report-table tr:last-child td {
+                border-bottom: 0;
+            }
+            .overview-report-empty {
+                border: 1px dashed rgba(24, 52, 71, 0.14);
+                border-radius: 24px;
+                padding: 1.2rem;
+                background: #f8fbff;
             }
             .payment-history-grid {
                 gap: 1rem;
@@ -514,8 +780,7 @@
                 z-index: 1090;
             }
             @media (max-width: 1199.98px) {
-                .app-grid,
-                .overview-grid {
+                .app-grid {
                     grid-template-columns: 1fr;
                 }
                 .sidebar {
@@ -578,11 +843,10 @@
                         <div class="d-flex align-items-center gap-3 mb-3">
                             <div class="brand-mark">AA</div>
                             <div>
-                                <div class="small text-white-50 fw-semibold">ACEPEN ALERTE</div>
+                                <div class="small text-white-50 fw-semibold">SIGNAL ALERTE</div>
                                 <div class="fw-bold fs-5">Espace public</div>
                             </div>
                         </div>
-                        <div class="small text-white-50">Un espace personnel structuré pour gérer votre profil, vos identifiants, votre Gbonhi et vos signalements.</div>
                     </div>
 
                     <div class="sidebar-menu">
@@ -636,22 +900,15 @@
                                 <span class="small text-white-50">Historique et suivi</span>
                             </span>
                         </button>
+                        <button class="nav-pill" type="button" data-panel-target="cases">
+                            <span class="nav-icon">DC</span>
+                            <span>
+                                <span class="d-block fw-semibold">Mes dossiers</span>
+                                <span class="small text-white-50">Avancement et historique</span>
+                            </span>
+                        </button>
                     </div>
 
-                    <div class="sidebar-footer">
-                        <div class="sidebar-card mb-3">
-                            <div class="small text-white-50 mb-1">Session active</div>
-                            <div class="fw-semibold" id="sidebarUserName">Utilisateur</div>
-                            <div class="small text-white-50" id="sidebarUserPhone">-</div>
-                            <div class="small text-white-50 mt-1" id="sidebarUserLocation">Localisation non renseignee</div>
-                            <div class="small text-white-50 mt-1" id="sidebarUserGps">GPS non renseigne</div>
-                            <button type="button" class="btn btn-sm btn-sidebar mt-2 d-none" id="sidebarRequestGpsButton">Renseigner le GPS</button>
-                        </div>
-                        <div class="d-grid gap-2">
-                            <a class="btn btn-sidebar" href="{{ route('public.landing') }}">Retour accueil</a>
-                            <button id="logoutButton" class="btn btn-sidebar" type="button">Se deconnecter</button>
-                        </div>
-                    </div>
                 </aside>
 
                 <main class="content">
@@ -667,6 +924,15 @@
                             <span class="status-pill" id="topbarMetersBadge">0 identifiant</span>
                             <span class="status-pill" id="topbarReportsBadge">0 signalement</span>
                             <span class="status-pill" id="topbarPaymentsBadge">0 paiement</span>
+                        </div>
+                        <div class="topbar-session">
+                            <div class="small text-white-50 mb-1">Session active</div>
+                            <div class="topbar-session-meta mt-1" id="sidebarUserLocation">Localisation non renseignee</div>
+                            <div class="topbar-session-meta mt-1" id="sidebarUserGps">GPS non renseigne</div>
+                            <div class="topbar-session-actions">
+                                <button type="button" class="btn btn-sm btn-topbar-session d-none" id="sidebarRequestGpsButton">Renseigner le GPS</button>
+                                <button id="logoutButton" class="btn btn-sm btn-topbar-session" type="button">Se deconnecter</button>
+                            </div>
                         </div>
                     </header>
 
@@ -698,31 +964,47 @@
                                         </div>
                                     </div>
                                     <div class="row g-3">
-                                        <div class="col-md-6">
+                                        <div class="col-md-6 col-xl-3">
                                             <button class="quick-action" type="button" data-panel-target="meters">
-                                                <div class="small text-secondary fw-semibold mb-2">identifiants</div>
-                                                <div class="fw-bold mb-1">Ajouter ou mettre a jour un identifiant</div>
+                                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                                    <div class="quick-action-icon">ID</div>
+                                                    <div class="quick-action-arrow">›</div>
+                                                </div>
+                                                <div class="small text-secondary fw-semibold mb-2">Identifiants</div>
+                                                <div class="quick-action-title mb-2">Ajouter ou mettre a jour un identifiant</div>
                                                 <div class="muted-label">CIE, SODECI, commune, adresse et position GPS.</div>
                                             </button>
                                         </div>
-                                        <div class="col-md-6">
+                                        <div class="col-md-6 col-xl-3">
                                             <button class="quick-action" type="button" data-panel-target="reports">
+                                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                                    <div class="quick-action-icon">SG</div>
+                                                    <div class="quick-action-arrow">›</div>
+                                                </div>
                                                 <div class="small text-secondary fw-semibold mb-2">Signalements</div>
-                                                <div class="fw-bold mb-1">Faire un nouveau signalement</div>
+                                                <div class="quick-action-title mb-2">Faire un nouveau signalement</div>
                                                 <div class="muted-label">Declaration, geolocalisation, paiement et suivi.</div>
                                             </button>
                                         </div>
-                                        <div class="col-md-6">
+                                        <div class="col-md-6 col-xl-3">
                                             <button class="quick-action" type="button" data-panel-target="profile">
+                                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                                    <div class="quick-action-icon">PR</div>
+                                                    <div class="quick-action-arrow">›</div>
+                                                </div>
                                                 <div class="small text-secondary fw-semibold mb-2">Profil</div>
-                                                <div class="fw-bold mb-1">Verifier mes informations</div>
+                                                <div class="quick-action-title mb-2">Verifier mes informations</div>
                                                 <div class="muted-label">Identite, email et commune de rattachement.</div>
                                             </button>
                                         </div>
-                                        <div class="col-md-6">
+                                        <div class="col-md-6 col-xl-3">
                                             <button class="quick-action" type="button" data-panel-target="household">
+                                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                                    <div class="quick-action-icon">GB</div>
+                                                    <div class="quick-action-arrow">›</div>
+                                                </div>
                                                 <div class="small text-secondary fw-semibold mb-2">Gbonhi</div>
-                                                <div class="fw-bold mb-1">Inviter ma famille</div>
+                                                <div class="quick-action-title mb-2">Inviter ma famille</div>
                                                 <div class="muted-label">Membres, invitations et identifiant commun du Gbonhi.</div>
                                             </button>
                                         </div>
@@ -730,34 +1012,35 @@
                                 </section>
 
                                 <section class="dashboard-card">
-                                    <div class="section-title mb-4">Synthese rapide</div>
-                                    <div class="vstack gap-3">
-                                        <div class="soft-panel">
-                                            <div class="small text-secondary fw-semibold mb-2">Profil</div>
-                                            <div class="summary-value" id="overviewUserName">-</div>
-                                            <div class="muted-label" id="overviewProfileLine">Commune et identite utilisateur</div>
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+                                        <div>
+                                            <div class="section-title">Mes derniers signalements</div>
+                                            <div class="muted-label">Suivi rapide de vos declarations, avec recherche, filtre et pagination.</div>
                                         </div>
-                                        <div class="soft-panel">
-                                            <div class="small text-secondary fw-semibold mb-2">identifiant principal</div>
-                                            <div class="fw-bold mb-1" id="overviewPrimaryMeter">Aucun identifiant principal</div>
-                                            <div class="muted-label" id="overviewPrimaryMeterMeta">Ajoute un identifiant pour accelerer tes declarations.</div>
-                                        </div>
-                                        <div class="soft-panel">
-                                            <div class="small text-secondary fw-semibold mb-2">Gbonhi</div>
-                                            <div class="fw-bold mb-1" id="overviewHouseholdSummary">Aucun Gbonhi enregistre</div>
-                                            <div class="muted-label" id="overviewHouseholdMeta">Cree un Gbonhi pour centraliser les signalements familiaux.</div>
-                                        </div>
-                                        <div class="soft-panel">
-                                            <div class="small text-secondary fw-semibold mb-2">Signalements</div>
-                                            <div class="fw-bold mb-1" id="overviewReportSummary">Aucun signalement pour le moment</div>
-                                            <div class="muted-label" id="overviewReportMeta">Tes declarations et leur statut apparaitront ici.</div>
-                                        </div>
-                                        <div class="soft-panel">
-                                            <div class="small text-secondary fw-semibold mb-2">Paiements</div>
-                                            <div class="fw-bold mb-1" id="overviewPaymentSummary">Aucun paiement confirme</div>
-                                            <div class="muted-label" id="overviewPaymentMeta">Ton historique de paiements et tes recus apparaitront ici.</div>
+                                        <button class="btn btn-premium px-4" type="button" data-panel-target="reports">Nouveau signalement</button>
+                                    </div>
+                                    <div class="mini-card mb-3">
+                                        <div class="row g-3 align-items-end">
+                                            <div class="col-lg-6">
+                                                <label class="form-label fw-semibold">Recherche</label>
+                                                <input class="form-control" id="overviewReportSearchFilter" placeholder="Reference, type, commune...">
+                                            </div>
+                                            <div class="col-md-6 col-lg-3">
+                                                <label class="form-label fw-semibold">Statut</label>
+                                                <select class="form-select" id="overviewReportStatusFilter">
+                                                    <option value="">Tous</option>
+                                                    <option value="submitted">Soumis</option>
+                                                    <option value="in_progress">En cours</option>
+                                                    <option value="resolved">Resolu</option>
+                                                    <option value="rejected">Non retenu</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6 col-lg-3">
+                                                <button class="btn btn-ghost-premium w-100" type="button" id="resetOverviewReportFiltersButton">Reset</button>
+                                            </div>
                                         </div>
                                     </div>
+                                    <div id="overviewReportsList"></div>
                                 </section>
                             </div>
                         </div>
@@ -779,7 +1062,7 @@
                                             <label class="form-label fw-semibold">Type d usager public</label>
                                             <select class="form-select" id="profilePublicUserTypeSelect" required disabled>
                                                 @foreach ($publicUserTypes as $publicUserType)
-                                                    <option value="{{ $publicUserType->id }}" data-profile-kind="{{ $publicUserType->profile_kind }}">{{ $publicUserType->name }}</option>
+                                                    <option value="{{ $publicUserType->id }}" data-profile-kind="{{ $publicUserType->profile_kind }}" data-type-code="{{ $publicUserType->code }}">{{ $publicUserType->name }}</option>
                                                 @endforeach
                                             </select>
                                             <div class="location-search-hint">Ce type est defini a la creation du compte et ne peut pas etre modifie ici.</div>
@@ -794,11 +1077,8 @@
                                             </select>
                                         </div>
                                         <div class="col-12"><label class="form-label fw-semibold">Email</label><input class="form-control" type="email" name="email"></div>
-                                        <div class="col-12 hidden" id="profileBusinessFields">
+                                        <div class="col-12 hidden" id="profileSectorFields">
                                             <div class="row g-3">
-                                                <div class="col-md-6"><label class="form-label fw-semibold">Raison sociale</label><input class="form-control" name="company_name"></div>
-                                                <div class="col-md-6"><label class="form-label fw-semibold">RCCM / Immatriculation</label><input class="form-control" name="company_registration_number"></div>
-                                                <div class="col-md-6"><label class="form-label fw-semibold">Identifiant fiscal</label><input class="form-control" name="tax_identifier"></div>
                                                 <div class="col-md-6">
                                                     <label class="form-label fw-semibold">Secteur d activite</label>
                                                     <select class="form-select" name="business_sector">
@@ -808,6 +1088,13 @@
                                                         @endforeach
                                                     </select>
                                                 </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 hidden" id="profileBusinessFields">
+                                            <div class="row g-3">
+                                                <div class="col-md-6"><label class="form-label fw-semibold">Raison sociale</label><input class="form-control" name="company_name"></div>
+                                                <div class="col-md-6"><label class="form-label fw-semibold">RCCM / Immatriculation</label><input class="form-control" name="company_registration_number"></div>
+                                                <div class="col-md-6"><label class="form-label fw-semibold">Identifiant fiscal</label><input class="form-control" name="tax_identifier"></div>
                                                 <div class="col-12"><label class="form-label fw-semibold">Adresse de l entreprise</label><input class="form-control" name="company_address"></div>
                                             </div>
                                         </div>
@@ -1130,6 +1417,19 @@
                             <div id="damagesList"></div>
                         </div>
                     </section>
+
+                    <section class="public-panel" data-panel="cases">
+                        <div class="dashboard-card">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+                                <div>
+                                    <div class="section-title">Historique de mes dossiers</div>
+                                    <div class="muted-label">Consulte l avancement des dossiers ouverts a partir de tes signalements et les mises a jour enregistrees par le traitement du dossier.</div>
+                                </div>
+                                <button class="btn btn-ghost-premium px-4" type="button" data-panel-target="reports">Voir les signalements</button>
+                            </div>
+                            <div id="reparationCasesList"></div>
+                        </div>
+                    </section>
                 </main>
             </div>
         </div>
@@ -1147,28 +1447,82 @@
                             <div class="modal-body p-4 p-lg-4">
                         <form id="reportForm" class="row g-3">
                             <div class="col-md-4">
-                                <label class="form-label fw-semibold">Application concernee</label>
-                                <select class="form-select" id="reportApplicationId" required></select>
+                                <label class="form-label fw-semibold">Application concernee<span class="required-star">*</span></label>
+                                <div class="select-search-shell">
+                                    <input class="form-control select-search-input" style="display:block;width:100%;" type="search" data-search-select-target="reportApplicationId" autocomplete="off" placeholder="Rechercher une application">
+                                    <button class="select-search-toggle" type="button" data-search-toggle-target="reportApplicationId" aria-label="Afficher les options"></button>
+                                </div>
+                                <div class="select-search-help">Champ de selection avec recherche.</div>
+                                <select class="form-select d-none" id="reportApplicationId" required></select>
+                                <div class="select-search-results" id="reportApplicationIdResults"></div>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label fw-semibold">Organisation concernee</label>
-                                <select class="form-select" id="reportOrganizationType" required></select>
+                                <label class="form-label fw-semibold">Organisation concernee<span class="required-star">*</span></label>
+                                <div class="select-search-shell">
+                                    <input class="form-control select-search-input" style="display:block;width:100%;" type="search" data-search-select-target="reportOrganizationType" autocomplete="off" placeholder="Rechercher une organisation">
+                                    <button class="select-search-toggle" type="button" data-search-toggle-target="reportOrganizationType" aria-label="Afficher les options"></button>
+                                </div>
+                                <div class="select-search-help">Champ de selection avec recherche.</div>
+                                <select class="form-select d-none" id="reportOrganizationType" required></select>
+                                <div class="select-search-results" id="reportOrganizationTypeResults"></div>
                                 <div class="location-search-hint">Choisissez d abord l application, puis l organisation concernee, pour afficher uniquement les identifiants et types de signal compatibles.</div>
                             </div>
-                            <div class="col-md-4"><label class="form-label fw-semibold">identifiant</label><select class="form-select" name="meter_id" id="reportMeterId" required></select></div>
                             <div class="col-md-4">
-                                <label class="form-label fw-semibold">Type de signal</label>
-                                <select class="form-select" name="signal_code" id="reportSignalCode" required></select>
+                                <label class="form-label fw-semibold">identifiant<span class="required-star">*</span></label>
+                                <div class="select-search-shell">
+                                    <input class="form-control select-search-input" style="display:block;width:100%;" type="search" data-search-select-target="reportMeterId" autocomplete="off" placeholder="Rechercher un identifiant">
+                                    <button class="select-search-toggle" type="button" data-search-toggle-target="reportMeterId" aria-label="Afficher les options"></button>
+                                </div>
+                                <div class="select-search-help">Champ de selection avec recherche.</div>
+                                <select class="form-select d-none" name="meter_id" id="reportMeterId" required></select>
+                                <div class="select-search-results" id="reportMeterIdResults"></div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Type de signal<span class="required-star">*</span></label>
+                                <div class="select-search-shell">
+                                    <input class="form-control select-search-input" style="display:block;width:100%;" type="search" data-search-select-target="reportSignalCode" autocomplete="off" placeholder="Rechercher un type de signal">
+                                    <button class="select-search-toggle" type="button" data-search-toggle-target="reportSignalCode" aria-label="Afficher les options"></button>
+                                </div>
+                                <div class="select-search-help">Champ de selection avec recherche.</div>
+                                <select class="form-select d-none" name="signal_code" id="reportSignalCode" required></select>
+                                <div class="select-search-results" id="reportSignalCodeResults"></div>
                                 <div class="location-search-hint mt-2" id="reportSignalInlineDescription">Selectionnez un type de signal pour afficher sa description et son delai de resolution.</div>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label fw-semibold">Date et heure</label>
+                                <label class="form-label fw-semibold">Date et heure<span class="required-star">*</span></label>
                                 <input class="form-control" type="datetime-local" name="occurred_at" id="reportOccurredAt" readonly>
                                 <div class="location-search-hint">La date et l heure actuelles sont appliquees automatiquement au signalement.</div>
                             </div>
-                            <div class="col-md-4"><label class="form-label fw-semibold">Pays</label><select class="form-select" name="country_id" id="reportCountryId" required></select></div>
-                            <div class="col-md-4"><label class="form-label fw-semibold">Ville</label><select class="form-select" name="city_id" id="reportCityId" required></select></div>
-                            <div class="col-md-4"><label class="form-label fw-semibold">Commune</label><select class="form-select" name="commune_id" id="reportCommuneId" required></select></div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Pays<span class="required-star">*</span></label>
+                                <div class="select-search-shell">
+                                    <input class="form-control select-search-input" style="display:block;width:100%;" type="search" data-search-select-target="reportCountryId" autocomplete="off" placeholder="Rechercher un pays">
+                                    <button class="select-search-toggle" type="button" data-search-toggle-target="reportCountryId" aria-label="Afficher les options"></button>
+                                </div>
+                                <div class="select-search-help">Champ de selection avec recherche.</div>
+                                <select class="form-select d-none" name="country_id" id="reportCountryId" required></select>
+                                <div class="select-search-results" id="reportCountryIdResults"></div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Ville<span class="required-star">*</span></label>
+                                <div class="select-search-shell">
+                                    <input class="form-control select-search-input" style="display:block;width:100%;" type="search" data-search-select-target="reportCityId" autocomplete="off" placeholder="Rechercher une ville">
+                                    <button class="select-search-toggle" type="button" data-search-toggle-target="reportCityId" aria-label="Afficher les options"></button>
+                                </div>
+                                <div class="select-search-help">Champ de selection avec recherche.</div>
+                                <select class="form-select d-none" name="city_id" id="reportCityId" required></select>
+                                <div class="select-search-results" id="reportCityIdResults"></div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Commune<span class="required-star">*</span></label>
+                                <div class="select-search-shell">
+                                    <input class="form-control select-search-input" style="display:block;width:100%;" type="search" data-search-select-target="reportCommuneId" autocomplete="off" placeholder="Rechercher une commune">
+                                    <button class="select-search-toggle" type="button" data-search-toggle-target="reportCommuneId" aria-label="Afficher les options"></button>
+                                </div>
+                                <div class="select-search-help">Champ de selection avec recherche.</div>
+                                <select class="form-select d-none" name="commune_id" id="reportCommuneId" required></select>
+                                <div class="select-search-results" id="reportCommuneIdResults"></div>
+                            </div>
                             <div class="col-12">
                                 <label class="form-label fw-semibold">Adresse du lieu</label>
                                 <input class="form-control" name="address" id="reportAddressSearch" placeholder="Rechercher une adresse ou utiliser la position automatique">
@@ -1309,6 +1663,7 @@
         @php
             $publicUserTypesPayload = $publicUserTypes->map(fn ($type) => [
                 'id' => $type->id,
+                'code' => $type->code,
                 'name' => $type->name,
                 'profile_kind' => $type->profile_kind,
                 'pricing_rule' => $type->pricingRule ? [
@@ -1317,7 +1672,7 @@
                     'currency' => $type->pricingRule->currency,
                 ] : null,
             ])->values();
-            $serviceApplicationsPayload = collect($serviceApplications ?? [])->values();
+            $serviceApplicationsPayload = collect($serviceApplications ?? [])->values()->all();
         @endphp
         <script>
             (() => {
@@ -1325,6 +1680,7 @@
                 const landingUrl = '{{ route('public.landing') }}';
                 const googleMapsApiKey = @json(config('services.google_maps.key'));
                 const tokenKey = 'acepen_public_token';
+                const dashboardPanelStorageKey = 'acepen_public_dashboard_panel';
                 const dialCodeOptions = @json($dialCodeOptions);
                 const publicUserTypes = @json($publicUserTypesPayload);
                 const serviceApplications = @json($serviceApplicationsPayload);
@@ -1335,14 +1691,21 @@
                     pendingHouseholdInvitations: [],
                     meters: [],
                     payments: [],
+                    reparationCases: [],
                     countries: [],
                     communes: [],
                     reports: [],
                     signalTypes: [],
                     reportsPage: 1,
                     reportsPageSize: 5,
+                    overviewReportsPage: 1,
+                    overviewReportsPageSize: 5,
                     damagesPage: 1,
                     damagesPageSize: 4,
+                    overviewReportFilters: {
+                        search: '',
+                        status: '',
+                    },
                     reportFilters: {
                         search: '',
                         status: '',
@@ -1397,6 +1760,338 @@
                         .toLowerCase();
                 }
 
+                function ensurePublicSelectId(select) {
+                    if (select.id) {
+                        return select.id;
+                    }
+
+                    const baseId = String(select.name || 'public-select')
+                        .replace(/[^a-zA-Z0-9_-]+/g, '-')
+                        .replace(/^-+|-+$/g, '');
+
+                    select.id = `${baseId || 'public-select'}-${Math.random().toString(36).slice(2, 8)}`;
+                    return select.id;
+                }
+
+                function annotateRequiredFields(root = document) {
+                    root.querySelectorAll('form input[required], form select[required], form textarea[required]').forEach((field) => {
+                        if (field.type === 'hidden' || field.classList.contains('d-none') || field.closest('#reportFormModal')) {
+                            return;
+                        }
+
+                        const group = field.closest('.col-12, .col-md-3, .col-md-4, .col-md-6, .col-md-8, .col-lg-1, .col-lg-2, .col-lg-3, .col-lg-4, .col-lg-5, .col-lg-7, .col-lg-8, .col-xl-5, .col-xl-7');
+                        const label = group?.querySelector('label.form-label');
+
+                        if (!label || label.querySelector('.required-star')) {
+                            return;
+                        }
+
+                        const star = document.createElement('span');
+                        star.className = 'required-star';
+                        star.textContent = '*';
+                        label.appendChild(star);
+                    });
+                }
+
+                function syncPublicEnhancedSelect(select) {
+                    if (select.dataset.publicEnhanced !== '1') {
+                        return;
+                    }
+
+                    const input = document.getElementById(`${select.id}PublicInput`);
+                    const results = document.getElementById(`${select.id}PublicResults`);
+
+                    if (!input || !results) {
+                        return;
+                    }
+
+                    const options = Array.from(select.options).map((option) => ({
+                        value: option.value,
+                        label: option.textContent,
+                    }));
+                    const selectedLabel = select.options[select.selectedIndex]?.textContent || '';
+
+                    select.dataset.publicEnhancedOptions = JSON.stringify(options);
+                    if (document.activeElement !== input) {
+                        input.value = selectedLabel;
+                    }
+                    results.classList.remove('is-open');
+                }
+
+                function renderPublicEnhancedSelectOptions(select, query = '', forceOpen = false) {
+                    if (select.dataset.publicEnhanced !== '1') {
+                        return;
+                    }
+
+                    const results = document.getElementById(`${select.id}PublicResults`);
+                    const options = JSON.parse(select.dataset.publicEnhancedOptions || '[]');
+                    const normalizedQuery = normalizeText(query);
+                    const selectedLabel = normalizeText(select.options[select.selectedIndex]?.textContent || '');
+                    const matches = normalizedQuery
+                        ? options.filter((option) => normalizeText(option.label).includes(normalizedQuery))
+                        : options;
+                    const hasExactMatch = options.some((option) => normalizeText(option.label) === normalizedQuery);
+
+                    if (!results) {
+                        return;
+                    }
+
+                    results.innerHTML = matches.length
+                        ? matches.map((option) => `<button class="public-select-option" type="button" data-public-select-value="${option.value}" data-public-select-label="${option.label}">${option.label}</button>`).join('')
+                        : '<div class="select-search-empty">Aucun resultat</div>';
+
+                    const shouldOpen = forceOpen || normalizedQuery === '' || (!hasExactMatch && normalizedQuery !== selectedLabel);
+                    results.classList.toggle('is-open', shouldOpen);
+                }
+
+                function enhancePublicFormSelects(root = document) {
+                    root.querySelectorAll('form select.form-select:not([data-dial-code-select]):not(.d-none)').forEach((select) => {
+                        if (select.closest('#reportForm') || select.dataset.publicEnhanced === '1') {
+                            return;
+                        }
+
+                        const selectId = ensurePublicSelectId(select);
+                        const shell = document.createElement('div');
+                        shell.className = 'public-select-shell';
+                        shell.innerHTML = `
+                            <input class="form-control public-select-input" id="${selectId}PublicInput" type="search" autocomplete="off" placeholder="Rechercher ou selectionner">
+                            <button class="public-select-toggle" id="${selectId}PublicToggle" type="button" aria-label="Afficher les options"></button>
+                        `;
+                        const help = document.createElement('div');
+                        help.className = 'public-select-help';
+                        help.textContent = 'Champ de selection avec recherche.';
+                        const results = document.createElement('div');
+                        results.className = 'public-select-results';
+                        results.id = `${selectId}PublicResults`;
+
+                        select.parentNode.insertBefore(shell, select);
+                        select.parentNode.insertBefore(help, select);
+                        select.parentNode.insertBefore(results, select);
+                        select.classList.add('d-none');
+                        select.dataset.publicEnhanced = '1';
+
+                        const input = document.getElementById(`${selectId}PublicInput`);
+                        const toggle = document.getElementById(`${selectId}PublicToggle`);
+                        const observer = new MutationObserver(() => syncPublicEnhancedSelect(select));
+                        observer.observe(select, { childList: true, subtree: true });
+
+                        input.addEventListener('focus', () => renderPublicEnhancedSelectOptions(select, input.value));
+                        input.addEventListener('input', () => renderPublicEnhancedSelectOptions(select, input.value));
+                        input.addEventListener('change', () => {
+                            const options = JSON.parse(select.dataset.publicEnhancedOptions || '[]');
+                            const exactMatch = options.find((option) => normalizeText(option.label) === normalizeText(input.value));
+
+                            if (!exactMatch) {
+                                input.value = select.options[select.selectedIndex]?.textContent || '';
+                                return;
+                            }
+
+                            const previousValue = select.value;
+                            select.value = exactMatch.value;
+                            input.value = exactMatch.label;
+
+                            if (String(previousValue) !== String(select.value)) {
+                                select.dispatchEvent(new Event('change', { bubbles: true }));
+                            }
+                        });
+                        input.addEventListener('blur', () => {
+                            const resultsPanel = document.getElementById(`${selectId}PublicResults`);
+                            window.setTimeout(() => {
+                                resultsPanel?.classList.remove('is-open');
+                                input.value = select.options[select.selectedIndex]?.textContent || '';
+                            }, 150);
+                        });
+                        toggle.addEventListener('mousedown', (event) => event.preventDefault());
+                        toggle.addEventListener('click', () => {
+                            const resultsPanel = document.getElementById(`${selectId}PublicResults`);
+                            const shouldOpen = !resultsPanel?.classList.contains('is-open');
+                            renderPublicEnhancedSelectOptions(select, '', true);
+                            resultsPanel?.classList.toggle('is-open', shouldOpen);
+                            input.focus();
+                        });
+                        results.addEventListener('click', (event) => {
+                            const option = event.target.closest('[data-public-select-value]');
+
+                            if (!option) {
+                                return;
+                            }
+
+                            const previousValue = select.value;
+                            select.value = option.dataset.publicSelectValue;
+                            input.value = option.dataset.publicSelectLabel || '';
+                            results.classList.remove('is-open');
+
+                            if (String(previousValue) !== String(select.value)) {
+                                select.dispatchEvent(new Event('change', { bubbles: true }));
+                            }
+                        });
+
+                        syncPublicEnhancedSelect(select);
+                    });
+                }
+
+                function cacheSearchableSelectOptions(select) {
+                    if (!select) {
+                        return;
+                    }
+
+                    select.dataset.searchOptions = JSON.stringify(
+                        Array.from(select.options).map((option) => ({
+                            value: option.value,
+                            label: option.textContent,
+                        }))
+                    );
+                }
+
+                function getSearchableSelectInput(selectId) {
+                    return document.querySelector(`[data-search-select-target="${selectId}"]`);
+                }
+
+                function getSearchableSelectResults(selectId) {
+                    return document.getElementById(`${selectId}Results`);
+                }
+
+                function applySearchableSelectFilter(selectId, forceOpenAll = false) {
+                    const select = document.getElementById(selectId);
+                    const searchInput = getSearchableSelectInput(selectId);
+                    const results = getSearchableSelectResults(selectId);
+
+                    if (!select || !searchInput || !results) {
+                        return;
+                    }
+
+                    const cachedOptions = JSON.parse(select.dataset.searchOptions || '[]');
+                    const query = normalizeText(searchInput.value);
+                    const selectedLabel = normalizeText(select.options[select.selectedIndex]?.textContent || '');
+                    const filteredOptions = forceOpenAll
+                        ? cachedOptions
+                        : query
+                        ? cachedOptions.filter((option) => normalizeText(option.label).includes(query))
+                        : cachedOptions;
+                    const hasExactMatch = cachedOptions.some((option) => normalizeText(option.label) === query);
+
+                    results.innerHTML = filteredOptions.length
+                        ? filteredOptions.map((option) => `<button class="select-search-option" type="button" data-search-select-value="${option.value}" data-search-select-label="${option.label}">${option.label}</button>`).join('')
+                        : '<div class="select-search-empty">Aucun resultat</div>';
+
+                    const shouldOpen = forceOpenAll || query === '' || (!hasExactMatch && query !== selectedLabel);
+                    results.classList.toggle('is-open', shouldOpen);
+                }
+
+                function refreshSearchableSelect(selectId) {
+                    const select = document.getElementById(selectId);
+                    const searchInput = getSearchableSelectInput(selectId);
+
+                    if (!select || !searchInput) {
+                        return;
+                    }
+
+                    cacheSearchableSelectOptions(select);
+                    searchInput.value = select.options[select.selectedIndex]?.textContent || '';
+                    applySearchableSelectFilter(selectId);
+                }
+
+                function bindSearchableSelects() {
+                    document.querySelectorAll('[data-search-select-target]').forEach((input) => {
+                        if (input.dataset.searchBound === '1') {
+                            return;
+                        }
+
+                        const targetId = input.dataset.searchSelectTarget;
+                        input.addEventListener('input', () => applySearchableSelectFilter(targetId));
+                        input.addEventListener('change', () => {
+                            const select = document.getElementById(targetId);
+                            const cachedOptions = JSON.parse(select?.dataset.searchOptions || '[]');
+                            const exactMatch = cachedOptions.find((option) => normalizeText(option.label) === normalizeText(input.value));
+
+                            if (!select || !exactMatch) {
+                                return;
+                            }
+
+                            const previousValue = select.value;
+                            select.value = exactMatch.value;
+                            input.value = exactMatch.label;
+
+                            if (String(previousValue) !== String(select.value)) {
+                                select.dispatchEvent(new Event('change', { bubbles: true }));
+                            }
+                        });
+                        input.addEventListener('blur', () => {
+                            const select = document.getElementById(targetId);
+                            const results = getSearchableSelectResults(targetId);
+
+                            if (!select) {
+                                return;
+                            }
+
+                            window.setTimeout(() => results?.classList.remove('is-open'), 150);
+                            input.value = select.options[select.selectedIndex]?.textContent || '';
+                        });
+                        input.dataset.searchBound = '1';
+                        refreshSearchableSelect(targetId);
+                    });
+
+                    document.querySelectorAll('[data-search-toggle-target]').forEach((button) => {
+                        if (button.dataset.searchBound === '1') {
+                            return;
+                        }
+
+                        button.addEventListener('mousedown', (event) => {
+                            event.preventDefault();
+                        });
+
+                        button.addEventListener('click', () => {
+                            const targetId = button.dataset.searchToggleTarget;
+                            const input = getSearchableSelectInput(targetId);
+                            const results = getSearchableSelectResults(targetId);
+
+                            if (!input || !results) {
+                                return;
+                            }
+
+                            const shouldOpen = !results.classList.contains('is-open');
+                            applySearchableSelectFilter(targetId, true);
+                            results.classList.toggle('is-open', shouldOpen);
+                            input.focus();
+                        });
+
+                        button.dataset.searchBound = '1';
+                    });
+
+                    document.querySelectorAll('.select-search-results').forEach((results) => {
+                        if (results.dataset.searchBound === '1') {
+                            return;
+                        }
+
+                        results.addEventListener('click', (event) => {
+                            const option = event.target.closest('[data-search-select-value]');
+
+                            if (!option) {
+                                return;
+                            }
+
+                            const selectId = results.id.replace(/Results$/, '');
+                            const select = document.getElementById(selectId);
+                            const input = getSearchableSelectInput(selectId);
+                            const previousValue = select?.value;
+
+                            if (!select || !input) {
+                                return;
+                            }
+
+                            select.value = option.dataset.searchSelectValue;
+                            input.value = option.dataset.searchSelectLabel || '';
+                            results.classList.remove('is-open');
+
+                            if (String(previousValue) !== String(select.value)) {
+                                select.dispatchEvent(new Event('change', { bubbles: true }));
+                            }
+                        });
+
+                        results.dataset.searchBound = '1';
+                    });
+                }
+
                 function populateDialCodeSelects() {
                     document.querySelectorAll('[data-dial-code-select]').forEach((select) => {
                         select.innerHTML = dialCodeOptions.map((option) => `<option value="${option.value}">${option.label}</option>`).join('');
@@ -1406,21 +2101,33 @@
                     });
                 }
 
-                function syncPublicUserTypeFields(selectId, fieldsContainerId) {
+                function syncPublicUserTypeFields(selectId, businessFieldsContainerId, sectorFieldsContainerId = null) {
                     const select = document.getElementById(selectId);
-                    const fieldsContainer = document.getElementById(fieldsContainerId);
+                    const businessFieldsContainer = document.getElementById(businessFieldsContainerId);
+                    const sectorFieldsContainer = sectorFieldsContainerId ? document.getElementById(sectorFieldsContainerId) : null;
 
-                    if (!select || !fieldsContainer) {
+                    if (!select || !businessFieldsContainer) {
                         return;
                     }
 
                     const selectedType = publicUserTypes.find((type) => String(type.id) === String(select.value));
-                    const showBusinessFields = selectedType?.profile_kind === 'business';
+                    const typeCode = String(selectedType?.code || '').toUpperCase();
+                    const showBusinessFields = typeCode === 'UPE';
+                    const showSectorFields = typeCode === 'UPE' || typeCode === 'UPTI';
 
-                    fieldsContainer.classList.toggle('hidden', !showBusinessFields);
-                    fieldsContainer.querySelectorAll('input, select, textarea').forEach((field) => {
+                    businessFieldsContainer.classList.toggle('hidden', !showBusinessFields);
+                    businessFieldsContainer.querySelectorAll('input, select, textarea').forEach((field) => {
                         field.disabled = !showBusinessFields;
+                        field.required = showBusinessFields;
                     });
+
+                    if (sectorFieldsContainer) {
+                        sectorFieldsContainer.classList.toggle('hidden', !showSectorFields);
+                        sectorFieldsContainer.querySelectorAll('input, select, textarea').forEach((field) => {
+                            field.disabled = !showSectorFields;
+                            field.required = showSectorFields;
+                        });
+                    }
                 }
 
                 function composePhoneNumber(form) {
@@ -1633,22 +2340,31 @@
                 }
 
                 function activatePanel(panelName) {
+                    const targetPanel = document.querySelector(`.public-panel[data-panel="${panelName}"]`) ? panelName : 'overview';
+
                     document.querySelectorAll('[data-panel-target]').forEach((button) => {
-                        button.classList.toggle('active', button.dataset.panelTarget === panelName);
+                        button.classList.toggle('active', button.dataset.panelTarget === targetPanel);
                     });
                     document.querySelectorAll('.public-panel').forEach((panel) => {
-                        panel.classList.toggle('active', panel.dataset.panel === panelName);
+                        panel.classList.toggle('active', panel.dataset.panel === targetPanel);
                     });
 
-                    if (panelName === 'profile') {
+                    sessionStorage.setItem(dashboardPanelStorageKey, targetPanel);
+
+                    if (targetPanel === 'profile') {
                         maybeCaptureCurrentPosition('profile');
                     }
 
-                    if (panelName === 'meters' && !document.getElementById('meterForm')?.dataset.editId) {
+                    if (targetPanel === 'meters' && !document.getElementById('meterForm')?.dataset.editId) {
                         maybeCaptureCurrentPosition('meter');
                     }
 
                     closeSidebar();
+                }
+
+                function restoreActivePanel() {
+                    const savedPanel = sessionStorage.getItem(dashboardPanelStorageKey);
+                    activatePanel(savedPanel || 'overview');
                 }
 
                 function openSidebar() {
@@ -1846,6 +2562,9 @@
                     citySelect.value = city.id;
                     communeSelect.innerHTML = buildOptions(city.communes || [], 'Aucune commune');
                     communeSelect.value = city.communes?.[0]?.id || '';
+                    refreshSearchableSelect('reportCountryId');
+                    refreshSearchableSelect('reportCityId');
+                    refreshSearchableSelect('reportCommuneId');
                 }
 
                 function getAvailableReportOrganizations() {
@@ -1900,6 +2619,7 @@
 
                     const preferredApplication = serviceApplications.find((application) => application.code === preferredNetwork || application.network_type === preferredNetwork);
                     applicationSelect.value = String(preferredApplication?.id || serviceApplications[0]?.id || '');
+                    refreshSearchableSelect('reportApplicationId');
 
                     renderReportOrganizationOptions();
                 }
@@ -1919,6 +2639,7 @@
 
                     const preferredExists = preferredOrganizationId && organizations.some((organization) => String(organization.id) === String(preferredOrganizationId));
                     organizationSelect.value = preferredExists ? String(preferredOrganizationId) : String(organizations[0]?.id || '');
+                    refreshSearchableSelect('reportOrganizationType');
                 }
 
                 function populateMeterApplicationOptions(preferredApplicationCode = null) {
@@ -1985,6 +2706,7 @@
                         : String((filteredMeters.find((meter) => meter.is_primary) || filteredMeters[0]).id);
 
                     meterSelect.value = meterToSelect;
+                    refreshSearchableSelect('reportMeterId');
                 }
 
                 function getSignalTypesForCurrentMeter() {
@@ -2098,6 +2820,7 @@
                         ? signalTypes.map((type) => `<option value="${type.code}">${type.label}</option>`).join('')
                         : '<option value="">Aucun type disponible</option>';
                     signalSelect.disabled = signalTypes.length === 0;
+                    refreshSearchableSelect('reportSignalCode');
                     renderSignalPayloadFields();
                 }
 
@@ -2127,7 +2850,7 @@
                     const slaLabel = resolvedSlaTarget?.label ? String(resolvedSlaTarget.label).trim() : '';
 
                     signalSelect.value = signal.code;
-                    title.textContent = `${signal.code} · ${signal.label}`;
+                    title.textContent = signal.label || signal.code;
 
                     if (signalDescription) {
                         signalDescriptionParts.push(signalDescription);
@@ -2144,7 +2867,7 @@
 
                     container.innerHTML = signal.data_fields.map((field) => `
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">${field.label}</label>
+                            <label class="form-label fw-semibold">${field.label}${field.required ? '<span class="required-star">*</span>' : ''}</label>
                             ${isPhotoSignalField(field)
                                 ? `
                                     <div class="d-flex gap-2 flex-wrap">
@@ -2162,9 +2885,16 @@
                                 `
                                 : isGpsSignalField(field)
                                     ? `<input class="form-control" type="text" data-signal-key="${field.key}" data-signal-auto-gps="1" placeholder="${field.label}" readonly ${field.required ? 'required' : ''}>`
-                                    : field.type === 'textarea'
-                                        ? `<textarea class="form-control" rows="3" data-signal-key="${field.key}" placeholder="${field.label}" ${field.required ? 'required' : ''}></textarea>`
-                                        : `<input class="form-control" type="${field.type === 'number' ? 'number' : 'text'}" data-signal-key="${field.key}" placeholder="${field.label}" ${field.required ? 'required' : ''}>`}
+                                    : field.type === 'select'
+                                        ? `
+                                            <select class="form-select" data-signal-key="${field.key}" ${field.required ? 'required' : ''}>
+                                                <option value="">Selectionner</option>
+                                                ${(field.options || []).map((option) => `<option value="${escapeHtml(option)}">${escapeHtml(option)}</option>`).join('')}
+                                            </select>
+                                        `
+                                        : field.type === 'textarea'
+                                            ? `<textarea class="form-control" rows="3" data-signal-key="${field.key}" placeholder="${field.label}" ${field.required ? 'required' : ''}></textarea>`
+                                            : `<input class="form-control" type="${field.type === 'number' ? 'number' : 'text'}" data-signal-key="${field.key}" placeholder="${field.label}" ${field.required ? 'required' : ''}>`}
                         </div>
                     `).join('');
 
@@ -2175,21 +2905,27 @@
                     syncAutoSignalPayloadFields();
                 }
 
+                function setTextIfExists(id, value) {
+                    const element = document.getElementById(id);
+
+                    if (element) {
+                        element.textContent = value;
+                    }
+                }
+
                 function renderUser(user) {
                     state.currentUser = user;
                     document.getElementById('dashboardGreeting').textContent = `Bienvenue ${user.first_name} ${user.last_name}`;
                     document.getElementById('userStatus').textContent = user.status || '-';
                     document.getElementById('profileStatusPill').textContent = user.status || '-';
-                    document.getElementById('sidebarUserName').textContent = `${user.first_name} ${user.last_name}`;
-                    document.getElementById('sidebarUserPhone').textContent = user.phone || '-';
                     document.getElementById('sidebarUserLocation').textContent = [user.commune, user.address].filter(Boolean).join(' · ') || 'Localisation non renseignee';
                     const hasSidebarGps = !!(user.latitude && user.longitude);
                     document.getElementById('sidebarUserGps').textContent = hasSidebarGps
                         ? `GPS ${user.latitude}, ${user.longitude}`
                         : 'GPS non renseigne';
                     document.getElementById('sidebarRequestGpsButton')?.classList.toggle('d-none', hasSidebarGps);
-                    document.getElementById('overviewUserName').textContent = `${user.first_name} ${user.last_name}`;
-                    document.getElementById('overviewProfileLine').textContent = [user.phone, user.commune].filter(Boolean).join(' · ') || 'Informations de profil a completer';
+                    setTextIfExists('overviewUserName', `${user.first_name} ${user.last_name}`);
+                    setTextIfExists('overviewProfileLine', [user.phone, user.commune].filter(Boolean).join(' · ') || 'Informations de profil a completer');
                     document.getElementById('profileFullNameCard').textContent = `${user.first_name} ${user.last_name}`;
                     document.getElementById('profilePhoneCard').textContent = user.phone || '-';
                     document.getElementById('profileCommuneCard').textContent = user.commune || '-';
@@ -2216,7 +2952,16 @@
                     document.getElementById('profileLongitude').value = user.longitude || '';
                     document.getElementById('profileAccuracy').value = user.location_accuracy || '';
                     document.getElementById('profileLocationSource').value = user.location_source || '';
-                    syncPublicUserTypeFields('profilePublicUserTypeSelect', 'profileBusinessFields');
+                    syncPublicUserTypeFields('profilePublicUserTypeSelect', 'profileBusinessFields', 'profileSectorFields');
+                }
+
+                function escapeHtml(value) {
+                    return String(value ?? '')
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#39;');
                 }
 
                 function renderMeters(meters) {
@@ -2235,12 +2980,12 @@
                     }
                     renderSignalOptions();
 
-                    document.getElementById('overviewPrimaryMeter').textContent = primaryMeter
+                    setTextIfExists('overviewPrimaryMeter', primaryMeter
                         ? `${primaryMeter.organization_name || primaryMeter.network_type} · ${primaryMeter.meter_number}`
-                        : 'Aucun identifiant principal';
-                    document.getElementById('overviewPrimaryMeterMeta').textContent = primaryMeter
+                        : 'Aucun identifiant principal');
+                    setTextIfExists('overviewPrimaryMeterMeta', primaryMeter
                         ? [primaryMeter.label, primaryMeter.commune, primaryMeter.address].filter(Boolean).join(' · ') || 'identifiant pret pour les declarations'
-                        : 'Ajoute un identifiant pour accelerer tes declarations.';
+                        : 'Ajoute un identifiant pour accelerer tes declarations.');
 
                     const list = document.getElementById('metersList');
                     if (!meters.length) {
@@ -2266,12 +3011,12 @@
                 function renderHousehold(household) {
                     state.household = household;
                     document.getElementById('householdMemberCount').textContent = household?.members?.length ?? 0;
-                    document.getElementById('overviewHouseholdSummary').textContent = household
+                    setTextIfExists('overviewHouseholdSummary', household
                         ? household.name || 'Gbonhi principal'
-                        : 'Aucun Gbonhi enregistre';
-                    document.getElementById('overviewHouseholdMeta').textContent = household
+                        : 'Aucun Gbonhi enregistre');
+                    setTextIfExists('overviewHouseholdMeta', household
                         ? `${household.members?.length ?? 0} membre(s) · ${household.pending_invitations?.length ?? 0} invitation(s) en attente`
-                        : 'Cree un Gbonhi pour centraliser les signalements familiaux.';
+                        : 'Cree un Gbonhi pour centraliser les signalements familiaux.');
 
                     const emptyState = document.getElementById('householdEmptyState');
                     const panel = document.getElementById('householdPanel');
@@ -2336,18 +3081,124 @@
                     button.dataset.reportId = firstEligibleReport ? String(firstEligibleReport.id) : '';
                 }
 
+                function getOverviewFilteredReports(reports) {
+                    const search = state.overviewReportFilters.search.trim().toLowerCase();
+
+                    return reports.filter((report) => {
+                        const matchesSearch = !search || [
+                            report.reference,
+                            report.signal_code,
+                            report.signal_label,
+                            report.incident_type,
+                            report.description,
+                            report.organization?.name,
+                            report.location?.commune,
+                            report.location?.city,
+                            report.location?.country,
+                        ].filter(Boolean).join(' ').toLowerCase().includes(search);
+
+                        const matchesStatus = !state.overviewReportFilters.status || report.status === state.overviewReportFilters.status;
+
+                        return matchesSearch && matchesStatus;
+                    });
+                }
+
+                function renderOverviewReports(reports) {
+                    const list = document.getElementById('overviewReportsList');
+
+                    if (!list) {
+                        return;
+                    }
+
+                    if (!reports.length) {
+                        list.innerHTML = `
+                            <div class="overview-report-empty">
+                                <div class="fw-bold mb-1">Aucun signalement pour le moment</div>
+                                <div class="muted-label mb-3">Vos futures declarations apparaitront ici avec leur statut, leur organisation et leur paiement.</div>
+                                <button class="btn btn-premium px-4" type="button" data-panel-target="reports">Faire un signalement</button>
+                            </div>
+                        `;
+                        list.querySelectorAll('[data-panel-target]').forEach((button) => {
+                            button.addEventListener('click', () => activatePanel(button.dataset.panelTarget));
+                        });
+                        return;
+                    }
+
+                    const filteredReports = getOverviewFilteredReports(reports);
+                    const totalPages = Math.max(1, Math.ceil(filteredReports.length / state.overviewReportsPageSize));
+                    state.overviewReportsPage = Math.min(state.overviewReportsPage, totalPages);
+
+                    if (!filteredReports.length) {
+                        list.innerHTML = `
+                            <div class="overview-report-empty">
+                                <div class="fw-bold mb-1">Aucun signalement ne correspond aux filtres</div>
+                                <div class="muted-label">Modifiez la recherche ou le statut pour retrouver vos declarations.</div>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    const start = (state.overviewReportsPage - 1) * state.overviewReportsPageSize;
+                    const currentReports = filteredReports.slice(start, start + state.overviewReportsPageSize);
+                    const end = start + currentReports.length;
+
+                    list.innerHTML = `
+                        <div class="report-table-shell">
+                            <div class="report-table-wrap">
+                                <table class="overview-report-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Reference</th>
+                                            <th>Signalement</th>
+                                            <th>Organisation</th>
+                                            <th>Statut</th>
+                                            <th>Paiement</th>
+                                            <th class="text-end">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${currentReports.map((report) => `
+                                            <tr>
+                                                <td>
+                                                    <div class="report-ref">${report.reference}</div>
+                                                    <div class="report-sub">${formatDateTime(report.created_at)}</div>
+                                                </td>
+                                                <td>
+                                                    <div class="report-main">${report.signal_label || report.incident_type || report.signal_code}</div>
+                                                    <div class="report-sub">${report.location?.commune || '-'}${report.location?.city ? ' · ' + report.location.city : ''}</div>
+                                                </td>
+                                                <td>
+                                                    <div class="report-main">${report.organization?.name || report.network_type || '-'}</div>
+                                                    <div class="report-sub">${report.application?.name || 'Application non definie'}</div>
+                                                </td>
+                                                <td><span class="status-pill status-report-${report.status}">${getPublicStatusLabel(report.status)}</span></td>
+                                                <td><span class="status-pill status-payment-${report.payment_status}">${report.payment_status === 'paid' ? 'Paye' : 'En attente'}</span></td>
+                                                <td class="text-end">
+                                                    <button class="btn btn-sm btn-ghost-premium px-3" type="button" onclick="window.AcepenPortal.showReportDetails(${report.id})">Details</button>
+                                                </td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="pagination-shell">
+                                <div class="pagination-info">Affichage ${start + 1} à ${end} sur ${filteredReports.length} signalement${filteredReports.length > 1 ? 's' : ''}</div>
+                                <div class="pagination-actions">
+                                    <button class="pagination-chip" type="button" ${state.overviewReportsPage === 1 ? 'disabled' : ''} onclick="window.AcepenPortal.changeOverviewReportsPage(${state.overviewReportsPage - 1})">‹</button>
+                                    <div class="small fw-semibold text-secondary">Page ${state.overviewReportsPage} / ${totalPages}</div>
+                                    <button class="pagination-chip" type="button" ${state.overviewReportsPage === totalPages ? 'disabled' : ''} onclick="window.AcepenPortal.changeOverviewReportsPage(${state.overviewReportsPage + 1})">›</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
                 function renderReports(reports) {
                     state.reports = reports;
                     updateDamageDeclarationAction(reports);
                     document.getElementById('reportCount').textContent = reports.length;
                     document.getElementById('topbarReportsBadge').textContent = `${reports.length} signalement${reports.length > 1 ? 's' : ''}`;
-                    const latestReport = reports[0];
-                    document.getElementById('overviewReportSummary').textContent = latestReport
-                        ? `${latestReport.signal_label || latestReport.incident_type || latestReport.signal_code} · ${getPublicStatusLabel(latestReport.status)}`
-                        : 'Aucun signalement pour le moment';
-                    document.getElementById('overviewReportMeta').textContent = latestReport
-                        ? `${latestReport.location.commune} · ${latestReport.payment_status === 'paid' ? 'Paiement confirme' : 'Paiement en attente'}`
-                        : 'Tes declarations et leur statut apparaitront ici.';
+                    renderOverviewReports(reports);
 
                     const list = document.getElementById('reportsList');
                     renderReportOrganizationFilter(reports);
@@ -2478,17 +3329,131 @@
                     return `${Number(amount || 0).toLocaleString()} ${currency}`;
                 }
 
+                function getReparationCaseStatusLabel(status) {
+                    const labels = {
+                        submitted: 'Soumis',
+                        under_review: 'En analyse',
+                        awaiting_documents: 'Pieces requises',
+                        sent_to_organization: 'Transmis a l organisation',
+                        organization_responded: 'Reponse organisation',
+                        approved: 'Valide',
+                        rejected: 'Rejete',
+                        compensated: 'Compense',
+                        closed: 'Clos',
+                    };
+
+                    return labels[status] || status || '-';
+                }
+
+                function getReparationCaseStatusClass(status) {
+                    const classes = {
+                        submitted: 'status-report-submitted',
+                        under_review: 'status-report-in-progress',
+                        awaiting_documents: 'status-resolution-waiting',
+                        sent_to_organization: 'status-report-in-progress',
+                        organization_responded: 'status-report-in-progress',
+                        approved: 'status-report-resolved',
+                        compensated: 'status-report-resolved',
+                        closed: 'status-report-resolved',
+                        rejected: 'status-report-rejected',
+                    };
+
+                    return classes[status] || '';
+                }
+
+                function renderReparationCases(cases) {
+                    state.reparationCases = cases;
+                    const list = document.getElementById('reparationCasesList');
+
+                    if (!cases.length) {
+                        list.innerHTML = '<div class="mini-card"><div class="fw-bold mb-1">Aucun dossier ouvert</div><div class="muted-label">Si un dossier est ouvert a partir d un signalement, son historique apparaitra ici.</div></div>';
+                        return;
+                    }
+
+                    list.innerHTML = `
+                        <div class="vstack gap-3">
+                            ${cases.map((repairCase) => `
+                                <div class="mini-card">
+                                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
+                                        <div>
+                                            <div class="fw-bold">${repairCase.reference}</div>
+                                            <div class="muted-label">${repairCase.incident_report?.reference || '-'} · ${repairCase.incident_report?.signal_label || repairCase.incident_report?.signal_code || 'Signalement'}</div>
+                                            <div class="muted-label">${repairCase.incident_report?.organization_name || 'Organisation non definie'} · ${repairCase.incident_report?.application_name || 'Application non definie'}</div>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="status-pill ${getReparationCaseStatusClass(repairCase.status)}">${getReparationCaseStatusLabel(repairCase.status)}</span>
+                                            <div class="muted-label mt-2">${repairCase.opened_at ? `Ouvert le ${formatDateTime(repairCase.opened_at)}` : 'Date indisponible'}</div>
+                                        </div>
+                                    </div>
+                                    <div class="soft-panel mb-3">
+                                        <div class="small text-secondary fw-semibold mb-1">Objet du dossier</div>
+                                        <div class="fw-bold mb-1">${repairCase.damage_summary || 'Aucun resume de dommage renseigne.'}</div>
+                                        <div class="muted-label">
+                                            Montant reclame: ${repairCase.damage_amount_claimed !== null ? formatMoney(repairCase.damage_amount_claimed) : 'Non renseigne'}
+                                            ${repairCase.damage_amount_validated !== null ? ` · Montant valide: ${formatMoney(repairCase.damage_amount_validated)}` : ''}
+                                        </div>
+                                        <div class="muted-label mt-2">
+                                            Type: ${repairCase.case_type || '-'} · Priorite: ${repairCase.priority || '-'}
+                                            ${repairCase.bailiff ? ` · Huissier: ${repairCase.bailiff}` : ''}
+                                            ${repairCase.lawyer ? ` · Avocat: ${repairCase.lawyer}` : ''}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="section-title mb-3" style="font-size: 0.95rem;">Historique du dossier</div>
+                                        <div class="vstack gap-2">
+                                            ${(repairCase.steps || []).length
+                                                ? repairCase.steps.map((step) => `
+                                                    <div class="soft-panel">
+                                                        <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                                                            <div>
+                                                                <div class="fw-bold mb-1">${step.title}</div>
+                                                                <div class="muted-label">${step.summary || 'Aucun detail complementaire fourni.'}</div>
+                                                                <div class="muted-label mt-1">${step.assigned_to ? `Responsable: ${step.assigned_to}` : 'Responsable non assigne'}</div>
+                                                            </div>
+                                                            <div class="text-end">
+                                                                <div class="small fw-semibold">${step.completed_at ? formatDateTime(step.completed_at) : (step.created_at ? formatDateTime(step.created_at) : '-')}</div>
+                                                                <div class="muted-label">${step.status || '-'}</div>
+                                                                <div class="muted-label">${step.due_at ? `Echeance ${formatDateTime(step.due_at)}` : ''}</div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                `).join('')
+                                                : (repairCase.histories || []).length
+                                                    ? repairCase.histories.map((history) => `
+                                                        <div class="soft-panel">
+                                                            <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                                                                <div>
+                                                                    <div class="fw-bold mb-1">${history.title}</div>
+                                                                    <div class="muted-label">${history.description || 'Aucun detail complementaire fourni.'}</div>
+                                                                </div>
+                                                                <div class="text-end">
+                                                                    <div class="small fw-semibold">${history.created_at ? formatDateTime(history.created_at) : '-'}</div>
+                                                                    <div class="muted-label">${history.created_by || 'Systeme'}</div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    `).join('')
+                                                : '<div class="soft-panel"><div class="fw-bold mb-1">Aucun historique visible</div><div class="muted-label">Les prochaines etapes enregistrees apparaitront ici.</div></div>'
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+
                 function renderPayments(payments) {
                     state.payments = payments;
                     document.getElementById('topbarPaymentsBadge').textContent = `${payments.length} paiement${payments.length > 1 ? 's' : ''}`;
 
                     const latestPaidPayment = payments.find((payment) => payment.status === 'paid') || payments[0];
-                    document.getElementById('overviewPaymentSummary').textContent = latestPaidPayment
+                    setTextIfExists('overviewPaymentSummary', latestPaidPayment
                         ? `${formatMoney(latestPaidPayment.amount, latestPaidPayment.currency)} · ${getPaymentStatusLabel(latestPaidPayment.status)}`
-                        : 'Aucun paiement confirme';
-                    document.getElementById('overviewPaymentMeta').textContent = latestPaidPayment
+                        : 'Aucun paiement confirme');
+                    setTextIfExists('overviewPaymentMeta', latestPaidPayment
                         ? `${latestPaidPayment.incident_report?.reference || 'Signalement'} · ${latestPaidPayment.reference}`
-                        : 'Ton historique de paiements et tes recus apparaitront ici.';
+                        : 'Ton historique de paiements et tes recus apparaitront ici.');
 
                     const list = document.getElementById('paymentsList');
                     if (!payments.length) {
@@ -3251,13 +4216,14 @@
 
                 async function refreshDashboard() {
                     await loadReferenceData();
-                    const [me, meters, household, reports, payments, invitations] = await Promise.all([
+                    const [me, meters, household, reports, payments, invitations, reparationCases] = await Promise.all([
                         apiFetch('/me'),
                         apiFetch('/meters'),
                         apiFetch('/households/me'),
                         apiFetch('/reports'),
                         apiFetch('/payments'),
                         apiFetch('/households/invitations/pending'),
+                        apiFetch('/reparation-cases'),
                     ]);
                     renderUser(me.data.user);
                     renderMeters(meters.data.meters);
@@ -3266,6 +4232,7 @@
                     renderDamages(reports.data.reports);
                     renderPayments(payments.data.payments);
                     renderIncomingHouseholdInvitations(invitations.data.invitations);
+                    renderReparationCases(reparationCases.data.reparation_cases);
                 }
 
                 window.AcepenPortal = {
@@ -3399,9 +4366,14 @@
                         paymentReceiptPreviewModal?.show();
                     },
                     changeReportsPage(page) {
-                        const totalPages = Math.max(1, Math.ceil(state.reports.length / state.reportsPageSize));
+                        const totalPages = Math.max(1, Math.ceil(getFilteredReports(state.reports).length / state.reportsPageSize));
                         state.reportsPage = Math.min(Math.max(1, page), totalPages);
                         renderReports(state.reports);
+                    },
+                    changeOverviewReportsPage(page) {
+                        const totalPages = Math.max(1, Math.ceil(getOverviewFilteredReports(state.reports).length / state.overviewReportsPageSize));
+                        state.overviewReportsPage = Math.min(Math.max(1, page), totalPages);
+                        renderOverviewReports(state.reports);
                     },
                     changeDamagesPage(page) {
                         const totalPages = Math.max(1, Math.ceil(getFilteredDamages(state.reports).length / state.damagesPageSize));
@@ -3421,6 +4393,23 @@
 
                 document.querySelectorAll('[data-panel-target]').forEach((button) => {
                     button.addEventListener('click', () => activatePanel(button.dataset.panelTarget));
+                });
+                document.getElementById('overviewReportSearchFilter')?.addEventListener('input', (event) => {
+                    state.overviewReportFilters.search = event.currentTarget.value || '';
+                    state.overviewReportsPage = 1;
+                    renderOverviewReports(state.reports);
+                });
+                document.getElementById('overviewReportStatusFilter')?.addEventListener('change', (event) => {
+                    state.overviewReportFilters.status = event.currentTarget.value || '';
+                    state.overviewReportsPage = 1;
+                    renderOverviewReports(state.reports);
+                });
+                document.getElementById('resetOverviewReportFiltersButton')?.addEventListener('click', () => {
+                    state.overviewReportFilters = { search: '', status: '' };
+                    state.overviewReportsPage = 1;
+                    document.getElementById('overviewReportSearchFilter').value = '';
+                    document.getElementById('overviewReportStatusFilter').value = '';
+                    renderOverviewReports(state.reports);
                 });
                 document.getElementById('reportSearchFilter').addEventListener('input', (event) => {
                     state.reportFilters.search = event.currentTarget.value || '';
@@ -3543,7 +4532,7 @@
                     activatePanel('profile');
                     captureCurrentPosition('profile', { force: true });
                 });
-                document.getElementById('profilePublicUserTypeSelect').addEventListener('change', () => syncPublicUserTypeFields('profilePublicUserTypeSelect', 'profileBusinessFields'));
+                document.getElementById('profilePublicUserTypeSelect').addEventListener('change', () => syncPublicUserTypeFields('profilePublicUserTypeSelect', 'profileBusinessFields', 'profileSectorFields'));
                 document.getElementById('toggleProfileManualLocationButton').addEventListener('click', () => {
                     const enabled = document.getElementById('profileLatitude').readOnly;
                     setGeoManualMode('profile', enabled);
@@ -3559,6 +4548,7 @@
                 reportFormModalElement?.addEventListener('shown.bs.modal', () => {
                     const primaryMeter = state.meters.find((meter) => meter.is_primary) || state.meters[0] || null;
                     document.getElementById('reportOccurredAt').value = currentLocalDateTimeValue();
+                    bindSearchableSelects();
                     renderReportNetworkOptions(primaryMeter?.application_code || primaryMeter?.network_type || null);
                     renderReportMeterOptions(primaryMeter?.id || null);
                     renderSignalOptions();
@@ -3787,12 +4777,18 @@
 
                 document.getElementById('logoutButton').addEventListener('click', () => logout(true));
 
+                enhancePublicFormSelects();
+                annotateRequiredFields();
                 setGeoManualMode('profile', false);
-                syncPublicUserTypeFields('profilePublicUserTypeSelect', 'profileBusinessFields');
+                syncPublicUserTypeFields('profilePublicUserTypeSelect', 'profileBusinessFields', 'profileSectorFields');
                 setGeoManualMode('meter', false);
                 setGeoManualMode('report', false);
-                activatePanel('overview');
+                restoreActivePanel();
                 populateDialCodeSelects();
+                populateMeterApplicationOptions();
+                renderReportNetworkOptions();
+                renderReportMeterOptions();
+                renderSignalOptions();
                 refreshDashboard().catch((error) => {
                     if (error?.status === 401) {
                         logout(false);

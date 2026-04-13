@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Feature;
 use App\Models\Organization;
 use App\Models\User;
+use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -48,7 +49,7 @@ class InstitutionAdminController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, ActivityLogger $activityLogger): RedirectResponse
     {
         $attributes = $this->validateRequest($request);
         $organization = Organization::query()
@@ -68,6 +69,18 @@ class InstitutionAdminController extends Controller
 
         $this->syncInstitutionAdminFeatures($admin, $organization, $attributes['feature_ids'] ?? []);
 
+        $activityLogger->log(
+            'institution_admin.created',
+            'Creation d un admin institutionnel.',
+            $admin->fresh('features'),
+            [
+                'organization_id' => $admin->organization_id,
+                'feature_ids' => $attributes['feature_ids'] ?? [],
+            ],
+            $request,
+            $request->user(),
+        );
+
         return redirect()->route('super-admin.institution-admins.index')
             ->with('success', 'L admin institutionnel a ete cree.');
     }
@@ -85,12 +98,19 @@ class InstitutionAdminController extends Controller
         ]);
     }
 
-    public function update(Request $request, User $institutionAdmin): RedirectResponse
+    public function update(Request $request, User $institutionAdmin, ActivityLogger $activityLogger): RedirectResponse
     {
         $attributes = $this->validateRequest($request, $institutionAdmin);
         $organization = Organization::query()
             ->with(['application.features', 'featureOverrides'])
             ->findOrFail($attributes['organization_id']);
+        $before = [
+            'organization_id' => $institutionAdmin->organization_id,
+            'name' => $institutionAdmin->name,
+            'email' => $institutionAdmin->email,
+            'phone' => $institutionAdmin->phone,
+            'feature_ids' => $institutionAdmin->features()->pluck('features.id')->all(),
+        ];
 
         $payload = [
             'organization_id' => $attributes['organization_id'],
@@ -106,23 +126,66 @@ class InstitutionAdminController extends Controller
         $institutionAdmin->update($payload);
         $this->syncInstitutionAdminFeatures($institutionAdmin, $organization, $attributes['feature_ids'] ?? []);
 
+        $activityLogger->log(
+            'institution_admin.updated',
+            'Mise a jour d un admin institutionnel.',
+            $institutionAdmin->fresh('features'),
+            [
+                'before' => $before,
+                'after' => [
+                    'organization_id' => $institutionAdmin->organization_id,
+                    'name' => $institutionAdmin->name,
+                    'email' => $institutionAdmin->email,
+                    'phone' => $institutionAdmin->phone,
+                    'feature_ids' => $institutionAdmin->features()->pluck('features.id')->all(),
+                ],
+            ],
+            $request,
+            $request->user(),
+        );
+
         return redirect()->route('super-admin.institution-admins.index')
             ->with('success', 'L admin institutionnel a ete mis a jour.');
     }
 
-    public function destroy(User $institutionAdmin): RedirectResponse
+    public function destroy(Request $request, User $institutionAdmin, ActivityLogger $activityLogger): RedirectResponse
     {
+        $activityLogger->log(
+            'institution_admin.deleted',
+            'Suppression d un admin institutionnel.',
+            $institutionAdmin,
+            [
+                'organization_id' => $institutionAdmin->organization_id,
+                'email' => $institutionAdmin->email,
+            ],
+            $request,
+            $request->user(),
+        );
         $institutionAdmin->delete();
 
         return redirect()->route('super-admin.institution-admins.index')
             ->with('success', 'L admin institutionnel a ete supprime.');
     }
 
-    public function toggleStatus(User $institutionAdmin): RedirectResponse
+    public function toggleStatus(Request $request, User $institutionAdmin, ActivityLogger $activityLogger): RedirectResponse
     {
+        $previousStatus = $institutionAdmin->status;
+
         $institutionAdmin->update([
             'status' => $institutionAdmin->status === 'active' ? 'inactive' : 'active',
         ]);
+
+        $activityLogger->log(
+            'institution_admin.status_toggled',
+            'Changement de statut d un admin institutionnel.',
+            $institutionAdmin,
+            [
+                'before' => $previousStatus,
+                'after' => $institutionAdmin->status,
+            ],
+            $request,
+            $request->user(),
+        );
 
         return back()->with('success', 'Le statut de l admin institutionnel a ete mis a jour.');
     }
@@ -147,10 +210,18 @@ class InstitutionAdminController extends Controller
             ->unique()
             ->values();
 
-        return collect($featureIds)
+        $selectedFeatureIds = collect($featureIds)
             ->map(fn ($id) => (int) $id)
-            ->filter(fn ($id) => $allowedFeatureIds->contains($id))
+            ->filter(fn ($id) => $id > 0)
             ->unique()
+            ->values();
+
+        if ($allowedFeatureIds->isEmpty()) {
+            return $selectedFeatureIds->all();
+        }
+
+        return $selectedFeatureIds
+            ->filter(fn ($id) => $allowedFeatureIds->contains($id))
             ->values()
             ->all();
     }

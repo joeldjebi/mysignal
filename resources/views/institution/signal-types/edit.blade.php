@@ -57,6 +57,11 @@
                                 'key' => $key,
                                 'label' => old('field_labels.'.$index),
                                 'type' => old('field_types.'.$index, 'text'),
+                                'options' => collect(preg_split('/\r\n|\r|\n/', (string) old('field_options.'.$index)))
+                                    ->map(fn ($option) => trim((string) $option))
+                                    ->filter()
+                                    ->values()
+                                    ->all(),
                                 'required' => in_array((string) $index, array_map('strval', old('field_required', [])), true),
                             ];
                         })->all() : ($signalType->data_fields ?? [])])

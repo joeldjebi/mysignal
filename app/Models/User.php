@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -65,5 +66,62 @@ class User extends Authenticatable
     public function createdUsers(): HasMany
     {
         return $this->hasMany(self::class, 'created_by');
+    }
+
+    public function openedReparationCases(): HasMany
+    {
+        return $this->hasMany(ReparationCase::class, 'opened_by_user_id');
+    }
+
+    public function assignedReparationCases(): HasMany
+    {
+        return $this->hasMany(ReparationCase::class, 'assigned_to_user_id');
+    }
+
+    public function bailiffReparationCases(): HasMany
+    {
+        return $this->hasMany(ReparationCase::class, 'bailiff_user_id');
+    }
+
+    public function lawyerReparationCases(): HasMany
+    {
+        return $this->hasMany(ReparationCase::class, 'lawyer_user_id');
+    }
+
+    public function assignedReparationCaseSteps(): HasMany
+    {
+        return $this->hasMany(ReparationCaseStep::class, 'assigned_to_user_id');
+    }
+
+    public function activityLogVisibleUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(self::class, 'activity_log_user_accesses', 'viewer_user_id', 'target_user_id')
+            ->withTimestamps();
+    }
+
+    public function activityLogViewers(): BelongsToMany
+    {
+        return $this->belongsToMany(self::class, 'activity_log_user_accesses', 'target_user_id', 'viewer_user_id')
+            ->withTimestamps();
+    }
+
+    public function permissionCodes(): Collection
+    {
+        $this->loadMissing(['permissions', 'roles.permissions']);
+
+        return $this->permissions
+            ->pluck('code')
+            ->merge($this->roles->flatMap(fn ($role) => $role->permissions->pluck('code')))
+            ->unique()
+            ->values();
+    }
+
+    public function hasPermissionCode(string $permissionCode): bool
+    {
+        if ($this->is_super_admin) {
+            return true;
+        }
+
+        return $this->permissionCodes()->contains($permissionCode);
     }
 }

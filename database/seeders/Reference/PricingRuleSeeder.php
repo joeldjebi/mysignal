@@ -10,15 +10,36 @@ class PricingRuleSeeder extends Seeder
 {
     public function run(): void
     {
-        PricingRule::query()->updateOrCreate(
-            ['code' => 'public_signal_report'],
+        $startsAt = CarbonImmutable::now();
+
+        foreach ([
             [
+                'code' => 'public_signal_report',
                 'label' => 'Paiement signalement public',
-                'amount' => 100,
-                'currency' => 'FCFA',
-                'status' => 'active',
-                'starts_at' => CarbonImmutable::now(),
             ],
-        );
+            [
+                'code' => 'public_up_standard',
+                'label' => 'Tarification usager public',
+            ],
+            [
+                'code' => 'public_upe_standard',
+                'label' => 'Tarification usager public entreprise',
+            ],
+            [
+                'code' => 'public_upti_standard',
+                'label' => 'Tarification travailleur independant',
+            ],
+        ] as $pricingRule) {
+            PricingRule::query()->updateOrCreate(
+                ['code' => $pricingRule['code']],
+                [
+                    'label' => $pricingRule['label'],
+                    'amount' => 100,
+                    'currency' => 'FCFA',
+                    'status' => 'active',
+                    'starts_at' => $startsAt,
+                ],
+            );
+        }
     }
 }

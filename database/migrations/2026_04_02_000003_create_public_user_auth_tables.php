@@ -29,8 +29,8 @@ return new class extends Migration
             $table->string('phone', 20)->index();
             $table->string('code');
             $table->string('purpose', 50)->index();
-            $table->timestamp('expires_at');
-            $table->timestamp('verified_at')->nullable();
+            $table->dateTime('expires_at');
+            $table->dateTime('verified_at')->nullable();
             $table->unsignedSmallInteger('attempts')->default(0);
             $table->unsignedSmallInteger('max_attempts')->default(5);
             $table->timestamps();
@@ -40,9 +40,9 @@ return new class extends Migration
             $table->id();
             $table->string('phone', 20)->index();
             $table->uuid('token')->unique();
-            $table->timestamp('verified_at');
-            $table->timestamp('expires_at');
-            $table->timestamp('used_at')->nullable();
+            $table->dateTime('verified_at');
+            $table->dateTime('expires_at');
+            $table->dateTime('used_at')->nullable();
             $table->timestamps();
         });
     }

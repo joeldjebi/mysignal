@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web\SuperAdmin;
 use App\Http\Controllers\Controller;
 use App\Models\Application;
 use App\Models\Feature;
+use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -38,11 +39,24 @@ class ApplicationController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, ActivityLogger $activityLogger): RedirectResponse
     {
         [$attributes, $featureIds] = $this->validatedPayload($request);
         $application = Application::query()->create($attributes);
         $application->features()->sync($featureIds);
+
+        $activityLogger->log(
+            'application.created',
+            'Creation d une application.',
+            $application,
+            [
+                'code' => $application->code,
+                'name' => $application->name,
+                'status' => $application->status,
+                'feature_ids' => $featureIds,
+            ],
+            $request
+        );
 
         return redirect()->route('super-admin.applications.index')
             ->with('success', 'L application a ete creee.');
@@ -59,29 +73,72 @@ class ApplicationController extends Controller
         ]);
     }
 
-    public function update(Request $request, Application $application): RedirectResponse
+    public function update(Request $request, Application $application, ActivityLogger $activityLogger): RedirectResponse
     {
         [$attributes, $featureIds] = $this->validatedPayload($request, $application);
+        $before = $application->load('features');
         $application->update($attributes);
         $application->features()->sync($featureIds);
+
+        $activityLogger->log(
+            'application.updated',
+            'Mise a jour d une application.',
+            $application,
+            [
+                'before' => [
+                    'code' => $before->code,
+                    'name' => $before->name,
+                    'slug' => $before->slug,
+                    'status' => $before->status,
+                    'feature_ids' => $before->features->pluck('id')->all(),
+                ],
+                'after' => [
+                    'code' => $application->code,
+                    'name' => $application->name,
+                    'slug' => $application->slug,
+                    'status' => $application->status,
+                    'feature_ids' => $featureIds,
+                ],
+            ],
+            $request
+        );
 
         return redirect()->route('super-admin.applications.index')
             ->with('success', 'L application a ete mise a jour.');
     }
 
-    public function destroy(Application $application): RedirectResponse
+    public function destroy(Request $request, Application $application, ActivityLogger $activityLogger): RedirectResponse
     {
+        $snapshot = $application->only(['id', 'code', 'name', 'slug', 'status']);
         $application->delete();
+
+        $activityLogger->log(
+            'application.deleted',
+            'Suppression d une application.',
+            Application::class,
+            $snapshot,
+            $request
+        );
 
         return redirect()->route('super-admin.applications.index')
             ->with('success', 'L application a ete supprimee.');
     }
 
-    public function toggleStatus(Application $application): RedirectResponse
+    public function toggleStatus(Request $request, Application $application, ActivityLogger $activityLogger): RedirectResponse
     {
         $application->update([
             'status' => $application->status === 'active' ? 'inactive' : 'active',
         ]);
+
+        $activityLogger->log(
+            'application.status_toggled',
+            'Changement de statut d une application.',
+            $application,
+            [
+                'status' => $application->status,
+            ],
+            $request
+        );
 
         return back()->with('success', 'Le statut de l application a ete mis a jour.');
     }

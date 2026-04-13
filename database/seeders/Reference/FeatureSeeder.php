@@ -74,6 +74,11 @@ class FeatureSeeder extends Seeder
                 'description' => 'Permet de consulter et affecter les permissions autorisees par le super admin.',
             ],
             [
+                'code' => 'INSTITUTION_ACTIVITY_LOGS',
+                'name' => 'Journal d activite',
+                'description' => 'Permet a un admin institutionnel de consulter son propre historique d activite.',
+            ],
+            [
                 'code' => 'INSTITUTION_DASHBOARD_REPORTS_TREND',
                 'name' => 'Graphe dashboard - Tendance des signalements',
                 'description' => 'Affiche le graphe d evolution quotidienne des signalements sur le dashboard institutionnel.',

@@ -7,8 +7,10 @@ use App\Models\BusinessSector;
 use App\Models\Commune;
 use App\Models\PublicUser;
 use App\Models\PublicUserType;
+use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -56,11 +58,11 @@ class PublicUserController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, ActivityLogger $activityLogger): RedirectResponse
     {
         $attributes = $this->validatedAttributes($request);
 
-        PublicUser::query()->create([
+        $publicUser = PublicUser::query()->create([
             'public_user_type_id' => $attributes['public_user_type_id'],
             'first_name' => $attributes['first_name'],
             'last_name' => $attributes['last_name'],
@@ -78,6 +80,18 @@ class PublicUserController extends Controller
             'status' => 'active',
         ]);
 
+        $activityLogger->log(
+            'public_user.created',
+            'Creation d un usager public.',
+            $publicUser,
+            [
+                'public_user_type_id' => $publicUser->public_user_type_id,
+                'phone' => $publicUser->phone,
+            ],
+            $request,
+            $request->user(),
+        );
+
         return redirect()->route('super-admin.public-users.index')
             ->with('success', 'L usager public a ete cree.');
     }
@@ -91,6 +105,7 @@ class PublicUserController extends Controller
                 'incidentReports.organization',
                 'incidentReports.meter',
                 'incidentReports.payments',
+                'incidentReports.reparationCase',
             ]),
             'publicUserTypes' => PublicUserType::query()->with('pricingRule')->where('status', 'active')->orderBy('sort_order')->orderBy('name')->get(),
             'communes' => Commune::query()->where('status', 'active')->orderBy('name')->get(),
@@ -98,9 +113,97 @@ class PublicUserController extends Controller
         ]);
     }
 
-    public function update(Request $request, PublicUser $publicUser): RedirectResponse
+    public function show(PublicUser $publicUser): View
+    {
+        $reports = $publicUser->incidentReports()
+            ->with([
+                'application',
+                'organization',
+                'meter',
+                'payments',
+                'reparationCase',
+                'commune',
+            ])
+            ->latest()
+            ->get()
+            ->filter(function ($report): bool {
+                if (filled(request('report_search'))) {
+                    $search = mb_strtolower(trim((string) request('report_search')));
+                    $haystack = mb_strtolower(implode(' ', array_filter([
+                        $report->reference,
+                        $report->signal_label,
+                        $report->signal_code,
+                        $report->description,
+                        $report->application?->name,
+                        $report->organization?->name,
+                    ])));
+
+                    if (! str_contains($haystack, $search)) {
+                        return false;
+                    }
+                }
+
+                if (filled(request('report_status')) && $report->status !== request('report_status')) {
+                    return false;
+                }
+
+                if (filled(request('report_case_status'))) {
+                    $hasDamage = $report->damage_declared_at !== null || filled($report->damage_summary) || filled($report->damage_amount_estimated);
+                    $slaBreached = filled($report->target_sla_hours) && $report->created_at !== null
+                        ? (($report->created_at->diffInMinutes($report->resolved_at ?? now()) / 60) >= (float) $report->target_sla_hours)
+                        : false;
+                    $isEligibleForReparationCase = $slaBreached || $hasDamage;
+                    $caseStatus = (string) request('report_case_status');
+
+                    if ($caseStatus === 'opened' && ! $report->reparationCase) {
+                        return false;
+                    }
+
+                    if ($caseStatus === 'to_open' && ($report->reparationCase || ! $isEligibleForReparationCase)) {
+                        return false;
+                    }
+
+                    if ($caseStatus === 'not_eligible' && ($report->reparationCase || $isEligibleForReparationCase)) {
+                        return false;
+                    }
+                }
+
+                return true;
+            })
+            ->values();
+
+        $perPage = 8;
+        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+        $paginatedReports = new LengthAwarePaginator(
+            $reports->forPage($currentPage, $perPage)->values(),
+            $reports->count(),
+            $perPage,
+            $currentPage,
+            [
+                'path' => request()->url(),
+                'query' => request()->query(),
+            ]
+        );
+
+        return view('super-admin.public-users.show', [
+            'publicUser' => $publicUser->load('publicUserType.pricingRule'),
+            'reports' => $paginatedReports,
+            'reportStatuses' => ['submitted', 'in_progress', 'resolved', 'rejected', 'closed'],
+        ]);
+    }
+
+    public function update(Request $request, PublicUser $publicUser, ActivityLogger $activityLogger): RedirectResponse
     {
         $attributes = $this->validatedAttributes($request, $publicUser);
+        $before = [
+            'public_user_type_id' => $publicUser->public_user_type_id,
+            'first_name' => $publicUser->first_name,
+            'last_name' => $publicUser->last_name,
+            'phone' => $publicUser->phone,
+            'email' => $publicUser->email,
+            'business_sector' => $publicUser->business_sector,
+            'commune' => $publicUser->commune,
+        ];
 
         $payload = [
             'public_user_type_id' => $attributes['public_user_type_id'],
@@ -124,23 +227,68 @@ class PublicUserController extends Controller
 
         $publicUser->update($payload);
 
+        $activityLogger->log(
+            'public_user.updated',
+            'Mise a jour d un usager public.',
+            $publicUser,
+            [
+                'before' => $before,
+                'after' => [
+                    'public_user_type_id' => $publicUser->public_user_type_id,
+                    'first_name' => $publicUser->first_name,
+                    'last_name' => $publicUser->last_name,
+                    'phone' => $publicUser->phone,
+                    'email' => $publicUser->email,
+                    'business_sector' => $publicUser->business_sector,
+                    'commune' => $publicUser->commune,
+                ],
+            ],
+            $request,
+            $request->user(),
+        );
+
         return redirect()->route('super-admin.public-users.index')
             ->with('success', 'L usager public a ete mis a jour.');
     }
 
-    public function destroy(PublicUser $publicUser): RedirectResponse
+    public function destroy(Request $request, PublicUser $publicUser, ActivityLogger $activityLogger): RedirectResponse
     {
+        $activityLogger->log(
+            'public_user.deleted',
+            'Suppression d un usager public.',
+            $publicUser,
+            [
+                'phone' => $publicUser->phone,
+                'email' => $publicUser->email,
+            ],
+            $request,
+            $request->user(),
+        );
         $publicUser->delete();
 
         return redirect()->route('super-admin.public-users.index')
             ->with('success', 'L usager public a ete supprime.');
     }
 
-    public function toggleStatus(PublicUser $publicUser): RedirectResponse
+    public function toggleStatus(Request $request, PublicUser $publicUser, ActivityLogger $activityLogger): RedirectResponse
     {
+        $previousStatus = $publicUser->status;
+
         $publicUser->update([
             'status' => $publicUser->status === 'active' ? 'inactive' : 'active',
         ]);
+
+        $activityLogger->log(
+            'public_user.status_toggled',
+            'Changement de statut d un usager public.',
+            $publicUser,
+            [
+                'before' => $previousStatus,
+                'after' => $publicUser->status,
+            ],
+            $request,
+            $request->user(),
+        );
 
         return back()->with('success', 'Le statut de l usager public a ete mis a jour.');
     }
@@ -166,12 +314,17 @@ class PublicUserController extends Controller
 
         $publicUserType = PublicUserType::query()->findOrFail($attributes['public_user_type_id']);
 
-        if ($publicUserType->profile_kind === 'business') {
+        $typeCode = strtoupper((string) $publicUserType->code);
+
+        if (in_array($typeCode, ['UPE', 'UPTI'], true) && ! filled($attributes['business_sector'] ?? null)) {
+            throw ValidationException::withMessages(['business_sector' => ['Le secteur d activite est obligatoire.']]);
+        }
+
+        if ($typeCode === 'UPE') {
             foreach ([
                 'company_name' => 'La raison sociale est obligatoire.',
                 'company_registration_number' => 'Le RCCM ou numero d immatriculation est obligatoire.',
                 'tax_identifier' => 'L identifiant fiscal est obligatoire.',
-                'business_sector' => 'Le secteur d activite est obligatoire.',
                 'company_address' => 'L adresse de l entreprise est obligatoire.',
             ] as $field => $message) {
                 if (! filled($attributes[$field] ?? null)) {

@@ -117,7 +117,9 @@ class SignalTypeController extends Controller
             'field_labels' => ['nullable', 'array'],
             'field_labels.*' => ['nullable', 'string', 'max:180'],
             'field_types' => ['nullable', 'array'],
-            'field_types.*' => ['nullable', 'in:text,number,textarea'],
+            'field_types.*' => ['nullable', 'in:text,number,textarea,select'],
+            'field_options' => ['nullable', 'array'],
+            'field_options.*' => ['nullable', 'string'],
             'field_required' => ['nullable', 'array'],
         ]);
 
@@ -133,12 +135,13 @@ class SignalTypeController extends Controller
                 $attributes['field_keys'] ?? [],
                 $attributes['field_labels'] ?? [],
                 $attributes['field_types'] ?? [],
+                $attributes['field_options'] ?? [],
                 $attributes['field_required'] ?? [],
             ),
         ], fn ($value, $key) => ! ($key === 'code' && $value === null), ARRAY_FILTER_USE_BOTH);
     }
 
-    private function normalizeDataFields(array $keys, array $labels, array $types, array $requiredFlags): array
+    private function normalizeDataFields(array $keys, array $labels, array $types, array $options, array $requiredFlags): array
     {
         $rows = [];
 
@@ -146,6 +149,11 @@ class SignalTypeController extends Controller
             $normalizedKey = trim((string) $key);
             $normalizedLabel = trim((string) ($labels[$index] ?? ''));
             $normalizedType = (string) ($types[$index] ?? 'text');
+            $normalizedOptions = collect(preg_split('/\r\n|\r|\n/', (string) ($options[$index] ?? '')))
+                ->map(fn ($option) => trim((string) $option))
+                ->filter()
+                ->values()
+                ->all();
 
             if ($normalizedKey === '' && $normalizedLabel === '') {
                 continue;
@@ -160,9 +168,16 @@ class SignalTypeController extends Controller
             $rows[] = [
                 'key' => $normalizedKey,
                 'label' => $normalizedLabel,
-                'type' => in_array($normalizedType, ['text', 'number', 'textarea'], true) ? $normalizedType : 'text',
+                'type' => in_array($normalizedType, ['text', 'number', 'textarea', 'select'], true) ? $normalizedType : 'text',
                 'required' => in_array((string) $index, array_map('strval', $requiredFlags), true),
+                'options' => $normalizedType === 'select' ? $normalizedOptions : [],
             ];
+
+            if ($normalizedType === 'select' && count($normalizedOptions) === 0) {
+                throw ValidationException::withMessages([
+                    'field_options' => ['Chaque champ de type liste doit contenir au moins une option.'],
+                ]);
+            }
         }
 
         return $rows;

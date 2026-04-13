@@ -198,6 +198,18 @@
             .auth-switch .nav-link.active,.register-switch .nav-link.active { background: linear-gradient(135deg, var(--mysignal-copper), #dd8d4d); color:white; box-shadow: 0 16px 28px rgba(196,106,43,.22); }
             .form-control,.form-select { border-radius:18px; border-color: rgba(24,52,71,.11); min-height:3.25rem; padding-inline:1rem; }
             .form-control:focus,.form-select:focus { border-color: rgba(196,106,43,.55); box-shadow: 0 0 0 .25rem rgba(196,106,43,.12); }
+            .required-star { color:#d6005a; font-weight:800; margin-left:.15rem; }
+            .public-select-shell { position: relative; }
+            .public-select-input { display:block; width:100%; min-height:3.25rem; border-radius:18px; border-color: rgba(24,52,71,.11); padding-inline:1rem; padding-right:3.4rem; background:white; cursor:pointer; margin-bottom:.55rem; }
+            .public-select-toggle { position:absolute; top:0; right:0; width:3rem; height:3.25rem; border:0; background:transparent; color:var(--mysignal-muted); border-radius:0 18px 18px 0; }
+            .public-select-toggle::before,.public-select-toggle::after { content:""; position:absolute; top:50%; width:7px; height:2px; background:currentColor; }
+            .public-select-toggle::before { right:18px; transform: translateY(-50%) rotate(45deg); }
+            .public-select-toggle::after { right:13px; transform: translateY(-50%) rotate(-45deg); }
+            .public-select-help { margin-top:-.2rem; margin-bottom:.55rem; color:var(--mysignal-muted); font-size:.76rem; }
+            .public-select-results { display:none; margin-top:-.2rem; margin-bottom:.55rem; background:#fff; border:1px solid rgba(24,52,71,.12); border-radius:18px; box-shadow:0 18px 34px rgba(12,36,53,.08); max-height:220px; overflow:auto; padding:.35rem; }
+            .public-select-results.is-open { display:block; }
+            .public-select-option { width:100%; text-align:left; border:0; background:transparent; border-radius:12px; padding:.65rem .8rem; color:var(--mysignal-navy); }
+            .public-select-option:hover { background: rgba(12,36,53,.05); }
             .feature-icon { width:52px; height:52px; border-radius:18px; display:grid; place-items:center; background: rgba(30,88,119,.08); color: var(--mysignal-ocean); font-weight:800; }
             .mini-card { background: white; border: 1px solid rgba(24,52,71,.08); border-radius: 24px; padding: 1.15rem; }
             .story-card,.proof-card,.impact-card { padding: 1.35rem; }
@@ -793,10 +805,10 @@
                                 <div class="col-12 hidden" id="registerAccountStep">
                                     <form id="registerForm" class="row g-3">
                                         <div class="col-md-6">
-                                            <label class="form-label fw-semibold">Type d usager public</label>
+                                            <label class="form-label fw-semibold">Personne physique</label>
                                             <select class="form-select" name="public_user_type_id" id="registerPublicUserTypeSelect" required>
                                                 @foreach ($publicUserTypes as $publicUserType)
-                                                    <option value="{{ $publicUserType->id }}" data-profile-kind="{{ $publicUserType->profile_kind }}">{{ $publicUserType->name }}</option>
+                                                    <option value="{{ $publicUserType->id }}" data-profile-kind="{{ $publicUserType->profile_kind }}" data-type-code="{{ $publicUserType->code }}">{{ $publicUserType->name }}</option>
                                                 @endforeach
                                             </select>
                                         </div>
@@ -819,20 +831,24 @@
                                             </select>
                                         </div>
                                         <div class="col-12"><label class="form-label fw-semibold">Email</label><input class="form-control" type="email" name="email"></div>
+                                        <div class="col-12 hidden" id="registerSectorFields">
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <label class="form-label fw-semibold">Domaine d'activite</label>
+                                                    <select class="form-select" name="business_sector">
+                                                        <option value="">Selectionner un secteur</option>
+                                                        @foreach ($businessSectors as $businessSector)
+                                                            <option value="{{ $businessSector->name }}">{{ $businessSector->name }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
                                         <div class="col-12 hidden" id="registerBusinessFields">
                                             <div class="row g-3">
                                                 <div class="col-md-6"><label class="form-label fw-semibold">Raison sociale</label><input class="form-control" name="company_name"></div>
                                                 <div class="col-md-6"><label class="form-label fw-semibold">RCCM / Immatriculation</label><input class="form-control" name="company_registration_number"></div>
                                                 <div class="col-md-6"><label class="form-label fw-semibold">Identifiant fiscal</label><input class="form-control" name="tax_identifier"></div>
-                                        <div class="col-md-6">
-                                            <label class="form-label fw-semibold">Secteur d activite</label>
-                                            <select class="form-select" name="business_sector">
-                                                <option value="">Selectionner un secteur</option>
-                                                @foreach ($businessSectors as $businessSector)
-                                                    <option value="{{ $businessSector->name }}">{{ $businessSector->name }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
                                                 <div class="col-12"><label class="form-label fw-semibold">Adresse de l entreprise</label><input class="form-control" name="company_address"></div>
                                             </div>
                                         </div>
@@ -862,6 +878,7 @@
             $publicUserTypesPayload = $publicUserTypes->map(function ($type) {
                 return [
                     'id' => $type->id,
+                    'code' => $type->code,
                     'name' => $type->name,
                     'profile_kind' => $type->profile_kind,
                     'pricing_rule' => $type->pricingRule ? [
@@ -889,6 +906,179 @@
                     toastEl.classList.add(isError ? 'text-bg-danger' : 'text-bg-success');
                     document.getElementById('appToastMessage').textContent = message;
                     toast.show();
+                }
+
+                function normalizeText(value) {
+                    return String(value || '')
+                        .normalize('NFD')
+                        .replace(/[\u0300-\u036f]/g, '')
+                        .trim()
+                        .toLowerCase();
+                }
+
+                function ensurePublicSelectId(select) {
+                    if (select.id) {
+                        return select.id;
+                    }
+
+                    const baseId = String(select.name || 'public-select')
+                        .replace(/[^a-zA-Z0-9_-]+/g, '-')
+                        .replace(/^-+|-+$/g, '');
+
+                    select.id = `${baseId || 'public-select'}-${Math.random().toString(36).slice(2, 8)}`;
+                    return select.id;
+                }
+
+                function annotateRequiredFields(root = document) {
+                    root.querySelectorAll('form input[required], form select[required], form textarea[required]').forEach((field) => {
+                        if (field.type === 'hidden' || field.classList.contains('d-none')) {
+                            return;
+                        }
+
+                        const group = field.closest('.col-12, .col-md-3, .col-md-4, .col-md-6, .col-md-8');
+                        const label = group?.querySelector('label.form-label');
+
+                        if (!label || label.querySelector('.required-star')) {
+                            return;
+                        }
+
+                        const star = document.createElement('span');
+                        star.className = 'required-star';
+                        star.textContent = '*';
+                        label.appendChild(star);
+                    });
+                }
+
+                function syncPublicEnhancedSelect(select) {
+                    if (select.dataset.publicEnhanced !== '1') {
+                        return;
+                    }
+
+                    const input = document.getElementById(`${select.id}PublicInput`);
+                    const results = document.getElementById(`${select.id}PublicResults`);
+
+                    if (!input || !results) {
+                        return;
+                    }
+
+                    const options = Array.from(select.options).map((option) => ({
+                        value: option.value,
+                        label: option.textContent,
+                    }));
+
+                    select.dataset.publicEnhancedOptions = JSON.stringify(options);
+                    if (document.activeElement !== input) {
+                        input.value = select.options[select.selectedIndex]?.textContent || '';
+                    }
+                    results.classList.remove('is-open');
+                }
+
+                function renderPublicEnhancedSelectOptions(select, query = '', forceOpen = false) {
+                    if (select.dataset.publicEnhanced !== '1') {
+                        return;
+                    }
+
+                    const results = document.getElementById(`${select.id}PublicResults`);
+                    const options = JSON.parse(select.dataset.publicEnhancedOptions || '[]');
+                    const normalizedQuery = normalizeText(query);
+                    const selectedLabel = normalizeText(select.options[select.selectedIndex]?.textContent || '');
+                    const matches = normalizedQuery
+                        ? options.filter((option) => normalizeText(option.label).includes(normalizedQuery))
+                        : options;
+                    const hasExactMatch = options.some((option) => normalizeText(option.label) === normalizedQuery);
+
+                    if (!results) {
+                        return;
+                    }
+
+                    results.innerHTML = matches.length
+                        ? matches.map((option) => `<button class="public-select-option" type="button" data-public-select-value="${option.value}" data-public-select-label="${option.label}">${option.label}</button>`).join('')
+                        : '<div class="public-select-help">Aucun resultat</div>';
+                    results.classList.toggle('is-open', forceOpen || normalizedQuery === '' || (!hasExactMatch && normalizedQuery !== selectedLabel));
+                }
+
+                function enhancePublicFormSelects(root = document) {
+                    root.querySelectorAll('form select.form-select:not([data-dial-code-select])').forEach((select) => {
+                        if (select.dataset.publicEnhanced === '1') {
+                            return;
+                        }
+
+                        const selectId = ensurePublicSelectId(select);
+                        const shell = document.createElement('div');
+                        shell.className = 'public-select-shell';
+                        shell.innerHTML = `
+                            <input class="form-control public-select-input" id="${selectId}PublicInput" type="search" autocomplete="off" placeholder="Rechercher ou selectionner">
+                            <button class="public-select-toggle" id="${selectId}PublicToggle" type="button" aria-label="Afficher les options"></button>
+                        `;
+                        const help = document.createElement('div');
+                        help.className = 'public-select-help';
+                        help.textContent = 'Champ de selection avec recherche.';
+                        const results = document.createElement('div');
+                        results.className = 'public-select-results';
+                        results.id = `${selectId}PublicResults`;
+
+                        select.parentNode.insertBefore(shell, select);
+                        select.parentNode.insertBefore(help, select);
+                        select.parentNode.insertBefore(results, select);
+                        select.classList.add('d-none');
+                        select.dataset.publicEnhanced = '1';
+
+                        const input = document.getElementById(`${selectId}PublicInput`);
+                        const toggle = document.getElementById(`${selectId}PublicToggle`);
+                        const observer = new MutationObserver(() => syncPublicEnhancedSelect(select));
+                        observer.observe(select, { childList: true, subtree: true });
+
+                        input.addEventListener('focus', () => renderPublicEnhancedSelectOptions(select, input.value));
+                        input.addEventListener('input', () => renderPublicEnhancedSelectOptions(select, input.value));
+                        input.addEventListener('change', () => {
+                            const options = JSON.parse(select.dataset.publicEnhancedOptions || '[]');
+                            const exactMatch = options.find((option) => normalizeText(option.label) === normalizeText(input.value));
+
+                            if (!exactMatch) {
+                                input.value = select.options[select.selectedIndex]?.textContent || '';
+                                return;
+                            }
+
+                            const previousValue = select.value;
+                            select.value = exactMatch.value;
+                            input.value = exactMatch.label;
+
+                            if (String(previousValue) !== String(select.value)) {
+                                select.dispatchEvent(new Event('change', { bubbles: true }));
+                            }
+                        });
+                        input.addEventListener('blur', () => {
+                            window.setTimeout(() => {
+                                results.classList.remove('is-open');
+                                input.value = select.options[select.selectedIndex]?.textContent || '';
+                            }, 150);
+                        });
+                        toggle.addEventListener('mousedown', (event) => event.preventDefault());
+                        toggle.addEventListener('click', () => {
+                            const shouldOpen = !results.classList.contains('is-open');
+                            renderPublicEnhancedSelectOptions(select, '', true);
+                            results.classList.toggle('is-open', shouldOpen);
+                            input.focus();
+                        });
+                        results.addEventListener('click', (event) => {
+                            const option = event.target.closest('[data-public-select-value]');
+
+                            if (!option) {
+                                return;
+                            }
+
+                            const previousValue = select.value;
+                            select.value = option.dataset.publicSelectValue;
+                            input.value = option.dataset.publicSelectLabel || '';
+                            results.classList.remove('is-open');
+
+                            if (String(previousValue) !== String(select.value)) {
+                                select.dispatchEvent(new Event('change', { bubbles: true }));
+                            }
+                        });
+
+                        syncPublicEnhancedSelect(select);
+                    });
                 }
 
                 function setLoading(form, isLoading) {
@@ -944,20 +1134,33 @@
                     });
                 }
 
-                function syncPublicUserTypeFields(selectId, fieldsContainerId, pricingLabelId = null, pricingAmountId = null) {
+                function syncPublicUserTypeFields(selectId, businessFieldsContainerId, pricingLabelId = null, pricingAmountId = null, sectorFieldsContainerId = null) {
                     const select = document.getElementById(selectId);
-                    const fieldsContainer = document.getElementById(fieldsContainerId);
+                    const businessFieldsContainer = document.getElementById(businessFieldsContainerId);
+                    const sectorFieldsContainer = sectorFieldsContainerId ? document.getElementById(sectorFieldsContainerId) : null;
 
-                    if (!select || !fieldsContainer) {
+                    if (!select || !businessFieldsContainer) {
                         return;
                     }
 
                     const selectedType = publicUserTypes.find((type) => String(type.id) === String(select.value));
-                    const isBusiness = selectedType?.profile_kind === 'business';
-                    fieldsContainer.classList.toggle('hidden', !isBusiness);
-                    fieldsContainer.querySelectorAll('input, select, textarea').forEach((field) => {
-                        field.disabled = !isBusiness;
+                    const typeCode = String(selectedType?.code || '').toUpperCase();
+                    const showBusinessFields = typeCode === 'UPE';
+                    const showSectorFields = typeCode === 'UPE' || typeCode === 'UPTI';
+
+                    businessFieldsContainer.classList.toggle('hidden', !showBusinessFields);
+                    businessFieldsContainer.querySelectorAll('input, select, textarea').forEach((field) => {
+                        field.disabled = !showBusinessFields;
+                        field.required = showBusinessFields;
                     });
+
+                    if (sectorFieldsContainer) {
+                        sectorFieldsContainer.classList.toggle('hidden', !showSectorFields);
+                        sectorFieldsContainer.querySelectorAll('input, select, textarea').forEach((field) => {
+                            field.disabled = !showSectorFields;
+                            field.required = showSectorFields;
+                        });
+                    }
 
                     if (pricingLabelId) {
                         document.getElementById(pricingLabelId).textContent = selectedType?.pricing_rule?.label || '-';
@@ -1004,7 +1207,7 @@
                 });
 
                 document.getElementById('registerPublicUserTypeSelect')?.addEventListener('change', () => {
-                    syncPublicUserTypeFields('registerPublicUserTypeSelect', 'registerBusinessFields', 'registerPricingHint', 'registerPricingAmount');
+                    syncPublicUserTypeFields('registerPublicUserTypeSelect', 'registerBusinessFields', 'registerPricingHint', 'registerPricingAmount', 'registerSectorFields');
                 });
 
                 document.getElementById('otpRequestForm').addEventListener('submit', async (event) => {
@@ -1081,7 +1284,9 @@
                 });
 
                 populateDialCodeSelects();
-                syncPublicUserTypeFields('registerPublicUserTypeSelect', 'registerBusinessFields', 'registerPricingHint', 'registerPricingAmount');
+                enhancePublicFormSelects();
+                annotateRequiredFields();
+                syncPublicUserTypeFields('registerPublicUserTypeSelect', 'registerBusinessFields', 'registerPricingHint', 'registerPricingAmount', 'registerSectorFields');
                 loadReferences().catch(() => {});
             })();
         </script>
