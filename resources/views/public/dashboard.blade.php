@@ -340,6 +340,7 @@
                 padding: 1.05rem;
                 width: min(100%, 420px);
                 aspect-ratio: 1.586 / 1;
+                min-height: 250px;
                 color: white;
                 background:
                     linear-gradient(135deg, rgba(24, 52, 71, 0.98), rgba(255, 0, 104, 0.9) 56%, rgba(255, 161, 23, 0.94));
@@ -360,7 +361,7 @@
                 height: 100%;
                 display: flex;
                 flex-direction: column;
-                justify-content: space-between;
+                gap: 1rem;
             }
             .member-wallet-chip {
                 width: 42px;
@@ -411,6 +412,11 @@
                 height: 70px !important;
             }
             .member-wallet-footer {
+                position: absolute;
+                right: 0;
+                bottom: 0;
+                left: 0;
+                z-index: 2;
                 display: grid;
                 grid-template-columns: minmax(0, 1fr) auto auto;
                 gap: 0.75rem;
