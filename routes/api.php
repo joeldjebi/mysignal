@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\V1\Public\Profile\PublicProfileController;
 use App\Http\Controllers\Api\V1\Public\ReparationCases\PublicReparationCaseController;
 use App\Http\Controllers\Api\V1\Public\Reports\PublicIncidentReportController;
 use App\Http\Controllers\Api\V1\Public\Signals\PublicSignalTypeController;
+use App\Http\Controllers\Api\V1\Public\Subscriptions\PublicUpSubscriptionController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1/public')->group(function (): void {
@@ -57,5 +58,8 @@ Route::prefix('v1/public')->group(function (): void {
         Route::post('reports/{report}/payments', [PublicReportPaymentController::class, 'store']);
         Route::post('payments/{payment}/confirm', [PublicReportPaymentController::class, 'confirm']);
         Route::get('payments/{payment}/receipt', [PublicReportPaymentController::class, 'receipt']);
+
+        Route::get('subscription', [PublicUpSubscriptionController::class, 'show']);
+        Route::post('subscription', [PublicUpSubscriptionController::class, 'store']);
     });
 });
