@@ -328,6 +328,12 @@
                         <span><span class="d-block fw-semibold">Plans abonnements</span><span class="small text-white-50">Abonnement annuel UP</span></span>
                     </a>
                 @endif
+                @if ($authUser?->hasPermissionCode('SA_UP_SUBSCRIPTIONS_VIEW'))
+                    <a href="{{ route('super-admin.up-subscriptions.index') }}" class="nav-pill {{ request()->routeIs('super-admin.up-subscriptions.*') ? 'active' : '' }}">
+                        <span class="nav-icon">HU</span>
+                        <span><span class="d-block fw-semibold">Abonnements UP</span><span class="small text-white-50">Historique et statuts</span></span>
+                    </a>
+                @endif
                 @if ($authUser?->hasPermissionCode('SA_PUBLIC_USER_TYPES_MANAGE'))
                     <a href="{{ route('super-admin.public-user-types.index') }}" class="nav-pill {{ request()->routeIs('super-admin.public-user-types.*') ? 'active' : '' }}">
                         <span class="nav-icon">UP</span>

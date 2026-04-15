@@ -25,6 +25,7 @@ class SuperAdminPermissionSeeder extends Seeder
             ['code' => 'SA_INSTITUTION_ADMINS_MANAGE', 'name' => 'Gerer admins institutionnels', 'description' => 'Permet de gerer les admins institutionnels.'],
             ['code' => 'SA_PRICING_MANAGE', 'name' => 'Gerer tarification', 'description' => 'Permet de gerer la tarification.'],
             ['code' => 'SA_SUBSCRIPTION_PLANS_MANAGE', 'name' => 'Gerer plans abonnements UP', 'description' => 'Permet de parametrer les plans d abonnement des usagers publics.'],
+            ['code' => 'SA_UP_SUBSCRIPTIONS_VIEW', 'name' => 'Voir abonnements UP', 'description' => 'Permet de consulter l historique des abonnements des usagers publics.'],
             ['code' => 'SA_PUBLIC_USER_TYPES_MANAGE', 'name' => 'Gerer types usagers publics', 'description' => 'Permet de gerer les types d usagers publics.'],
             ['code' => 'SA_PUBLIC_USERS_MANAGE', 'name' => 'Gerer usagers publics', 'description' => 'Permet de gerer les usagers publics.'],
             ['code' => 'SA_PUBLIC_USERS_TOGGLE_STATUS', 'name' => 'Activer ou desactiver usagers publics', 'description' => 'Permet d activer ou desactiver les comptes des usagers publics.'],

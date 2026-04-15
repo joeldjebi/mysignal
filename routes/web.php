@@ -39,6 +39,7 @@ use App\Http\Controllers\Web\SuperAdmin\RoleController;
 use App\Http\Controllers\Web\SuperAdmin\SignalTypeController;
 use App\Http\Controllers\Web\SuperAdmin\SubscriptionPlanController;
 use App\Http\Controllers\Web\SuperAdmin\SystemUserController;
+use App\Http\Controllers\Web\SuperAdmin\UpSubscriptionController;
 use App\Http\Controllers\Web\SuperAdmin\AuthController as SuperAdminAuthController;
 use App\Http\Controllers\Web\SuperAdmin\DashboardController as SuperAdminDashboardController;
 use Illuminate\Support\Facades\Route;
@@ -190,6 +191,7 @@ Route::prefix('sa')->name('super-admin.')->group(function (): void {
         Route::patch('pricing/toggle-status', [PricingRuleController::class, 'toggleStatus'])->middleware('super_admin_permission:SA_PRICING_MANAGE')->name('pricing.toggle-status');
         Route::resource('subscription-plans', SubscriptionPlanController::class)->except(['create', 'show', 'destroy'])->middleware('super_admin_permission:SA_SUBSCRIPTION_PLANS_MANAGE');
         Route::patch('subscription-plans/{subscriptionPlan}/toggle-status', [SubscriptionPlanController::class, 'toggleStatus'])->middleware('super_admin_permission:SA_SUBSCRIPTION_PLANS_MANAGE')->name('subscription-plans.toggle-status');
+        Route::get('up-subscriptions', [UpSubscriptionController::class, 'index'])->middleware('super_admin_permission:SA_UP_SUBSCRIPTIONS_VIEW')->name('up-subscriptions.index');
         Route::resource('public-user-types', PublicUserTypeController::class)->parameters(['public-user-types' => 'publicUserType'])->except(['create', 'show'])->middleware('super_admin_permission:SA_PUBLIC_USER_TYPES_MANAGE');
         Route::patch('public-user-types/{publicUserType}/toggle-status', [PublicUserTypeController::class, 'toggleStatus'])->middleware('super_admin_permission:SA_PUBLIC_USER_TYPES_MANAGE')->name('public-user-types.toggle-status');
         Route::resource('public-users', PublicUserController::class)->parameters(['public-users' => 'publicUser'])->middleware('super_admin_permission:SA_PUBLIC_USERS_MANAGE');
