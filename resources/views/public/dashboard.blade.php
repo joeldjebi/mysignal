@@ -900,6 +900,13 @@
                                 <span class="small text-white-50">Plans, statuts et paiements</span>
                             </span>
                         </button>
+                        <button class="nav-pill" type="button" data-panel-target="rex">
+                            <span class="nav-icon">RX</span>
+                            <span>
+                                <span class="d-block fw-semibold">Mes REX</span>
+                                <span class="small text-white-50">Retours d experience</span>
+                            </span>
+                        </button>
                         <button class="nav-pill" type="button" data-panel-target="damages">
                             <span class="nav-icon">DG</span>
                             <span>
@@ -1434,6 +1441,18 @@
                         </div>
                     </section>
 
+                    <section class="public-panel" data-panel="rex">
+                        <div class="dashboard-card">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+                                <div>
+                                    <div class="section-title">Mes retours d experience</div>
+                                    <div class="muted-label">Historique global de tes retours sur les signalements, dommages et dossiers traites.</div>
+                                </div>
+                            </div>
+                            <div id="rexFeedbacksList"></div>
+                        </div>
+                    </section>
+
                     <section class="public-panel" data-panel="damages">
                         <div class="dashboard-card">
                             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
@@ -1760,6 +1779,57 @@
             </div>
         </div>
 
+        <div class="modal fade" id="rexFeedbackModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content border-0" style="border-radius: 28px; overflow: hidden;">
+                    <div class="modal-header px-4 py-3 border-0" style="background: var(--acepen-navy); color: white;">
+                        <div>
+                            <div class="small text-white-50 fw-semibold mb-1">Retour d experience</div>
+                            <div class="h5 fw-bold mb-0" id="rexFeedbackTitle">Donner mon retour</div>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <form id="rexFeedbackForm" class="row g-3">
+                            <input type="hidden" name="context_type" id="rexContextType">
+                            <input type="hidden" name="context_id" id="rexContextId">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Note globale</label>
+                                <select class="form-select" name="rating" required>
+                                    <option value="">Selectionner</option>
+                                    <option value="5">5 - Excellent</option>
+                                    <option value="4">4 - Bon</option>
+                                    <option value="3">3 - Moyen</option>
+                                    <option value="2">2 - Insatisfaisant</option>
+                                    <option value="1">1 - Tres insatisfaisant</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Le besoin est-il resolu ?</label>
+                                <select class="form-select" name="is_resolved">
+                                    <option value="">Non applicable</option>
+                                    <option value="1">Oui</option>
+                                    <option value="0">Non</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3"><label class="form-label fw-semibold">Delai</label><input class="form-control" type="number" min="1" max="5" name="response_time_rating"></div>
+                            <div class="col-md-3"><label class="form-label fw-semibold">Communication</label><input class="form-control" type="number" min="1" max="5" name="communication_rating"></div>
+                            <div class="col-md-3"><label class="form-label fw-semibold">Qualite</label><input class="form-control" type="number" min="1" max="5" name="quality_rating"></div>
+                            <div class="col-md-3"><label class="form-label fw-semibold">Equite</label><input class="form-control" type="number" min="1" max="5" name="fairness_rating"></div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Commentaire</label>
+                                <textarea class="form-control" name="comment" rows="4" maxlength="3000" placeholder="Expliquez votre experience, ce qui a bien fonctionne ou ce qui doit etre ameliore."></textarea>
+                            </div>
+                            <div class="col-12 d-flex justify-content-end gap-2">
+                                <button class="btn btn-ghost-premium px-4" type="button" data-bs-dismiss="modal">Annuler</button>
+                                <button class="btn btn-premium px-4" type="submit">Envoyer mon REX</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="toast-container position-fixed top-0 end-0 p-3">
             <div id="appToast" class="toast align-items-center text-bg-dark border-0" role="alert" aria-live="assertive" aria-atomic="true">
                 <div class="d-flex">
@@ -1806,6 +1876,7 @@
                     subscriptionPayments: [],
                     subscriptionHistoryPage: 1,
                     subscriptionHistoryPageSize: 5,
+                    rexFeedbacks: [],
                     reparationCases: [],
                     countries: [],
                     communes: [],
@@ -1861,6 +1932,8 @@
                 const paymentReceiptPreviewModal = paymentReceiptPreviewModalElement ? bootstrap.Modal.getOrCreateInstance(paymentReceiptPreviewModalElement) : null;
                 const subscriptionPromptModalElement = document.getElementById('subscriptionPromptModal');
                 const subscriptionPromptModal = subscriptionPromptModalElement ? bootstrap.Modal.getOrCreateInstance(subscriptionPromptModalElement) : null;
+                const rexFeedbackModalElement = document.getElementById('rexFeedbackModal');
+                const rexFeedbackModal = rexFeedbackModalElement ? bootstrap.Modal.getOrCreateInstance(rexFeedbackModalElement) : null;
 
                 if (!state.token) {
                     window.location.href = landingUrl;
@@ -3396,6 +3469,9 @@
                                                         ${report.resolution_confirmation?.can_confirm
                                                             ? `<button class="btn btn-ghost-premium btn-sm px-3" type="button" onclick="window.AcepenPortal.confirmResolution(${report.id})">Confirmer</button>`
                                                             : ''}
+                                                        ${canSubmitIncidentRex(report)
+                                                            ? `<button class="btn btn-ghost-premium btn-sm px-3" type="button" onclick="window.AcepenPortal.openRexForm('incident_report', ${report.id}, '${escapeHtml(report.reference)}')">REX signalement</button>`
+                                                            : ''}
                                                         <button
                                                             class="btn btn-premium btn-sm px-3"
                                                             type="button"
@@ -3408,6 +3484,9 @@
                                                         >
                                                             Dommage
                                                         </button>
+                                                        ${canSubmitDamageRex(report)
+                                                            ? `<button class="btn btn-ghost-premium btn-sm px-3" type="button" onclick="window.AcepenPortal.openRexForm('damage_declaration', ${report.id}, '${escapeHtml(report.reference)}')">REX dommage</button>`
+                                                            : ''}
                                                     </div>
                                                 </td>
                                             </tr>
@@ -3505,6 +3584,9 @@
                                         <div class="text-end">
                                             <span class="status-pill ${getReparationCaseStatusClass(repairCase.status)}">${getReparationCaseStatusLabel(repairCase.status)}</span>
                                             <div class="muted-label mt-2">${repairCase.opened_at ? `Ouvert le ${formatDateTime(repairCase.opened_at)}` : 'Date indisponible'}</div>
+                                            ${canSubmitCaseRex(repairCase)
+                                                ? `<button class="btn btn-ghost-premium btn-sm px-3 mt-2" type="button" onclick="window.AcepenPortal.openRexForm('reparation_case', ${repairCase.id}, '${escapeHtml(repairCase.reference)}')">Donner mon REX</button>`
+                                                : ''}
                                         </div>
                                     </div>
                                     <div class="soft-panel mb-3">
@@ -3559,6 +3641,54 @@
                                             }
                                         </div>
                                     </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+
+                function getRexContextLabel(contextType) {
+                    const labels = {
+                        incident_report: 'Signalement',
+                        damage_declaration: 'Dommage',
+                        reparation_case: 'Dossier',
+                    };
+
+                    return labels[contextType] || contextType || '-';
+                }
+
+                function renderRexFeedbacks(feedbacks) {
+                    state.rexFeedbacks = feedbacks;
+                    const list = document.getElementById('rexFeedbacksList');
+
+                    if (!list) {
+                        return;
+                    }
+
+                    if (!feedbacks.length) {
+                        list.innerHTML = '<div class="mini-card"><div class="fw-bold mb-1">Aucun REX envoye</div><div class="muted-label">Tes retours d experience apparaitront ici apres soumission.</div></div>';
+                        return;
+                    }
+
+                    list.innerHTML = `
+                        <div class="vstack gap-3">
+                            ${feedbacks.map((feedback) => `
+                                <div class="mini-card">
+                                    <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-3">
+                                        <div>
+                                            <div class="fw-bold">${getRexContextLabel(feedback.context_type)} · ${feedback.incident_report?.reference || '-'}</div>
+                                            <div class="muted-label">${feedback.application?.name || '-'} / ${feedback.organization?.name || '-'}</div>
+                                        </div>
+                                        <span class="status-pill">${feedback.rating}/5</span>
+                                    </div>
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-3"><div class="muted-label">Delai</div><div class="fw-semibold">${feedback.response_time_rating || '-'}/5</div></div>
+                                        <div class="col-md-3"><div class="muted-label">Communication</div><div class="fw-semibold">${feedback.communication_rating || '-'}/5</div></div>
+                                        <div class="col-md-3"><div class="muted-label">Qualite</div><div class="fw-semibold">${feedback.quality_rating || '-'}/5</div></div>
+                                        <div class="col-md-3"><div class="muted-label">Equite</div><div class="fw-semibold">${feedback.fairness_rating || '-'}/5</div></div>
+                                    </div>
+                                    <div class="muted-label">${feedback.comment || 'Aucun commentaire.'}</div>
+                                    <div class="small text-secondary mt-2">Envoye le ${formatDateTime(feedback.submitted_at)}</div>
                                 </div>
                             `).join('')}
                         </div>
@@ -4326,6 +4456,19 @@
                     return 'La declaration de dommage sera disponible apres ta confirmation de resolution.';
                 }
 
+                function canSubmitIncidentRex(report) {
+                    return ['resolved', 'closed'].includes(report.status) || report.resolution_confirmation?.status === 'confirmed';
+                }
+
+                function canSubmitDamageRex(report) {
+                    return !!report.damage_declaration?.declared_at
+                        && ['resolved', 'rejected', 'compensated', 'closed'].includes(report.damage_declaration?.resolution_status);
+                }
+
+                function canSubmitCaseRex(repairCase) {
+                    return ['approved', 'rejected', 'compensated', 'closed'].includes(repairCase.status);
+                }
+
                 function resetDamageAttachmentPreview() {
                     document.getElementById('damageAttachmentPreviewWrap').classList.add('d-none');
                     document.getElementById('damageAttachmentPreviewImage').classList.add('d-none');
@@ -4637,7 +4780,7 @@
 
                 async function refreshDashboard() {
                     await loadReferenceData();
-                    const [me, meters, household, reports, payments, subscription, subscriptionHistory, subscriptionPayments, invitations, reparationCases] = await Promise.all([
+                    const [me, meters, household, reports, payments, subscription, subscriptionHistory, subscriptionPayments, rexFeedbacks, invitations, reparationCases] = await Promise.all([
                         apiFetch('/me'),
                         apiFetch('/meters'),
                         apiFetch('/households/me'),
@@ -4646,6 +4789,7 @@
                         apiFetch('/subscription'),
                         apiFetch('/subscriptions'),
                         apiFetch('/subscription/payments'),
+                        apiFetch('/rex-feedbacks'),
                         apiFetch('/households/invitations/pending'),
                         apiFetch('/reparation-cases'),
                     ]);
@@ -4659,6 +4803,7 @@
                     renderReports(reports.data.reports);
                     renderDamages(reports.data.reports);
                     renderPayments(payments.data.payments);
+                    renderRexFeedbacks(rexFeedbacks.data.feedbacks || []);
                     renderIncomingHouseholdInvitations(invitations.data.invitations);
                     renderReparationCases(reparationCases.data.reparation_cases);
                     openSubscriptionPrompt();
@@ -4822,6 +4967,14 @@
 
                         renderReportDetails(report);
                         reportDetailModal?.show();
+                    },
+                    openRexForm(contextType, contextId, title) {
+                        const form = document.getElementById('rexFeedbackForm');
+                        form.reset();
+                        document.getElementById('rexContextType').value = contextType;
+                        document.getElementById('rexContextId').value = String(contextId);
+                        document.getElementById('rexFeedbackTitle').textContent = `REX · ${title || getRexContextLabel(contextType)}`;
+                        rexFeedbackModal?.show();
                     },
                 };
 
@@ -5027,6 +5180,37 @@
                     document.getElementById('damageDeclarationForm').reset();
                     document.getElementById('damageDeclarationReportId').value = '';
                     resetDamageAttachmentPreview();
+                });
+
+                document.getElementById('rexFeedbackForm').addEventListener('submit', async (event) => {
+                    event.preventDefault();
+                    const form = event.currentTarget;
+                    const payload = Object.fromEntries(new FormData(form).entries());
+                    ['rating', 'context_id', 'response_time_rating', 'communication_rating', 'quality_rating', 'fairness_rating'].forEach((key) => {
+                        if (payload[key] !== '' && payload[key] !== undefined) {
+                            payload[key] = Number(payload[key]);
+                        } else {
+                            delete payload[key];
+                        }
+                    });
+                    if (payload.is_resolved === '') {
+                        delete payload.is_resolved;
+                    } else if (payload.is_resolved !== undefined) {
+                        payload.is_resolved = payload.is_resolved === '1';
+                    }
+
+                    setLoading(form, true);
+                    try {
+                        const response = await apiFetch('/rex-feedbacks', { method: 'POST', body: JSON.stringify(payload) });
+                        rexFeedbackModal?.hide();
+                        showToast(response.message);
+                        const feedbacksResponse = await apiFetch('/rex-feedbacks');
+                        renderRexFeedbacks(feedbacksResponse.data.feedbacks || []);
+                    } catch (error) {
+                        showToast(error.message, true);
+                    } finally {
+                        setLoading(form, false);
+                    }
                 });
 
                 document.getElementById('profileForm').addEventListener('submit', async (event) => {

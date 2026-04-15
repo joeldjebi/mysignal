@@ -35,6 +35,8 @@ class SuperAdminPermissionSeeder extends Seeder
             ['code' => 'SA_ACTIVITY_LOGS_VIEW_INSTITUTION', 'name' => 'Voir activites AI', 'description' => 'Permet de consulter les activites des admins institutionnels et des collaborateurs institutionnels.'],
             ['code' => 'SA_ACTIVITY_LOGS_VIEW_PUBLIC', 'name' => 'Voir activites UP', 'description' => 'Permet de consulter les activites des usagers publics.'],
             ['code' => 'SA_ACTIVITY_LOGS_VIEW_INTERNAL', 'name' => 'Voir activites utilisateurs internes', 'description' => 'Permet de consulter les activites de certains utilisateurs internes autorises par le super admin.'],
+            ['code' => 'SA_REX_FEEDBACKS_VIEW', 'name' => 'Voir REX UP', 'description' => 'Permet de consulter les retours d experience des usagers publics.'],
+            ['code' => 'SA_REX_FEEDBACKS_MANAGE', 'name' => 'Parametrer REX UP', 'description' => 'Permet de parametrer le module de retours d experience.'],
             ['code' => 'SA_REPARATION_CASES_MANAGE', 'name' => 'Gerer dossiers contentieux', 'description' => 'Permet de gerer les dossiers contentieux et de reparation.'],
             ['code' => 'SA_ROLES_MANAGE', 'name' => 'Gerer roles SA', 'description' => 'Permet de gerer les roles.'],
             ['code' => 'SA_PERMISSIONS_MANAGE', 'name' => 'Gerer permissions SA', 'description' => 'Permet de gerer les permissions.'],

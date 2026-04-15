@@ -364,6 +364,12 @@
                         <span><span class="d-block fw-semibold">Journaux d activite</span><span class="small text-white-50">Historique des actions</span></span>
                     </a>
                 @endif
+                @if ($authUser?->hasPermissionCode('SA_REX_FEEDBACKS_VIEW'))
+                    <a href="{{ route('super-admin.rex-feedbacks.index') }}" class="nav-pill {{ request()->routeIs('super-admin.rex-feedbacks.*') ? 'active' : '' }}">
+                        <span class="nav-icon">RX</span>
+                        <span><span class="d-block fw-semibold">REX UP</span><span class="small text-white-50">Retours d experience</span></span>
+                    </a>
+                @endif
                 @if ($authUser?->hasPermissionCode('SA_REPARATION_CASES_MANAGE'))
                     <a href="{{ route('super-admin.reparation-cases.index') }}" class="nav-pill {{ request()->routeIs('super-admin.reparation-cases.*') ? 'active' : '' }}">
                         <span class="nav-icon">RP</span>

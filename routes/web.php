@@ -35,6 +35,7 @@ use App\Http\Controllers\Web\SuperAdmin\PublicIncidentReportController;
 use App\Http\Controllers\Web\SuperAdmin\PublicUserController;
 use App\Http\Controllers\Web\SuperAdmin\PublicUserTypeController;
 use App\Http\Controllers\Web\SuperAdmin\ReparationCaseController;
+use App\Http\Controllers\Web\SuperAdmin\RexFeedbackController;
 use App\Http\Controllers\Web\SuperAdmin\RoleController;
 use App\Http\Controllers\Web\SuperAdmin\SignalTypeController;
 use App\Http\Controllers\Web\SuperAdmin\SubscriptionPlanController;
@@ -199,6 +200,8 @@ Route::prefix('sa')->name('super-admin.')->group(function (): void {
         Route::get('public-reports', [PublicIncidentReportController::class, 'index'])->middleware('super_admin_permission:SA_PUBLIC_REPORTS_VIEW')->name('public-reports.index');
         Route::get('payments', [PaymentController::class, 'index'])->middleware('super_admin_permission:SA_PAYMENTS_VIEW')->name('payments.index');
         Route::get('activity-logs', [SuperAdminActivityLogController::class, 'index'])->name('activity-logs.index');
+        Route::get('rex-feedbacks', [RexFeedbackController::class, 'index'])->middleware('super_admin_permission:SA_REX_FEEDBACKS_VIEW')->name('rex-feedbacks.index');
+        Route::put('rex-feedbacks/settings', [RexFeedbackController::class, 'updateSettings'])->middleware('super_admin_permission:SA_REX_FEEDBACKS_MANAGE')->name('rex-feedbacks.settings');
         Route::get('reparation-cases', [ReparationCaseController::class, 'index'])->middleware('super_admin_permission:SA_REPARATION_CASES_MANAGE')->name('reparation-cases.index');
         Route::post('reparation-cases', [ReparationCaseController::class, 'store'])->middleware('super_admin_permission:SA_REPARATION_CASES_MANAGE')->name('reparation-cases.store');
         Route::get('reparation-cases/{reparationCase}', [ReparationCaseController::class, 'show'])->middleware('super_admin_permission:SA_REPARATION_CASES_MANAGE')->name('reparation-cases.show');

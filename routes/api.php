@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\V1\Public\Payments\PublicReportPaymentController;
 use App\Http\Controllers\Api\V1\Public\Profile\PublicProfileController;
 use App\Http\Controllers\Api\V1\Public\ReparationCases\PublicReparationCaseController;
 use App\Http\Controllers\Api\V1\Public\Reports\PublicIncidentReportController;
+use App\Http\Controllers\Api\V1\Public\Rex\PublicRexFeedbackController;
 use App\Http\Controllers\Api\V1\Public\Signals\PublicSignalTypeController;
 use App\Http\Controllers\Api\V1\Public\Subscriptions\PublicUpSubscriptionController;
 use App\Http\Controllers\Api\V1\Public\Subscriptions\PublicUpSubscriptionPaymentController;
@@ -55,6 +56,8 @@ Route::prefix('v1/public')->group(function (): void {
         Route::post('reports/{report}/confirm-resolution', [PublicIncidentReportController::class, 'confirmResolution']);
         Route::post('reports/{report}/damages', [PublicIncidentReportController::class, 'storeDamage']);
         Route::get('reparation-cases', [PublicReparationCaseController::class, 'index']);
+        Route::get('rex-feedbacks', [PublicRexFeedbackController::class, 'index']);
+        Route::post('rex-feedbacks', [PublicRexFeedbackController::class, 'store']);
         Route::get('payments', [PublicReportPaymentController::class, 'index']);
         Route::post('reports/{report}/payments', [PublicReportPaymentController::class, 'store']);
         Route::post('payments/{payment}/confirm', [PublicReportPaymentController::class, 'confirm']);

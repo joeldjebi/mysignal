@@ -118,6 +118,11 @@ class FeatureSeeder extends Seeder
                 'name' => 'Dashboard - Carte des signalements',
                 'description' => 'Affiche la carte des signalements geolocalises sur le dashboard institutionnel.',
             ],
+            [
+                'code' => 'REX_FEEDBACKS_VIEW',
+                'name' => 'Consultation des REX',
+                'description' => 'Permet aux utilisateurs autorises de consulter les retours d experience des usagers publics.',
+            ],
         ];
 
         foreach ($features as $feature) {
