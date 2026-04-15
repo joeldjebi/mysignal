@@ -336,12 +336,13 @@
             .member-wallet-card {
                 position: relative;
                 overflow: hidden;
-                border-radius: 24px;
-                padding: 1rem;
-                min-height: 240px;
+                border-radius: 18px;
+                padding: 1.05rem;
+                width: min(100%, 420px);
+                aspect-ratio: 1.586 / 1;
                 color: white;
                 background:
-                    linear-gradient(135deg, rgba(24, 52, 71, 0.98), rgba(255, 0, 104, 0.88) 54%, rgba(255, 161, 23, 0.92));
+                    linear-gradient(135deg, rgba(24, 52, 71, 0.98), rgba(255, 0, 104, 0.9) 56%, rgba(255, 161, 23, 0.94));
                 box-shadow: 0 26px 60px rgba(24, 52, 71, 0.24);
             }
             .member-wallet-card::before {
@@ -349,53 +350,80 @@
                 position: absolute;
                 inset: 0;
                 background:
-                    linear-gradient(90deg, transparent 0 45%, rgba(255, 255, 255, 0.13) 45% 46%, transparent 46%),
-                    linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent 42%);
+                    linear-gradient(110deg, transparent 0 48%, rgba(255, 255, 255, 0.13) 48% 49%, transparent 49%),
+                    linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent 40%);
                 pointer-events: none;
             }
             .member-wallet-content {
                 position: relative;
                 z-index: 1;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
             }
             .member-wallet-chip {
-                width: 46px;
-                height: 34px;
-                border-radius: 10px;
+                width: 42px;
+                height: 30px;
+                border-radius: 8px;
                 background: linear-gradient(135deg, #ffe1a3, #ffa117);
                 box-shadow: inset 0 0 0 1px rgba(24, 52, 71, 0.18);
             }
-            .member-wallet-number {
-                font-size: 1.05rem;
+            .member-wallet-brand {
+                font-size: 0.72rem;
                 font-weight: 800;
-                letter-spacing: 0.08em;
+                letter-spacing: 0.12em;
+                text-transform: uppercase;
+            }
+            .member-wallet-number {
+                font-size: 1.08rem;
+                font-weight: 800;
+                letter-spacing: 0.1em;
+                white-space: nowrap;
             }
             .member-wallet-meta {
                 color: rgba(255, 255, 255, 0.72);
-                font-size: 0.72rem;
+                font-size: 0.62rem;
                 text-transform: uppercase;
                 font-weight: 800;
             }
             .member-wallet-value {
                 font-weight: 800;
+                font-size: 0.82rem;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
             }
             .member-qr-box {
-                width: 112px;
-                min-width: 112px;
-                height: 112px;
-                border-radius: 18px;
+                width: 82px;
+                min-width: 82px;
+                height: 82px;
+                border-radius: 12px;
                 background: white;
                 display: grid;
                 place-items: center;
-                padding: 0.5rem;
+                padding: 0.35rem;
                 box-shadow: 0 16px 32px rgba(24, 52, 71, 0.18);
             }
             .member-qr-box img,
             .member-qr-box canvas {
-                width: 96px !important;
-                height: 96px !important;
+                width: 70px !important;
+                height: 70px !important;
+            }
+            .member-wallet-footer {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto auto;
+                gap: 0.75rem;
+                align-items: end;
+            }
+            .member-wallet-qr-caption {
+                color: rgba(255, 255, 255, 0.84);
+                font-size: 0.62rem;
+                font-weight: 800;
+                text-transform: uppercase;
             }
             .member-wallet-locked {
-                border-radius: 24px;
+                border-radius: 18px;
                 padding: 1rem;
                 background: linear-gradient(135deg, rgba(24, 52, 71, 0.08), rgba(255, 161, 23, 0.12));
                 border: 1px dashed rgba(24, 52, 71, 0.18);
@@ -3326,7 +3354,7 @@
                 }
 
                 function drawFallbackQr(container, payload) {
-                    const size = 96;
+                    const size = 70;
                     const cells = 21;
                     const cellSize = Math.floor(size / cells);
                     const canvas = document.createElement('canvas');
@@ -3383,8 +3411,8 @@
                     if (window.QRCode) {
                         new QRCode(container, {
                             text: payload,
-                            width: 96,
-                            height: 96,
+                            width: 70,
+                            height: 70,
                             colorDark: '#183447',
                             colorLight: '#ffffff',
                             correctLevel: QRCode.CorrectLevel.M,
@@ -3393,6 +3421,20 @@
                     }
 
                     drawFallbackQr(container, payload);
+                }
+
+                function formatMemberCardExpiry(value) {
+                    if (!value) {
+                        return 'Actif';
+                    }
+
+                    const date = new Date(value);
+
+                    if (Number.isNaN(date.getTime())) {
+                        return 'Actif';
+                    }
+
+                    return `${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getFullYear()).slice(-2)}`;
                 }
 
                 function renderMemberWalletCard() {
@@ -3420,42 +3462,33 @@
 
                     const cardNumber = buildMemberCardNumber(state.currentUser, subscription);
                     const fullName = `${state.currentUser.first_name || ''} ${state.currentUser.last_name || ''}`.trim() || 'Membre consommateur';
-                    const memberType = state.currentUser.public_user_type?.name || 'Usager public';
-                    const validUntil = subscription?.end_date ? formatDateTime(subscription.end_date) : 'Validite active';
+                    const validUntil = formatMemberCardExpiry(subscription?.end_date);
                     const qrContainerId = 'memberWalletQr';
                     const qrPayload = buildMemberQrPayload(state.currentUser, subscription);
 
                     wrap.innerHTML = `
                         <div class="member-wallet-card">
                             <div class="member-wallet-content">
-                                <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
-                                    <div>
-                                        <div class="member-wallet-meta">Carte membre consommateur</div>
-                                        <div class="fw-bold fs-5">MySignal Wallet</div>
-                                    </div>
-                                    <div class="member-wallet-chip"></div>
+                                <div class="d-flex justify-content-between align-items-start gap-3">
+                                    <div class="member-wallet-brand">MySignal Wallet</div>
+                                    <div class="member-wallet-brand">Reduction</div>
                                 </div>
-                                <div class="d-flex justify-content-between gap-3 align-items-end flex-wrap">
-                                    <div class="flex-grow-1">
-                                        <div class="member-wallet-number mb-4">${escapeHtml(cardNumber)}</div>
-                                        <div class="row g-3">
-                                            <div class="col-7">
-                                                <div class="member-wallet-meta">Titulaire</div>
-                                                <div class="member-wallet-value">${escapeHtml(fullName)}</div>
-                                            </div>
-                                            <div class="col-5">
-                                                <div class="member-wallet-meta">Expire le</div>
-                                                <div class="member-wallet-value">${escapeHtml(validUntil)}</div>
-                                            </div>
-                                            <div class="col-12">
-                                                <div class="member-wallet-meta">Profil</div>
-                                                <div class="member-wallet-value">${escapeHtml(memberType)}</div>
-                                            </div>
-                                        </div>
+                                <div class="d-flex justify-content-between align-items-center gap-3">
+                                    <div class="member-wallet-chip"></div>
+                                    <div class="member-wallet-number">${escapeHtml(cardNumber)}</div>
+                                </div>
+                                <div class="member-wallet-footer">
+                                    <div>
+                                        <div class="member-wallet-meta">Titulaire</div>
+                                        <div class="member-wallet-value">${escapeHtml(fullName)}</div>
+                                    </div>
+                                    <div>
+                                        <div class="member-wallet-meta">Expire</div>
+                                        <div class="member-wallet-value">${escapeHtml(validUntil)}</div>
                                     </div>
                                     <div>
                                         <div class="member-qr-box" id="${qrContainerId}"></div>
-                                        <div class="text-center mt-2 small fw-bold">Scan reduction</div>
+                                        <div class="member-wallet-qr-caption text-center mt-1">Scan</div>
                                     </div>
                                 </div>
                             </div>
