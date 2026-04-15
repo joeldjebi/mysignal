@@ -920,7 +920,9 @@
                             <div class="text-secondary">Un espace plus clair pour piloter votre profil, vos identifiants, votre Gbonhi et vos declarations.</div>
                         </div>
                         <div class="d-flex flex-wrap gap-2">
+                            <button class="btn btn-premium btn-sm px-3" id="openSubscriptionModalButton" type="button">Prendre un abonnement</button>
                             <span class="status-pill" id="userStatus">active</span>
+                            <span class="status-pill" id="topbarSubscriptionBadge">Abonnement non actif</span>
                             <span class="status-pill" id="topbarMetersBadge">0 identifiant</span>
                             <span class="status-pill" id="topbarReportsBadge">0 signalement</span>
                             <span class="status-pill" id="topbarPaymentsBadge">0 paiement</span>
@@ -938,6 +940,16 @@
 
                     <section class="public-panel active" data-panel="overview">
                         <div class="panel-grid">
+                            <section class="dashboard-card" id="subscriptionOverviewCard">
+                                <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+                                    <div>
+                                        <div class="section-title">Abonnement annuel UP</div>
+                                        <div class="muted-label" id="subscriptionOverviewText">Active ton abonnement pour effectuer des signalements.</div>
+                                    </div>
+                                    <button class="btn btn-premium px-4" id="subscriptionOverviewButton" type="button">Prendre un abonnement</button>
+                                </div>
+                            </section>
+
                             <section class="hero-card">
                                 <div class="row g-4 align-items-end position-relative" style="z-index:1;">
                                     <div class="col-lg-7">
@@ -1650,6 +1662,46 @@
             </div>
         </div>
 
+        <div class="modal fade" id="subscriptionPromptModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content border-0" style="border-radius: 28px; overflow: hidden;">
+                    <div class="modal-header px-4 py-3 border-0" style="background: var(--acepen-navy); color: white;">
+                        <div>
+                            <div class="small text-white-50 fw-semibold mb-1">Abonnement annuel UP</div>
+                            <div class="h5 fw-bold mb-0">Active ton accès aux signalements</div>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <div class="mini-card mb-3">
+                            <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                                <div>
+                                    <div class="small text-secondary fw-semibold mb-1">Statut actuel</div>
+                                    <div class="fw-bold fs-5" id="subscriptionPromptStatus">Abonnement non actif</div>
+                                    <div class="muted-label" id="subscriptionPromptDetails">Souscris maintenant pour effectuer tes signalements.</div>
+                                </div>
+                                <span class="status-pill" id="subscriptionPromptBadge">non actif</span>
+                            </div>
+                        </div>
+                        <div class="soft-panel mb-3">
+                            <div class="fw-bold mb-1">Ce que l abonnement débloque</div>
+                            <div class="muted-label">La creation de signalements est reservee aux UP avec un abonnement annuel actif ou en periode de grace.</div>
+                        </div>
+                        <div class="soft-panel d-none" id="subscriptionPaymentPanel">
+                            <div class="small text-secondary fw-semibold mb-1">Paiement en attente</div>
+                            <div class="fw-bold" id="subscriptionPaymentReference">-</div>
+                            <div class="muted-label" id="subscriptionPaymentAmount">-</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 px-4 pb-4 pt-0">
+                        <button class="btn btn-ghost-premium px-4" type="button" data-bs-dismiss="modal">Plus tard</button>
+                        <button class="btn btn-premium px-4" type="button" id="startSubscriptionPaymentButton">Prendre un abonnement</button>
+                        <button class="btn btn-premium px-4 d-none" type="button" id="confirmSubscriptionPaymentButton">Confirmer le paiement</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="toast-container position-fixed top-0 end-0 p-3">
             <div id="appToast" class="toast align-items-center text-bg-dark border-0" role="alert" aria-live="assertive" aria-atomic="true">
                 <div class="d-flex">
@@ -1691,6 +1743,8 @@
                     pendingHouseholdInvitations: [],
                     meters: [],
                     payments: [],
+                    subscription: null,
+                    subscriptionPayments: [],
                     reparationCases: [],
                     countries: [],
                     communes: [],
@@ -1739,6 +1793,8 @@
                 const damageDeclarationModal = damageDeclarationModalElement ? bootstrap.Modal.getOrCreateInstance(damageDeclarationModalElement) : null;
                 const paymentReceiptPreviewModalElement = document.getElementById('paymentReceiptPreviewModal');
                 const paymentReceiptPreviewModal = paymentReceiptPreviewModalElement ? bootstrap.Modal.getOrCreateInstance(paymentReceiptPreviewModalElement) : null;
+                const subscriptionPromptModalElement = document.getElementById('subscriptionPromptModal');
+                const subscriptionPromptModal = subscriptionPromptModalElement ? bootstrap.Modal.getOrCreateInstance(subscriptionPromptModalElement) : null;
 
                 if (!state.token) {
                     window.location.href = landingUrl;
@@ -3829,6 +3885,149 @@
                     return `${Number(value).toLocaleString()} ${currency}`;
                 }
 
+                function getSubscriptionStatusLabel(status) {
+                    const labels = {
+                        pending: 'Paiement en attente',
+                        active: 'Actif',
+                        expired: 'Expire',
+                        cancelled: 'Annule',
+                        suspended: 'Suspendu',
+                        payment_failed: 'Paiement echoue',
+                    };
+
+                    return labels[status] || 'Non actif';
+                }
+
+                function isSubscriptionUsable(subscription = state.subscription) {
+                    if (!subscription || subscription.status !== 'active') {
+                        return false;
+                    }
+
+                    if (!subscription.end_date) {
+                        return true;
+                    }
+
+                    const endDate = new Date(subscription.end_date);
+                    endDate.setDate(endDate.getDate() + Number(subscription.grace_period_days || 0));
+
+                    return endDate >= new Date();
+                }
+
+                function getPendingSubscriptionPayment() {
+                    return state.subscriptionPayments.find((payment) => payment.status === 'pending') || null;
+                }
+
+                function renderSubscriptionStatus() {
+                    const subscription = state.subscription;
+                    const active = isSubscriptionUsable(subscription);
+                    const pendingPayment = getPendingSubscriptionPayment();
+                    const statusLabel = active
+                        ? 'Abonnement actif'
+                        : getSubscriptionStatusLabel(subscription?.status || (pendingPayment ? 'pending' : null));
+                    const details = active
+                        ? `Valable jusqu au ${formatDateTime(subscription.end_date)}`
+                        : pendingPayment
+                            ? `Paiement ${pendingPayment.reference} en attente de confirmation.`
+                            : 'Active ton abonnement annuel pour effectuer des signalements.';
+
+                    document.getElementById('topbarSubscriptionBadge').textContent = statusLabel;
+                    document.getElementById('subscriptionOverviewText').textContent = details;
+                    document.getElementById('subscriptionOverviewButton').textContent = pendingPayment ? 'Finaliser le paiement' : (active ? 'Voir abonnement' : 'Prendre un abonnement');
+                    document.getElementById('openSubscriptionModalButton').textContent = pendingPayment ? 'Finaliser abonnement' : (active ? 'Abonnement actif' : 'Prendre un abonnement');
+                    document.getElementById('openSubscriptionModalButton').classList.toggle('btn-ghost-premium', active);
+                    document.getElementById('openSubscriptionModalButton').classList.toggle('btn-premium', !active);
+
+                    document.getElementById('subscriptionPromptStatus').textContent = statusLabel;
+                    document.getElementById('subscriptionPromptDetails').textContent = details;
+                    document.getElementById('subscriptionPromptBadge').textContent = subscription?.status || (pendingPayment ? 'pending' : 'non actif');
+
+                    const paymentPanel = document.getElementById('subscriptionPaymentPanel');
+                    paymentPanel.classList.toggle('d-none', !pendingPayment);
+                    if (pendingPayment) {
+                        document.getElementById('subscriptionPaymentReference').textContent = pendingPayment.reference;
+                        document.getElementById('subscriptionPaymentAmount').textContent = formatAmount(pendingPayment.amount, pendingPayment.currency);
+                    }
+
+                    document.getElementById('startSubscriptionPaymentButton').classList.toggle('d-none', active || !!pendingPayment);
+                    document.getElementById('confirmSubscriptionPaymentButton').classList.toggle('d-none', active || !pendingPayment);
+                }
+
+                async function refreshSubscriptionData() {
+                    const [subscriptionResponse, paymentsResponse] = await Promise.all([
+                        apiFetch('/subscription'),
+                        apiFetch('/subscription/payments'),
+                    ]);
+
+                    state.subscription = subscriptionResponse.data.subscription;
+                    state.subscriptionPayments = paymentsResponse.data.payments || [];
+                    renderSubscriptionStatus();
+                }
+
+                function shouldPromptSubscription() {
+                    if (isSubscriptionUsable()) {
+                        return false;
+                    }
+
+                    const userId = state.currentUser?.id || 'guest';
+                    return sessionStorage.getItem(`acepen_subscription_prompt_dismissed_${userId}`) !== '1';
+                }
+
+                function openSubscriptionPrompt(force = false) {
+                    renderSubscriptionStatus();
+
+                    if (!force && !shouldPromptSubscription()) {
+                        return;
+                    }
+
+                    subscriptionPromptModal?.show();
+                }
+
+                async function startSubscriptionPayment() {
+                    const button = document.getElementById('startSubscriptionPaymentButton');
+                    button.disabled = true;
+                    button.dataset.originalText = button.dataset.originalText || button.textContent;
+                    button.textContent = 'Initialisation...';
+
+                    try {
+                        const response = await apiFetch('/subscription/payments', { method: 'POST' });
+                        state.subscription = response.data.payment.subscription || state.subscription;
+                        await refreshSubscriptionData();
+                        showToast(response.message || 'Paiement d abonnement initialise.');
+                    } catch (error) {
+                        showToast(error.message, true);
+                    } finally {
+                        button.disabled = false;
+                        button.textContent = button.dataset.originalText || 'Prendre un abonnement';
+                    }
+                }
+
+                async function confirmSubscriptionPayment() {
+                    const payment = getPendingSubscriptionPayment();
+
+                    if (!payment) {
+                        showToast('Aucun paiement d abonnement en attente.', true);
+                        return;
+                    }
+
+                    const button = document.getElementById('confirmSubscriptionPaymentButton');
+                    button.disabled = true;
+                    button.dataset.originalText = button.dataset.originalText || button.textContent;
+                    button.textContent = 'Confirmation...';
+
+                    try {
+                        const response = await apiFetch(`/subscription/payments/${payment.id}/confirm`, { method: 'POST' });
+                        state.subscription = response.data.subscription;
+                        await refreshSubscriptionData();
+                        subscriptionPromptModal?.hide();
+                        showToast(response.message || 'Abonnement active avec succes.');
+                    } catch (error) {
+                        showToast(error.message, true);
+                    } finally {
+                        button.disabled = false;
+                        button.textContent = button.dataset.originalText || 'Confirmer le paiement';
+                    }
+                }
+
                 function getResolutionDurationText(report) {
                     if (!report.resolved_at || !report.created_at) {
                         return 'En attente de resolution';
@@ -4216,16 +4415,21 @@
 
                 async function refreshDashboard() {
                     await loadReferenceData();
-                    const [me, meters, household, reports, payments, invitations, reparationCases] = await Promise.all([
+                    const [me, meters, household, reports, payments, subscription, subscriptionPayments, invitations, reparationCases] = await Promise.all([
                         apiFetch('/me'),
                         apiFetch('/meters'),
                         apiFetch('/households/me'),
                         apiFetch('/reports'),
                         apiFetch('/payments'),
+                        apiFetch('/subscription'),
+                        apiFetch('/subscription/payments'),
                         apiFetch('/households/invitations/pending'),
                         apiFetch('/reparation-cases'),
                     ]);
                     renderUser(me.data.user);
+                    state.subscription = subscription.data.subscription;
+                    state.subscriptionPayments = subscriptionPayments.data.payments || [];
+                    renderSubscriptionStatus();
                     renderMeters(meters.data.meters);
                     renderHousehold(household.data.household);
                     renderReports(reports.data.reports);
@@ -4233,6 +4437,7 @@
                     renderPayments(payments.data.payments);
                     renderIncomingHouseholdInvitations(invitations.data.invitations);
                     renderReparationCases(reparationCases.data.reparation_cases);
+                    openSubscriptionPrompt();
                 }
 
                 window.AcepenPortal = {
@@ -4503,6 +4708,15 @@
                     window.AcepenPortal.openDamageForm(reportId);
                 });
                 document.getElementById('openPublicSidebarButton').addEventListener('click', openSidebar);
+                document.getElementById('openSubscriptionModalButton').addEventListener('click', () => openSubscriptionPrompt(true));
+                document.getElementById('subscriptionOverviewButton').addEventListener('click', () => openSubscriptionPrompt(true));
+                document.getElementById('startSubscriptionPaymentButton').addEventListener('click', startSubscriptionPayment);
+                document.getElementById('confirmSubscriptionPaymentButton').addEventListener('click', confirmSubscriptionPayment);
+                subscriptionPromptModalElement?.addEventListener('hidden.bs.modal', () => {
+                    if (!isSubscriptionUsable() && state.currentUser?.id) {
+                        sessionStorage.setItem(`acepen_subscription_prompt_dismissed_${state.currentUser.id}`, '1');
+                    }
+                });
                 document.getElementById('publicSidebarBackdrop').addEventListener('click', closeSidebar);
 
                 document.getElementById('meterCommuneSelect').addEventListener('change', () => populateMeterNeighborhoodOptions());
