@@ -893,6 +893,13 @@
                                 <span class="small text-white-50">Historique et recus</span>
                             </span>
                         </button>
+                        <button class="nav-pill" type="button" data-panel-target="subscriptions">
+                            <span class="nav-icon">AB</span>
+                            <span>
+                                <span class="d-block fw-semibold">Mes abonnements</span>
+                                <span class="small text-white-50">Plans, statuts et paiements</span>
+                            </span>
+                        </button>
                         <button class="nav-pill" type="button" data-panel-target="damages">
                             <span class="nav-icon">DG</span>
                             <span>
@@ -1382,6 +1389,51 @@
                         </div>
                     </section>
 
+                    <section class="public-panel" data-panel="subscriptions">
+                        <div class="dashboard-card">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+                                <div>
+                                    <div class="section-title">Historique des abonnements</div>
+                                    <div class="muted-label">Retrouve tes souscriptions annuelles, leurs statuts, leurs periodes et les paiements associes.</div>
+                                </div>
+                                <button class="btn btn-premium px-4" type="button" id="openSubscriptionFromHistoryButton">Prendre un abonnement</button>
+                            </div>
+                            <div class="mini-card mb-4">
+                                <div class="row g-3">
+                                    <div class="col-lg-5">
+                                        <label class="form-label fw-semibold">Recherche</label>
+                                        <input class="form-control" id="subscriptionSearchFilter" placeholder="Plan, reference paiement, montant...">
+                                    </div>
+                                    <div class="col-md-4 col-lg-3">
+                                        <label class="form-label fw-semibold">Statut</label>
+                                        <select class="form-select" id="subscriptionStatusFilter">
+                                            <option value="">Tous</option>
+                                            <option value="active">Actifs</option>
+                                            <option value="pending">En attente</option>
+                                            <option value="expired">Expires</option>
+                                            <option value="cancelled">Annules</option>
+                                            <option value="suspended">Suspendus</option>
+                                            <option value="payment_failed">Paiement echoue</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4 col-lg-3">
+                                        <label class="form-label fw-semibold">Paiement</label>
+                                        <select class="form-select" id="subscriptionPaymentStatusFilter">
+                                            <option value="">Tous</option>
+                                            <option value="paid">Confirmes</option>
+                                            <option value="pending">En attente</option>
+                                            <option value="failed">Echoues</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4 col-lg-1 d-flex align-items-end">
+                                        <button class="btn btn-ghost-premium w-100" type="button" id="resetSubscriptionFiltersButton">Reset</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="subscriptionsList"></div>
+                        </div>
+                    </section>
+
                     <section class="public-panel" data-panel="damages">
                         <div class="dashboard-card">
                             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
@@ -1752,6 +1804,8 @@
                     subscription: null,
                     subscriptionHistory: [],
                     subscriptionPayments: [],
+                    subscriptionHistoryPage: 1,
+                    subscriptionHistoryPageSize: 5,
                     reparationCases: [],
                     countries: [],
                     communes: [],
@@ -1778,6 +1832,11 @@
                         search: '',
                         status: '',
                         receipt: '',
+                    },
+                    subscriptionFilters: {
+                        search: '',
+                        status: '',
+                        payment: '',
                     },
                     damageFilters: {
                         search: '',
@@ -3996,6 +4055,121 @@
                             </div>
                         `;
                     }).join('');
+                    renderSubscriptionHistoryPanel();
+                }
+
+                function getFilteredSubscriptionHistory() {
+                    const search = state.subscriptionFilters.search.trim().toLowerCase();
+
+                    return state.subscriptionHistory.filter((subscription) => {
+                        const payments = subscription.payments || [];
+                        const paymentText = payments.map((payment) => [
+                            payment.reference,
+                            payment.status,
+                            payment.amount,
+                            payment.currency,
+                            payment.provider,
+                            payment.provider_reference,
+                        ].filter(Boolean).join(' ')).join(' ');
+
+                        const searchableText = [
+                            subscription.plan?.name,
+                            subscription.plan?.code,
+                            subscription.status,
+                            subscription.amount,
+                            subscription.currency,
+                            paymentText,
+                        ].filter(Boolean).join(' ').toLowerCase();
+
+                        const matchesSearch = !search || searchableText.includes(search);
+                        const matchesStatus = !state.subscriptionFilters.status || subscription.status === state.subscriptionFilters.status;
+                        const matchesPayment = !state.subscriptionFilters.payment || payments.some((payment) => payment.status === state.subscriptionFilters.payment);
+
+                        return matchesSearch && matchesStatus && matchesPayment;
+                    });
+                }
+
+                function renderSubscriptionHistoryPanel() {
+                    const list = document.getElementById('subscriptionsList');
+
+                    if (!list) {
+                        return;
+                    }
+
+                    if (!state.subscriptionHistory.length) {
+                        list.innerHTML = '<div class="mini-card"><div class="fw-bold mb-1">Aucun abonnement</div><div class="muted-label">Tes souscriptions annuelles apparaitront ici avec leur statut et leur paiement.</div></div>';
+                        return;
+                    }
+
+                    const filteredSubscriptions = getFilteredSubscriptionHistory();
+                    const totalPages = Math.max(1, Math.ceil(filteredSubscriptions.length / state.subscriptionHistoryPageSize));
+                    state.subscriptionHistoryPage = Math.min(state.subscriptionHistoryPage, totalPages);
+
+                    if (!filteredSubscriptions.length) {
+                        list.innerHTML = '<div class="mini-card"><div class="fw-bold mb-1">Aucun abonnement ne correspond aux filtres</div><div class="muted-label">Modifie la recherche, le statut ou le paiement pour retrouver une souscription.</div></div>';
+                        return;
+                    }
+
+                    const start = (state.subscriptionHistoryPage - 1) * state.subscriptionHistoryPageSize;
+                    const currentSubscriptions = filteredSubscriptions.slice(start, start + state.subscriptionHistoryPageSize);
+                    const end = start + currentSubscriptions.length;
+
+                    list.innerHTML = `
+                        <div class="report-table-shell">
+                            <div class="report-table-wrap">
+                                <table class="payment-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Plan</th>
+                                            <th>Periode</th>
+                                            <th>Montant</th>
+                                            <th>Statut</th>
+                                            <th>Paiement</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${currentSubscriptions.map((subscription) => {
+                                            const latestPayment = (subscription.payments || [])[0] || null;
+
+                                            return `
+                                                <tr>
+                                                    <td>
+                                                        <div class="payment-ref">${subscription.plan?.name || 'Abonnement annuel UP'}</div>
+                                                        <div class="payment-sub">${subscription.plan?.code || '-'} · ${subscription.plan?.duration_months || 12} mois</div>
+                                                        <div class="payment-sub">Cree le ${formatDateTime(subscription.created_at)}</div>
+                                                    </td>
+                                                    <td>
+                                                        <div class="payment-sub">Debut: ${formatDateTime(subscription.start_date)}</div>
+                                                        <div class="payment-sub">Fin: ${formatDateTime(subscription.end_date)}</div>
+                                                        <div class="payment-sub">${subscription.grace_period_days || 0} jour(s) de grace</div>
+                                                    </td>
+                                                    <td><div class="payment-amount">${formatAmount(subscription.amount, subscription.currency)}</div></td>
+                                                    <td><span class="status-pill">${getSubscriptionStatusLabel(subscription.status)}</span></td>
+                                                    <td>
+                                                        ${latestPayment
+                                                            ? `
+                                                                <div class="payment-ref">${latestPayment.reference}</div>
+                                                                <div class="payment-sub">${getPaymentStatusLabel(latestPayment.status)} · ${formatAmount(latestPayment.amount, latestPayment.currency)}</div>
+                                                                <div class="payment-sub">${latestPayment.paid_at ? `Confirme le ${formatDateTime(latestPayment.paid_at)}` : 'Paiement non confirme'}</div>
+                                                            `
+                                                            : '<div class="payment-sub">Aucun paiement associe</div>'}
+                                                    </td>
+                                                </tr>
+                                            `;
+                                        }).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="pagination-shell">
+                                <div class="pagination-info">Affichage ${start + 1} à ${end} sur ${filteredSubscriptions.length} abonnement${filteredSubscriptions.length > 1 ? 's' : ''}</div>
+                                <div class="pagination-actions">
+                                    <button class="pagination-chip" type="button" ${state.subscriptionHistoryPage === 1 ? 'disabled' : ''} onclick="window.AcepenPortal.changeSubscriptionsPage(${state.subscriptionHistoryPage - 1})">‹</button>
+                                    <div class="small fw-semibold text-secondary">Page ${state.subscriptionHistoryPage} / ${totalPages}</div>
+                                    <button class="pagination-chip" type="button" ${state.subscriptionHistoryPage === totalPages ? 'disabled' : ''} onclick="window.AcepenPortal.changeSubscriptionsPage(${state.subscriptionHistoryPage + 1})">›</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
                 }
 
                 async function refreshSubscriptionData() {
@@ -4635,6 +4809,11 @@
                         state.damagesPage = Math.min(Math.max(1, page), totalPages);
                         renderDamages(state.reports);
                     },
+                    changeSubscriptionsPage(page) {
+                        const totalPages = Math.max(1, Math.ceil(getFilteredSubscriptionHistory().length / state.subscriptionHistoryPageSize));
+                        state.subscriptionHistoryPage = Math.min(Math.max(1, page), totalPages);
+                        renderSubscriptionHistoryPanel();
+                    },
                     showReportDetails(reportId) {
                         const report = state.reports.find((item) => item.id === reportId);
                         if (!report) {
@@ -4749,6 +4928,29 @@
                     document.getElementById('paymentReceiptFilter').value = '';
                     renderPayments(state.payments);
                 });
+                document.getElementById('subscriptionSearchFilter').addEventListener('input', (event) => {
+                    state.subscriptionFilters.search = event.currentTarget.value || '';
+                    state.subscriptionHistoryPage = 1;
+                    renderSubscriptionHistoryPanel();
+                });
+                document.getElementById('subscriptionStatusFilter').addEventListener('change', (event) => {
+                    state.subscriptionFilters.status = event.currentTarget.value || '';
+                    state.subscriptionHistoryPage = 1;
+                    renderSubscriptionHistoryPanel();
+                });
+                document.getElementById('subscriptionPaymentStatusFilter').addEventListener('change', (event) => {
+                    state.subscriptionFilters.payment = event.currentTarget.value || '';
+                    state.subscriptionHistoryPage = 1;
+                    renderSubscriptionHistoryPanel();
+                });
+                document.getElementById('resetSubscriptionFiltersButton').addEventListener('click', () => {
+                    state.subscriptionFilters = { search: '', status: '', payment: '' };
+                    state.subscriptionHistoryPage = 1;
+                    document.getElementById('subscriptionSearchFilter').value = '';
+                    document.getElementById('subscriptionStatusFilter').value = '';
+                    document.getElementById('subscriptionPaymentStatusFilter').value = '';
+                    renderSubscriptionHistoryPanel();
+                });
                 document.getElementById('openDamageDeclarationButton').addEventListener('click', () => {
                     const reportId = Number(document.getElementById('openDamageDeclarationButton').dataset.reportId || 0);
                     if (!reportId) {
@@ -4760,6 +4962,7 @@
                 document.getElementById('openPublicSidebarButton').addEventListener('click', openSidebar);
                 document.getElementById('openSubscriptionModalButton').addEventListener('click', () => openSubscriptionPrompt(true));
                 document.getElementById('subscriptionOverviewButton').addEventListener('click', () => openSubscriptionPrompt(true));
+                document.getElementById('openSubscriptionFromHistoryButton').addEventListener('click', () => openSubscriptionPrompt(true));
                 document.getElementById('startSubscriptionPaymentButton').addEventListener('click', startSubscriptionPayment);
                 document.getElementById('confirmSubscriptionPaymentButton').addEventListener('click', confirmSubscriptionPayment);
                 subscriptionPromptModalElement?.addEventListener('hidden.bs.modal', () => {
