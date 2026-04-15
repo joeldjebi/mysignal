@@ -333,6 +333,73 @@
                 border-radius: 20px;
                 padding: 0.85rem;
             }
+            .member-wallet-card {
+                position: relative;
+                overflow: hidden;
+                border-radius: 24px;
+                padding: 1rem;
+                min-height: 240px;
+                color: white;
+                background:
+                    linear-gradient(135deg, rgba(24, 52, 71, 0.98), rgba(255, 0, 104, 0.88) 54%, rgba(255, 161, 23, 0.92));
+                box-shadow: 0 26px 60px rgba(24, 52, 71, 0.24);
+            }
+            .member-wallet-card::before {
+                content: "";
+                position: absolute;
+                inset: 0;
+                background:
+                    linear-gradient(90deg, transparent 0 45%, rgba(255, 255, 255, 0.13) 45% 46%, transparent 46%),
+                    linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent 42%);
+                pointer-events: none;
+            }
+            .member-wallet-content {
+                position: relative;
+                z-index: 1;
+            }
+            .member-wallet-chip {
+                width: 46px;
+                height: 34px;
+                border-radius: 10px;
+                background: linear-gradient(135deg, #ffe1a3, #ffa117);
+                box-shadow: inset 0 0 0 1px rgba(24, 52, 71, 0.18);
+            }
+            .member-wallet-number {
+                font-size: 1.05rem;
+                font-weight: 800;
+                letter-spacing: 0.08em;
+            }
+            .member-wallet-meta {
+                color: rgba(255, 255, 255, 0.72);
+                font-size: 0.72rem;
+                text-transform: uppercase;
+                font-weight: 800;
+            }
+            .member-wallet-value {
+                font-weight: 800;
+            }
+            .member-qr-box {
+                width: 112px;
+                min-width: 112px;
+                height: 112px;
+                border-radius: 18px;
+                background: white;
+                display: grid;
+                place-items: center;
+                padding: 0.5rem;
+                box-shadow: 0 16px 32px rgba(24, 52, 71, 0.18);
+            }
+            .member-qr-box img,
+            .member-qr-box canvas {
+                width: 96px !important;
+                height: 96px !important;
+            }
+            .member-wallet-locked {
+                border-radius: 24px;
+                padding: 1rem;
+                background: linear-gradient(135deg, rgba(24, 52, 71, 0.08), rgba(255, 161, 23, 0.12));
+                border: 1px dashed rgba(24, 52, 71, 0.18);
+            }
             .signal-field-card {
                 background: #f8fbfd;
                 border: 1px dashed rgba(24, 52, 71, 0.14);
@@ -1180,6 +1247,7 @@
                                             <div class="small text-secondary fw-semibold mb-1">Statut du compte</div>
                                             <div class="fw-semibold" id="profileStatusCard">-</div>
                                         </div>
+                                        <div class="mt-3" id="memberWalletCardWrap"></div>
                                     </div>
                                 </div>
                             </div>
@@ -1911,6 +1979,7 @@
         </div>
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" referrerpolicy="no-referrer"></script>
         @php
             $publicUserTypesPayload = $publicUserTypes->map(fn ($type) => [
                 'id' => $type->id,
@@ -3226,6 +3295,7 @@
                     document.getElementById('profileAccuracy').value = user.location_accuracy || '';
                     document.getElementById('profileLocationSource').value = user.location_source || '';
                     syncPublicUserTypeFields('profilePublicUserTypeSelect', 'profileBusinessFields', 'profileSectorFields');
+                    renderMemberWalletCard();
                 }
 
                 function escapeHtml(value) {
@@ -3235,6 +3305,163 @@
                         .replace(/>/g, '&gt;')
                         .replace(/"/g, '&quot;')
                         .replace(/'/g, '&#39;');
+                }
+
+                function buildMemberCardNumber(user, subscription) {
+                    const userPart = String(user?.id || 0).padStart(6, '0');
+                    const subscriptionPart = String(subscription?.id || 0).padStart(5, '0');
+
+                    return `MS ${userPart.slice(0, 3)} ${userPart.slice(3)} ${subscriptionPart}`;
+                }
+
+                function buildMemberQrPayload(user, subscription) {
+                    return JSON.stringify({
+                        type: 'MYSIGNAL_CONSUMER_MEMBER_CARD',
+                        member_id: user?.id || null,
+                        card_number: buildMemberCardNumber(user, subscription),
+                        subscription_id: subscription?.id || null,
+                        status: subscription?.status || null,
+                        valid_until: subscription?.end_date || null,
+                    });
+                }
+
+                function drawFallbackQr(container, payload) {
+                    const size = 96;
+                    const cells = 21;
+                    const cellSize = Math.floor(size / cells);
+                    const canvas = document.createElement('canvas');
+                    canvas.width = size;
+                    canvas.height = size;
+                    const context = canvas.getContext('2d');
+                    context.fillStyle = '#ffffff';
+                    context.fillRect(0, 0, size, size);
+                    context.fillStyle = '#183447';
+
+                    const drawFinder = (x, y) => {
+                        context.fillRect(x, y, cellSize * 7, cellSize * 7);
+                        context.fillStyle = '#ffffff';
+                        context.fillRect(x + cellSize, y + cellSize, cellSize * 5, cellSize * 5);
+                        context.fillStyle = '#183447';
+                        context.fillRect(x + cellSize * 2, y + cellSize * 2, cellSize * 3, cellSize * 3);
+                    };
+
+                    drawFinder(0, 0);
+                    drawFinder((cells - 7) * cellSize, 0);
+                    drawFinder(0, (cells - 7) * cellSize);
+
+                    let hash = 0;
+                    for (let index = 0; index < payload.length; index += 1) {
+                        hash = ((hash << 5) - hash + payload.charCodeAt(index)) | 0;
+                    }
+
+                    for (let y = 0; y < cells; y += 1) {
+                        for (let x = 0; x < cells; x += 1) {
+                            const inFinder = (x < 8 && y < 8) || (x > 12 && y < 8) || (x < 8 && y > 12);
+                            if (inFinder) {
+                                continue;
+                            }
+
+                            const value = Math.abs(hash + (x * 31) + (y * 17) + (x * y * 7));
+                            if (value % 5 < 2) {
+                                context.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+                            }
+                        }
+                    }
+
+                    container.appendChild(canvas);
+                }
+
+                function renderMemberQr(containerId, payload) {
+                    const container = document.getElementById(containerId);
+
+                    if (!container) {
+                        return;
+                    }
+
+                    container.innerHTML = '';
+
+                    if (window.QRCode) {
+                        new QRCode(container, {
+                            text: payload,
+                            width: 96,
+                            height: 96,
+                            colorDark: '#183447',
+                            colorLight: '#ffffff',
+                            correctLevel: QRCode.CorrectLevel.M,
+                        });
+                        return;
+                    }
+
+                    drawFallbackQr(container, payload);
+                }
+
+                function renderMemberWalletCard() {
+                    const wrap = document.getElementById('memberWalletCardWrap');
+
+                    if (!wrap || !state.currentUser) {
+                        return;
+                    }
+
+                    const subscription = state.subscription;
+                    const active = isSubscriptionUsable(subscription);
+
+                    if (!active) {
+                        wrap.innerHTML = `
+                            <div class="member-wallet-locked">
+                                <div class="small text-secondary fw-semibold mb-2">Carte membre consommateur</div>
+                                <div class="fw-bold mb-1">Disponible avec un abonnement actif</div>
+                                <div class="muted-label mb-3">Active ton abonnement annuel pour obtenir ta carte virtuelle et acceder aux reductions partenaires.</div>
+                                <button class="btn btn-premium w-100" type="button" id="memberWalletSubscribeButton">Prendre un abonnement</button>
+                            </div>
+                        `;
+                        document.getElementById('memberWalletSubscribeButton')?.addEventListener('click', () => openSubscriptionPrompt(true));
+                        return;
+                    }
+
+                    const cardNumber = buildMemberCardNumber(state.currentUser, subscription);
+                    const fullName = `${state.currentUser.first_name || ''} ${state.currentUser.last_name || ''}`.trim() || 'Membre consommateur';
+                    const memberType = state.currentUser.public_user_type?.name || 'Usager public';
+                    const validUntil = subscription?.end_date ? formatDateTime(subscription.end_date) : 'Validite active';
+                    const qrContainerId = 'memberWalletQr';
+                    const qrPayload = buildMemberQrPayload(state.currentUser, subscription);
+
+                    wrap.innerHTML = `
+                        <div class="member-wallet-card">
+                            <div class="member-wallet-content">
+                                <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
+                                    <div>
+                                        <div class="member-wallet-meta">Carte membre consommateur</div>
+                                        <div class="fw-bold fs-5">MySignal Wallet</div>
+                                    </div>
+                                    <div class="member-wallet-chip"></div>
+                                </div>
+                                <div class="d-flex justify-content-between gap-3 align-items-end flex-wrap">
+                                    <div class="flex-grow-1">
+                                        <div class="member-wallet-number mb-4">${escapeHtml(cardNumber)}</div>
+                                        <div class="row g-3">
+                                            <div class="col-7">
+                                                <div class="member-wallet-meta">Titulaire</div>
+                                                <div class="member-wallet-value">${escapeHtml(fullName)}</div>
+                                            </div>
+                                            <div class="col-5">
+                                                <div class="member-wallet-meta">Expire le</div>
+                                                <div class="member-wallet-value">${escapeHtml(validUntil)}</div>
+                                            </div>
+                                            <div class="col-12">
+                                                <div class="member-wallet-meta">Profil</div>
+                                                <div class="member-wallet-value">${escapeHtml(memberType)}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="member-qr-box" id="${qrContainerId}"></div>
+                                        <div class="text-center mt-2 small fw-bold">Scan reduction</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    renderMemberQr(qrContainerId, qrPayload);
                 }
 
                 function renderMeters(meters) {
@@ -4282,6 +4509,7 @@
                     document.getElementById('openSubscriptionModalButton').textContent = pendingPayment ? 'Finaliser abonnement' : (active ? 'Abonnement actif' : 'Prendre un abonnement');
                     document.getElementById('openSubscriptionModalButton').classList.toggle('btn-ghost-premium', active);
                     document.getElementById('openSubscriptionModalButton').classList.toggle('btn-premium', !active);
+                    renderMemberWalletCard();
 
                     document.getElementById('subscriptionPromptStatus').textContent = statusLabel;
                     document.getElementById('subscriptionPromptDetails').textContent = details;
