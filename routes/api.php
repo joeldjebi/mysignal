@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\V1\Public\ReparationCases\PublicReparationCaseContr
 use App\Http\Controllers\Api\V1\Public\Reports\PublicIncidentReportController;
 use App\Http\Controllers\Api\V1\Public\Signals\PublicSignalTypeController;
 use App\Http\Controllers\Api\V1\Public\Subscriptions\PublicUpSubscriptionController;
+use App\Http\Controllers\Api\V1\Public\Subscriptions\PublicUpSubscriptionPaymentController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1/public')->group(function (): void {
@@ -61,5 +62,8 @@ Route::prefix('v1/public')->group(function (): void {
 
         Route::get('subscription', [PublicUpSubscriptionController::class, 'show']);
         Route::post('subscription', [PublicUpSubscriptionController::class, 'store']);
+        Route::get('subscription/payments', [PublicUpSubscriptionPaymentController::class, 'index']);
+        Route::post('subscription/payments', [PublicUpSubscriptionPaymentController::class, 'store']);
+        Route::post('subscription/payments/{payment}/confirm', [PublicUpSubscriptionPaymentController::class, 'confirm']);
     });
 });

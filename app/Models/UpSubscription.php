@@ -6,6 +6,7 @@ use App\Domain\Subscriptions\Enums\UpSubscriptionStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class UpSubscription extends Model
 {
@@ -54,6 +55,11 @@ class UpSubscription extends Model
     public function renewedFromSubscription(): BelongsTo
     {
         return $this->belongsTo(self::class, 'renewed_from_subscription_id');
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(SubscriptionPayment::class);
     }
 
     public function isPending(): bool
