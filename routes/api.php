@@ -60,6 +60,7 @@ Route::prefix('v1/public')->group(function (): void {
         Route::post('payments/{payment}/confirm', [PublicReportPaymentController::class, 'confirm']);
         Route::get('payments/{payment}/receipt', [PublicReportPaymentController::class, 'receipt']);
 
+        Route::get('subscriptions', [PublicUpSubscriptionController::class, 'index']);
         Route::get('subscription', [PublicUpSubscriptionController::class, 'show']);
         Route::post('subscription', [PublicUpSubscriptionController::class, 'store']);
         Route::get('subscription/payments', [PublicUpSubscriptionPaymentController::class, 'index']);

@@ -11,11 +11,24 @@ use Illuminate\Http\Request;
 
 class PublicUpSubscriptionController extends Controller
 {
+    public function index(Request $request)
+    {
+        $subscriptions = $request->user('public_api')
+            ->subscriptions()
+            ->with(['plan', 'payments'])
+            ->latest('id')
+            ->get();
+
+        return ApiResponse::success([
+            'subscriptions' => UpSubscriptionResource::collection($subscriptions),
+        ]);
+    }
+
     public function show(Request $request)
     {
         $subscription = $request->user('public_api')
             ->subscriptions()
-            ->with('plan')
+            ->with(['plan', 'payments'])
             ->latest('id')
             ->first();
 

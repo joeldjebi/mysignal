@@ -1692,6 +1692,12 @@
                             <div class="fw-bold" id="subscriptionPaymentReference">-</div>
                             <div class="muted-label" id="subscriptionPaymentAmount">-</div>
                         </div>
+                        <div class="mt-4">
+                            <div class="fw-bold mb-3">Historique des abonnements</div>
+                            <div id="subscriptionHistoryList" class="vstack gap-3">
+                                <div class="muted-label">Aucun historique disponible.</div>
+                            </div>
+                        </div>
                     </div>
                     <div class="modal-footer border-0 px-4 pb-4 pt-0">
                         <button class="btn btn-ghost-premium px-4" type="button" data-bs-dismiss="modal">Plus tard</button>
@@ -1744,6 +1750,7 @@
                     meters: [],
                     payments: [],
                     subscription: null,
+                    subscriptionHistory: [],
                     subscriptionPayments: [],
                     reparationCases: [],
                     countries: [],
@@ -3950,15 +3957,56 @@
 
                     document.getElementById('startSubscriptionPaymentButton').classList.toggle('d-none', active || !!pendingPayment);
                     document.getElementById('confirmSubscriptionPaymentButton').classList.toggle('d-none', active || !pendingPayment);
+                    renderSubscriptionHistory();
+                }
+
+                function renderSubscriptionHistory() {
+                    const list = document.getElementById('subscriptionHistoryList');
+
+                    if (!list) {
+                        return;
+                    }
+
+                    if (!state.subscriptionHistory.length) {
+                        list.innerHTML = '<div class="muted-label">Aucun abonnement initie pour le moment.</div>';
+                        return;
+                    }
+
+                    list.innerHTML = state.subscriptionHistory.map((subscription) => {
+                        const payments = subscription.payments || [];
+                        const latestPayment = payments[0] || null;
+
+                        return `
+                            <div class="soft-panel">
+                                <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                                    <div>
+                                        <div class="fw-bold">${subscription.plan?.name || 'Abonnement annuel UP'}</div>
+                                        <div class="muted-label">${formatAmount(subscription.amount, subscription.currency)} · ${subscription.plan?.duration_months || 12} mois</div>
+                                        <div class="muted-label">Debut: ${formatDateTime(subscription.start_date)} · Fin: ${formatDateTime(subscription.end_date)}</div>
+                                        <div class="muted-label">Cree le ${formatDateTime(subscription.created_at)}</div>
+                                    </div>
+                                    <span class="status-pill">${getSubscriptionStatusLabel(subscription.status)}</span>
+                                </div>
+                                <div class="mt-3">
+                                    <div class="small text-secondary fw-semibold mb-1">Paiement associe</div>
+                                    ${latestPayment
+                                        ? `<div class="muted-label">${latestPayment.reference} · ${getPaymentStatusLabel(latestPayment.status)} · ${formatAmount(latestPayment.amount, latestPayment.currency)}</div>`
+                                        : '<div class="muted-label">Aucun paiement associe.</div>'}
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
                 }
 
                 async function refreshSubscriptionData() {
-                    const [subscriptionResponse, paymentsResponse] = await Promise.all([
+                    const [subscriptionResponse, historyResponse, paymentsResponse] = await Promise.all([
                         apiFetch('/subscription'),
+                        apiFetch('/subscriptions'),
                         apiFetch('/subscription/payments'),
                     ]);
 
                     state.subscription = subscriptionResponse.data.subscription;
+                    state.subscriptionHistory = historyResponse.data.subscriptions || [];
                     state.subscriptionPayments = paymentsResponse.data.payments || [];
                     renderSubscriptionStatus();
                 }
@@ -4415,19 +4463,21 @@
 
                 async function refreshDashboard() {
                     await loadReferenceData();
-                    const [me, meters, household, reports, payments, subscription, subscriptionPayments, invitations, reparationCases] = await Promise.all([
+                    const [me, meters, household, reports, payments, subscription, subscriptionHistory, subscriptionPayments, invitations, reparationCases] = await Promise.all([
                         apiFetch('/me'),
                         apiFetch('/meters'),
                         apiFetch('/households/me'),
                         apiFetch('/reports'),
                         apiFetch('/payments'),
                         apiFetch('/subscription'),
+                        apiFetch('/subscriptions'),
                         apiFetch('/subscription/payments'),
                         apiFetch('/households/invitations/pending'),
                         apiFetch('/reparation-cases'),
                     ]);
                     renderUser(me.data.user);
                     state.subscription = subscription.data.subscription;
+                    state.subscriptionHistory = subscriptionHistory.data.subscriptions || [];
                     state.subscriptionPayments = subscriptionPayments.data.payments || [];
                     renderSubscriptionStatus();
                     renderMeters(meters.data.meters);

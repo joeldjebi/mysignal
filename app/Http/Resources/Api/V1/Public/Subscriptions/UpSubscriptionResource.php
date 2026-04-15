@@ -26,6 +26,7 @@ class UpSubscriptionResource extends JsonResource
             'activated_at' => optional($this->activated_at)->toISOString(),
             'expired_at' => optional($this->expired_at)->toISOString(),
             'created_at' => optional($this->created_at)->toISOString(),
+            'payments' => SubscriptionPaymentResource::collection($this->whenLoaded('payments')),
         ];
     }
 }
