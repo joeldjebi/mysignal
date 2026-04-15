@@ -1449,6 +1449,37 @@
                                     <div class="muted-label">Historique global de tes retours sur les signalements, dommages et dossiers traites.</div>
                                 </div>
                             </div>
+                            <div class="mini-card mb-4">
+                                <div class="row g-3 align-items-end">
+                                    <div class="col-md-4">
+                                        <label class="form-label small text-secondary">Recherche</label>
+                                        <input class="form-control" id="rexSearchFilter" placeholder="Reference, organisation, commentaire...">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small text-secondary">Type</label>
+                                        <select class="form-select" id="rexContextFilter">
+                                            <option value="">Tous</option>
+                                            <option value="incident_report">Signalements</option>
+                                            <option value="damage_declaration">Dommages</option>
+                                            <option value="reparation_case">Dossiers</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small text-secondary">Note globale</label>
+                                        <select class="form-select" id="rexRatingFilter">
+                                            <option value="">Toutes</option>
+                                            <option value="5">5/5</option>
+                                            <option value="4">4/5</option>
+                                            <option value="3">3/5</option>
+                                            <option value="2">2/5</option>
+                                            <option value="1">1/5</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button class="btn btn-ghost-premium w-100" type="button" id="resetRexFiltersButton">Reset</button>
+                                    </div>
+                                </div>
+                            </div>
                             <div id="rexFeedbacksList"></div>
                         </div>
                     </section>
@@ -1917,6 +1948,8 @@
                     subscriptionHistoryPage: 1,
                     subscriptionHistoryPageSize: 5,
                     rexFeedbacks: [],
+                    rexFeedbacksPage: 1,
+                    rexFeedbacksPageSize: 5,
                     reparationCases: [],
                     countries: [],
                     communes: [],
@@ -1948,6 +1981,11 @@
                         search: '',
                         status: '',
                         payment: '',
+                    },
+                    rexFilters: {
+                        search: '',
+                        context: '',
+                        rating: '',
                     },
                     damageFilters: {
                         search: '',
@@ -3509,9 +3547,7 @@
                                                         ${report.resolution_confirmation?.can_confirm
                                                             ? `<button class="btn btn-ghost-premium btn-sm px-3" type="button" onclick="window.AcepenPortal.confirmResolution(${report.id})">Confirmer</button>`
                                                             : ''}
-                                                        ${canSubmitIncidentRex(report)
-                                                            ? `<button class="btn btn-ghost-premium btn-sm px-3" type="button" onclick="window.AcepenPortal.openRexForm('incident_report', ${report.id}, '${escapeHtml(report.reference)}')">REX signalement</button>`
-                                                            : ''}
+                                                        ${renderRexActionButton('incident_report', report.id, report.reference, 'REX signalement', canSubmitIncidentRex(report))}
                                                         <button
                                                             class="btn btn-premium btn-sm px-3"
                                                             type="button"
@@ -3524,9 +3560,7 @@
                                                         >
                                                             Dommage
                                                         </button>
-                                                        ${canSubmitDamageRex(report)
-                                                            ? `<button class="btn btn-ghost-premium btn-sm px-3" type="button" onclick="window.AcepenPortal.openRexForm('damage_declaration', ${report.id}, '${escapeHtml(report.reference)}')">REX dommage</button>`
-                                                            : ''}
+                                                        ${renderRexActionButton('damage_declaration', report.id, report.reference, 'REX dommage', canSubmitDamageRex(report))}
                                                     </div>
                                                 </td>
                                             </tr>
@@ -3624,9 +3658,7 @@
                                         <div class="text-end">
                                             <span class="status-pill ${getReparationCaseStatusClass(repairCase.status)}">${getReparationCaseStatusLabel(repairCase.status)}</span>
                                             <div class="muted-label mt-2">${repairCase.opened_at ? `Ouvert le ${formatDateTime(repairCase.opened_at)}` : 'Date indisponible'}</div>
-                                            ${canSubmitCaseRex(repairCase)
-                                                ? `<button class="btn btn-ghost-premium btn-sm px-3 mt-2" type="button" onclick="window.AcepenPortal.openRexForm('reparation_case', ${repairCase.id}, '${escapeHtml(repairCase.reference)}')">Donner mon REX</button>`
-                                                : ''}
+                                            ${renderRexActionButton('reparation_case', repairCase.id, repairCase.reference, 'Donner mon REX', canSubmitCaseRex(repairCase), 'mt-2')}
                                         </div>
                                     </div>
                                     <div class="soft-panel mb-3">
@@ -3697,6 +3729,45 @@
                     return labels[contextType] || contextType || '-';
                 }
 
+                function hasRexFeedback(contextType, contextId) {
+                    return state.rexFeedbacks.some((feedback) => feedback.context_type === contextType && String(feedback.context_id) === String(contextId));
+                }
+
+                function renderRexActionButton(contextType, contextId, title, label, isEligible, extraClass = '') {
+                    if (!isEligible) {
+                        return '';
+                    }
+
+                    if (hasRexFeedback(contextType, contextId)) {
+                        return `<button class="btn btn-ghost-premium btn-sm px-3 ${extraClass}" type="button" disabled title="Un REX a deja ete envoye pour cet element.">REX deja envoye</button>`;
+                    }
+
+                    const encodedTitle = encodeURIComponent(title || '');
+
+                    return `<button class="btn btn-ghost-premium btn-sm px-3 ${extraClass}" type="button" onclick="window.AcepenPortal.openRexForm('${contextType}', ${contextId}, decodeURIComponent('${encodedTitle}'))">${label}</button>`;
+                }
+
+                function getFilteredRexFeedbacks() {
+                    const search = state.rexFilters.search.trim().toLowerCase();
+
+                    return state.rexFeedbacks.filter((feedback) => {
+                        const haystack = [
+                            getRexContextLabel(feedback.context_type),
+                            feedback.incident_report?.reference,
+                            feedback.incident_report?.signal_label,
+                            feedback.incident_report?.signal_code,
+                            feedback.application?.name,
+                            feedback.organization?.name,
+                            feedback.comment,
+                        ].filter(Boolean).join(' ').toLowerCase();
+                        const matchesSearch = !search || haystack.includes(search);
+                        const matchesContext = !state.rexFilters.context || feedback.context_type === state.rexFilters.context;
+                        const matchesRating = !state.rexFilters.rating || String(feedback.rating) === state.rexFilters.rating;
+
+                        return matchesSearch && matchesContext && matchesRating;
+                    });
+                }
+
                 function renderRexFeedbacks(feedbacks) {
                     state.rexFeedbacks = feedbacks;
                     const list = document.getElementById('rexFeedbacksList');
@@ -3705,32 +3776,71 @@
                         return;
                     }
 
-                    if (!feedbacks.length) {
+                    if (!state.rexFeedbacks.length) {
                         list.innerHTML = '<div class="mini-card"><div class="fw-bold mb-1">Aucun REX envoye</div><div class="muted-label">Tes retours d experience apparaitront ici apres soumission.</div></div>';
                         return;
                     }
 
+                    const filteredFeedbacks = getFilteredRexFeedbacks();
+                    const totalPages = Math.max(1, Math.ceil(filteredFeedbacks.length / state.rexFeedbacksPageSize));
+                    state.rexFeedbacksPage = Math.min(state.rexFeedbacksPage, totalPages);
+
+                    if (!filteredFeedbacks.length) {
+                        list.innerHTML = '<div class="mini-card"><div class="fw-bold mb-1">Aucun REX ne correspond aux filtres</div><div class="muted-label">Ajuste la recherche, le type ou la note globale.</div></div>';
+                        return;
+                    }
+
+                    const start = (state.rexFeedbacksPage - 1) * state.rexFeedbacksPageSize;
+                    const currentFeedbacks = filteredFeedbacks.slice(start, start + state.rexFeedbacksPageSize);
+                    const end = start + currentFeedbacks.length;
+
                     list.innerHTML = `
-                        <div class="vstack gap-3">
-                            ${feedbacks.map((feedback) => `
-                                <div class="mini-card">
-                                    <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-3">
-                                        <div>
-                                            <div class="fw-bold">${getRexContextLabel(feedback.context_type)} · ${feedback.incident_report?.reference || '-'}</div>
-                                            <div class="muted-label">${feedback.application?.name || '-'} / ${feedback.organization?.name || '-'}</div>
-                                        </div>
-                                        <span class="status-pill">${feedback.rating}/5</span>
-                                    </div>
-                                    <div class="row g-3 mb-3">
-                                        <div class="col-md-3"><div class="muted-label">Rapidite du traitement</div><div class="fw-semibold">${feedback.response_time_rating || '-'}/5</div></div>
-                                        <div class="col-md-3"><div class="muted-label">Clarte des informations</div><div class="fw-semibold">${feedback.communication_rating || '-'}/5</div></div>
-                                        <div class="col-md-3"><div class="muted-label">Solution apportee</div><div class="fw-semibold">${feedback.quality_rating || '-'}/5</div></div>
-                                        <div class="col-md-3"><div class="muted-label">Traitement juste</div><div class="fw-semibold">${feedback.fairness_rating || '-'}/5</div></div>
-                                    </div>
-                                    <div class="muted-label">${feedback.comment || 'Aucun commentaire.'}</div>
-                                    <div class="small text-secondary mt-2">Envoye le ${formatDateTime(feedback.submitted_at)}</div>
+                        <div class="report-table-shell">
+                            <div class="report-table-wrap">
+                                <table class="report-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Contexte</th>
+                                            <th>Organisation</th>
+                                            <th>Notes</th>
+                                            <th>Commentaire</th>
+                                            <th>Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${currentFeedbacks.map((feedback) => `
+                                            <tr>
+                                                <td>
+                                                    <div class="report-ref">${getRexContextLabel(feedback.context_type)}</div>
+                                                    <div class="report-sub">${escapeHtml(feedback.incident_report?.reference || '-')}</div>
+                                                    <div class="report-sub">${escapeHtml(feedback.incident_report?.signal_label || feedback.incident_report?.signal_code || '')}</div>
+                                                </td>
+                                                <td>
+                                                    <div class="report-main">${escapeHtml(feedback.organization?.name || '-')}</div>
+                                                    <div class="report-sub">${escapeHtml(feedback.application?.name || '-')}</div>
+                                                </td>
+                                                <td>
+                                                    <div class="report-main"><span class="status-pill">${feedback.rating}/5</span></div>
+                                                    <div class="report-sub">Rapidite: ${feedback.response_time_rating || '-'}/5</div>
+                                                    <div class="report-sub">Clarte: ${feedback.communication_rating || '-'}/5</div>
+                                                    <div class="report-sub">Solution: ${feedback.quality_rating || '-'}/5</div>
+                                                    <div class="report-sub">Justice: ${feedback.fairness_rating || '-'}/5</div>
+                                                </td>
+                                                <td><div class="report-sub">${escapeHtml(feedback.comment || 'Aucun commentaire.')}</div></td>
+                                                <td><div class="report-sub">${formatDateTime(feedback.submitted_at)}</div></td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="pagination-shell">
+                                <div class="pagination-info">Affichage ${start + 1} à ${end} sur ${filteredFeedbacks.length} REX</div>
+                                <div class="pagination-actions">
+                                    <button class="pagination-chip" type="button" ${state.rexFeedbacksPage === 1 ? 'disabled' : ''} onclick="window.AcepenPortal.changeRexFeedbacksPage(${state.rexFeedbacksPage - 1})">‹</button>
+                                    <div class="small fw-semibold text-secondary">Page ${state.rexFeedbacksPage} / ${totalPages}</div>
+                                    <button class="pagination-chip" type="button" ${state.rexFeedbacksPage === totalPages ? 'disabled' : ''} onclick="window.AcepenPortal.changeRexFeedbacksPage(${state.rexFeedbacksPage + 1})">›</button>
                                 </div>
-                            `).join('')}
+                            </div>
                         </div>
                     `;
                 }
@@ -4837,13 +4947,14 @@
                     state.subscription = subscription.data.subscription;
                     state.subscriptionHistory = subscriptionHistory.data.subscriptions || [];
                     state.subscriptionPayments = subscriptionPayments.data.payments || [];
+                    state.rexFeedbacks = rexFeedbacks.data.feedbacks || [];
                     renderSubscriptionStatus();
                     renderMeters(meters.data.meters);
                     renderHousehold(household.data.household);
                     renderReports(reports.data.reports);
                     renderDamages(reports.data.reports);
                     renderPayments(payments.data.payments);
-                    renderRexFeedbacks(rexFeedbacks.data.feedbacks || []);
+                    renderRexFeedbacks(state.rexFeedbacks);
                     renderIncomingHouseholdInvitations(invitations.data.invitations);
                     renderReparationCases(reparationCases.data.reparation_cases);
                     openSubscriptionPrompt();
@@ -4999,6 +5110,11 @@
                         state.subscriptionHistoryPage = Math.min(Math.max(1, page), totalPages);
                         renderSubscriptionHistoryPanel();
                     },
+                    changeRexFeedbacksPage(page) {
+                        const totalPages = Math.max(1, Math.ceil(getFilteredRexFeedbacks().length / state.rexFeedbacksPageSize));
+                        state.rexFeedbacksPage = Math.min(Math.max(1, page), totalPages);
+                        renderRexFeedbacks(state.rexFeedbacks);
+                    },
                     showReportDetails(reportId) {
                         const report = state.reports.find((item) => item.id === reportId);
                         if (!report) {
@@ -5009,6 +5125,11 @@
                         reportDetailModal?.show();
                     },
                     openRexForm(contextType, contextId, title) {
+                        if (hasRexFeedback(contextType, contextId)) {
+                            showToast('Un REX a deja ete envoye pour cet element.', true);
+                            return;
+                        }
+
                         const form = document.getElementById('rexFeedbackForm');
                         form.reset();
                         document.getElementById('rexContextType').value = contextType;
@@ -5144,6 +5265,29 @@
                     document.getElementById('subscriptionPaymentStatusFilter').value = '';
                     renderSubscriptionHistoryPanel();
                 });
+                document.getElementById('rexSearchFilter').addEventListener('input', (event) => {
+                    state.rexFilters.search = event.currentTarget.value || '';
+                    state.rexFeedbacksPage = 1;
+                    renderRexFeedbacks(state.rexFeedbacks);
+                });
+                document.getElementById('rexContextFilter').addEventListener('change', (event) => {
+                    state.rexFilters.context = event.currentTarget.value || '';
+                    state.rexFeedbacksPage = 1;
+                    renderRexFeedbacks(state.rexFeedbacks);
+                });
+                document.getElementById('rexRatingFilter').addEventListener('change', (event) => {
+                    state.rexFilters.rating = event.currentTarget.value || '';
+                    state.rexFeedbacksPage = 1;
+                    renderRexFeedbacks(state.rexFeedbacks);
+                });
+                document.getElementById('resetRexFiltersButton').addEventListener('click', () => {
+                    state.rexFilters = { search: '', context: '', rating: '' };
+                    state.rexFeedbacksPage = 1;
+                    document.getElementById('rexSearchFilter').value = '';
+                    document.getElementById('rexContextFilter').value = '';
+                    document.getElementById('rexRatingFilter').value = '';
+                    renderRexFeedbacks(state.rexFeedbacks);
+                });
                 document.getElementById('openDamageDeclarationButton').addEventListener('click', () => {
                     const reportId = Number(document.getElementById('openDamageDeclarationButton').dataset.reportId || 0);
                     if (!reportId) {
@@ -5246,6 +5390,9 @@
                         showToast(response.message);
                         const feedbacksResponse = await apiFetch('/rex-feedbacks');
                         renderRexFeedbacks(feedbacksResponse.data.feedbacks || []);
+                        renderReports(state.reports);
+                        renderDamages(state.reports);
+                        renderReparationCases(state.reparationCases);
                     } catch (error) {
                         showToast(error.message, true);
                     } finally {
