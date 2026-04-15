@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class RexFeedback extends Model
 {
+    protected $table = 'rex_feedbacks';
+
     protected $fillable = [
         'public_user_id',
         'incident_report_id',
