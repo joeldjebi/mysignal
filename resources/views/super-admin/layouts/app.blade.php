@@ -322,6 +322,12 @@
                         <span><span class="d-block fw-semibold">Tarification</span><span class="small text-white-50">Montants et regles</span></span>
                     </a>
                 @endif
+                @if ($authUser?->hasPermissionCode('SA_SUBSCRIPTION_PLANS_MANAGE'))
+                    <a href="{{ route('super-admin.subscription-plans.index') }}" class="nav-pill {{ request()->routeIs('super-admin.subscription-plans.*') ? 'active' : '' }}">
+                        <span class="nav-icon">AB</span>
+                        <span><span class="d-block fw-semibold">Plans abonnements</span><span class="small text-white-50">Abonnement annuel UP</span></span>
+                    </a>
+                @endif
                 @if ($authUser?->hasPermissionCode('SA_PUBLIC_USER_TYPES_MANAGE'))
                     <a href="{{ route('super-admin.public-user-types.index') }}" class="nav-pill {{ request()->routeIs('super-admin.public-user-types.*') ? 'active' : '' }}">
                         <span class="nav-icon">UP</span>
@@ -474,5 +480,6 @@
         })();
     </script>
     @yield('scripts')
+    @stack('scripts')
 </body>
 </html>
