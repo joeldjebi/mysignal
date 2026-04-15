@@ -130,10 +130,10 @@
                             </td>
                             <td><span class="status-chip">{{ $feedback->rating }}/5</span></td>
                             <td>
-                                <div class="small text-secondary">Delai: {{ $feedback->response_time_rating ?: '-' }}/5</div>
-                                <div class="small text-secondary">Communication: {{ $feedback->communication_rating ?: '-' }}/5</div>
-                                <div class="small text-secondary">Qualite: {{ $feedback->quality_rating ?: '-' }}/5</div>
-                                <div class="small text-secondary">Equite: {{ $feedback->fairness_rating ?: '-' }}/5</div>
+                                <div class="small text-secondary">Rapidite du traitement: {{ $feedback->response_time_rating ?: '-' }}/5</div>
+                                <div class="small text-secondary">Clarte des informations: {{ $feedback->communication_rating ?: '-' }}/5</div>
+                                <div class="small text-secondary">Solution apportee: {{ $feedback->quality_rating ?: '-' }}/5</div>
+                                <div class="small text-secondary">Traitement juste: {{ $feedback->fairness_rating ?: '-' }}/5</div>
                             </td>
                             <td>{{ $feedback->comment ?: '-' }}</td>
                             <td>{{ $feedback->submitted_at?->format('d/m/Y H:i') ?: '-' }}</td>

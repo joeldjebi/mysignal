@@ -1812,10 +1812,50 @@
                                     <option value="0">Non</option>
                                 </select>
                             </div>
-                            <div class="col-md-3"><label class="form-label fw-semibold">Delai</label><input class="form-control" type="number" min="1" max="5" name="response_time_rating"></div>
-                            <div class="col-md-3"><label class="form-label fw-semibold">Communication</label><input class="form-control" type="number" min="1" max="5" name="communication_rating"></div>
-                            <div class="col-md-3"><label class="form-label fw-semibold">Qualite</label><input class="form-control" type="number" min="1" max="5" name="quality_rating"></div>
-                            <div class="col-md-3"><label class="form-label fw-semibold">Equite</label><input class="form-control" type="number" min="1" max="5" name="fairness_rating"></div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Le traitement a-t-il ete assez rapide ?</label>
+                                <select class="form-select" name="response_time_rating">
+                                    <option value="">Non note</option>
+                                    <option value="5">5 - Tres satisfait</option>
+                                    <option value="4">4 - Satisfait</option>
+                                    <option value="3">3 - Moyen</option>
+                                    <option value="2">2 - Peu satisfait</option>
+                                    <option value="1">1 - Pas satisfait</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Les informations recues etaient-elles claires ?</label>
+                                <select class="form-select" name="communication_rating">
+                                    <option value="">Non note</option>
+                                    <option value="5">5 - Tres satisfait</option>
+                                    <option value="4">4 - Satisfait</option>
+                                    <option value="3">3 - Moyen</option>
+                                    <option value="2">2 - Peu satisfait</option>
+                                    <option value="1">1 - Pas satisfait</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">La solution apportee repond-elle au besoin ?</label>
+                                <select class="form-select" name="quality_rating">
+                                    <option value="">Non note</option>
+                                    <option value="5">5 - Tres satisfait</option>
+                                    <option value="4">4 - Satisfait</option>
+                                    <option value="3">3 - Moyen</option>
+                                    <option value="2">2 - Peu satisfait</option>
+                                    <option value="1">1 - Pas satisfait</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Le traitement vous a-t-il semble juste ?</label>
+                                <select class="form-select" name="fairness_rating">
+                                    <option value="">Non note</option>
+                                    <option value="5">5 - Tres satisfait</option>
+                                    <option value="4">4 - Satisfait</option>
+                                    <option value="3">3 - Moyen</option>
+                                    <option value="2">2 - Peu satisfait</option>
+                                    <option value="1">1 - Pas satisfait</option>
+                                </select>
+                            </div>
                             <div class="col-12">
                                 <label class="form-label fw-semibold">Commentaire</label>
                                 <textarea class="form-control" name="comment" rows="4" maxlength="3000" placeholder="Expliquez votre experience, ce qui a bien fonctionne ou ce qui doit etre ameliore."></textarea>
@@ -3682,10 +3722,10 @@
                                         <span class="status-pill">${feedback.rating}/5</span>
                                     </div>
                                     <div class="row g-3 mb-3">
-                                        <div class="col-md-3"><div class="muted-label">Delai</div><div class="fw-semibold">${feedback.response_time_rating || '-'}/5</div></div>
-                                        <div class="col-md-3"><div class="muted-label">Communication</div><div class="fw-semibold">${feedback.communication_rating || '-'}/5</div></div>
-                                        <div class="col-md-3"><div class="muted-label">Qualite</div><div class="fw-semibold">${feedback.quality_rating || '-'}/5</div></div>
-                                        <div class="col-md-3"><div class="muted-label">Equite</div><div class="fw-semibold">${feedback.fairness_rating || '-'}/5</div></div>
+                                        <div class="col-md-3"><div class="muted-label">Rapidite du traitement</div><div class="fw-semibold">${feedback.response_time_rating || '-'}/5</div></div>
+                                        <div class="col-md-3"><div class="muted-label">Clarte des informations</div><div class="fw-semibold">${feedback.communication_rating || '-'}/5</div></div>
+                                        <div class="col-md-3"><div class="muted-label">Solution apportee</div><div class="fw-semibold">${feedback.quality_rating || '-'}/5</div></div>
+                                        <div class="col-md-3"><div class="muted-label">Traitement juste</div><div class="fw-semibold">${feedback.fairness_rating || '-'}/5</div></div>
                                     </div>
                                     <div class="muted-label">${feedback.comment || 'Aucun commentaire.'}</div>
                                     <div class="small text-secondary mt-2">Envoye le ${formatDateTime(feedback.submitted_at)}</div>
