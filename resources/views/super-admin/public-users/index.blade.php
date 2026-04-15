@@ -51,6 +51,7 @@
                         <th>Type</th>
                         <th>Commune</th>
                         <th>Tarification</th>
+                        <th>Abonnement</th>
                         <th>Statut</th>
                         <th class="text-end">Actions</th>
                     </tr>
@@ -75,6 +76,33 @@
                                 <div class="fw-semibold">{{ $publicUser->publicUserType?->pricingRule?->label ?: '-' }}</div>
                                 <div class="small text-secondary">{{ $publicUser->publicUserType?->pricingRule ? number_format($publicUser->publicUserType->pricingRule->amount, 0, ',', ' ') . ' ' . $publicUser->publicUserType->pricingRule->currency : '-' }}</div>
                             </td>
+                            <td>
+                                @php
+                                    $subscription = $publicUser->latestSubscription;
+                                    $subscriptionIsUsable = $subscription
+                                        && $subscription->status === 'active'
+                                        && ($subscription->end_date === null || $subscription->end_date->copy()->addDays((int) $subscription->grace_period_days)->isFuture());
+                                    $subscriptionLabels = [
+                                        'pending' => 'Paiement en attente',
+                                        'active' => 'Actif',
+                                        'expired' => 'Expire',
+                                        'cancelled' => 'Annule',
+                                        'suspended' => 'Suspendu',
+                                        'payment_failed' => 'Paiement echoue',
+                                    ];
+                                @endphp
+                                @if ($subscription)
+                                    <div class="fw-semibold">
+                                        {{ $subscriptionIsUsable ? 'Actif' : ($subscriptionLabels[$subscription->status] ?? $subscription->status) }}
+                                    </div>
+                                    <div class="small text-secondary">{{ $subscription->plan?->name ?: 'Plan non renseigne' }}</div>
+                                    <div class="small text-secondary">
+                                        {{ $subscription->end_date ? 'Fin '.$subscription->end_date->format('d/m/Y') : 'En attente d activation' }}
+                                    </div>
+                                @else
+                                    <span class="status-chip">Aucun</span>
+                                @endif
+                            </td>
                             <td><span class="status-chip">{{ $publicUser->status }}</span></td>
                             <td class="text-end">
                                 <div class="actions-wrap">
@@ -96,7 +124,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="6" class="text-center text-secondary">Aucun usager public enregistre.</td></tr>
+                        <tr><td colspan="7" class="text-center text-secondary">Aucun usager public enregistre.</td></tr>
                     @endforelse
                 </tbody>
             </table>

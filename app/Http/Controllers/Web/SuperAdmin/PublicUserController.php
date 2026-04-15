@@ -20,7 +20,11 @@ class PublicUserController extends Controller
 {
     public function index(): View
     {
-        $query = PublicUser::query()->with('publicUserType.pricingRule');
+        $query = PublicUser::query()->with([
+            'publicUserType.pricingRule',
+            'latestSubscription.plan',
+            'latestSubscription.payments',
+        ]);
 
         if (filled(request('search'))) {
             $search = trim((string) request('search'));
@@ -115,6 +119,12 @@ class PublicUserController extends Controller
 
     public function show(PublicUser $publicUser): View
     {
+        $subscriptions = $publicUser->subscriptions()
+            ->with(['plan', 'payments'])
+            ->latest()
+            ->paginate(8, ['*'], 'subscriptions_page')
+            ->withQueryString();
+
         $reports = $publicUser->incidentReports()
             ->with([
                 'application',
@@ -187,6 +197,7 @@ class PublicUserController extends Controller
 
         return view('super-admin.public-users.show', [
             'publicUser' => $publicUser->load('publicUserType.pricingRule'),
+            'subscriptions' => $subscriptions,
             'reports' => $paginatedReports,
             'reportStatuses' => ['submitted', 'in_progress', 'resolved', 'rejected', 'closed'],
         ]);
