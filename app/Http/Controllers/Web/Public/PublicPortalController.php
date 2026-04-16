@@ -57,6 +57,27 @@ class PublicPortalController extends Controller
         ]);
     }
 
+    public function auth()
+    {
+        return view('public.auth', [
+            'publicUserTypes' => PublicUserType::query()
+                ->with('pricingRule')
+                ->where('status', 'active')
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get(),
+            'businessSectors' => BusinessSector::query()
+                ->where('status', 'active')
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get(),
+            'communes' => Commune::query()
+                ->where('status', 'active')
+                ->orderBy('name')
+                ->get(),
+        ]);
+    }
+
     private function customLandingResponse(ApplicationContentBlock $landingPage): Response
     {
         $html = strtr($landingPage->body, [

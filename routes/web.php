@@ -47,6 +47,7 @@ use App\Http\Controllers\Web\SuperAdmin\DashboardController as SuperAdminDashboa
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PublicPortalController::class, 'landing'])->name('public.landing');
+Route::get('/auth', [PublicPortalController::class, 'auth'])->name('public.auth');
 Route::get('/dashboard', [PublicPortalController::class, 'dashboard'])->name('public.dashboard');
 Route::redirect('/admin', '/sa/login');
 Route::redirect('/admin/login', '/sa/login');
