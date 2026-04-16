@@ -34,23 +34,27 @@ class RegisterPublicUserAction
         }
 
         $publicUser = DB::transaction(function () use ($payload, $verification, $publicUserTypeId): PublicUser {
-            $user = PublicUser::query()->create([
+            $user = PublicUser::query()->firstOrNew([
+                'phone' => $payload['phone'],
+            ]);
+
+            $user->fill([
                 'public_user_type_id' => $publicUserTypeId,
                 'first_name' => $payload['first_name'],
                 'last_name' => $payload['last_name'],
-                'phone' => $payload['phone'],
                 'is_whatsapp_number' => (bool) ($payload['is_whatsapp_number'] ?? false),
-                'email' => $payload['email'] ?? null,
-                'company_name' => $payload['company_name'] ?? null,
-                'company_registration_number' => $payload['company_registration_number'] ?? null,
-                'tax_identifier' => $payload['tax_identifier'] ?? null,
-                'business_sector' => $payload['business_sector'] ?? null,
-                'company_address' => $payload['company_address'] ?? null,
+                'email' => $payload['email'] ?? $user->email,
+                'company_name' => $payload['company_name'] ?? $user->company_name,
+                'company_registration_number' => $payload['company_registration_number'] ?? $user->company_registration_number,
+                'tax_identifier' => $payload['tax_identifier'] ?? $user->tax_identifier,
+                'business_sector' => $payload['business_sector'] ?? $user->business_sector,
+                'company_address' => $payload['company_address'] ?? $user->company_address,
                 'commune' => $payload['commune'],
                 'password' => $payload['password'],
                 'phone_verified_at' => $verification->verified_at,
                 'status' => PublicUserStatus::Active->value,
             ]);
+            $user->save();
 
             $verification->forceFill([
                 'used_at' => CarbonImmutable::now(),

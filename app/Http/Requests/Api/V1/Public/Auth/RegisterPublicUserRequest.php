@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api\V1\Public\Auth;
 
+use App\Models\PublicUser;
 use App\Models\PublicUserType;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -16,13 +17,17 @@ class RegisterPublicUserRequest extends FormRequest
 
     public function rules(): array
     {
+        $existingPublicUser = PublicUser::query()
+            ->where('phone', $this->input('phone'))
+            ->first();
+
         return [
             'public_user_type_id' => ['required', 'integer', 'exists:public_user_types,id'],
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
-            'phone' => ['required', 'string', 'regex:/^[0-9]{8,15}$/', 'unique:public_users,phone'],
+            'phone' => ['required', 'string', 'regex:/^[0-9]{8,15}$/'],
             'is_whatsapp_number' => ['nullable', 'boolean'],
-            'email' => ['nullable', 'email', 'max:255', Rule::unique('public_users', 'email')],
+            'email' => ['nullable', 'email', 'max:255', Rule::unique('public_users', 'email')->ignore($existingPublicUser?->id)],
             'company_name' => ['nullable', 'string', 'max:180'],
             'company_registration_number' => ['nullable', 'string', 'max:120'],
             'tax_identifier' => ['nullable', 'string', 'max:120'],
@@ -31,6 +36,14 @@ class RegisterPublicUserRequest extends FormRequest
             'commune' => ['required', 'string', 'max:120', 'exists:communes,name'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'verification_token' => ['required', 'uuid'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'email.unique' => 'Cette adresse email est deja utilisee par un autre compte.',
+            'phone.regex' => 'Le numero de telephone doit contenir entre 8 et 15 chiffres.',
         ];
     }
 
