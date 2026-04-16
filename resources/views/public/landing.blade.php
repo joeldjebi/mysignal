@@ -7,12 +7,34 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  @php
+    $landingBlocks = $landingBlocks ?? collect();
+    $landingBlock = fn (string $key) => $landingBlocks->get($key);
+    $blockTitle = fn (string $key, string $default) => optional($landingBlock($key))->title ?: $default;
+    $blockSubtitle = fn (string $key, ?string $default = null) => optional($landingBlock($key))->subtitle ?: $default;
+    $blockBody = fn (string $key, string $default = '') => optional($landingBlock($key))->body ?: $default;
+    $blockMeta = fn (string $key, string $field, string $default = '') => $landingBlock($key)?->meta[$field] ?? $default;
+    $isVisible = fn (string $key) => ! $landingBlocks->has($key) || $landingBlocks->get($key)->status === 'active';
+    $lines = function (?string $value): array {
+      return collect(preg_split('/\r\n|\r|\n/', (string) $value))
+        ->map(fn ($line) => trim($line))
+        ->filter()
+        ->values()
+        ->all();
+    };
+    $parts = fn (string $line, int $limit = 3) => array_pad(array_map('trim', explode('|', $line, $limit)), $limit, '');
+    $settings = $landingBlocks->get('settings');
+    $settingsMeta = $settings?->meta ?? [];
+    $primaryColor = $settingsMeta['primary_color'] ?? '#183447';
+    $secondaryColor = $settingsMeta['secondary_color'] ?? '#256f8f';
+    $accentColor = $settingsMeta['accent_color'] ?? '#ff0068';
+  @endphp
   <style>
     :root {
-      --primary: #183447;
+      --primary: {{ $primaryColor }};
       --primary-dark: #102736;
-      --primary-light: #256f8f;
-      --accent: #ff0068;
+      --primary-light: {{ $secondaryColor }};
+      --accent: {{ $accentColor }};
       --yellow: #ffa117;
       --success: #5bebaf;
       --text-dark: #183447;
@@ -623,52 +645,56 @@
   <div class="container">
     <a class="navbar-brand" href="#">
       <img src="{{ asset('image/logo/logo-my-signal.png') }}" alt="MySignal">
-      <span>MySignal</span>
+        <span>MySignal</span>
     </a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navMenu">
       <ul class="navbar-nav ms-auto align-items-center gap-1">
-        <li class="nav-item"><a class="nav-link" href="#features">Fonctionnalites</a></li>
-        <li class="nav-item"><a class="nav-link" href="#screenshots">Apercus</a></li>
-        <li class="nav-item"><a class="nav-link" href="#faq">FAQ</a></li>
-        <li class="nav-item"><a class="nav-link" href="#news">Actualites</a></li>
-        <li class="nav-item ms-2"><a class="nav-link btn-nav" href="{{ route('public.auth') }}">Se connecter et signaler maintenant</a></li>
+        @foreach ($lines($blockBody('navigation', "Fonctionnalites | #features\nApercus | #screenshots\nFAQ | #faq\nActualites | #news")) as $navLine)
+          @php
+            [$navLabel, $navUrl] = $parts($navLine, 2);
+          @endphp
+          <li class="nav-item"><a class="nav-link" href="{{ $navUrl ?: '#' }}">{{ $navLabel }}</a></li>
+        @endforeach
+        <li class="nav-item ms-2"><a class="nav-link btn-nav" href="{{ route('public.auth') }}">{{ $blockMeta('navigation', 'cta_label', 'Se connecter et signaler maintenant') }}</a></li>
       </ul>
     </div>
   </div>
 </nav>
 
 <!-- ===== HERO ===== -->
+@if ($isVisible('hero'))
 <section class="hero">
   <div class="container">
     <div class="row align-items-center">
       <div class="col-lg-6 pb-5">
-        <p class="badge-pill" style="background:rgba(255,255,255,.15);color:#fff;">Plateforme de protection consommateur</p>
-        <h1 class="hero-title fade-up">Signalez, <span>suivez</span> et faites valoir vos droits</h1>
-        <p class="hero-text fade-up delay-1">MySignal accompagne les consommateurs et les Unites Partenaires dans le suivi des signalements, des abonnements, des REX et des dossiers traites.</p>
+        @php
+          $heroTitle = $blockTitle('hero', 'Signalez, suivez et faites valoir vos droits');
+          $heroTitleParts = array_pad(explode(',', $heroTitle, 2), 2, '');
+          $heroAccentParts = array_pad(preg_split('/\s+/', trim($heroTitleParts[1]), 2), 2, '');
+        @endphp
+        <p class="badge-pill" style="background:rgba(255,255,255,.15);color:#fff;">{{ $blockSubtitle('hero', 'Plateforme de protection consommateur') }}</p>
+        <h1 class="hero-title fade-up">{{ $heroTitleParts[0] }}@if($heroTitleParts[1] !== ''), <span>{{ $heroAccentParts[0] }}</span> {{ $heroAccentParts[1] }}@endif</h1>
+        <p class="hero-text fade-up delay-1">{{ $blockBody('hero', 'MySignal accompagne les consommateurs et les Unites Partenaires dans le suivi des signalements, des abonnements, des REX et des dossiers traites.') }}</p>
         <div class="fade-up delay-2">
-          <a href="#features" class="btn-hero-primary">Activer mon acces</a>
+          <a href="{{ route('public.auth') }}" class="btn-hero-primary">{{ $blockMeta('hero', 'primary_button', 'Activer mon acces') }}</a>
           <a href="#" class="btn-hero-outline">
-            <i class="bi bi-play-circle-fill me-1"></i> Voir le parcours
+            <i class="bi bi-play-circle-fill me-1"></i> {{ $blockMeta('hero', 'secondary_button', 'Voir le parcours') }}
           </a>
         </div>
         <div class="hero-stats d-flex align-items-center fade-up delay-3">
-          <div>
-            <div class="stat-num">573K+</div>
-            <div class="stat-label">Utilisateurs actifs</div>
-          </div>
-          <div class="divider"></div>
-          <div>
-            <div class="stat-num">26,675</div>
-            <div class="stat-label">Signalements suivis</div>
-          </div>
-          <div class="divider"></div>
-          <div>
-            <div class="stat-num">9.2K</div>
-            <div class="stat-label">Retours collectes</div>
-          </div>
+          @foreach ($lines($blockMeta('hero', 'stats', "573K+ | Utilisateurs actifs\n26,675 | Signalements suivis\n9.2K | Retours collectes")) as $statLine)
+            @php
+              [$statValue, $statLabel] = $parts($statLine, 2);
+            @endphp
+            @if (! $loop->first)<div class="divider"></div>@endif
+            <div>
+              <div class="stat-num">{{ $statValue }}</div>
+              <div class="stat-label">{{ $statLabel }}</div>
+            </div>
+          @endforeach
         </div>
       </div>
       <div class="col-lg-6">
@@ -710,60 +736,45 @@
     </div>
   </div>
 </section>
+@endif
 
 <!-- ===== FEATURES STRIP ===== -->
+@if ($isVisible('feature_strip'))
 <section class="features-strip">
   <div class="container">
     <div class="row g-4 text-center">
-      <div class="col-6 col-md-3">
-        <div class="feature-card">
-          <div class="feature-icon-wrap purple"><i class="bi bi-lightning-charge-fill"></i></div>
-          <h6>Signalement rapide</h6>
-          <p>Deposez un dommage ou une reclamation en quelques etapes claires.</p>
+      @foreach ($lines($blockBody('feature_strip', "Signalement rapide | Deposez un dommage ou une reclamation en quelques etapes claires. | bi-lightning-charge-fill\nEspace securise | Vos dossiers, abonnements et retours restent accessibles depuis votre compte. | bi-shield-fill-check\nSuivi lisible | Consultez l'etat de vos signalements, dossiers et traitements. | bi-bar-chart-fill\nDialogue UP | Les Unites Partenaires disposent d'un espace pour traiter les demandes. | bi-people-fill")) as $featureLine)
+        @php
+          [$featureTitle, $featureText, $featureIcon] = $parts($featureLine, 3);
+        @endphp
+        <div class="col-6 col-md-3">
+          <div class="feature-card">
+            <div class="feature-icon-wrap {{ ['purple', 'green', 'orange', 'blue'][$loop->index % 4] }}"><i class="bi {{ $featureIcon ?: 'bi-check-circle-fill' }}"></i></div>
+            <h6>{{ $featureTitle }}</h6>
+            <p>{{ $featureText }}</p>
+          </div>
         </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="feature-card">
-          <div class="feature-icon-wrap green"><i class="bi bi-shield-fill-check"></i></div>
-          <h6>Espace securise</h6>
-          <p>Vos dossiers, abonnements et retours restent accessibles depuis votre compte.</p>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="feature-card">
-          <div class="feature-icon-wrap orange"><i class="bi bi-bar-chart-fill"></i></div>
-          <h6>Suivi lisible</h6>
-          <p>Consultez l'etat de vos signalements, dossiers et traitements.</p>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="feature-card">
-          <div class="feature-icon-wrap blue"><i class="bi bi-people-fill"></i></div>
-          <h6>Dialogue UP</h6>
-          <p>Les Unites Partenaires disposent d'un espace pour traiter les demandes.</p>
-        </div>
-      </div>
+      @endforeach
     </div>
   </div>
 </section>
+@endif
 
 <!-- ===== MANAGE SECTION ===== -->
+@if ($isVisible('manage'))
 <section class="section-manage" id="features">
   <div class="container">
     <div class="row align-items-center g-5">
       <div class="col-lg-6 order-lg-2">
-        <span class="badge-pill">Pourquoi MySignal ?</span>
-        <h2 class="section-title">Un seul espace pour suivre<br/>vos droits consommateur</h2>
-        <p class="section-sub">MySignal centralise les signalements, les dossiers ouverts, les abonnements annuels, les notifications et les retours d'experience.</p>
+        <span class="badge-pill">{{ $blockSubtitle('manage', 'Pourquoi MySignal ?') }}</span>
+        <h2 class="section-title">{!! nl2br(e($blockTitle('manage', 'Un seul espace pour suivre vos droits consommateur'))) !!}</h2>
+        <p class="section-sub">{{ $blockBody('manage', "MySignal centralise les signalements, les dossiers ouverts, les abonnements annuels, les notifications et les retours d'experience.") }}</p>
         <ul class="check-list ps-0 mb-4">
-          <li>Creation et suivi des signalements consommateurs</li>
-          <li>Notifications avant expiration des abonnements</li>
-          <li>Carte membre virtuelle avec QR code pour les abonnes actifs</li>
-          <li>Historique des abonnements et des REX</li>
-          <li>Parametrage par le Super Administrateur</li>
-          <li>Tableau de bord clair pour les UP et les consommateurs</li>
+          @foreach ($lines($blockMeta('manage', 'items', "Creation et suivi des signalements consommateurs\nNotifications avant expiration des abonnements\nCarte membre virtuelle avec QR code pour les abonnes actifs\nHistorique des abonnements et des REX\nParametrage par le Super Administrateur\nTableau de bord clair pour les UP et les consommateurs")) as $item)
+            <li>{{ $item }}</li>
+          @endforeach
         </ul>
-        <a href="#features" class="btn-primary-custom">En savoir plus <i class="bi bi-arrow-right ms-1"></i></a>
+        <a href="#features" class="btn-primary-custom">{{ $blockMeta('manage', 'button', 'En savoir plus') }} <i class="bi bi-arrow-right ms-1"></i></a>
       </div>
       <div class="col-lg-6 order-lg-1 text-center">
         <div class="phone-mockup-lg float">
@@ -801,8 +812,10 @@
     </div>
   </div>
 </section>
+@endif
 
 <!-- ===== SHARE SECTION ===== -->
+@if ($isVisible('share'))
 <section class="section-share">
   <div class="container">
     <div class="row align-items-center g-5">
@@ -810,83 +823,80 @@
         <div style="font-size:8rem;animation:float 3s ease-in-out infinite">📱</div>
       </div>
       <div class="col-lg-7">
-        <span class="badge-pill">Signalement guide</span>
-        <h2 class="section-title">Declarez un dommage<br/>et gardez la trace</h2>
-        <p class="section-sub">Le consommateur peut suivre chaque etape: depot, traitement, resolution, dossier ouvert et retour d'experience apres la prise en charge.</p>
+        <span class="badge-pill">{{ $blockSubtitle('share', 'Signalement guide') }}</span>
+        <h2 class="section-title">{!! nl2br(e($blockTitle('share', 'Declarez un dommage et gardez la trace'))) !!}</h2>
+        <p class="section-sub">{{ $blockBody('share', "Le consommateur peut suivre chaque etape: depot, traitement, resolution, dossier ouvert et retour d'experience apres la prise en charge.") }}</p>
         <div class="row g-3 mb-4">
+          @foreach ($lines($blockMeta('share', 'cards', "Depot simplifie | Un parcours clair pour signaler | 🔗\nDossier protege | Acces depuis votre espace | 🔒")) as $shareLine)
+            @php
+              [$shareTitle, $shareText, $shareIcon] = $parts($shareLine, 3);
+            @endphp
           <div class="col-6">
             <div style="background:var(--bg-light);border-radius:16px;padding:20px">
-              <div style="font-size:1.5rem;margin-bottom:8px">🔗</div>
-              <div style="font-weight:700;font-size:.85rem;margin-bottom:4px">Depot simplifie</div>
-              <div style="font-size:.78rem;color:var(--text-muted)">Un parcours clair pour signaler</div>
+              <div style="font-size:1.5rem;margin-bottom:8px">{{ $shareIcon ?: '•' }}</div>
+              <div style="font-weight:700;font-size:.85rem;margin-bottom:4px">{{ $shareTitle }}</div>
+              <div style="font-size:.78rem;color:var(--text-muted)">{{ $shareText }}</div>
             </div>
           </div>
-          <div class="col-6">
-            <div style="background:var(--bg-light);border-radius:16px;padding:20px">
-              <div style="font-size:1.5rem;margin-bottom:8px">🔒</div>
-              <div style="font-weight:700;font-size:.85rem;margin-bottom:4px">Dossier protege</div>
-              <div style="font-size:.78rem;color:var(--text-muted)">Acces depuis votre espace</div>
-            </div>
-          </div>
+          @endforeach
         </div>
-        <a href="#features" class="btn-primary-custom">Commencer <i class="bi bi-arrow-right ms-1"></i></a>
+        <a href="{{ route('public.auth') }}" class="btn-primary-custom">{{ $blockMeta('share', 'button', 'Commencer') }} <i class="bi bi-arrow-right ms-1"></i></a>
       </div>
     </div>
   </div>
 </section>
+@endif
 
 <!-- ===== DOWNLOAD BANNER ===== -->
+@if ($isVisible('access_banner'))
 <section class="download-banner">
   <div class="container position-relative" style="z-index:1">
-    <span class="badge-pill" style="background:rgba(255,255,255,.2);color:#fff;">Disponible en ligne</span>
-    <h2>Accedez a votre espace MySignal</h2>
-    <p>Activez votre abonnement, suivez vos signalements et retrouvez<br/>votre carte membre depuis votre profil.</p>
+    <span class="badge-pill" style="background:rgba(255,255,255,.2);color:#fff;">{{ $blockSubtitle('access_banner', 'Disponible en ligne') }}</span>
+    <h2>{{ $blockTitle('access_banner', 'Accedez a votre espace MySignal') }}</h2>
+    <p>{!! nl2br(e($blockBody('access_banner', 'Activez votre abonnement, suivez vos signalements et retrouvez votre carte membre depuis votre profil.'))) !!}</p>
     <div>
-      <a href="#" class="btn-store">
-        <i class="bi bi-apple"></i>
-        <div><div style="font-size:.65rem;opacity:.6">Espace</div><div style="font-weight:800;font-size:.9rem">Consommateur</div></div>
-      </a>
-      <a href="#" class="btn-store">
-        <i class="bi bi-google-play"></i>
-        <div><div style="font-size:.65rem;opacity:.6">Espace</div><div style="font-weight:800;font-size:.9rem">Unite Partenaire</div></div>
-      </a>
+      @foreach ($lines($blockMeta('access_banner', 'buttons', "Consommateur | Espace | bi-person\nUnite Partenaire | Espace | bi-building")) as $buttonLine)
+        @php
+          [$buttonTitle, $buttonSub, $buttonIcon] = $parts($buttonLine, 3);
+        @endphp
+        <a href="{{ route('public.auth') }}" class="btn-store">
+          <i class="bi {{ $buttonIcon ?: 'bi-person' }}"></i>
+          <div><div style="font-size:.65rem;opacity:.6">{{ $buttonSub }}</div><div style="font-weight:800;font-size:.9rem">{{ $buttonTitle }}</div></div>
+        </a>
+      @endforeach
     </div>
   </div>
 </section>
+@endif
 
 <!-- ===== APP FEATURES ===== -->
+@if ($isVisible('app_features'))
 <section class="section-app-features">
   <div class="container">
     <div class="row text-center mb-5">
       <div class="col-lg-6 mx-auto">
-        <span class="badge-pill">Ce que MySignal couvre</span>
-        <h2 class="section-title">Fonctionnalites MySignal</h2>
-        <p class="section-sub">Un parcours pense pour signaler, suivre, renouveler son abonnement et donner un retour apres resolution.</p>
+        <span class="badge-pill">{{ $blockSubtitle('app_features', 'Ce que MySignal couvre') }}</span>
+        <h2 class="section-title">{{ $blockTitle('app_features', 'Fonctionnalites MySignal') }}</h2>
+        <p class="section-sub">{{ $blockBody('app_features', 'Un parcours pense pour signaler, suivre, renouveler son abonnement et donner un retour apres resolution.') }}</p>
       </div>
     </div>
+    @php
+      $appFeatureItems = $lines($blockMeta('app_features', 'items', "Signalements encadres | Les consommateurs declarent les dommages avec les informations utiles au traitement. | bi-people\nNotifications utiles | Les UP sont prevenues avant expiration et gardent la main sur leur renouvellement. | bi-headset\nHistorique complet | Abonnements, statuts et REX restent consultables dans les espaces dedies. | bi-graph-up-arrow\nRenouvellement manuel | Le statut d'abonnement reste visible, avec une periode de grace d'une journee. | bi-calendar-check\nCarte membre | Les membres actifs disposent d'une carte virtuelle avec QR code sur leur profil. | bi-cloud-check\nParametrage SA | Le Super Administrateur configure les plans, modules, historiques et acces. | bi-puzzle"));
+    @endphp
     <div class="row align-items-center g-5">
       <div class="col-lg-4">
-        <div class="app-feature-item d-flex gap-3">
-          <div class="icon-box"><i class="bi bi-people"></i></div>
-          <div>
-            <h6>Signalements encadres</h6>
-            <p>Les consommateurs declarent les dommages avec les informations utiles au traitement.</p>
+        @foreach (array_slice($appFeatureItems, 0, 3) as $featureLine)
+          @php
+            [$featureTitle, $featureText, $featureIcon] = $parts($featureLine, 3);
+          @endphp
+          <div class="app-feature-item d-flex gap-3">
+            <div class="icon-box"><i class="bi {{ $featureIcon ?: 'bi-check2-circle' }}"></i></div>
+            <div>
+              <h6>{{ $featureTitle }}</h6>
+              <p>{{ $featureText }}</p>
+            </div>
           </div>
-        </div>
-        <div class="app-feature-item d-flex gap-3">
-          <div class="icon-box"><i class="bi bi-headset"></i></div>
-          <div>
-            <h6>Notifications utiles</h6>
-            <p>Les UP sont prevenues avant expiration et gardent la main sur leur renouvellement.</p>
-          </div>
-        </div>
-        <div class="app-feature-item d-flex gap-3">
-          <div class="icon-box"><i class="bi bi-graph-up-arrow"></i></div>
-          <div>
-            <h6>Historique complet</h6>
-            <p>Abonnements, statuts et REX restent consultables dans les espaces dedies.</p>
-          </div>
-        </div>
+        @endforeach
       </div>
       <div class="col-lg-4 text-center">
         <div class="phone-mockup-lg float" style="width:200px;margin:auto">
@@ -916,120 +926,81 @@
         </div>
       </div>
       <div class="col-lg-4">
-        <div class="app-feature-item d-flex gap-3">
-          <div class="icon-box" style="background:rgba(255,0,104,.1);color:var(--accent)"><i class="bi bi-calendar-check"></i></div>
-          <div>
-            <h6>Renouvellement manuel</h6>
-            <p>Le statut d'abonnement reste visible, avec une periode de grace d'une journee.</p>
+        @foreach (array_slice($appFeatureItems, 3, 3) as $featureLine)
+          @php
+            [$featureTitle, $featureText, $featureIcon] = $parts($featureLine, 3);
+          @endphp
+          <div class="app-feature-item d-flex gap-3">
+            <div class="icon-box" style="background:rgba(255,0,104,.1);color:var(--accent)"><i class="bi {{ $featureIcon ?: 'bi-check2-circle' }}"></i></div>
+            <div>
+              <h6>{{ $featureTitle }}</h6>
+              <p>{{ $featureText }}</p>
+            </div>
           </div>
-        </div>
-        <div class="app-feature-item d-flex gap-3">
-          <div class="icon-box" style="background:rgba(91,235,175,.18);color:#15955f"><i class="bi bi-cloud-check"></i></div>
-          <div>
-            <h6>Carte membre</h6>
-            <p>Les membres actifs disposent d'une carte virtuelle avec QR code sur leur profil.</p>
-          </div>
-        </div>
-        <div class="app-feature-item d-flex gap-3">
-          <div class="icon-box" style="background:rgba(37,111,143,.12);color:var(--primary-light)"><i class="bi bi-puzzle"></i></div>
-          <div>
-            <h6>Parametrage SA</h6>
-            <p>Le Super Administrateur configure les plans, modules, historiques et acces.</p>
-          </div>
-        </div>
+        @endforeach
       </div>
     </div>
   </div>
 </section>
+@endif
 
 <!-- ===== SCREENSHOTS ===== -->
+@if ($isVisible('screenshots'))
 <section class="section-screenshots" id="screenshots">
   <div class="container">
     <div class="row text-center mb-5">
       <div class="col-lg-6 mx-auto">
-        <span class="badge-pill">Apercu plateforme</span>
-        <h2 class="section-title">Ecrans essentiels</h2>
-        <p class="section-sub">Un apercu des espaces utiles pour suivre les signalements, abonnements, REX et parametres.</p>
+        <span class="badge-pill">{{ $blockSubtitle('screenshots', 'Apercu plateforme') }}</span>
+        <h2 class="section-title">{{ $blockTitle('screenshots', 'Ecrans essentiels') }}</h2>
+        <p class="section-sub">{{ $blockBody('screenshots', 'Un apercu des espaces utiles pour suivre les signalements, abonnements, REX et parametres.') }}</p>
       </div>
     </div>
     <div class="row g-4">
+      @foreach ($lines($blockMeta('screenshots', 'items', "Tableau de bord | 📈\nAbonnements | 👥\nSignalements | 💬\nParametres | ⚙️")) as $screenLine)
+        @php
+          [$screenLabel, $screenIcon] = $parts($screenLine, 2);
+        @endphp
       <div class="col-6 col-md-3">
         <div class="screenshot-card">
           <div class="screenshot-inner" style="background:linear-gradient(135deg,#eef8fb,#d9edf3)">
             <div style="text-align:center">
-              <div style="font-size:3rem">📈</div>
-              <div class="label mt-2">Tableau de bord</div>
+              <div style="font-size:3rem">{{ $screenIcon ?: '•' }}</div>
+              <div class="label mt-2">{{ $screenLabel }}</div>
             </div>
           </div>
         </div>
       </div>
-      <div class="col-6 col-md-3">
-        <div class="screenshot-card">
-          <div class="screenshot-inner" style="background:linear-gradient(135deg,#fff4e6,#ffe0b2)">
-            <div style="text-align:center">
-              <div style="font-size:3rem">👥</div>
-              <div class="label mt-2" style="background:var(--accent)">Abonnements</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="screenshot-card">
-          <div class="screenshot-inner" style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9)">
-            <div style="text-align:center">
-              <div style="font-size:3rem">💬</div>
-              <div class="label mt-2" style="background:#15955f">Signalements</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="screenshot-card">
-          <div class="screenshot-inner" style="background:linear-gradient(135deg,#e3f2fd,#bbdefb)">
-            <div style="text-align:center">
-              <div style="font-size:3rem">⚙️</div>
-              <div class="label mt-2" style="background:var(--primary-light)">Parametres</div>
-            </div>
-          </div>
-        </div>
-      </div>
+      @endforeach
     </div>
   </div>
 </section>
+@endif
 
 <!-- ===== WORK PROCESS ===== -->
+@if ($isVisible('process'))
 <section class="section-process">
   <div class="container">
     <div class="row text-center mb-5">
       <div class="col-lg-6 mx-auto">
-        <span class="badge-pill">Comment ca marche</span>
-        <h2 class="section-title">Parcours de traitement</h2>
-        <p class="section-sub">Un circuit simple pour declarer, suivre, resoudre et capitaliser les retours d'experience.</p>
+        <span class="badge-pill">{{ $blockSubtitle('process', 'Comment ca marche') }}</span>
+        <h2 class="section-title">{{ $blockTitle('process', 'Parcours de traitement') }}</h2>
+        <p class="section-sub">{{ $blockBody('process', "Un circuit simple pour declarer, suivre, resoudre et capitaliser les retours d'experience.") }}</p>
       </div>
     </div>
     <div class="row align-items-center g-5">
       <div class="col-lg-6">
-        <div class="process-step">
-          <div class="step-num">01</div>
-          <div>
-            <h6 style="font-weight:700;margin-bottom:6px">Depot du signalement</h6>
-            <p style="font-size:.85rem;color:var(--text-muted);margin:0">Le consommateur renseigne son dommage et garde une trace dans son espace personnel.</p>
+        @foreach ($lines($blockMeta('process', 'steps', "Depot du signalement | Le consommateur renseigne son dommage et garde une trace dans son espace personnel.\nTraitement du dossier | L'UP suit les demandes, gere son abonnement et consulte les informations utiles.\nResolution et REX | Apres resolution ou traitement, le consommateur partage son retour d'experience.")) as $stepLine)
+          @php
+            [$stepTitle, $stepText] = $parts($stepLine, 2);
+          @endphp
+          <div class="process-step">
+            <div class="step-num">{{ str_pad((string) ($loop->index + 1), 2, '0', STR_PAD_LEFT) }}</div>
+            <div>
+              <h6 style="font-weight:700;margin-bottom:6px">{{ $stepTitle }}</h6>
+              <p style="font-size:.85rem;color:var(--text-muted);margin:0">{{ $stepText }}</p>
+            </div>
           </div>
-        </div>
-        <div class="process-step">
-          <div class="step-num">02</div>
-          <div>
-            <h6 style="font-weight:700;margin-bottom:6px">Traitement du dossier</h6>
-            <p style="font-size:.85rem;color:var(--text-muted);margin:0">L'UP suit les demandes, gere son abonnement et consulte les informations utiles.</p>
-          </div>
-        </div>
-        <div class="process-step">
-          <div class="step-num">03</div>
-          <div>
-            <h6 style="font-weight:700;margin-bottom:6px">Resolution et REX</h6>
-            <p style="font-size:.85rem;color:var(--text-muted);margin:0">Apres resolution ou traitement, le consommateur partage son retour d'experience.</p>
-          </div>
-        </div>
+        @endforeach
       </div>
       <div class="col-lg-6 text-center">
         <div class="process-chart">
@@ -1039,56 +1010,46 @@
           </div>
         </div>
         <div class="d-flex justify-content-center gap-4 mt-4 flex-wrap">
-          <div class="d-flex align-items-center gap-2"><div style="width:12px;height:12px;border-radius:50%;background:var(--primary)"></div><span style="font-size:.78rem">Signalement</span></div>
-          <div class="d-flex align-items-center gap-2"><div style="width:12px;height:12px;border-radius:50%;background:var(--accent)"></div><span style="font-size:.78rem">Abonnement</span></div>
-          <div class="d-flex align-items-center gap-2"><div style="width:12px;height:12px;border-radius:50%;background:var(--yellow)"></div><span style="font-size:.78rem">Traitement</span></div>
-          <div class="d-flex align-items-center gap-2"><div style="width:12px;height:12px;border-radius:50%;background:var(--success)"></div><span style="font-size:.78rem">REX</span></div>
+          @foreach ($lines($blockMeta('process', 'legend', "Signalement\nAbonnement\nTraitement\nREX")) as $legend)
+            <div class="d-flex align-items-center gap-2"><div style="width:12px;height:12px;border-radius:50%;background:{{ ['var(--primary)', 'var(--accent)', 'var(--yellow)', 'var(--success)'][$loop->index % 4] }}"></div><span style="font-size:.78rem">{{ $legend }}</span></div>
+          @endforeach
         </div>
       </div>
     </div>
   </div>
 </section>
+@endif
 
 <!-- ===== STATS BANNER ===== -->
+@if ($isVisible('stats'))
 <section class="stats-banner">
   <div class="container">
     <div class="row text-center g-4">
-      <div class="col-6 col-md-3">
-        <div class="stat-item">
-          <div class="num">10K+</div>
-          <div class="lbl">Consommateurs accompagnes</div>
+      @foreach ($lines($blockBody('stats', "10K+ | Consommateurs accompagnes\n245 | Dossiers traites\n45+ | UP abonnees\n12+ | Modules actifs")) as $statLine)
+        @php
+          [$statValue, $statLabel] = $parts($statLine, 2);
+        @endphp
+        <div class="col-6 col-md-3">
+          <div class="stat-item">
+            <div class="num">{{ $statValue }}</div>
+            <div class="lbl">{{ $statLabel }}</div>
+          </div>
         </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="stat-item">
-          <div class="num">245</div>
-          <div class="lbl">Dossiers traites</div>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="stat-item">
-          <div class="num">45+</div>
-          <div class="lbl">UP abonnees</div>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="stat-item">
-          <div class="num">12+</div>
-          <div class="lbl">Modules actifs</div>
-        </div>
-      </div>
+      @endforeach
     </div>
   </div>
 </section>
+@endif
 
 <!-- ===== FAQ ===== -->
+@if ($isVisible('faq'))
 <section class="section-faq" id="faq">
   <div class="container">
     <div class="row text-center mb-5">
       <div class="col-lg-6 mx-auto">
-        <span class="badge-pill">Questions frequentes</span>
-        <h2 class="section-title">Comprendre MySignal</h2>
-        <p class="section-sub">Les points essentiels sur l'abonnement, le signalement, la carte membre et les REX.</p>
+        <span class="badge-pill">{{ $blockSubtitle('faq', 'Questions frequentes') }}</span>
+        <h2 class="section-title">{{ $blockTitle('faq', 'Comprendre MySignal') }}</h2>
+        <p class="section-sub">{{ $blockBody('faq', "Les points essentiels sur l'abonnement, le signalement, la carte membre et les REX.") }}</p>
       </div>
     </div>
     <div class="row align-items-center g-5">
@@ -1097,117 +1058,67 @@
       </div>
       <div class="col-lg-7">
         <div class="accordion" id="faqAccordion">
+          @foreach ($lines($blockMeta('faq', 'questions', "Comment activer mon espace MySignal ? | Creez votre compte, connectez-vous, puis suivez l'invitation d'abonnement. L'activation vous donne acces aux fonctions liees a votre profil.\nLe renouvellement est-il automatique ? | Non. Le renouvellement est manuel. Une notification est envoyee avant l'expiration, avec une periode de grace d'un jour.\nQuand puis-je faire un retour d'experience ? | Le REX est propose apres la resolution d'un dommage ou apres le traitement d'un dossier ouvert, si le module est autorise.\nQui peut obtenir la carte membre ? | Les membres eligibles avec un abonnement actif disposent d'une carte virtuelle visible dans leur profil, avec QR code.")) as $faqLine)
+            @php
+              [$question, $answer] = $parts($faqLine, 2);
+            @endphp
           <div class="accordion-item border-0 mb-3 rounded-3 overflow-hidden shadow-sm">
             <h2 class="accordion-header">
-              <button class="accordion-button rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
-                Comment activer mon espace MySignal ?
+              <button class="accordion-button {{ $loop->first ? '' : 'collapsed' }} rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#faq{{ $loop->iteration }}">
+                {{ $question }}
               </button>
             </h2>
-            <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+            <div id="faq{{ $loop->iteration }}" class="accordion-collapse collapse {{ $loop->first ? 'show' : '' }}" data-bs-parent="#faqAccordion">
               <div class="accordion-body" style="font-size:.87rem;color:var(--text-muted)">
-                Creez votre compte, connectez-vous, puis suivez l'invitation d'abonnement. L'activation vous donne acces aux fonctions liees a votre profil.
+                {{ $answer }}
               </div>
             </div>
           </div>
-          <div class="accordion-item border-0 mb-3 rounded-3 overflow-hidden shadow-sm">
-            <h2 class="accordion-header">
-              <button class="accordion-button collapsed rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
-                Le renouvellement est-il automatique ?
-              </button>
-            </h2>
-            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-              <div class="accordion-body" style="font-size:.87rem;color:var(--text-muted)">
-                Non. Le renouvellement est manuel. Une notification est envoyee avant l'expiration, avec une periode de grace d'un jour.
-              </div>
-            </div>
-          </div>
-          <div class="accordion-item border-0 mb-3 rounded-3 overflow-hidden shadow-sm">
-            <h2 class="accordion-header">
-              <button class="accordion-button collapsed rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
-                Quand puis-je faire un retour d'experience ?
-              </button>
-            </h2>
-            <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-              <div class="accordion-body" style="font-size:.87rem;color:var(--text-muted)">
-                Le REX est propose apres la resolution d'un dommage ou apres le traitement d'un dossier ouvert, si le module est autorise.
-              </div>
-            </div>
-          </div>
-          <div class="accordion-item border-0 mb-3 rounded-3 overflow-hidden shadow-sm">
-            <h2 class="accordion-header">
-              <button class="accordion-button collapsed rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
-                Qui peut obtenir la carte membre ?
-              </button>
-            </h2>
-            <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-              <div class="accordion-body" style="font-size:.87rem;color:var(--text-muted)">
-                Les membres eligibles avec un abonnement actif disposent d'une carte virtuelle visible dans leur profil, avec QR code.
-              </div>
-            </div>
-          </div>
+          @endforeach
         </div>
       </div>
     </div>
   </div>
 </section>
+@endif
 
 <!-- ===== TESTIMONIALS ===== -->
+@if ($isVisible('testimonials'))
 <section class="section-testimonials" id="testimonials">
   <div class="container">
     <div class="row text-center mb-5">
       <div class="col-lg-6 mx-auto">
-        <span class="badge-pill" style="background:rgba(255,255,255,.15);color:#fff;">Retours d'experience</span>
-        <h2 class="section-title" style="color:#fff">Ce que les utilisateurs<br/>peuvent partager</h2>
+        <span class="badge-pill" style="background:rgba(255,255,255,.15);color:#fff;">{{ $blockSubtitle('testimonials', "Retours d'experience") }}</span>
+        <h2 class="section-title" style="color:#fff">{!! nl2br(e($blockTitle('testimonials', 'Ce que les utilisateurs peuvent partager'))) !!}</h2>
       </div>
     </div>
     <div class="row g-4">
+      @foreach ($lines($blockMeta('testimonials', 'items', "Le suivi m'a permis de savoir exactement ou en etait mon signalement et quand mon dossier a ete traite. | Consommateur | Signalement resolu | 👩\nLes notifications d'expiration et l'historique des abonnements rendent la gestion plus claire pour notre equipe. | Unite Partenaire | Abonnement actif | 👨\nApres traitement de mon dossier, j'ai pu laisser un REX simple sur le delai, la communication et la qualite de prise en charge. | Membre consommateur | REX apres dossier | 👩")) as $testimonialLine)
+        @php
+          [$testimonialText, $testimonialAuthor, $testimonialRole, $testimonialAvatar] = $parts($testimonialLine, 4);
+        @endphp
       <div class="col-md-4">
         <div class="testimonial-card">
           <div class="quote">"</div>
-          <p>Le suivi m'a permis de savoir exactement ou en etait mon signalement et quand mon dossier a ete traite.</p>
+          <p>{{ $testimonialText }}</p>
           <div class="stars mb-3">★★★★★</div>
           <div class="author">
-            <div class="author-avatar">👩</div>
+            <div class="author-avatar">{{ $testimonialAvatar ?: '👤' }}</div>
             <div>
-              <div class="author-name">Consommateur</div>
-              <div class="author-role">Signalement resolu</div>
+              <div class="author-name">{{ $testimonialAuthor }}</div>
+              <div class="author-role">{{ $testimonialRole }}</div>
             </div>
           </div>
         </div>
       </div>
-      <div class="col-md-4">
-        <div class="testimonial-card">
-          <div class="quote">"</div>
-          <p>Les notifications d'expiration et l'historique des abonnements rendent la gestion plus claire pour notre equipe.</p>
-          <div class="stars mb-3">★★★★★</div>
-          <div class="author">
-            <div class="author-avatar">👨</div>
-            <div>
-              <div class="author-name">Unite Partenaire</div>
-              <div class="author-role">Abonnement actif</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="testimonial-card">
-          <div class="quote">"</div>
-          <p>Apres traitement de mon dossier, j'ai pu laisser un REX simple sur le delai, la communication et la qualite de prise en charge.</p>
-          <div class="stars mb-3">★★★★★</div>
-          <div class="author">
-            <div class="author-avatar">👩</div>
-            <div>
-              <div class="author-name">Membre consommateur</div>
-              <div class="author-role">REX apres dossier</div>
-            </div>
-          </div>
-        </div>
-      </div>
+      @endforeach
     </div>
   </div>
 </section>
+@endif
 
 <!-- ===== CTA SECTION ===== -->
+@if ($isVisible('cta'))
 <section class="section-cta">
   <div class="container">
     <div class="cta-box">
@@ -1216,111 +1127,81 @@
           <div class="cta-illustration">💡</div>
         </div>
         <div class="col-md-6">
-          <h3 style="font-weight:800;margin-bottom:12px">Pret a suivre vos signalements autrement ?</h3>
-          <p style="color:var(--text-muted);font-size:.88rem;margin:0">MySignal rassemble le signalement, le suivi, l'abonnement annuel, la carte membre et les retours d'experience dans un meme parcours.</p>
+          <h3 style="font-weight:800;margin-bottom:12px">{{ $blockTitle('cta', 'Pret a suivre vos signalements autrement ?') }}</h3>
+          <p style="color:var(--text-muted);font-size:.88rem;margin:0">{{ $blockBody('cta', "MySignal rassemble le signalement, le suivi, l'abonnement annuel, la carte membre et les retours d'experience dans un meme parcours.") }}</p>
         </div>
         <div class="col-md-3 text-md-end">
-          <a href="#features" class="btn-primary-custom">Activer mon espace</a>
+          <a href="{{ route('public.auth') }}" class="btn-primary-custom">{{ $blockMeta('cta', 'button', 'Activer mon espace') }}</a>
         </div>
       </div>
     </div>
   </div>
 </section>
+@endif
 
 <!-- ===== NEWS ===== -->
+@if ($isVisible('news'))
 <section class="section-news" id="news">
   <div class="container">
     <div class="row text-center mb-5">
       <div class="col-lg-6 mx-auto">
-        <span class="badge-pill">Actualites</span>
-        <h2 class="section-title">Points forts MySignal</h2>
-        <p class="section-sub">Les modules importants pour la protection consommateur, les UP et l'administration.</p>
+        <span class="badge-pill">{{ $blockSubtitle('news', 'Actualites') }}</span>
+        <h2 class="section-title">{{ $blockTitle('news', 'Points forts MySignal') }}</h2>
+        <p class="section-sub">{{ $blockBody('news', "Les modules importants pour la protection consommateur, les UP et l'administration.") }}</p>
       </div>
     </div>
     <div class="row g-4">
+      @foreach ($lines($blockMeta('news', 'items', "Signalement | Un parcours clair pour declarer un dommage | Les consommateurs peuvent deposer un signalement et retrouver son evolution dans leur tableau de bord. | 📱 | 10 avril 2026\nAbonnement | Un plan annuel parametrable par le SA | Le Super Administrateur gere les plans, les statuts, les notifications et l'historique des UP. | 💡 | 5 avril 2026\nREX | Des retours apres resolution ou traitement | Les REX aident a mesurer le delai, la communication, la qualite et l'equite du traitement. | 🚀 | 28 mars 2026")) as $newsLine)
+        @php
+          [$newsTag, $newsTitle, $newsText, $newsIcon, $newsDate] = $parts($newsLine, 5);
+        @endphp
       <div class="col-md-4">
         <div class="news-card">
-          <div class="news-thumb c1">📱</div>
+          <div class="news-thumb c{{ ($loop->index % 3) + 1 }}">{{ $newsIcon ?: '•' }}</div>
           <div class="news-body">
-            <span class="news-tag">Signalement</span>
-            <h6>Un parcours clair pour declarer un dommage</h6>
-            <p>Les consommateurs peuvent deposer un signalement et retrouver son evolution dans leur tableau de bord.</p>
+            <span class="news-tag">{{ $newsTag }}</span>
+            <h6>{{ $newsTitle }}</h6>
+            <p>{{ $newsText }}</p>
             <div class="news-meta d-flex align-items-center gap-2">
-              <i class="bi bi-calendar3"></i> 10 avril 2026
+              <i class="bi bi-calendar3"></i> {{ $newsDate }}
               <span>•</span> <i class="bi bi-clock"></i> 5 min read
             </div>
           </div>
         </div>
       </div>
-      <div class="col-md-4">
-        <div class="news-card">
-          <div class="news-thumb c2">💡</div>
-          <div class="news-body">
-            <span class="news-tag" style="background:rgba(255,0,104,.1);color:var(--accent)">Abonnement</span>
-            <h6>Un plan annuel parametrable par le SA</h6>
-            <p>Le Super Administrateur gere les plans, les statuts, les notifications et l'historique des UP.</p>
-            <div class="news-meta d-flex align-items-center gap-2">
-              <i class="bi bi-calendar3"></i> 5 avril 2026
-              <span>•</span> <i class="bi bi-clock"></i> 8 min read
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="news-card">
-          <div class="news-thumb c3">🚀</div>
-          <div class="news-body">
-            <span class="news-tag" style="background:rgba(91,235,175,.18);color:#15955f">REX</span>
-            <h6>Des retours apres resolution ou traitement</h6>
-            <p>Les REX aident a mesurer le delai, la communication, la qualite et l'equite du traitement.</p>
-            <div class="news-meta d-flex align-items-center gap-2">
-              <i class="bi bi-calendar3"></i> 28 mars 2026
-              <span>•</span> <i class="bi bi-clock"></i> 12 min read
-            </div>
-          </div>
-        </div>
-      </div>
+      @endforeach
     </div>
   </div>
 </section>
+@endif
 
 <!-- ===== CLIENTS ===== -->
+@if ($isVisible('clients'))
 <section class="section-clients">
   <div class="container">
     <div class="text-center mb-5">
-      <h2 class="section-title">Domaines couverts</h2>
-      <p class="section-sub">MySignal accompagne plusieurs univers de consommation et de services.</p>
+      <h2 class="section-title">{{ $blockTitle('clients', 'Domaines couverts') }}</h2>
+      <p class="section-sub">{{ $blockBody('clients', 'MySignal accompagne plusieurs univers de consommation et de services.') }}</p>
     </div>
     <div class="row align-items-center g-4">
-      <div class="col-6 col-md-2">
-        <div class="client-logo">COMMERCE</div>
-      </div>
-      <div class="col-6 col-md-2">
-        <div class="client-logo">SERVICES</div>
-      </div>
-      <div class="col-6 col-md-2">
-        <div class="client-logo">ASSURANCE</div>
-      </div>
-      <div class="col-6 col-md-2">
-        <div class="client-logo">TRANSPORT</div>
-      </div>
-      <div class="col-6 col-md-2">
-        <div class="client-logo">SANTE</div>
-      </div>
-      <div class="col-6 col-md-2">
-        <div class="client-logo">ENERGIE</div>
-      </div>
+      @foreach ($lines($blockMeta('clients', 'items', "COMMERCE\nSERVICES\nASSURANCE\nTRANSPORT\nSANTE\nENERGIE")) as $client)
+        <div class="col-6 col-md-2">
+          <div class="client-logo">{{ $client }}</div>
+        </div>
+      @endforeach
     </div>
   </div>
 </section>
+@endif
 
 <!-- ===== FOOTER ===== -->
+@if ($isVisible('footer'))
 <footer>
   <div class="container">
     <div class="row g-5">
       <div class="col-lg-4">
-        <div class="brand">My<span>Signal</span></div>
-        <p>La plateforme qui facilite le signalement, le suivi des dossiers, l'abonnement annuel des UP et les retours d'experience.</p>
+        <div class="brand">{{ $blockTitle('footer', 'My') }}<span></span></div>
+        <p>{{ $blockBody('footer', "La plateforme qui facilite le signalement, le suivi des dossiers, l'abonnement annuel des UP et les retours d'experience.") }}</p>
         <div class="footer-social">
           <a href="#"><i class="bi bi-facebook"></i></a>
           <a href="#"><i class="bi bi-twitter-x"></i></a>
@@ -1330,35 +1211,41 @@
         </div>
       </div>
       <div class="col-6 col-lg-2">
-        <h6>MySignal</h6>
+        <h6>{{ $blockMeta('footer', 'column_1_title', 'MySignal') }}</h6>
         <ul>
-          <li><a href="#">A propos</a></li>
-          <li><a href="#">Protection consommateur</a></li>
-          <li><a href="#">Unites Partenaires</a></li>
-          <li><a href="#">Contact</a></li>
+          @foreach ($lines($blockMeta('footer', 'column_1_links', "A propos | #\nProtection consommateur | #\nUnites Partenaires | #\nContact | #")) as $footerLine)
+            @php
+              [$footerLabel, $footerUrl] = $parts($footerLine, 2);
+            @endphp
+            <li><a href="{{ $footerUrl ?: '#' }}">{{ $footerLabel }}</a></li>
+          @endforeach
         </ul>
       </div>
       <div class="col-6 col-lg-2">
-        <h6>Modules</h6>
+        <h6>{{ $blockMeta('footer', 'column_2_title', 'Modules') }}</h6>
         <ul>
-          <li><a href="#features">Fonctionnalites</a></li>
-          <li><a href="#faq">FAQ</a></li>
-          <li><a href="#testimonials">REX</a></li>
-          <li><a href="#screenshots">Carte membre</a></li>
+          @foreach ($lines($blockMeta('footer', 'column_2_links', "Fonctionnalites | #features\nFAQ | #faq\nREX | #testimonials\nCarte membre | #screenshots")) as $footerLine)
+            @php
+              [$footerLabel, $footerUrl] = $parts($footerLine, 2);
+            @endphp
+            <li><a href="{{ $footerUrl ?: '#' }}">{{ $footerLabel }}</a></li>
+          @endforeach
         </ul>
       </div>
       <div class="col-6 col-lg-2">
-        <h6>Legal</h6>
+        <h6>{{ $blockMeta('footer', 'column_3_title', 'Legal') }}</h6>
         <ul>
-          <li><a href="#">Confidentialite</a></li>
-          <li><a href="#">Conditions d'utilisation</a></li>
-          <li><a href="#">Cookies</a></li>
-          <li><a href="#">Donnees personnelles</a></li>
+          @foreach ($lines($blockMeta('footer', 'column_3_links', "Confidentialite | #\nConditions d'utilisation | #\nCookies | #\nDonnees personnelles | #")) as $footerLine)
+            @php
+              [$footerLabel, $footerUrl] = $parts($footerLine, 2);
+            @endphp
+            <li><a href="{{ $footerUrl ?: '#' }}">{{ $footerLabel }}</a></li>
+          @endforeach
         </ul>
       </div>
       <div class="col-6 col-lg-2">
-        <h6>Alertes</h6>
-        <p style="font-size:.82rem">Recevez les informations importantes sur les modules MySignal.</p>
+        <h6>{{ $blockMeta('footer', 'newsletter_title', 'Alertes') }}</h6>
+        <p style="font-size:.82rem">{{ $blockMeta('footer', 'newsletter_text', 'Recevez les informations importantes sur les modules MySignal.') }}</p>
         <div class="newsletter-form flex-column">
           <input type="email" placeholder="Votre adresse email" class="mb-2">
           <button>S'inscrire <i class="bi bi-send-fill ms-1"></i></button>
@@ -1369,12 +1256,13 @@
       <div class="row align-items-center">
         <div class="col-md-6 text-md-start">© 2026 MySignal. Tous droits reserves.</div>
         <div class="col-md-6 text-md-end mt-2 mt-md-0">
-          Plateforme de protection consommateur
+          {{ $blockSubtitle('footer', 'Plateforme de protection consommateur') }}
         </div>
       </div>
     </div>
   </div>
 </footer>
+@endif
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
