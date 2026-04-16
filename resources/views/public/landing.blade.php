@@ -634,7 +634,7 @@
         <li class="nav-item"><a class="nav-link" href="#screenshots">Apercus</a></li>
         <li class="nav-item"><a class="nav-link" href="#faq">FAQ</a></li>
         <li class="nav-item"><a class="nav-link" href="#news">Actualites</a></li>
-        <li class="nav-item ms-2"><a class="nav-link btn-nav" href="#features">Commencer</a></li>
+        <li class="nav-item ms-2"><a class="nav-link btn-nav" href="{{ route('public.dashboard') }}">Se connecter et signaler maintenant</a></li>
       </ul>
     </div>
   </div>
