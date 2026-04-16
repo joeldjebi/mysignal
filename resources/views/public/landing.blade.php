@@ -632,11 +632,9 @@
       <ul class="navbar-nav ms-auto align-items-center gap-1">
         <li class="nav-item"><a class="nav-link" href="#features">Fonctionnalites</a></li>
         <li class="nav-item"><a class="nav-link" href="#screenshots">Apercus</a></li>
-        <li class="nav-item"><a class="nav-link" href="#pricing">Abonnement</a></li>
         <li class="nav-item"><a class="nav-link" href="#faq">FAQ</a></li>
-        <li class="nav-item"><a class="nav-link" href="#team">UP</a></li>
         <li class="nav-item"><a class="nav-link" href="#news">Actualites</a></li>
-        <li class="nav-item ms-2"><a class="nav-link btn-nav" href="#pricing">S'abonner</a></li>
+        <li class="nav-item ms-2"><a class="nav-link btn-nav" href="#features">Commencer</a></li>
       </ul>
     </div>
   </div>
@@ -651,7 +649,7 @@
         <h1 class="hero-title fade-up">Signalez, <span>suivez</span> et faites valoir vos droits</h1>
         <p class="hero-text fade-up delay-1">MySignal accompagne les consommateurs et les Unites Partenaires dans le suivi des signalements, des abonnements, des REX et des dossiers traites.</p>
         <div class="fade-up delay-2">
-          <a href="#pricing" class="btn-hero-primary">Activer mon acces</a>
+          <a href="#features" class="btn-hero-primary">Activer mon acces</a>
           <a href="#" class="btn-hero-outline">
             <i class="bi bi-play-circle-fill me-1"></i> Voir le parcours
           </a>
@@ -831,7 +829,7 @@
             </div>
           </div>
         </div>
-        <a href="#pricing" class="btn-primary-custom">Commencer <i class="bi bi-arrow-right ms-1"></i></a>
+        <a href="#features" class="btn-primary-custom">Commencer <i class="bi bi-arrow-right ms-1"></i></a>
       </div>
     </div>
   </div>
@@ -1083,78 +1081,6 @@
   </div>
 </section>
 
-<!-- ===== PRICING ===== -->
-<section class="section-pricing" id="pricing">
-  <div class="container">
-    <div class="row text-center mb-5">
-      <div class="col-lg-6 mx-auto">
-        <span class="badge-pill">Abonnement annuel</span>
-        <h2 class="section-title">Un plan simple pour demarrer</h2>
-        <p class="section-sub">Le paiement reste gere hors application pour le moment. Le renouvellement est manuel et le statut reste visible dans l'espace UP.</p>
-      </div>
-    </div>
-    <div class="row g-4 justify-content-center">
-      <!-- Starter -->
-      <div class="col-md-4">
-        <div class="pricing-card">
-          <div class="plan-name text-muted">Decouverte</div>
-          <div class="price">0<span> FCFA</span></div>
-          <div class="per">Presentation du service</div>
-          <ul>
-            <li>Consultation des informations publiques</li>
-            <li>Acces au formulaire de contact</li>
-            <li>Presentation du parcours</li>
-            <li>FAQ disponible</li>
-            <li>Activation apres validation</li>
-          </ul>
-          <a href="#" class="btn-pricing">Demander l'acces</a>
-        </div>
-      </div>
-      <!-- Popular -->
-      <div class="col-md-4">
-        <div class="position-relative">
-          <div style="position:absolute;top:-16px;left:50%;transform:translateX(-50%);background:var(--yellow);color:#fff;border-radius:20px;padding:4px 16px;font-size:.75rem;font-weight:700;white-space:nowrap;z-index:1">Plan actuel</div>
-          <div class="pricing-card popular">
-            <div class="plan-name" style="color:rgba(255,255,255,.8)">UP annuel</div>
-            <div class="price">1<span> an</span></div>
-            <div class="per">Renouvellement manuel</div>
-            <ul>
-              <li>Signalements accessibles</li>
-              <li>Notifications avant expiration</li>
-              <li>Periode de grace d'un jour</li>
-              <li>Historique des abonnements</li>
-              <li>Carte membre active pour les droits eligibles</li>
-              <li>Acces aux REX autorises par le SA</li>
-            </ul>
-            <a href="#" class="btn-pricing">Prendre l'abonnement</a>
-          </div>
-        </div>
-      </div>
-      <!-- Pro -->
-      <div class="col-md-4">
-        <div class="pricing-card">
-          <div class="plan-name text-muted">Sur mesure</div>
-          <div class="price">SA<span></span></div>
-          <div class="per">Parametrage administratif</div>
-          <ul>
-            <li>Creation des plans</li>
-            <li>Activation des modules par utilisateur</li>
-            <li>Suivi des statuts UP</li>
-            <li>Historique global des abonnements</li>
-            <li>Historique global des REX</li>
-            <li>Parametrage des notifications</li>
-          </ul>
-          <a href="#" class="btn-pricing">Contacter le SA</a>
-        </div>
-      </div>
-    </div>
-    <p class="text-center mt-4" style="color:var(--text-muted);font-size:.85rem">
-      <i class="bi bi-question-circle me-1"></i>
-      Besoin d'aide pour activer votre espace ? <a href="#" style="color:var(--primary);font-weight:600">Contactez l'equipe MySignal</a>
-    </p>
-  </div>
-</section>
-
 <!-- ===== FAQ ===== -->
 <section class="section-faq" id="faq">
   <div class="container">
@@ -1281,69 +1207,6 @@
   </div>
 </section>
 
-<!-- ===== TEAM ===== -->
-<section class="section-team" id="team">
-  <div class="container">
-    <div class="row text-center mb-5">
-      <div class="col-lg-6 mx-auto">
-        <span class="badge-pill">Ecosysteme</span>
-        <h2 class="section-title">Les profils MySignal</h2>
-        <p class="section-sub">Chaque espace a un role clair dans le suivi des droits, des traitements et des retours.</p>
-      </div>
-    </div>
-    <div class="row g-4 justify-content-center">
-      <div class="col-6 col-md-3">
-        <div class="team-card">
-          <div class="team-avatar">👨‍💼</div>
-          <h6>Consommateur</h6>
-          <div class="role">Signale et suit ses dossiers</div>
-          <div class="social-links">
-            <a href="#"><i class="bi bi-twitter-x"></i></a>
-            <a href="#"><i class="bi bi-linkedin"></i></a>
-            <a href="#"><i class="bi bi-github"></i></a>
-          </div>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="team-card">
-          <div class="team-avatar" style="background:linear-gradient(135deg,#ff0068,#ff6aa1)">👩‍💼</div>
-          <h6>Unite Partenaire</h6>
-          <div class="role">Traite les signalements</div>
-          <div class="social-links">
-            <a href="#"><i class="bi bi-twitter-x"></i></a>
-            <a href="#"><i class="bi bi-linkedin"></i></a>
-            <a href="#"><i class="bi bi-dribbble"></i></a>
-          </div>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="team-card">
-          <div class="team-avatar" style="background:linear-gradient(135deg,#15955f,#5bebaf)">👨‍💻</div>
-          <h6>Super Admin</h6>
-          <div class="role">Parametre les modules</div>
-          <div class="social-links">
-            <a href="#"><i class="bi bi-twitter-x"></i></a>
-            <a href="#"><i class="bi bi-linkedin"></i></a>
-            <a href="#"><i class="bi bi-github"></i></a>
-          </div>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="team-card">
-          <div class="team-avatar" style="background:linear-gradient(135deg,#256f8f,#6ab8d7)">🧾</div>
-          <h6>Carte membre</h6>
-          <div class="role">Reduction pour abonnes actifs</div>
-          <div class="social-links">
-            <a href="#"><i class="bi bi-twitter-x"></i></a>
-            <a href="#"><i class="bi bi-linkedin"></i></a>
-            <a href="#"><i class="bi bi-instagram"></i></a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
 <!-- ===== CTA SECTION ===== -->
 <section class="section-cta">
   <div class="container">
@@ -1357,7 +1220,7 @@
           <p style="color:var(--text-muted);font-size:.88rem;margin:0">MySignal rassemble le signalement, le suivi, l'abonnement annuel, la carte membre et les retours d'experience dans un meme parcours.</p>
         </div>
         <div class="col-md-3 text-md-end">
-          <a href="#pricing" class="btn-primary-custom">Activer mon espace</a>
+          <a href="#features" class="btn-primary-custom">Activer mon espace</a>
         </div>
       </div>
     </div>
@@ -1479,7 +1342,7 @@
         <h6>Modules</h6>
         <ul>
           <li><a href="#features">Fonctionnalites</a></li>
-          <li><a href="#pricing">Abonnement</a></li>
+          <li><a href="#faq">FAQ</a></li>
           <li><a href="#testimonials">REX</a></li>
           <li><a href="#screenshots">Carte membre</a></li>
         </ul>
