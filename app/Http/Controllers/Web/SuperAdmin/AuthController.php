@@ -97,6 +97,7 @@ class AuthController extends Controller
 
         foreach ([
             'SA_DASHBOARD_VIEW' => 'super-admin.dashboard',
+            'SA_LANDING_PAGE_MANAGE' => 'super-admin.landing-page.edit',
             'SA_SYSTEM_USERS_MANAGE' => 'super-admin.system-users.index',
             'SA_REPARATION_CASES_MANAGE' => 'super-admin.reparation-cases.index',
             'SA_PAYMENTS_VIEW' => 'super-admin.payments.index',

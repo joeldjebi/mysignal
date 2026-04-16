@@ -258,6 +258,12 @@
                         <span><span class="d-block fw-semibold">Dashboard</span><span class="small text-white-50">Vue d'ensemble</span></span>
                     </a>
                 @endif
+                @if ($authUser?->hasPermissionCode('SA_LANDING_PAGE_MANAGE'))
+                    <a href="{{ route('super-admin.landing-page.edit') }}" class="nav-pill {{ request()->routeIs('super-admin.landing-page.*') ? 'active' : '' }}">
+                        <span class="nav-icon">LP</span>
+                        <span><span class="d-block fw-semibold">Landing page</span><span class="small text-white-50">Accueil public</span></span>
+                    </a>
+                @endif
 
                 <div class="sidebar-label">Geographie</div>
                 @if ($authUser?->hasPermissionCode('SA_COUNTRIES_MANAGE'))

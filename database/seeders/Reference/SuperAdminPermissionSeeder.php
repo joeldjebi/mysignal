@@ -12,6 +12,7 @@ class SuperAdminPermissionSeeder extends Seeder
         foreach ([
             ['code' => 'SA_ACCESS_PORTAL', 'name' => 'Acceder au portail SA', 'description' => 'Permet de se connecter et d acceder au back office super admin.'],
             ['code' => 'SA_DASHBOARD_VIEW', 'name' => 'Voir dashboard SA', 'description' => 'Permet de consulter le dashboard super admin.'],
+            ['code' => 'SA_LANDING_PAGE_MANAGE', 'name' => 'Gerer landing page', 'description' => 'Permet de modifier totalement la landing page publique.'],
             ['code' => 'SA_COUNTRIES_MANAGE', 'name' => 'Gerer pays', 'description' => 'Permet de gerer les pays.'],
             ['code' => 'SA_CITIES_MANAGE', 'name' => 'Gerer villes', 'description' => 'Permet de gerer les villes.'],
             ['code' => 'SA_COMMUNES_MANAGE', 'name' => 'Gerer communes', 'description' => 'Permet de gerer les communes.'],

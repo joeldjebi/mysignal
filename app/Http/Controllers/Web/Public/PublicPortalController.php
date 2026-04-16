@@ -9,11 +9,23 @@ use App\Models\BusinessSector;
 use App\Models\PublicUserType;
 use App\Models\Commune;
 use App\Support\ApplicationCatalog;
+use Illuminate\Http\Response;
 
 class PublicPortalController extends Controller
 {
     public function landing()
     {
+        $customLandingPage = ApplicationContentBlock::query()
+            ->whereNull('application_id')
+            ->where('page_key', 'public_landing')
+            ->where('block_key', 'custom_page')
+            ->where('status', 'active')
+            ->first();
+
+        if ($customLandingPage && filled($customLandingPage->body)) {
+            return $this->customLandingResponse($customLandingPage);
+        }
+
         return view('public.landing', [
             'applications' => Application::query()
                 ->where('status', 'active')
@@ -43,6 +55,47 @@ class PublicPortalController extends Controller
                 ->get()
                 ->keyBy('block_key'),
         ]);
+    }
+
+    private function customLandingResponse(ApplicationContentBlock $landingPage): Response
+    {
+        $html = strtr($landingPage->body, [
+            '{{ logo_url }}' => asset('image/logo/logo-my-signal.png'),
+            '{{ app_name }}' => config('app.name', 'MySignal'),
+            '{{ primary_color }}' => $landingPage->meta['primary_color'] ?? '#183447',
+            '{{ secondary_color }}' => $landingPage->meta['secondary_color'] ?? '#256f8f',
+            '{{ accent_color }}' => $landingPage->meta['accent_color'] ?? '#ff0068',
+        ]);
+
+        if (! str_contains(strtolower($html), '<html')) {
+            $title = e($landingPage->title ?: config('app.name', 'MySignal'));
+            $primaryColor = e($landingPage->meta['primary_color'] ?? '#183447');
+            $secondaryColor = e($landingPage->meta['secondary_color'] ?? '#256f8f');
+            $accentColor = e($landingPage->meta['accent_color'] ?? '#ff0068');
+
+            $html = <<<HTML
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{$title}</title>
+    <style>
+        :root {
+            --primary: {$primaryColor};
+            --secondary: {$secondaryColor};
+            --accent: {$accentColor};
+        }
+    </style>
+</head>
+<body>
+{$html}
+</body>
+</html>
+HTML;
+        }
+
+        return response($html);
     }
 
     public function dashboard()

@@ -24,6 +24,7 @@ use App\Http\Controllers\Web\SuperAdmin\ActivityLogController as SuperAdminActiv
 use App\Http\Controllers\Web\SuperAdmin\InstitutionAdminController;
 use App\Http\Controllers\Web\SuperAdmin\InternalAccessController;
 use App\Http\Controllers\Web\SuperAdmin\InternalHomeController;
+use App\Http\Controllers\Web\SuperAdmin\LandingPageController;
 use App\Http\Controllers\Web\SuperAdmin\ApplicationController;
 use App\Http\Controllers\Web\SuperAdmin\OrganizationController;
 use App\Http\Controllers\Web\SuperAdmin\OrganizationTypeSignalSlaController;
@@ -156,6 +157,9 @@ Route::prefix('sa')->name('super-admin.')->group(function (): void {
             ->middleware('super_admin_permission:SA_DASHBOARD_VIEW')
             ->name('dashboard');
         Route::post('logout', [SuperAdminAuthController::class, 'destroy'])->name('logout');
+
+        Route::get('landing-page', [LandingPageController::class, 'edit'])->middleware('super_admin_permission:SA_LANDING_PAGE_MANAGE')->name('landing-page.edit');
+        Route::put('landing-page', [LandingPageController::class, 'update'])->middleware('super_admin_permission:SA_LANDING_PAGE_MANAGE')->name('landing-page.update');
 
         Route::resource('countries', CountryController::class)->except(['create', 'show'])->middleware('super_admin_permission:SA_COUNTRIES_MANAGE');
         Route::patch('countries/{country}/toggle-status', [CountryController::class, 'toggleStatus'])->middleware('super_admin_permission:SA_COUNTRIES_MANAGE')->name('countries.toggle-status');
