@@ -13,9 +13,10 @@ class RequestPublicOtpAction
 {
     public function handle(string $phone, OtpPurpose $purpose = OtpPurpose::Registration): OtpRequestResult
     {
-        $code = app()->environment('local', 'testing')
-            ? '1234'
-            : (string) random_int(100000, 999999);
+        $digits = max(4, (int) config('services.public_auth.otp_digits', 4));
+        $min = 10 ** ($digits - 1);
+        $max = (10 ** $digits) - 1;
+        $code = (string) random_int($min, $max);
         $expiresAt = CarbonImmutable::now()->addMinutes(5);
 
         DB::transaction(function () use ($phone, $purpose, $code, $expiresAt): void {
