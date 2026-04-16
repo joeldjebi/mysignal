@@ -426,9 +426,236 @@
             }
             .hidden { display:none !important; }
             .toast-container { z-index:1090; }
+            .apdash-page {
+                --app-purple: #6f2cff;
+                --app-purple-dark: #4c16d8;
+                --app-purple-soft: #f3edff;
+                --app-pink: #ff4fa3;
+                --app-blue: #20b8ff;
+                --app-ink: #1e2240;
+                --app-muted: #7b8094;
+                color: var(--app-ink);
+            }
+            .apdash-page .glass-nav {
+                border-radius: 0;
+                box-shadow: none;
+                background: linear-gradient(135deg, var(--app-purple-dark), var(--app-purple));
+                border: 0;
+                color: #fff;
+            }
+            .apdash-page .glass-nav .nav-link,
+            .apdash-page .navbar-brand,
+            .apdash-page .navbar-brand small {
+                color: #fff !important;
+            }
+            .apdash-page .btn-premium {
+                background: #fff;
+                color: var(--app-purple);
+                box-shadow: none;
+                border-radius: 4px;
+            }
+            .apdash-page .btn-ghost-premium {
+                background: rgba(255,255,255,.12);
+                color: #fff;
+                border: 1px solid rgba(255,255,255,.28);
+                border-radius: 4px;
+            }
+            .app-hero {
+                min-height: 650px;
+                padding: 6rem 0 8rem;
+                color: #fff;
+                background:
+                    radial-gradient(circle at 18% 20%, rgba(255,255,255,.16), transparent 18%),
+                    linear-gradient(135deg, var(--app-purple-dark), var(--app-purple));
+                position: relative;
+                overflow: hidden;
+            }
+            .app-hero::after {
+                content: "";
+                position: absolute;
+                left: -5%;
+                right: -5%;
+                bottom: -70px;
+                height: 150px;
+                background: #fff;
+                transform: skewY(-4deg);
+                transform-origin: left top;
+            }
+            .app-hero h1 {
+                font-size: 3.35rem;
+                font-weight: 800;
+                line-height: 1.12;
+                letter-spacing: 0;
+            }
+            .app-hero p {
+                color: rgba(255,255,255,.78);
+                line-height: 1.8;
+            }
+            .hero-mockup {
+                position: relative;
+                z-index: 2;
+                display: grid;
+                place-items: center;
+            }
+            .template-phone {
+                width: 245px;
+                border-radius: 34px;
+                padding: .7rem;
+                background: #16142a;
+                box-shadow: 0 32px 70px rgba(20,11,70,.35);
+            }
+            .template-screen {
+                min-height: 430px;
+                border-radius: 27px;
+                background: #fff;
+                padding: 1rem;
+                color: var(--app-ink);
+            }
+            .screen-bar {
+                height: 9px;
+                width: 54px;
+                border-radius: 999px;
+                background: #d9d6e8;
+                margin: 0 auto 1rem;
+            }
+            .screen-card {
+                border-radius: 16px;
+                background: linear-gradient(135deg, var(--app-purple), var(--app-pink));
+                color: #fff;
+                padding: .9rem;
+                margin-bottom: .8rem;
+            }
+            .screen-row {
+                border-radius: 14px;
+                background: #f6f4ff;
+                padding: .75rem;
+                margin-bottom: .65rem;
+            }
+            .screen-line {
+                height: 9px;
+                border-radius: 999px;
+                background: #ddd8f4;
+                margin-bottom: .45rem;
+            }
+            .screen-line.short { width: 62%; }
+            .section-pad {
+                padding: 5.5rem 0;
+            }
+            .section-kicker {
+                color: var(--app-purple);
+                font-weight: 800;
+                text-transform: uppercase;
+                font-size: .78rem;
+                margin-bottom: .7rem;
+            }
+            .section-title {
+                font-size: 2.35rem;
+                line-height: 1.22;
+                font-weight: 800;
+                color: var(--app-ink);
+                margin-bottom: 1rem;
+            }
+            .section-copy {
+                color: var(--app-muted);
+                line-height: 1.8;
+            }
+            .icon-card,
+            .pricing-box,
+            .review-box,
+            .blog-box,
+            .team-box {
+                background: #fff;
+                border: 1px solid #eeeafb;
+                border-radius: 8px;
+                box-shadow: 0 14px 40px rgba(42,26,92,.07);
+                padding: 1.5rem;
+            }
+            .app-icon {
+                width: 58px;
+                height: 58px;
+                border-radius: 50%;
+                display: grid;
+                place-items: center;
+                background: var(--app-purple-soft);
+                color: var(--app-purple);
+                font-weight: 800;
+                margin-bottom: 1rem;
+            }
+            .purple-band {
+                color: #fff;
+                background:
+                    linear-gradient(135deg, var(--app-purple-dark), var(--app-purple));
+                position: relative;
+                overflow: hidden;
+            }
+            .purple-band .section-title,
+            .purple-band .section-copy,
+            .purple-band .section-kicker {
+                color: #fff;
+            }
+            .app-shot {
+                border-radius: 28px;
+                padding: .7rem;
+                background: #17152a;
+                box-shadow: 0 22px 45px rgba(38,17,98,.2);
+            }
+            .app-shot-screen {
+                min-height: 300px;
+                border-radius: 22px;
+                background: #fff;
+                padding: 1rem;
+            }
+            .process-dot {
+                width: 68px;
+                height: 68px;
+                border-radius: 50%;
+                display: grid;
+                place-items: center;
+                background: linear-gradient(135deg, var(--app-purple), var(--app-pink));
+                color: #fff;
+                font-weight: 800;
+                margin: 0 auto 1rem;
+            }
+            .price {
+                font-size: 2.4rem;
+                color: var(--app-purple);
+                font-weight: 800;
+            }
+            .client-logo {
+                min-height: 72px;
+                border-radius: 8px;
+                border: 1px solid #eeeafb;
+                display: grid;
+                place-items: center;
+                color: var(--app-purple);
+                font-weight: 800;
+                background: #fff;
+            }
+            .footer-band {
+                background: #201148;
+                color: #d8d2ee;
+                padding: 4rem 0 2rem;
+            }
+            .footer-band h5 {
+                color: #fff;
+            }
+            .apdash-page .auth-panel .btn-premium,
+            .apdash-page .pricing-box .btn-premium {
+                background: linear-gradient(135deg, var(--app-purple), var(--app-pink));
+                color: #fff;
+            }
+            .apdash-page .auth-panel .btn-ghost-premium,
+            .apdash-page .pricing-box .btn-ghost-premium {
+                background: var(--app-purple-soft);
+                color: var(--app-purple);
+                border-color: #e5dcff;
+            }
             @media (max-width: 991.98px) {
                 .hero-title {
                     font-size: 3rem;
+                }
+                .app-hero h1 {
+                    font-size: 2.45rem;
                 }
                 .section-heading {
                     font-size: 2rem;
@@ -448,14 +675,14 @@
             }
         </style>
     </head>
-    <body>
+    <body class="apdash-page">
         <div class="container shell py-3 py-lg-4">
-            <nav class="navbar navbar-expand-lg glass-nav px-3 px-lg-4 py-3 mb-4 mb-lg-5">
-                <a class="navbar-brand d-flex align-items-center gap-3 fw-bold text-dark" href="{{ route('public.landing') }}">
+            <nav class="navbar navbar-expand-lg glass-nav px-3 px-lg-4 py-3">
+                <a class="navbar-brand d-flex align-items-center gap-3 fw-bold" href="{{ route('public.landing') }}">
                     <img src="{{ asset('image/logo/logo-my-signal.png') }}" alt="Logo My Signal" class="brand-logo">
                     <span>
-                        <span class="d-block lh-1">My Signal</span>
-                        <small class="text-secondary fw-semibold">Plateforme citoyenne de signalement</small>
+                        <span class="d-block lh-1">MySignal</span>
+                        <small class="fw-semibold">Consumer Protection App</small>
                     </span>
                 </a>
                 <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#publicNavbar">
@@ -463,179 +690,46 @@
                 </button>
                 <div class="collapse navbar-collapse" id="publicNavbar">
                     <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
-                        <li class="nav-item"><a class="nav-link" href="#landing">Accueil</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#importance">Utilité</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#features">Services</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#parcours">Parcours</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#access">Accès</a></li>
-                        <li class="nav-item ms-lg-2"><button class="btn btn-ghost-premium px-4" data-auth-tab-target="login">Se connecter</button></li>
-                        <li class="nav-item"><button class="btn btn-premium px-4" data-auth-tab-target="register">Créer un compte</button></li>
+                        <li class="nav-item"><a class="nav-link" href="#landing">Home</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#features">Features</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#screens">Screens</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#pricing">Pricing</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#reviews">Reviews</a></li>
+                        <li class="nav-item ms-lg-2"><button class="btn btn-ghost-premium px-4" data-auth-tab-target="login">Login</button></li>
+                        <li class="nav-item"><button class="btn btn-premium px-4" data-auth-tab-target="register">Get Started</button></li>
                     </ul>
                 </div>
             </nav>
+        </div>
 
-            <section id="landing" class="hero-panel p-4 p-lg-5 mb-4 mb-lg-5">
-                <div class="row align-items-center g-4 g-lg-5">
-                    <div class="col-lg-7">
-                        <span class="eyebrow mb-3">Protection des consommateurs</span>
-                        <h1 class="hero-title mb-3">Signaler, suivre et défendre vos droits depuis un espace clair.</h1>
-                        <p class="hero-copy mb-4">
-                            MySignal transforme un problème de service en dossier exploitable. Vous déclarez l’incident, vous suivez le traitement, vous confirmez la résolution et vous gardez vos preuves au même endroit.
-                        </p>
-                        <div class="d-flex flex-wrap gap-3">
-                            <button class="btn btn-premium px-4" data-auth-tab-target="register">Créer mon compte</button>
-                            <a class="btn btn-ghost-premium px-4" href="#importance">Voir le parcours</a>
-                        </div>
-                        <div class="hero-lead-grid">
-                            <div class="hero-lead-card">
-                                <div class="hero-lead-label">Signalement</div>
-                                <div class="hero-lead-value">Un dossier structuré avec localisation et preuves.</div>
-                            </div>
-                            <div class="hero-lead-card">
-                                <div class="hero-lead-label">Suivi</div>
-                                <div class="hero-lead-value">Un statut lisible jusqu’à la résolution.</div>
-                            </div>
-                            <div class="hero-lead-card">
-                                <div class="hero-lead-label">Carte membre</div>
-                                <div class="hero-lead-value">Un accès wallet pour les abonnés actifs.</div>
+        <main class="apdash-page">
+            <section id="landing" class="app-hero">
+                <div class="container shell position-relative" style="z-index: 2;">
+                    <div class="row align-items-center g-5">
+                        <div class="col-lg-6">
+                            <div class="section-kicker text-white">MySignal Mobile Platform</div>
+                            <h1>Protect your consumer rights with a smarter signal.</h1>
+                            <p class="mb-4">Declare incidents, follow every action, keep your evidence, manage your subscription and show your member card from one clean public dashboard.</p>
+                            <div class="d-flex flex-wrap gap-3">
+                                <button class="btn btn-premium px-4" data-auth-tab-target="register">Create Account</button>
+                                <a class="btn btn-ghost-premium px-4" href="#features">Learn More</a>
                             </div>
                         </div>
-                    </div>
-                    <div class="col-lg-5">
-                        <div class="hero-stage">
-                            <div class="hero-phone-wrap mb-4">
-                                <div class="phone-shell">
-                                    <div class="phone-screen">
-                                        <div class="phone-top">
-                                            <img src="{{ asset('image/logo/logo-my-signal.png') }}" alt="MySignal" class="phone-logo">
-                                            <span class="phone-status">Actif</span>
-                                        </div>
-                                        <div class="phone-card">
-                                            <small>Signalement en cours</small>
-                                            <strong>Coupure prolongée dans la commune</strong>
-                                        </div>
-                                        <div class="phone-item">
-                                            <small>Traitement</small>
-                                            <div class="fw-bold mb-2">Réponse institutionnelle attendue</div>
-                                            <div class="phone-progress"><span></span></div>
-                                        </div>
-                                        <div class="phone-item">
-                                            <small>Carte membre</small>
-                                            <div class="fw-bold">Réduction disponible avec abonnement actif</div>
-                                        </div>
-                                        <div class="phone-item">
-                                            <small>REX</small>
-                                            <div class="fw-bold">Retour d’expérience après résolution</div>
-                                        </div>
+                        <div class="col-lg-6 hero-mockup">
+                            <div class="template-phone">
+                                <div class="template-screen">
+                                    <div class="screen-bar"></div>
+                                    <div class="screen-card">
+                                        <div class="small opacity-75 mb-1">Active subscription</div>
+                                        <div class="fw-bold">Member card ready</div>
                                     </div>
-                                </div>
-                            </div>
-                            <div class="hero-stage-card">
-                                <div class="hero-stage-kicker">Etape 1</div>
-                                <strong>Déclarer le problème</strong>
-                                <div class="muted-copy mb-0">Choisissez le réseau, le compteur concerné, la localisation et le type de signal le plus juste pour créer un dossier fiable.</div>
-                            </div>
-                            <div class="hero-stage-card">
-                                <div class="hero-stage-kicker">Etape 2</div>
-                                <strong>Suivre le traitement</strong>
-                                <div class="muted-copy mb-0">Consultez l’état du signalement, la réponse institutionnelle, le respect du TCM et l’évolution concrète du dossier.</div>
-                            </div>
-                            <div class="hero-stage-card">
-                                <div class="hero-stage-kicker">Etape 3</div>
-                                <strong>Documenter les suites</strong>
-                                <div class="muted-copy mb-0">Confirmez la résolution, déclarez un dommage si nécessaire et gardez l’historique de vos preuves et de vos actions.</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section class="mb-4 mb-lg-5">
-                <div class="row g-3">
-                    <div class="col-md-3">
-                        <div class="mini-card h-100">
-                            <div class="fact-kicker">Espace UP</div>
-                            <div class="fact-value">1</div>
-                            <div class="muted-copy mb-0">Un compte pour les signalements, abonnements, reçus et retours d’expérience.</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="mini-card h-100">
-                            <div class="fact-kicker">Suivi</div>
-                            <div class="fact-value">TCM</div>
-                            <div class="muted-copy mb-0">Des délais de traitement visibles pour mieux comprendre l’avancement.</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="mini-card h-100">
-                            <div class="fact-kicker">Abonné actif</div>
-                            <div class="fact-value">QR</div>
-                            <div class="muted-copy mb-0">Une carte virtuelle wallet pour accéder aux avantages partenaires.</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="mini-card h-100">
-                            <div class="fact-kicker">Après résolution</div>
-                            <div class="fact-value">REX</div>
-                            <div class="muted-copy mb-0">Un retour d’expérience pour mesurer la qualité du traitement reçu.</div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section id="importance" class="mb-4 mb-lg-5">
-                <div class="row g-4 align-items-stretch">
-                    <div class="col-lg-7">
-                        <div class="story-card h-100">
-                            <span class="eyebrow mb-3">Utilité terrain</span>
-                            <h2 class="section-heading">Chaque signalement bien structuré améliore la réactivité, la preuve et la protection du consommateur.</h2>
-                            <p class="muted-copy mb-4">
-                                Un bon signalement ne sert pas seulement à alerter. Il aide à orienter les équipes, prioriser les incidents, localiser précisément le problème et documenter les faits. Plus les informations sont claires, plus la prise en charge devient crédible et efficace.
-                            </p>
-                            <div class="vstack gap-3">
-                                <div class="bullet-check">
-                                    <div class="bullet-mark">01</div>
-                                    <div>
-                                        <strong>Réduire les délais de prise en charge</strong>
-                                        <div class="muted-copy mb-0">Le compteur, l’adresse et le type de signal guident immédiatement l’institution vers la bonne intervention.</div>
+                                    <div class="screen-row"><div class="screen-line"></div><div class="screen-line short"></div></div>
+                                    <div class="screen-row"><div class="screen-line"></div><div class="screen-line short"></div></div>
+                                    <div class="screen-card">
+                                        <div class="small opacity-75 mb-1">Signalement</div>
+                                        <div class="fw-bold">Resolution tracked</div>
                                     </div>
-                                </div>
-                                <div class="bullet-check">
-                                    <div class="bullet-mark">02</div>
-                                    <div>
-                                        <strong>Améliorer la qualité des décisions</strong>
-                                        <div class="muted-copy mb-0">Les données saisies, les photos et la localisation donnent un dossier plus fiable et plus exploitable.</div>
-                                    </div>
-                                </div>
-                                <div class="bullet-check">
-                                    <div class="bullet-mark">03</div>
-                                    <div>
-                                        <strong>Créer une vraie transparence</strong>
-                                        <div class="muted-copy mb-0">L’usager suit le statut du dossier, la réponse apportée, le TCM appliqué et les suites éventuelles.</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-5">
-                        <div class="impact-card h-100">
-                            <span class="eyebrow mb-3" style="background: rgba(255,255,255,.08); color: #fff;">Valeur pour l’usager</span>
-                            <h2 class="section-heading">Une plateforme utile pour agir, suivre et garder des preuves.</h2>
-                            <p class="muted-copy mb-4">
-                                My Signal rassemble dans un seul espace les compteurs, le Gonhi familial, les signalements, les justificatifs utiles et le suivi institutionnel du dossier.
-                            </p>
-                            <div class="vstack gap-3">
-                                <div class="hero-stage-card">
-                                    <strong>Un historique centralisé</strong>
-                                    <div class="muted-copy mb-0">Retrouvez vos signalements, vos reçus, vos réponses institutionnelles et vos dommages déclarés au même endroit.</div>
-                                </div>
-                                <div class="hero-stage-card">
-                                    <strong>Une relation plus claire avec l’institution</strong>
-                                    <div class="muted-copy mb-0">Vous voyez ce qui a été résolu, ce qui reste en cours et les réponses enregistrées sur votre dossier.</div>
-                                </div>
-                                <div class="hero-stage-card">
-                                    <strong>Une meilleure qualité d’information</strong>
-                                    <div class="muted-copy mb-0">Compteurs, photos, GPS et type de signal améliorent la compréhension du problème dès le départ.</div>
+                                    <div class="screen-row"><div class="screen-line"></div><div class="screen-line short"></div></div>
                                 </div>
                             </div>
                         </div>
@@ -643,226 +737,157 @@
                 </div>
             </section>
 
-            <section class="mb-4 mb-lg-5">
-                <div class="mission-band p-4 p-lg-5">
-                    <div class="row g-4 align-items-center">
-                        <div class="col-lg-5">
-                            <span class="eyebrow mb-3">Le but</span>
-                            <h2 class="section-heading mb-3">Donner à chaque usager un moyen fiable de faire remonter un incident et d’en suivre l’issue.</h2>
-                            <p class="muted-copy mb-0">
-                                La plateforme ne met pas l’accent sur un paiement. Elle met l’accent sur la valeur du signalement lui-même : sa qualité, sa traçabilité, sa capacité à déclencher une meilleure intervention et à créer une mémoire utile du dossier.
-                            </p>
+            <section class="section-pad bg-white">
+                <div class="container shell">
+                    <div class="row g-4 text-center">
+                        <div class="col-md-3"><div class="icon-card h-100"><div class="app-icon mx-auto">UP</div><h5 class="fw-bold">Public Users</h5><p class="section-copy mb-0">A simple account for signals, payments and history.</p></div></div>
+                        <div class="col-md-3"><div class="icon-card h-100"><div class="app-icon mx-auto">TCM</div><h5 class="fw-bold">Tracked Delays</h5><p class="section-copy mb-0">Clear treatment timing and visible progress.</p></div></div>
+                        <div class="col-md-3"><div class="icon-card h-100"><div class="app-icon mx-auto">QR</div><h5 class="fw-bold">Wallet Card</h5><p class="section-copy mb-0">Virtual member card for active subscribers.</p></div></div>
+                        <div class="col-md-3"><div class="icon-card h-100"><div class="app-icon mx-auto">REX</div><h5 class="fw-bold">Feedback</h5><p class="section-copy mb-0">Experience return after resolution or case closure.</p></div></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="features" class="section-pad">
+                <div class="container shell">
+                    <div class="text-center mb-5">
+                        <div class="section-kicker">Awesome App Features</div>
+                        <h2 class="section-title">Everything needed to turn a complaint into a useful case.</h2>
+                        <p class="section-copy mx-auto" style="max-width: 680px;">MySignal keeps the same app-style experience as the reference: fast, visual, structured, and centered around the public user's journey.</p>
+                    </div>
+                    <div class="row g-4">
+                        <div class="col-md-4"><div class="icon-card h-100"><div class="app-icon">01</div><h5 class="fw-bold">Precise reports</h5><p class="section-copy mb-0">Network, meter, commune, location and evidence are captured in a guided flow.</p></div></div>
+                        <div class="col-md-4"><div class="icon-card h-100"><div class="app-icon">02</div><h5 class="fw-bold">Subscription access</h5><p class="section-copy mb-0">Only active subscribers can access protected reporting workflows.</p></div></div>
+                        <div class="col-md-4"><div class="icon-card h-100"><div class="app-icon">03</div><h5 class="fw-bold">Case history</h5><p class="section-copy mb-0">Payments, reports, REX and repair cases remain available in one dashboard.</p></div></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section-pad bg-white">
+                <div class="container shell">
+                    <div class="row align-items-center g-5">
+                        <div class="col-lg-6">
+                            <div class="template-phone mx-auto">
+                                <div class="template-screen">
+                                    <div class="screen-bar"></div>
+                                    <div class="screen-card"><div class="fw-bold">Create a signal</div><small>Meter, network, commune</small></div>
+                                    <div class="screen-row"><div class="screen-line"></div><div class="screen-line short"></div></div>
+                                    <div class="screen-row"><div class="screen-line"></div><div class="screen-line short"></div></div>
+                                    <div class="screen-row"><div class="screen-line"></div><div class="screen-line short"></div></div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-lg-7">
-                            <div class="row g-3">
-                                <div class="col-md-4">
-                                    <div class="mini-card h-100">
-                                        <div class="fw-bold mb-2">Mieux orienter</div>
-                                        <div class="muted-copy mb-0">Le bon réseau, le bon compteur et la bonne zone réduisent les ambiguïtés.</div>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="mini-card h-100">
-                                        <div class="fw-bold mb-2">Mieux suivre</div>
-                                        <div class="muted-copy mb-0">Le statut, le TCM et les réponses forment une lecture claire de l’avancement.</div>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="mini-card h-100">
-                                        <div class="fw-bold mb-2">Mieux documenter</div>
-                                        <div class="muted-copy mb-0">La résolution, les dommages et les preuves restent attachés au bon dossier.</div>
-                                    </div>
-                                </div>
+                        <div class="col-lg-6">
+                            <div class="section-kicker">Interface Screenshots</div>
+                            <h2 class="section-title">A dashboard built for clarity, not confusion.</h2>
+                            <p class="section-copy">The public user sees reports, subscriptions, wallet card, receipts, damage declarations and feedback without switching tools.</p>
+                            <div class="row g-3 mt-3">
+                                <div class="col-sm-6"><div class="icon-card"><h6 class="fw-bold">Report status</h6><p class="section-copy mb-0">Follow submitted, processing and resolved cases.</p></div></div>
+                                <div class="col-sm-6"><div class="icon-card"><h6 class="fw-bold">Member card</h6><p class="section-copy mb-0">Show QR benefits when subscription is active.</p></div></div>
                             </div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            @if(($applications ?? collect())->isNotEmpty())
-                <section class="mb-4 mb-lg-5">
-                    <div class="d-flex justify-content-between align-items-end flex-wrap gap-3 mb-4">
-                        <div>
-                            <span class="eyebrow mb-2">{{ $landingBlocks->get('applications_heading')?->subtitle ?? 'Applications disponibles' }}</span>
-                            <h2 class="section-heading mb-0">{{ $landingBlocks->get('applications_heading')?->title ?? 'Six univers metier, un meme socle de protection des consommateurs.' }}</h2>
-                        </div>
+            <section class="purple-band section-pad">
+                <div class="container shell text-center">
+                    <div class="section-kicker">Download App</div>
+                    <h2 class="section-title">Start using MySignal today.</h2>
+                    <p class="section-copy mx-auto" style="max-width: 650px;">Create your public account, activate the annual subscription and keep every consumer protection action inside your dashboard.</p>
+                    <div class="d-flex justify-content-center gap-3 flex-wrap mt-4">
+                        <button class="btn btn-premium px-4" data-auth-tab-target="register">Create Account</button>
+                        <button class="btn btn-ghost-premium px-4" data-auth-tab-target="login">Login</button>
                     </div>
-                    <p class="muted-copy mb-4">{{ $landingBlocks->get('applications_heading')?->body ?? 'Chaque application specialisee reprend le meme principe : regrouper les griefs, documenter les torts subis, suivre les resolutions et soutenir, lorsque necessaire, les actions de reparation et de dedommagement.' }}</p>
-                    <div class="app-grid">
-                        @foreach($applications as $application)
-                            <article class="app-card">
-                                <div class="d-flex align-items-center gap-3 mb-3">
-                                    <img src="{{ asset($application->logo_path ?: 'image/logo/logo-my-signal.png') }}" alt="Logo {{ $application->name }}" class="app-logo">
-                                    <div>
-                                        <div class="fw-bold fs-5">{{ $application->name }}</div>
-                                        <div class="text-secondary small">{{ $application->tagline }}</div>
-                                    </div>
-                                </div>
-                                <div class="app-chip mb-3">{{ str_replace('_', ' ', $application->code) }}</div>
-                                <p class="muted-copy mb-3">{{ $application->short_description }}</p>
-                                @if(filled($application->long_description))
-                                    <div class="small text-secondary">{{ $application->long_description }}</div>
-                                @endif
-                            </article>
+                </div>
+            </section>
+
+            <section id="screens" class="section-pad bg-white">
+                <div class="container shell">
+                    <div class="text-center mb-5">
+                        <div class="section-kicker">App Screenshots</div>
+                        <h2 class="section-title">Core screens from the public journey.</h2>
+                    </div>
+                    <div class="row g-4 align-items-end">
+                        @foreach(['Report', 'Wallet', 'History', 'Feedback'] as $screen)
+                            <div class="col-md-3"><div class="app-shot"><div class="app-shot-screen"><div class="screen-card"><div class="fw-bold">{{ $screen }}</div></div><div class="screen-row"><div class="screen-line"></div><div class="screen-line short"></div></div><div class="screen-row"><div class="screen-line"></div><div class="screen-line short"></div></div></div></div></div>
                         @endforeach
                     </div>
-                </section>
-            @endif
-
-            <section id="features" class="mb-4 mb-lg-5">
-                <div class="d-flex justify-content-between align-items-end flex-wrap gap-3 mb-4">
-                    <div>
-                        <span class="eyebrow mb-2">Avantages</span>
-                        <h2 class="section-heading mb-0">Ce que la plateforme apporte concrètement.</h2>
-                    </div>
-                </div>
-                <div class="row g-4">
-                    <div class="col-lg-4"><div class="feature-card p-4 h-100"><div class="feature-art"><svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="320" height="180" fill="#f3f6f8"/><rect x="28" y="26" width="120" height="128" rx="22" fill="#ffffff"/><rect x="172" y="44" width="120" height="100" rx="24" fill="#1e5877"/><circle cx="108" cy="88" r="22" fill="#ff0068"/><path d="M95 88h26M108 75v26" stroke="#fff2e8" stroke-width="8" stroke-linecap="round"/><rect x="62" y="58" width="28" height="8" rx="4" fill="#c8d7e0"/><rect x="62" y="76" width="22" height="8" rx="4" fill="#c8d7e0"/><rect x="62" y="112" width="54" height="10" rx="5" fill="#c8d7e0"/><path d="M195 111l19-23 19 18 16-10 25 27h-79z" fill="#dff0f8"/><circle cx="232" cy="74" r="12" fill="#f7c27f"/></svg></div><div class="feature-icon mb-3">01</div><h3 class="h5 fw-bold">Signalement mieux qualifié</h3><p class="muted-copy mb-0">Le parcours guide l’usager sur le bon réseau, le bon compteur, la bonne localisation et les bonnes informations complémentaires.</p></div></div>
-                    <div class="col-lg-4"><div class="feature-card p-4 h-100"><div class="feature-art"><svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="320" height="180" fill="#f4f7f9"/><rect x="40" y="34" width="240" height="112" rx="28" fill="#ffffff"/><rect x="60" y="58" width="92" height="16" rx="8" fill="#d2dfe7"/><rect x="60" y="90" width="200" height="12" rx="6" fill="#e3ebf0"/><rect x="60" y="114" width="126" height="12" rx="6" fill="#e3ebf0"/><circle cx="232" cy="66" r="22" fill="#ff0068"/><path d="M232 54v13l9 6" stroke="#fff3eb" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><rect x="60" y="146" width="60" height="12" rx="6" fill="#1e5877" opacity=".18"/><rect x="128" y="146" width="90" height="12" rx="6" fill="#1e5877" opacity=".28"/></svg></div><div class="feature-icon mb-3">02</div><h3 class="h5 fw-bold">Suivi clair du dossier</h3><p class="muted-copy mb-0">Chaque signalement garde son statut, son temps de traitement, sa réponse institutionnelle, le TCM appliqué et, si besoin, la suite liée aux dommages.</p></div></div>
-                    <div class="col-lg-4"><div class="feature-card p-4 h-100"><div class="feature-art"><svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="320" height="180" fill="#f3f7f9"/><rect x="34" y="56" width="252" height="90" rx="28" fill="#ffffff"/><circle cx="102" cy="98" r="28" fill="#1e5877"/><circle cx="160" cy="84" r="24" fill="#ff0068"/><circle cx="216" cy="102" r="26" fill="#dfeaf0"/><rect x="78" y="128" width="154" height="12" rx="6" fill="#d2dfe7"/><path d="M94 96h16M102 88v16" stroke="#eaf6fb" stroke-width="7" stroke-linecap="round"/><path d="M152 82h16" stroke="#fff5ec" stroke-width="7" stroke-linecap="round"/></svg></div><div class="feature-icon mb-3">03</div><h3 class="h5 fw-bold">Usage familial et terrain</h3><p class="muted-copy mb-0">Le Gonhi permet de partager un compteur, d’inviter des proches et d’organiser les usages au sein d’un même cadre familial.</p></div></div>
-                    <div class="col-lg-4"><div class="feature-card p-4 h-100"><div class="feature-art"><svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="320" height="180" fill="#f5f8fa"/><rect x="52" y="28" width="92" height="124" rx="24" fill="#15364d"/><rect x="68" y="48" width="60" height="72" rx="14" fill="#eff6f9"/><circle cx="98" cy="136" r="7" fill="#7ea0b5"/><rect x="168" y="44" width="102" height="92" rx="24" fill="#ffffff"/><path d="M210 66a26 26 0 100 52 26 26 0 000-52zm0 10a16 16 0 110 32 16 16 0 010-32z" fill="#ff0068"/><circle cx="242" cy="112" r="12" fill="#1e5877"/><path d="M242 106v12M236 112h12" stroke="#e6f4fb" stroke-width="6" stroke-linecap="round"/></svg></div><div class="feature-icon mb-3">04</div><h3 class="h5 fw-bold">Preuves plus exploitables</h3><p class="muted-copy mb-0">La géolocalisation, la photo et les champs demandés à l’usager rendent le dossier plus solide pour les équipes.</p></div></div>
-                    <div class="col-lg-4"><div class="feature-card p-4 h-100"><div class="feature-art"><svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="320" height="180" fill="#f4f7fa"/><rect x="44" y="40" width="232" height="102" rx="28" fill="#ffffff"/><path d="M82 92l28 28 38-48" stroke="#1f7a4f" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/><rect x="150" y="64" width="92" height="12" rx="6" fill="#c9d7df"/><rect x="150" y="88" width="74" height="12" rx="6" fill="#d8e4ea"/><rect x="150" y="112" width="48" height="12" rx="6" fill="#d8e4ea"/><circle cx="252" cy="62" r="18" fill="#ff0068"/><path d="M252 54v16M244 62h16" stroke="#fff3eb" stroke-width="6" stroke-linecap="round"/></svg></div><div class="feature-icon mb-3">05</div><h3 class="h5 fw-bold">Résolution vérifiable</h3><p class="muted-copy mb-0">L’usager confirme la résolution, voit si le TCM a été respecté et peut déclarer un dommage si nécessaire.</p></div></div>
-                    <div class="col-lg-4"><div class="feature-card p-4 h-100"><div class="feature-art"><svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="320" height="180" fill="#f5f8fa"/><rect x="56" y="34" width="208" height="114" rx="28" fill="#ffffff"/><rect x="82" y="58" width="156" height="16" rx="8" fill="#d7e3ea"/><rect x="82" y="88" width="120" height="12" rx="6" fill="#e5edf1"/><rect x="82" y="112" width="98" height="12" rx="6" fill="#e5edf1"/><circle cx="220" cy="108" r="24" fill="#1e5877"/><path d="M210 108l7 7 13-16" stroke="#e9f6fc" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><circle cx="98" cy="130" r="8" fill="#ff0068"/></svg></div><div class="feature-icon mb-3">06</div><h3 class="h5 fw-bold">Mémoire de service</h3><p class="muted-copy mb-0">Les reçus, historiques et interactions restent accessibles pour mieux comprendre ce qui s’est passé sur chaque dossier.</p></div></div>
                 </div>
             </section>
 
-            <section class="mb-4 mb-lg-5">
-                <div class="row g-4">
-                    <div class="col-lg-6">
-                        <div class="proof-card h-100">
-                            <span class="eyebrow mb-3">Importance métier</span>
-                            <h2 class="section-heading">Pourquoi une bonne trace change la suite du traitement.</h2>
-                            <p class="muted-copy mb-4">
-                                Une alerte vague ralentit. Un signalement structuré permet d’intervenir plus vite, d’éviter les confusions et de mieux documenter le contexte si le dossier doit être revu ou approfondi.
-                            </p>
-                            <div class="fact-grid">
-                                <div class="fact-tile">
-                                    <div class="fact-kicker">Clarté</div>
-                                    <div class="fact-value">+ lisible</div>
-                                    <div class="muted-copy mb-0">Le signalement est compréhensible dès la première lecture.</div>
-                                </div>
-                                <div class="fact-tile">
-                                    <div class="fact-kicker">Traçabilité</div>
-                                    <div class="fact-value">+ suivie</div>
-                                    <div class="muted-copy mb-0">Chaque étape du cycle de vie du dossier reste consultable.</div>
-                                </div>
-                                <div class="fact-tile">
-                                    <div class="fact-kicker">Coordination</div>
-                                    <div class="fact-value">+ rapide</div>
-                                    <div class="muted-copy mb-0">Les équipes terrain partent avec de meilleures informations.</div>
-                                </div>
-                                <div class="fact-tile">
-                                    <div class="fact-kicker">Confiance</div>
-                                    <div class="fact-value">+ forte</div>
-                                    <div class="muted-copy mb-0">L’usager voit ce qui bouge réellement sur son signalement.</div>
-                                </div>
-                            </div>
-                        </div>
+            <section id="parcours" class="section-pad">
+                <div class="container shell">
+                    <div class="text-center mb-5">
+                        <div class="section-kicker">Our Work Process</div>
+                        <h2 class="section-title">From signal to resolution.</h2>
                     </div>
-                    <div class="col-lg-6">
-                        <div class="proof-card h-100">
-                            <div class="section-visual mb-4" style="min-height: 260px;">
-                                <svg viewBox="0 0 560 320" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                    <rect width="560" height="320" fill="#f6f8fa"/>
-                                    <circle cx="448" cy="86" r="68" fill="#dfeaf0"/>
-                                    <rect x="72" y="58" width="416" height="220" rx="34" fill="#ffffff"/>
-                                    <rect x="104" y="96" width="146" height="20" rx="10" fill="#d6e2e9"/>
-                                    <rect x="104" y="134" width="112" height="12" rx="6" fill="#e5edf1"/>
-                                    <rect x="104" y="160" width="198" height="12" rx="6" fill="#e5edf1"/>
-                                    <rect x="104" y="212" width="340" height="18" rx="9" fill="#edf3f6"/>
-                                    <rect x="104" y="246" width="288" height="18" rx="9" fill="#edf3f6"/>
-                                    <rect x="332" y="110" width="116" height="110" rx="24" fill="#15364d"/>
-                                    <path d="M365 168l20 20 32-40" stroke="#dff4ff" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <circle cx="388" cy="148" r="20" fill="#ff0068"/>
-                                    <path d="M388 138v20M378 148h20" stroke="#fff4eb" stroke-width="7" stroke-linecap="round"/>
-                                </svg>
-                            </div>
-                            <span class="eyebrow mb-3">Ce que vous pouvez faire</span>
-                            <h2 class="section-heading">Un espace public pensé pour l’action, pas seulement pour l’alerte.</h2>
-                            <div class="vstack gap-3">
-                                <div class="mini-card">
-                                    <div class="fw-bold mb-2">Gérer vos compteurs</div>
-                                    <div class="muted-copy mb-0">Ajoutez vos compteurs, définissez le principal et reliez-les à la bonne commune et au bon réseau.</div>
-                                </div>
-                                <div class="mini-card">
-                                    <div class="fw-bold mb-2">Déclarer et suivre vos signalements</div>
-                                    <div class="muted-copy mb-0">Voyez l’état d’avancement, la réponse institutionnelle, la résolution et le respect du TCM.</div>
-                                </div>
-                                <div class="mini-card">
-                                    <div class="fw-bold mb-2">Retrouver votre historique</div>
-                                    <div class="muted-copy mb-0">Consultez vos paiements, téléchargez vos reçus et gardez une mémoire claire de vos dossiers.</div>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="row g-4 text-center">
+                        <div class="col-md-4"><div class="process-dot">1</div><h5 class="fw-bold">Declare</h5><p class="section-copy">Send a structured incident with location and details.</p></div>
+                        <div class="col-md-4"><div class="process-dot">2</div><h5 class="fw-bold">Track</h5><p class="section-copy">Follow institutional treatment and TCM visibility.</p></div>
+                        <div class="col-md-4"><div class="process-dot">3</div><h5 class="fw-bold">Evaluate</h5><p class="section-copy">Confirm resolution, declare damage or submit REX.</p></div>
                     </div>
                 </div>
             </section>
 
-            <section id="parcours" class="mb-4 mb-lg-5">
-                <div class="row g-4 align-items-stretch">
-                    <div class="col-lg-6">
-                        <div class="timeline-card h-100">
-                            <span class="eyebrow mb-3">Parcours usager</span>
-                            <h2 class="section-heading">Un chemin pensé pour rester simple, même quand le dossier est sensible.</h2>
-                            <div class="timeline-step">
-                                <div class="timeline-badge">1</div>
-                                <div>
-                                    <div class="fw-bold mb-1">Créer son espace</div>
-                                    <div class="muted-copy mb-0">Le compte public permet de centraliser identité, compteurs, Gonhi et historique personnel.</div>
-                                </div>
-                            </div>
-                            <div class="timeline-step">
-                                <div class="timeline-badge">2</div>
-                                <div>
-                                    <div class="fw-bold mb-1">Déclarer avec précision</div>
-                                    <div class="muted-copy mb-0">Le parcours vous guide sur le réseau, le compteur, le type de signal, l’adresse et les preuves utiles.</div>
-                                </div>
-                            </div>
-                            <div class="timeline-step">
-                                <div class="timeline-badge">3</div>
-                                <div>
-                                    <div class="fw-bold mb-1">Suivre jusqu’à l’issue</div>
-                                    <div class="muted-copy mb-0">Vous consultez la réponse, la résolution, le respect du TCM et, si besoin, la gestion du dommage.</div>
-                                </div>
-                            </div>
-                        </div>
+            <section id="pricing" class="section-pad bg-white">
+                <div class="container shell">
+                    <div class="text-center mb-5">
+                        <div class="section-kicker">Our Pricing Plan</div>
+                        <h2 class="section-title">Annual access for public users.</h2>
                     </div>
-                    <div class="col-lg-6">
-                        <div class="story-card h-100">
-                            <div class="section-visual mb-4" style="min-height: 220px;">
-                                <svg viewBox="0 0 560 240" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                    <rect width="560" height="240" fill="#f5f8fa"/>
-                                    <rect x="54" y="74" width="118" height="92" rx="24" fill="#ffffff"/>
-                                    <rect x="220" y="52" width="118" height="114" rx="24" fill="#ffffff"/>
-                                    <rect x="386" y="86" width="118" height="80" rx="24" fill="#ffffff"/>
-                                    <circle cx="112" cy="120" r="24" fill="#ff0068"/>
-                                    <path d="M100 120h24M112 108v24" stroke="#fff3eb" stroke-width="7" stroke-linecap="round"/>
-                                    <circle cx="278" cy="108" r="24" fill="#1e5877"/>
-                                    <path d="M265 108h11l8 8 15-19" stroke="#e8f6fc" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <circle cx="444" cy="126" r="24" fill="#15364d"/>
-                                    <path d="M434 126l7 7 13-15" stroke="#def2fb" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <path d="M172 120h48M338 120h48" stroke="#c9d7df" stroke-width="8" stroke-linecap="round"/>
-                                </svg>
-                            </div>
-                            <span class="eyebrow mb-3">Pourquoi cela compte</span>
-                            <h2 class="section-heading">Un bon signalement ne vaut pas par son coût, mais par la qualité de service qu’il déclenche.</h2>
-                            <div class="mission-point">
-                                <div class="fw-bold mb-2">Pour l’usager</div>
-                                <div class="muted-copy mb-0">Moins d’incertitude, plus de visibilité et une meilleure capacité à prouver ce qui a été déclaré.</div>
-                            </div>
-                            <div class="mission-point">
-                                <div class="fw-bold mb-2">Pour l’institution</div>
-                                <div class="muted-copy mb-0">Des dossiers plus propres, mieux qualifiés et plus faciles à prioriser sur le terrain.</div>
-                            </div>
-                            <div class="mission-point">
-                                <div class="fw-bold mb-2">Pour la qualité de service</div>
-                                <div class="muted-copy mb-0">Davantage de traçabilité, de discipline dans le traitement et de confiance dans la relation avec le public.</div>
-                            </div>
-                        </div>
+                    <div class="row g-4 justify-content-center">
+                        <div class="col-md-4"><div class="pricing-box text-center h-100"><h5 class="fw-bold">Annual UP</h5><div class="price">1 Plan</div><p class="section-copy">Reporting access, subscription history and virtual member card.</p><button class="btn btn-premium px-4" data-auth-tab-target="register">Choose Plan</button></div></div>
+                        <div class="col-md-4"><div class="pricing-box text-center h-100"><h5 class="fw-bold">Wallet Card</h5><div class="price">QR</div><p class="section-copy">Displayed in profile only when the subscription is active.</p><button class="btn btn-ghost-premium px-4" data-auth-tab-target="login">View Access</button></div></div>
                     </div>
                 </div>
             </section>
 
+            <section id="reviews" class="section-pad">
+                <div class="container shell">
+                    <div class="text-center mb-5">
+                        <div class="section-kicker">Customer Reviews</div>
+                        <h2 class="section-title">Built for public trust.</h2>
+                    </div>
+                    <div class="row g-4">
+                        <div class="col-md-4"><div class="review-box h-100"><p class="section-copy">“My report is no longer lost in conversations. I can see the treatment and keep proof.”</p><strong>Public user</strong></div></div>
+                        <div class="col-md-4"><div class="review-box h-100"><p class="section-copy">“The TCM and status make it easier to understand what is happening.”</p><strong>Subscriber</strong></div></div>
+                        <div class="col-md-4"><div class="review-box h-100"><p class="section-copy">“The feedback module gives a voice after resolution, not only before.”</p><strong>Consumer member</strong></div></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="purple-band section-pad">
+                <div class="container shell">
+                    <div class="row align-items-center g-4">
+                        <div class="col-lg-6"><div class="section-kicker">Our Video</div><h2 class="section-title">See how a signal becomes a complete case.</h2><p class="section-copy">The experience is simple: account, subscription, report, follow-up, resolution, feedback.</p></div>
+                        <div class="col-lg-6"><div class="ratio ratio-16x9 bg-white rounded-2 d-flex align-items-center justify-content-center"><div class="text-center text-dark fw-bold">MySignal Demo</div></div></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section-pad bg-white">
+                <div class="container shell">
+                    <div class="text-center mb-5"><div class="section-kicker">Our Trusted Clients</div><h2 class="section-title">One platform, multiple service universes.</h2></div>
+                    <div class="row g-3">
+                        @foreach(($applications ?? collect())->take(6) as $application)
+                            <div class="col-md-2 col-6"><div class="client-logo">{{ $application->name }}</div></div>
+                        @endforeach
+                    </div>
+                </div>
+            </section>
+
+            <section class="footer-band">
+                <div class="container shell">
+                    <div class="row g-4">
+                        <div class="col-md-4"><h5>MySignal</h5><p>Consumer protection, reporting, subscription and feedback in one app-style platform.</p></div>
+                        <div class="col-md-4"><h5>Rubriques</h5><p>Features<br>Screenshots<br>Pricing<br>Reviews</p></div>
+                        <div class="col-md-4"><h5>Ready?</h5><button class="btn btn-premium px-4" data-auth-tab-target="register">Create Account</button></div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="container shell py-5">
             <section id="access" class="auth-panel p-4 p-lg-5">
                 <div class="row g-4 align-items-start">
                     <div class="col-lg-5">
@@ -1015,6 +1040,7 @@
                 </div>
             </section>
         </div>
+        </main>
 
         <div class="toast-container position-fixed top-0 end-0 p-3">
             <div id="appToast" class="toast align-items-center text-bg-dark border-0" role="alert" aria-live="assertive" aria-atomic="true">
