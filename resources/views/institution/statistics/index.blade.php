@@ -166,7 +166,7 @@
                         @if ($canViewSlaBreakdownChart)
                             <div class="col-xl-6">
                                 <div class="chart-card">
-                                    <div class="fw-bold mb-1">Etat des SLA</div>
+                                    <div class="fw-bold mb-1">Etat des TCM</div>
                                     <div class="text-secondary small mb-3">Vue de conformite des signaux par rapport aux delais cibles.</div>
                                     <div id="slaBreakdownChart" class="chart-frame"></div>
                                 </div>
@@ -334,7 +334,7 @@
 
         @if ($canViewSlaBreakdownChart)
             const slaBreakdown = @json(array_values($slaBreakdown));
-            const slaLabels = ['Dans le SLA', 'A risque', 'Depasse', 'Sans configuration'];
+            const slaLabels = ['Dans le TCM', 'A risque', 'Depasse', 'Sans configuration'];
 
             new ApexCharts(document.querySelector('#slaBreakdownChart'), {
                 chart: { type: 'donut', height: 300 },

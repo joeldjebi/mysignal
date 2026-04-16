@@ -2,7 +2,7 @@
 
 @section('title', config('app.name').' | Dashboard Super Admin')
 @section('page-title', 'Cockpit Super Admin')
-@section('page-description', 'Vue globale des applications, institutions, usagers, signalements, dommages, paiements et performance SLA.')
+@section('page-description', 'Vue globale des applications, institutions, usagers, signalements, dommages, paiements et performance TCM.')
 
 @section('header-badges')
     <span class="badge-soft">{{ $stats['active_applications'] }} application{{ $stats['active_applications'] > 1 ? 's' : '' }} active{{ $stats['active_applications'] > 1 ? 's' : '' }}</span>
@@ -137,9 +137,9 @@
             </div>
             <div class="col-md-6 col-xl-3">
                 <div class="metric-card">
-                    <div class="metric-kicker">Conformite SLA</div>
+                    <div class="metric-kicker">Conformite TCM</div>
                     <div class="metric-value">{{ $stats['sla_compliance_rate'] }}%</div>
-                    <div class="small text-secondary">{{ $stats['sla_breached'] }} dossier(s) hors SLA.</div>
+                    <div class="small text-secondary">{{ $stats['sla_breached'] }} dossier(s) hors TCM.</div>
                 </div>
             </div>
         </section>
@@ -168,7 +168,7 @@
             </div>
             <div class="col-xl-6">
                 <div class="chart-card">
-                    <div class="fw-bold mb-1">Etat des SLA</div>
+                    <div class="fw-bold mb-1">Etat des TCM</div>
                     <div class="text-secondary small mb-3">Conformite, risque et depassement sur l ensemble des dossiers.</div>
                     <div id="saSlaStatusChart" class="chart-frame"></div>
                 </div>
@@ -413,7 +413,7 @@
         new ApexCharts(document.querySelector('#saSlaStatusChart'), {
             chart: { type: 'donut', height: 300 },
             series: saSlaSeries,
-            labels: ['Dans le SLA', 'A risque', 'Depasse', 'Sans configuration'],
+            labels: ['Dans le TCM', 'A risque', 'Depasse', 'Sans configuration'],
             colors: ['#5bebaf', '#ffa117', '#ff0068', '#6791ff'],
             legend: { position: 'bottom', fontSize: '13px' },
             dataLabels: { enabled: false },

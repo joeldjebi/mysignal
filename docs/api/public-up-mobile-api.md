@@ -235,7 +235,7 @@ Retourne l arbre geographique complet :
 Retourne le catalogue des types de signaux actifs avec :
 - application
 - organisation
-- SLA cible
+-TCM cible
 - `data_fields` pour les formulaires dynamiques
 
 ### Compteurs

@@ -405,6 +405,8 @@
                 place-items: center;
                 padding: 0.35rem;
                 box-shadow: 0 16px 32px rgba(24, 52, 71, 0.18);
+                position: relative;
+                bottom:50px;
             }
             .member-qr-box img,
             .member-qr-box canvas {
@@ -420,7 +422,7 @@
                 display: grid;
                 grid-template-columns: minmax(0, 1fr) auto auto;
                 gap: 0.75rem;
-                align-items: end;
+                /* align-items: end; */
             }
             .member-wallet-qr-caption {
                 color: rgba(255, 255, 255, 0.84);
@@ -4837,7 +4839,7 @@
                     }
 
                     if (!report.target_sla_hours || !report.resolved_at || !report.created_at) {
-                        return 'Evaluation SLA indisponible';
+                        return 'Evaluation TCM indisponible';
                     }
 
                     const start = new Date(report.created_at);
@@ -4845,8 +4847,8 @@
                     const elapsedHours = (end.getTime() - start.getTime()) / 3600000;
 
                     return elapsedHours <= Number(report.target_sla_hours)
-                        ? 'Resolution dans le SLA'
-                        : 'Resolution hors SLA';
+                        ? 'Resolution dans le TCM'
+                        : 'Resolution hors TCM';
                 }
 
                 function getSlaImportanceText(report) {
@@ -4854,7 +4856,7 @@
                 }
 
                 function getSlaImportanceDetails(report) {
-                    return report.sla?.importance?.details || 'Le SLA fixe un delai cible de traitement pour proteger les usagers et limiter l aggravation du sinistre.';
+                    return report.sla?.importance?.details || 'Le TCM fixe un delai cible de traitement pour proteger les usagers et limiter l aggravation du sinistre.';
                 }
 
                 function getDamageDeclarationLabel(report) {
@@ -5112,11 +5114,11 @@
                                             <div class="fw-semibold">${formatDateTime(report.resolution_confirmation?.confirmed_at)}</div>
                                         </div>
                                         <div class="col-md-3">
-                                            <div class="small text-secondary fw-semibold mb-1">Respect du SLA</div>
+                                            <div class="small text-secondary fw-semibold mb-1">Respect du TCM</div>
                                             <div class="fw-semibold">${report.sla?.is_respected === true ? 'Oui' : (report.sla?.is_respected === false ? 'Non' : 'En attente')}</div>
                                         </div>
                                         <div class="col-md-3">
-                                            <div class="small text-secondary fw-semibold mb-1">Importance du SLA</div>
+                                            <div class="small text-secondary fw-semibold mb-1">Importance du TCM</div>
                                             <div class="fw-semibold">${getSlaImportanceText(report)}</div>
                                         </div>
                                     </div>

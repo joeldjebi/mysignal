@@ -13,7 +13,7 @@
                 <div class="text-secondary small mb-4">{{ $signalType->code }} · {{ $signalType->network_type }}</div>
                 <div class="d-flex flex-wrap gap-2 mb-3">
                     <span class="status-chip">{{ $signalType->status }}</span>
-                    <span class="status-chip">{{ $signalType->default_sla_hours ? $signalType->default_sla_hours.' h' : 'Sans SLA defaut' }}</span>
+                    <span class="status-chip">{{ $signalType->default_sla_hours ? $signalType->default_sla_hours.' h' : 'Sans TCM defaut' }}</span>
                 </div>
                 <div class="text-secondary small">{{ $signalType->description ?: 'Aucune description detaillee pour le moment.' }}</div>
             </section>

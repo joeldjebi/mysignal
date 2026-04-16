@@ -2,7 +2,7 @@
 
 @section('title', config('app.name').' | Types de signaux')
 @section('page-title', 'Types de signaux')
-@section('page-description', 'Referentiel des types de signaux pour votre reseau, avec champs requis et SLA par defaut.')
+@section('page-description', 'Referentiel des types de signaux pour votre reseau, avec champs requis etTCM par defaut.')
 @section('header-badges')
     <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#createInstitutionSignalTypeModal">Nouveau type de signal</button>
 @endsection

@@ -25,7 +25,7 @@
                 <div class="text-secondary small mb-4">{{ $signalType->code }} · {{ $signalType->application?->name ?: 'Sans application' }} · {{ $signalType->organization?->name ?: 'Type partage' }}</div>
                 <div class="d-flex flex-wrap gap-2 mb-3">
                     <span class="status-chip">{{ $signalType->status }}</span>
-                    <span class="status-chip">{{ $signalType->default_sla_hours ? $signalType->default_sla_hours.' h' : 'Sans SLA defaut' }}</span>
+                    <span class="status-chip">{{ $signalType->default_sla_hours ? $signalType->default_sla_hours.' h' : 'SansTCM defaut' }}</span>
                 </div>
                 <div class="text-secondary small">{{ $signalType->description ?: 'Aucune description detaillee pour le moment.' }}</div>
             </section>

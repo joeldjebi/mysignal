@@ -263,7 +263,7 @@ class ReportController extends Controller
         if (blank($report->target_sla_hours) || blank($report->created_at)) {
             return [
                 'code' => 'unconfigured',
-                'label' => 'Sans configuration SLA',
+                'label' => 'Sans configuration TCM',
                 'elapsed_hours' => null,
             ];
         }
@@ -275,7 +275,7 @@ class ReportController extends Controller
         $label = match (true) {
             $ratio >= 1 => 'SLA depasse',
             $ratio >= 0.8 => 'SLA a risque',
-            default => 'Dans le SLA',
+            default => 'Dans le TCM',
         };
 
         $code = match (true) {

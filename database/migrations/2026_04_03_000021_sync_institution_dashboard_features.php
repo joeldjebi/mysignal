@@ -28,8 +28,8 @@ return new class extends Migration
             ],
             [
                 'code' => 'INSTITUTION_SLA_ACCESS',
-                'name' => 'Consultation des SLA',
-                'description' => 'Acces au referentiel des SLA cibles programmes pour le type d organisation.',
+                'name' => 'Consultation des TCM',
+                'description' => 'Acces au referentiel des TCM cibles programmes pour le type d organisation.',
             ],
             [
                 'code' => 'INSTITUTION_SIGNAL_TYPES_ACCESS',
@@ -63,8 +63,8 @@ return new class extends Migration
             ],
             [
                 'code' => 'INSTITUTION_DASHBOARD_SLA_BREAKDOWN',
-                'name' => 'Graphe dashboard - Etat des SLA',
-                'description' => 'Affiche le graphe de conformite des signalements par rapport aux SLA cibles.',
+                'name' => 'Graphe dashboard - Etat des TCM',
+                'description' => 'Affiche le graphe de conformite des signalements par rapport aux TCM cibles.',
             ],
             [
                 'code' => 'INSTITUTION_DASHBOARD_TOP_COMMUNES',

@@ -540,7 +540,7 @@ class ReparationCaseController extends Controller
         if ($report === null || blank($report->target_sla_hours) || blank($report->created_at)) {
             return [
                 'code' => 'unconfigured',
-                'label' => 'Sans configuration SLA',
+                'label' => 'Sans configuration TCM',
                 'elapsed_hours' => null,
             ];
         }
@@ -557,7 +557,7 @@ class ReparationCaseController extends Controller
             return ['code' => 'risk', 'label' => 'SLA a risque', 'elapsed_hours' => $elapsedHours];
         }
 
-        return ['code' => 'within', 'label' => 'Dans le SLA', 'elapsed_hours' => $elapsedHours];
+        return ['code' => 'within', 'label' => 'Dans le TCM', 'elapsed_hours' => $elapsedHours];
     }
 
     private function generateReference(): string

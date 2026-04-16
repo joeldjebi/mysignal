@@ -20,7 +20,7 @@ class SuperAdminPermissionSeeder extends Seeder
             ['code' => 'SA_FEATURES_MANAGE', 'name' => 'Gerer fonctionnalites', 'description' => 'Permet de gerer les fonctionnalites.'],
             ['code' => 'SA_APPLICATIONS_MANAGE', 'name' => 'Gerer applications', 'description' => 'Permet de gerer les applications.'],
             ['code' => 'SA_SIGNAL_TYPES_MANAGE', 'name' => 'Gerer types de signaux', 'description' => 'Permet de gerer les types de signaux.'],
-            ['code' => 'SA_SLA_POLICIES_MANAGE', 'name' => 'Gerer SLA', 'description' => 'Permet de gerer les SLA cibles.'],
+            ['code' => 'SA_SLA_POLICIES_MANAGE', 'name' => 'Gerer TCM', 'description' => 'Permet de gerer les TCM cibles.'],
             ['code' => 'SA_ORGANIZATIONS_MANAGE', 'name' => 'Gerer organisations', 'description' => 'Permet de gerer les organisations.'],
             ['code' => 'SA_INSTITUTION_ADMINS_MANAGE', 'name' => 'Gerer admins institutionnels', 'description' => 'Permet de gerer les admins institutionnels.'],
             ['code' => 'SA_PRICING_MANAGE', 'name' => 'Gerer tarification', 'description' => 'Permet de gerer la tarification.'],

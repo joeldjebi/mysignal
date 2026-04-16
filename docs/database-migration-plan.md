@@ -148,7 +148,7 @@ Priorite :
 - configuration `.env` basculee vers `mysql`
 - calcul `sla_breached_count` du dashboard `SA` rendu portable
   - suppression de la dependance a `EXTRACT(EPOCH ...)`
-  - calcul de depassement SLA reporte en PHP
+  - calcul de depassement TCM reporte en PHP
 - filtres dommages `AI` rendus moins dependants du SQL brut
   - plus de filtre `whereRaw(COALESCE(...))` pour la resolution des dommages
 - requetes de collecte paiements et de repartition dommages `AI`
@@ -202,7 +202,7 @@ Checklist minimale :
 - dommage
 - upload Wasabi
 - cartes
-- SLA
+-TCM
 - features
 
 ## Prochaine Action Recommandee

@@ -65,7 +65,7 @@ class OrganizationTypeSignalSlaController extends Controller
 
         $activityLogger->log(
             'sla_policy.created',
-            'Creation d une regle SLA.',
+            'Creation d une regle TCM.',
             $slaPolicy,
             [
                 'organization_type_id' => $slaPolicy->organization_type_id,
@@ -79,7 +79,7 @@ class OrganizationTypeSignalSlaController extends Controller
         );
 
         return redirect()->route('super-admin.sla-policies.index')
-            ->with('success', 'La regle SLA a ete creee.');
+            ->with('success', 'La regle TCM a ete creee.');
     }
 
     public function edit(OrganizationTypeSignalSla $slaPolicy): View
@@ -115,7 +115,7 @@ class OrganizationTypeSignalSlaController extends Controller
 
         $activityLogger->log(
             'sla_policy.updated',
-            'Mise a jour d une regle SLA.',
+            'Mise a jour d une regle TCM.',
             $slaPolicy,
             [
                 'before' => $before,
@@ -125,7 +125,7 @@ class OrganizationTypeSignalSlaController extends Controller
         );
 
         return redirect()->route('super-admin.sla-policies.index')
-            ->with('success', 'La regle SLA a ete mise a jour.');
+            ->with('success', 'La regle TCM a ete mise a jour.');
     }
 
     public function destroy(Request $request, OrganizationTypeSignalSla $slaPolicy, ActivityLogger $activityLogger): RedirectResponse
@@ -135,14 +135,14 @@ class OrganizationTypeSignalSlaController extends Controller
 
         $activityLogger->log(
             'sla_policy.deleted',
-            'Suppression d une regle SLA.',
+            'Suppression d une regle TCM.',
             OrganizationTypeSignalSla::class,
             $snapshot,
             $request
         );
 
         return redirect()->route('super-admin.sla-policies.index')
-            ->with('success', 'La regle SLA a ete supprimee.');
+            ->with('success', 'La regle TCM a ete supprimee.');
     }
 
     public function toggleStatus(Request $request, OrganizationTypeSignalSla $slaPolicy, ActivityLogger $activityLogger): RedirectResponse
@@ -153,7 +153,7 @@ class OrganizationTypeSignalSlaController extends Controller
 
         $activityLogger->log(
             'sla_policy.status_toggled',
-            'Changement de statut d une regle SLA.',
+            'Changement de statut d une regle TCM.',
             $slaPolicy,
             [
                 'status' => $slaPolicy->status,
@@ -161,7 +161,7 @@ class OrganizationTypeSignalSlaController extends Controller
             $request
         );
 
-        return back()->with('success', 'Le statut de la regle SLA a ete mis a jour.');
+        return back()->with('success', 'Le statut de la regle TCM a ete mis a jour.');
     }
 
     private function validateRequest(Request $request): array

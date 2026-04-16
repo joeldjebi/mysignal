@@ -1,8 +1,8 @@
 @extends('super-admin.layouts.app')
 
-@section('title', config('app.name').' | Modifier SLA')
-@section('page-title', 'Modifier une regle SLA')
-@section('page-description', 'Ajuster le SLA cible d un type d organisation pour un signal donne.')
+@section('title', config('app.name').' | Modifier TCM')
+@section('page-title', 'Modifier une regle TCM')
+@section('page-description', 'Ajuster le TCM cible d un type d organisation pour un signal donne.')
 
 @section('content')
     <section class="panel-card" style="max-width: 860px;">

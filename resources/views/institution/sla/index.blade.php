@@ -1,8 +1,8 @@
 @extends('institution.layouts.app')
 
-@section('title', config('app.name').' | SLA cibles')
+@section('title', config('app.name').' | TCM cibles')
 @section('page-title', 'SLA cibles')
-@section('page-description', 'Referentiel des SLA programmes pour votre type d organisation et votre reseau.')
+@section('page-description', 'Referentiel des TCM programmes pour votre type d organisation et votre reseau.')
 
 @section('content')
     <div class="row g-4">
@@ -10,7 +10,7 @@
             <section class="panel-card">
                 <div class="d-flex align-items-center justify-content-between mb-3">
                     <div>
-                        <div class="fw-bold">Nouvelle regle SLA</div>
+                        <div class="fw-bold">Nouvelle regle TCM</div>
                         <div class="text-secondary small">Creation limitee a votre type d'organisation et a votre reseau.</div>
                     </div>
                     <span class="status-chip">{{ $organization?->organizationType?->name ?? 'Type non defini' }}</span>
@@ -42,7 +42,7 @@
             <section class="panel-card">
                 <div class="d-flex align-items-center justify-content-between mb-3">
                     <div>
-                        <div class="fw-bold">Referentiel SLA</div>
+                        <div class="fw-bold">Referentiel TCM</div>
                         <div class="text-secondary small">Les admins institutionnels peuvent creer, modifier et activer/desactiver, sans suppression.</div>
                     </div>
                 </div>
@@ -99,7 +99,7 @@
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="6" class="text-center text-secondary">Aucune regle SLA disponible pour ce portail.</td></tr>
+                                <tr><td colspan="6" class="text-center text-secondary">Aucune regle TCM disponible pour ce portail.</td></tr>
                             @endforelse
                         </tbody>
                     </table>

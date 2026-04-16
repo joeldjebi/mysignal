@@ -286,9 +286,9 @@
                                     <div class="small text-secondary mb-3">
                                         Motif d eligibilite :
                                         @if ($slaBreached && $hasDamage)
-                                            SLA depasse et dommage declare
+                                           TCM depasse et dommage declare
                                         @elseif ($slaBreached)
-                                            SLA depasse
+                                           TCM depasse
                                         @else
                                             Dommage declare
                                         @endif

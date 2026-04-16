@@ -1,14 +1,14 @@
 @extends('institution.layouts.app')
 
-@section('title', config('app.name').' | Modifier SLA')
-@section('page-title', 'Modifier un SLA')
-@section('page-description', 'Ajuster le referentiel SLA applicable a votre institution.')
+@section('title', config('app.name').' | Modifier TCM')
+@section('page-title', 'Modifier un TCM')
+@section('page-description', 'Ajuster le referentiel TCM applicable a votre institution.')
 
 @section('content')
     <section class="panel-card" style="max-width: 920px;">
         <div class="d-flex align-items-center justify-content-between mb-3">
             <div>
-                <div class="fw-bold">Edition du referentiel SLA</div>
+                <div class="fw-bold">Edition du referentiel TCM</div>
                 <div class="text-secondary small">Cette mise a jour restera limitee a votre type d'organisation et a votre reseau.</div>
             </div>
             <span class="status-chip">{{ $slaPolicy->network_type }}</span>

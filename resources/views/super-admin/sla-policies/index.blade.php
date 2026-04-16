@@ -1,24 +1,24 @@
 @extends('super-admin.layouts.app')
 
-@section('title', config('app.name').' | SLA cibles')
+@section('title', config('app.name').' | TCM cibles')
 @section('page-title', 'SLA cibles')
-@section('page-description', 'Programmer les SLA cibles selon le type d organisation et le type de signal.')
+@section('page-description', 'Programmer les TCM cibles selon le type d organisation et le type de signal.')
 
 @section('header-badges')
-    <span class="badge-soft">{{ $slaPolicies->total() }} regles SLA</span>
+    <span class="badge-soft">{{ $slaPolicies->total() }} regles TCM</span>
     <button
         type="button"
         class="btn btn-dark"
         data-bs-toggle="modal"
         data-bs-target="#slaPolicyCreateModal"
     >
-        Nouvelle regle SLA
+        Nouvelle regle TCM
     </button>
 @endsection
 
 @section('content')
     <section class="panel-card">
-        <div class="fw-bold mb-3">Liste des SLA cibles</div>
+        <div class="fw-bold mb-3">Liste des TCM cibles</div>
         <form method="GET" class="filter-bar">
             <div class="row g-2 align-items-end">
                 <div class="col-md-4">
@@ -100,7 +100,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="6" class="text-center text-secondary">Aucune regle SLA enregistree.</td></tr>
+                        <tr><td colspan="6" class="text-center text-secondary">Aucune regle TCM enregistree.</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -116,7 +116,7 @@
             <div class="modal-content">
                 <div class="modal-header border-0 pb-0">
                     <div>
-                        <h5 class="modal-title" id="slaPolicyCreateModalLabel">Nouvelle regle SLA</h5>
+                        <h5 class="modal-title" id="slaPolicyCreateModalLabel">Nouvelle regle TCM</h5>
                         <div class="text-secondary small">Programmez un delai cible selon le type de client et le type de signal.</div>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -161,7 +161,7 @@
                     </div>
                     <div class="modal-footer border-0 pt-0">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
-                        <button type="submit" class="btn btn-dark">Creer la regle SLA</button>
+                        <button type="submit" class="btn btn-dark">Creer la regle TCM</button>
                     </div>
                 </form>
             </div>

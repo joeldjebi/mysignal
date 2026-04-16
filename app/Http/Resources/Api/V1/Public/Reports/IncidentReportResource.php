@@ -132,7 +132,7 @@ class IncidentReportResource extends JsonResource
         $label = match ($status) {
             'breached' => 'SLA depasse',
             'risk' => 'SLA a risque',
-            default => 'Dans le SLA',
+            default => 'Dans le TCM',
         };
 
         return [
@@ -152,7 +152,7 @@ class IncidentReportResource extends JsonResource
             return [
                 'code' => 'unspecified',
                 'label' => 'Priorite non definie',
-                'details' => 'Ce type de signalement ne dispose pas encore d une cible SLA.',
+                'details' => 'Ce type de signalement ne dispose pas encore d une cibleTCM.',
             ];
         }
 
@@ -170,7 +170,7 @@ class IncidentReportResource extends JsonResource
             $targetHours <= 24 => [
                 'code' => 'medium',
                 'label' => 'Intervention importante',
-                'details' => 'Le SLA protege la qualite de service et limite l extension des consequences sur le terrain.',
+                'details' => 'LeTCM protege la qualite de service et limite l extension des consequences sur le terrain.',
             ],
             default => [
                 'code' => 'standard',
