@@ -10,22 +10,23 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
         <style>
             :root {
-                --mysignal-navy: #0c2435;
-                --mysignal-ocean: #1e5877;
-                --mysignal-copper: #cb6f2c;
-                --mysignal-sand: #f7f1e8;
-                --mysignal-ink: #173447;
+                --mysignal-navy: #183447;
+                --mysignal-ocean: #256f8f;
+                --mysignal-copper: #ff0068;
+                --mysignal-amber: #ffa117;
+                --mysignal-mint: #5bebaf;
+                --mysignal-ink: #183447;
                 --mysignal-muted: #667786;
                 --mysignal-card: rgba(255, 255, 255, 0.92);
-                --mysignal-soft: #f6f8fa;
+                --mysignal-soft: #f4f8fb;
             }
             body {
                 font-family: "Manrope", sans-serif;
                 color: var(--mysignal-ink);
                 background:
-                    radial-gradient(circle at top left, rgba(203, 111, 44, 0.14), transparent 24%),
-                    radial-gradient(circle at 90% 0%, rgba(30, 88, 119, 0.16), transparent 28%),
-                    linear-gradient(180deg, #faf7f2 0%, #eef3f6 52%, #faf7f3 100%);
+                    radial-gradient(circle at top left, rgba(255, 0, 104, 0.10), transparent 24%),
+                    radial-gradient(circle at 90% 0%, rgba(91, 235, 175, 0.14), transparent 28%),
+                    linear-gradient(180deg, #f7fbff 0%, #eef6fa 52%, #ffffff 100%);
             }
             .shell { max-width: 1320px; }
             .glass-nav,.hero-panel,.feature-card,.auth-panel,.story-card,.proof-card,.impact-card,.mission-band,.timeline-card,.app-card { background: var(--mysignal-card); border: 1px solid rgba(24,52,71,.08); box-shadow: 0 28px 80px rgba(15,39,56,.08); backdrop-filter: blur(18px); }
@@ -33,7 +34,7 @@
             .hero-panel,.feature-card,.auth-panel,.story-card,.proof-card,.impact-card,.mission-band,.timeline-card,.app-card { border-radius: 30px; }
             .brand-logo { width: 54px; height: 54px; object-fit: contain; border-radius: 18px; background: white; padding: .35rem; box-shadow: 0 14px 28px rgba(12,36,53,.08); }
             .eyebrow { display: inline-flex; align-items:center; gap:.55rem; padding:.55rem 1rem; border-radius:999px; background: rgba(30,88,119,.08); color: var(--mysignal-ocean); font-size:.82rem; font-weight:800; text-transform:uppercase; letter-spacing:.06em; }
-            .hero-title { font-size: clamp(2.85rem, 5vw, 5.65rem); font-weight: 800; line-height: .94; letter-spacing: -.06em; }
+            .hero-title { font-size: 4.7rem; font-weight: 800; line-height: .96; letter-spacing: 0; }
             .hero-copy,.muted-copy { color: var(--mysignal-muted); line-height: 1.75; }
             .hero-lead-grid {
                 display: grid;
@@ -69,7 +70,7 @@
                 background:
                     radial-gradient(circle at top right, rgba(255,255,255,.18), transparent 36%),
                     linear-gradient(145deg, var(--mysignal-navy), var(--mysignal-ocean));
-                color: #f9f3ec;
+                color: #fff;
                 padding: 1.4rem;
             }
             .hero-stage::after {
@@ -80,7 +81,7 @@
                 width: 220px;
                 height: 220px;
                 border-radius: 50%;
-                background: radial-gradient(circle, rgba(203,111,44,.34), transparent 62%);
+                background: radial-gradient(circle, rgba(255,0,104,.25), transparent 62%);
             }
             .hero-stage-card {
                 position: relative;
@@ -112,6 +113,114 @@
                 background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(244,247,249,.92));
                 min-height: 280px;
                 box-shadow: inset 0 1px 0 rgba(255,255,255,.6);
+            }
+            .hero-phone-wrap {
+                position: relative;
+                display: grid;
+                place-items: center;
+                min-height: 430px;
+                isolation: isolate;
+            }
+            .hero-phone-wrap::before,
+            .hero-phone-wrap::after {
+                content: "";
+                position: absolute;
+                border-radius: 999px;
+                filter: blur(1px);
+                z-index: -1;
+            }
+            .hero-phone-wrap::before {
+                width: 230px;
+                height: 230px;
+                background: rgba(255, 161, 23, 0.22);
+                top: 18px;
+                right: 14px;
+            }
+            .hero-phone-wrap::after {
+                width: 180px;
+                height: 180px;
+                background: rgba(91, 235, 175, 0.2);
+                left: 10px;
+                bottom: 32px;
+            }
+            .phone-shell {
+                width: min(100%, 245px);
+                border-radius: 34px;
+                padding: .75rem;
+                background: #102a3a;
+                box-shadow: 0 34px 70px rgba(9, 30, 44, .32);
+            }
+            .phone-screen {
+                min-height: 390px;
+                border-radius: 26px;
+                background: #fff;
+                padding: 1rem;
+                color: var(--mysignal-ink);
+                display: flex;
+                flex-direction: column;
+                gap: .85rem;
+            }
+            .phone-top {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: .75rem;
+            }
+            .phone-logo {
+                width: 38px;
+                height: 38px;
+                object-fit: contain;
+                border-radius: 12px;
+                background: #fff;
+                box-shadow: 0 10px 22px rgba(24,52,71,.12);
+            }
+            .phone-status {
+                border-radius: 999px;
+                padding: .35rem .65rem;
+                background: rgba(91,235,175,.22);
+                color: #13744f;
+                font-size: .72rem;
+                font-weight: 800;
+            }
+            .phone-card {
+                border-radius: 20px;
+                padding: .9rem;
+                background: linear-gradient(145deg, var(--mysignal-navy), var(--mysignal-ocean));
+                color: #fff;
+            }
+            .phone-card small,
+            .phone-item small {
+                display: block;
+                color: rgba(255,255,255,.7);
+                font-weight: 700;
+                margin-bottom: .25rem;
+            }
+            .phone-card strong {
+                display: block;
+                font-size: 1.05rem;
+                line-height: 1.25;
+            }
+            .phone-item {
+                border-radius: 18px;
+                padding: .8rem;
+                background: #f4f8fb;
+                border: 1px solid rgba(24,52,71,.07);
+            }
+            .phone-item small {
+                color: var(--mysignal-muted);
+            }
+            .phone-progress {
+                height: 8px;
+                border-radius: 999px;
+                background: #dce9ef;
+                overflow: hidden;
+            }
+            .phone-progress span {
+                display: block;
+                width: 68%;
+                height: 100%;
+                border-radius: inherit;
+                background: linear-gradient(90deg, var(--mysignal-copper), var(--mysignal-amber));
             }
             .flat-illustration svg,
             .section-visual svg,
@@ -167,7 +276,7 @@
                 width: 120px;
                 height: 120px;
                 border-radius: 50%;
-                background: radial-gradient(circle, rgba(203,111,44,.16), transparent 68%);
+                background: radial-gradient(circle, rgba(255,0,104,.12), transparent 68%);
             }
             .app-chip {
                 display: inline-flex;
@@ -191,13 +300,13 @@
                 padding: .3rem;
                 box-shadow: 0 12px 24px rgba(12,36,53,.08);
             }
-            .btn-premium { border:none; min-height:3.25rem; border-radius:18px; background: linear-gradient(135deg, var(--mysignal-copper), #dd8d4d); color:white; font-weight:800; box-shadow: 0 18px 34px rgba(196,106,43,.24); }
+            .btn-premium { border:none; min-height:3.25rem; border-radius:18px; background: linear-gradient(135deg, var(--mysignal-copper), var(--mysignal-amber)); color:white; font-weight:800; box-shadow: 0 18px 34px rgba(255,0,104,.18); }
             .btn-premium:hover { color: white; transform: translateY(-1px); }
             .btn-ghost-premium { min-height:3.25rem; border-radius:18px; background: rgba(12,36,53,.05); color: var(--mysignal-navy); border:1px solid rgba(12,36,53,.08); font-weight:800; }
             .auth-switch .nav-link,.register-switch .nav-link { border-radius:999px; color: var(--mysignal-muted); font-weight:800; padding:.9rem 1rem; }
-            .auth-switch .nav-link.active,.register-switch .nav-link.active { background: linear-gradient(135deg, var(--mysignal-copper), #dd8d4d); color:white; box-shadow: 0 16px 28px rgba(196,106,43,.22); }
+            .auth-switch .nav-link.active,.register-switch .nav-link.active { background: linear-gradient(135deg, var(--mysignal-copper), var(--mysignal-amber)); color:white; box-shadow: 0 16px 28px rgba(255,0,104,.18); }
             .form-control,.form-select { border-radius:18px; border-color: rgba(24,52,71,.11); min-height:3.25rem; padding-inline:1rem; }
-            .form-control:focus,.form-select:focus { border-color: rgba(196,106,43,.55); box-shadow: 0 0 0 .25rem rgba(196,106,43,.12); }
+            .form-control:focus,.form-select:focus { border-color: rgba(255,0,104,.45); box-shadow: 0 0 0 .25rem rgba(255,0,104,.10); }
             .required-star { color:#d6005a; font-weight:800; margin-left:.15rem; }
             .public-select-shell { position: relative; }
             .public-select-input { display:block; width:100%; min-height:3.25rem; border-radius:18px; border-color: rgba(24,52,71,.11); padding-inline:1rem; padding-right:3.4rem; background:white; cursor:pointer; margin-bottom:.55rem; }
@@ -215,7 +324,7 @@
             .story-card,.proof-card,.impact-card { padding: 1.35rem; }
             .impact-card {
                 background:
-                    linear-gradient(145deg, rgba(12,36,53,.96), rgba(30,88,119,.94)),
+                    linear-gradient(145deg, rgba(24,52,71,.98), rgba(37,111,143,.94)),
                     var(--mysignal-navy);
                 color: white;
             }
@@ -249,16 +358,16 @@
                 margin-bottom: .4rem;
             }
             .section-heading {
-                font-size: clamp(1.7rem, 3vw, 2.7rem);
+                font-size: 2.45rem;
                 font-weight: 800;
-                letter-spacing: -.04em;
+                letter-spacing: 0;
                 margin-bottom: .65rem;
             }
             .mission-band {
                 padding: 1.4rem;
                 background:
-                    radial-gradient(circle at top left, rgba(203,111,44,.12), transparent 34%),
-                    linear-gradient(180deg, rgba(255,255,255,.92), rgba(247,241,232,.9));
+                    radial-gradient(circle at top left, rgba(255,0,104,.08), transparent 34%),
+                    linear-gradient(180deg, rgba(255,255,255,.95), rgba(244,248,251,.94));
             }
             .mission-point {
                 padding: 1rem 0;
@@ -289,11 +398,11 @@
                 border-radius: 14px;
                 display: grid;
                 place-items: center;
-                background: linear-gradient(135deg, var(--mysignal-copper), #dd8d4d);
+                background: linear-gradient(135deg, var(--mysignal-copper), var(--mysignal-amber));
                 color: white;
                 font-weight: 800;
                 flex-shrink: 0;
-                box-shadow: 0 14px 28px rgba(196,106,43,.2);
+                box-shadow: 0 14px 28px rgba(255,0,104,.16);
             }
             .bullet-check {
                 display: flex;
@@ -310,7 +419,7 @@
                 border-radius: 12px;
                 display: grid;
                 place-items: center;
-                background: rgba(203,111,44,.14);
+                background: rgba(255,0,104,.10);
                 color: var(--mysignal-copper);
                 font-weight: 800;
                 flex-shrink: 0;
@@ -318,6 +427,12 @@
             .hidden { display:none !important; }
             .toast-container { z-index:1090; }
             @media (max-width: 991.98px) {
+                .hero-title {
+                    font-size: 3rem;
+                }
+                .section-heading {
+                    font-size: 2rem;
+                }
                 .fact-grid {
                     grid-template-columns: 1fr;
                 }
@@ -349,8 +464,8 @@
                 <div class="collapse navbar-collapse" id="publicNavbar">
                     <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
                         <li class="nav-item"><a class="nav-link" href="#landing">Accueil</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#importance">Importance</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#features">Avantages</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#importance">Utilité</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#features">Services</a></li>
                         <li class="nav-item"><a class="nav-link" href="#parcours">Parcours</a></li>
                         <li class="nav-item"><a class="nav-link" href="#access">Accès</a></li>
                         <li class="nav-item ms-lg-2"><button class="btn btn-ghost-premium px-4" data-auth-tab-target="login">Se connecter</button></li>
@@ -362,55 +477,58 @@
             <section id="landing" class="hero-panel p-4 p-lg-5 mb-4 mb-lg-5">
                 <div class="row align-items-center g-4 g-lg-5">
                     <div class="col-lg-7">
-                        <span class="eyebrow mb-3">Signalement citoyen structuré</span>
-                        <h1 class="hero-title mb-3">Transformer une alerte en dossier utile, clair et suivi jusqu’au bout.</h1>
+                        <span class="eyebrow mb-3">Protection des consommateurs</span>
+                        <h1 class="hero-title mb-3">Signaler, suivre et défendre vos droits depuis un espace clair.</h1>
                         <p class="hero-copy mb-4">
-                            My Signal aide les usagers à signaler un incident de façon sérieuse, compréhensible et exploitable par les institutions. L’objectif est simple : mieux décrire le problème, mieux orienter l’intervention, puis suivre la résolution avec un niveau de preuve et de transparence que les appels informels ne donnent pas.
+                            MySignal transforme un problème de service en dossier exploitable. Vous déclarez l’incident, vous suivez le traitement, vous confirmez la résolution et vous gardez vos preuves au même endroit.
                         </p>
                         <div class="d-flex flex-wrap gap-3">
                             <button class="btn btn-premium px-4" data-auth-tab-target="register">Créer mon compte</button>
-                            <a class="btn btn-ghost-premium px-4" href="#importance">Pourquoi signaler ?</a>
+                            <a class="btn btn-ghost-premium px-4" href="#importance">Voir le parcours</a>
                         </div>
                         <div class="hero-lead-grid">
                             <div class="hero-lead-card">
-                                <div class="hero-lead-label">Importance</div>
-                                <div class="hero-lead-value">Des incidents mieux localisés et mieux compris.</div>
+                                <div class="hero-lead-label">Signalement</div>
+                                <div class="hero-lead-value">Un dossier structuré avec localisation et preuves.</div>
                             </div>
                             <div class="hero-lead-card">
-                                <div class="hero-lead-label">Avantage</div>
-                                <div class="hero-lead-value">Un suivi visible à chaque étape du traitement.</div>
+                                <div class="hero-lead-label">Suivi</div>
+                                <div class="hero-lead-value">Un statut lisible jusqu’à la résolution.</div>
                             </div>
                             <div class="hero-lead-card">
-                                <div class="hero-lead-label">Objectif</div>
-                                <div class="hero-lead-value">Renforcer la qualité de service et la confiance.</div>
+                                <div class="hero-lead-label">Carte membre</div>
+                                <div class="hero-lead-value">Un accès wallet pour les abonnés actifs.</div>
                             </div>
                         </div>
                     </div>
                     <div class="col-lg-5">
                         <div class="hero-stage">
-                            <div class="flat-illustration mb-3">
-                                <svg viewBox="0 0 520 320" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                    <rect width="520" height="320" fill="#10283b"/>
-                                    <circle cx="414" cy="64" r="74" fill="#1d5a78" opacity=".48"/>
-                                    <circle cx="84" cy="276" r="92" fill="#cb6f2c" opacity=".22"/>
-                                    <rect x="52" y="70" width="190" height="168" rx="26" fill="#f8fafb"/>
-                                    <rect x="72" y="95" width="150" height="18" rx="9" fill="#dbe5eb"/>
-                                    <rect x="72" y="126" width="86" height="72" rx="18" fill="#1e5877"/>
-                                    <path d="M96 170l18-20 20 24 14-10 22 24H96z" fill="#d9edf7"/>
-                                    <circle cx="148" cy="142" r="9" fill="#cb6f2c"/>
-                                    <rect x="170" y="128" width="52" height="10" rx="5" fill="#b7c8d3"/>
-                                    <rect x="170" y="146" width="38" height="10" rx="5" fill="#b7c8d3"/>
-                                    <rect x="170" y="174" width="44" height="10" rx="5" fill="#b7c8d3"/>
-                                    <rect x="274" y="52" width="190" height="214" rx="30" fill="#15364d"/>
-                                    <rect x="298" y="80" width="142" height="20" rx="10" fill="#335f79"/>
-                                    <rect x="298" y="118" width="76" height="76" rx="22" fill="#f6f1e8"/>
-                                    <path d="M336 132a21 21 0 100 42 21 21 0 000-42zm0 9a12 12 0 110 24 12 12 0 010-24z" fill="#cb6f2c"/>
-                                    <path d="M334 148h5v10h10v5h-10v10h-5v-10h-10v-5h10z" fill="#cb6f2c"/>
-                                    <rect x="388" y="126" width="52" height="12" rx="6" fill="#8eacbe"/>
-                                    <rect x="388" y="148" width="38" height="12" rx="6" fill="#8eacbe"/>
-                                    <rect x="298" y="214" width="142" height="18" rx="9" fill="#335f79"/>
-                                    <rect x="298" y="242" width="92" height="12" rx="6" fill="#335f79"/>
-                                </svg>
+                            <div class="hero-phone-wrap mb-4">
+                                <div class="phone-shell">
+                                    <div class="phone-screen">
+                                        <div class="phone-top">
+                                            <img src="{{ asset('image/logo/logo-my-signal.png') }}" alt="MySignal" class="phone-logo">
+                                            <span class="phone-status">Actif</span>
+                                        </div>
+                                        <div class="phone-card">
+                                            <small>Signalement en cours</small>
+                                            <strong>Coupure prolongée dans la commune</strong>
+                                        </div>
+                                        <div class="phone-item">
+                                            <small>Traitement</small>
+                                            <div class="fw-bold mb-2">Réponse institutionnelle attendue</div>
+                                            <div class="phone-progress"><span></span></div>
+                                        </div>
+                                        <div class="phone-item">
+                                            <small>Carte membre</small>
+                                            <div class="fw-bold">Réduction disponible avec abonnement actif</div>
+                                        </div>
+                                        <div class="phone-item">
+                                            <small>REX</small>
+                                            <div class="fw-bold">Retour d’expérience après résolution</div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             <div class="hero-stage-card">
                                 <div class="hero-stage-kicker">Etape 1</div>
@@ -432,12 +550,45 @@
                 </div>
             </section>
 
+            <section class="mb-4 mb-lg-5">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <div class="mini-card h-100">
+                            <div class="fact-kicker">Espace UP</div>
+                            <div class="fact-value">1</div>
+                            <div class="muted-copy mb-0">Un compte pour les signalements, abonnements, reçus et retours d’expérience.</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mini-card h-100">
+                            <div class="fact-kicker">Suivi</div>
+                            <div class="fact-value">TCM</div>
+                            <div class="muted-copy mb-0">Des délais de traitement visibles pour mieux comprendre l’avancement.</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mini-card h-100">
+                            <div class="fact-kicker">Abonné actif</div>
+                            <div class="fact-value">QR</div>
+                            <div class="muted-copy mb-0">Une carte virtuelle wallet pour accéder aux avantages partenaires.</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mini-card h-100">
+                            <div class="fact-kicker">Après résolution</div>
+                            <div class="fact-value">REX</div>
+                            <div class="muted-copy mb-0">Un retour d’expérience pour mesurer la qualité du traitement reçu.</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <section id="importance" class="mb-4 mb-lg-5">
                 <div class="row g-4 align-items-stretch">
                     <div class="col-lg-7">
                         <div class="story-card h-100">
-                            <span class="eyebrow mb-3">Pourquoi signaler</span>
-                            <h2 class="section-heading">Chaque signalement bien structuré améliore la réactivité, la preuve et la protection de l’usager.</h2>
+                            <span class="eyebrow mb-3">Utilité terrain</span>
+                            <h2 class="section-heading">Chaque signalement bien structuré améliore la réactivité, la preuve et la protection du consommateur.</h2>
                             <p class="muted-copy mb-4">
                                 Un bon signalement ne sert pas seulement à alerter. Il aide à orienter les équipes, prioriser les incidents, localiser précisément le problème et documenter les faits. Plus les informations sont claires, plus la prise en charge devient crédible et efficace.
                             </p>
@@ -566,12 +717,12 @@
                     </div>
                 </div>
                 <div class="row g-4">
-                    <div class="col-lg-4"><div class="feature-card p-4 h-100"><div class="feature-art"><svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="320" height="180" fill="#f3f6f8"/><rect x="28" y="26" width="120" height="128" rx="22" fill="#ffffff"/><rect x="172" y="44" width="120" height="100" rx="24" fill="#1e5877"/><circle cx="108" cy="88" r="22" fill="#cb6f2c"/><path d="M95 88h26M108 75v26" stroke="#fff2e8" stroke-width="8" stroke-linecap="round"/><rect x="62" y="58" width="28" height="8" rx="4" fill="#c8d7e0"/><rect x="62" y="76" width="22" height="8" rx="4" fill="#c8d7e0"/><rect x="62" y="112" width="54" height="10" rx="5" fill="#c8d7e0"/><path d="M195 111l19-23 19 18 16-10 25 27h-79z" fill="#dff0f8"/><circle cx="232" cy="74" r="12" fill="#f7c27f"/></svg></div><div class="feature-icon mb-3">01</div><h3 class="h5 fw-bold">Signalement mieux qualifié</h3><p class="muted-copy mb-0">Le parcours guide l’usager sur le bon réseau, le bon compteur, la bonne localisation et les bonnes informations complémentaires.</p></div></div>
-                    <div class="col-lg-4"><div class="feature-card p-4 h-100"><div class="feature-art"><svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="320" height="180" fill="#f4f7f9"/><rect x="40" y="34" width="240" height="112" rx="28" fill="#ffffff"/><rect x="60" y="58" width="92" height="16" rx="8" fill="#d2dfe7"/><rect x="60" y="90" width="200" height="12" rx="6" fill="#e3ebf0"/><rect x="60" y="114" width="126" height="12" rx="6" fill="#e3ebf0"/><circle cx="232" cy="66" r="22" fill="#cb6f2c"/><path d="M232 54v13l9 6" stroke="#fff3eb" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><rect x="60" y="146" width="60" height="12" rx="6" fill="#1e5877" opacity=".18"/><rect x="128" y="146" width="90" height="12" rx="6" fill="#1e5877" opacity=".28"/></svg></div><div class="feature-icon mb-3">02</div><h3 class="h5 fw-bold">Suivi clair du dossier</h3><p class="muted-copy mb-0">Chaque signalement garde son statut, son temps de traitement, sa réponse institutionnelle, le TCM appliqué et, si besoin, la suite liée aux dommages.</p></div></div>
-                    <div class="col-lg-4"><div class="feature-card p-4 h-100"><div class="feature-art"><svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="320" height="180" fill="#f3f7f9"/><rect x="34" y="56" width="252" height="90" rx="28" fill="#ffffff"/><circle cx="102" cy="98" r="28" fill="#1e5877"/><circle cx="160" cy="84" r="24" fill="#cb6f2c"/><circle cx="216" cy="102" r="26" fill="#dfeaf0"/><rect x="78" y="128" width="154" height="12" rx="6" fill="#d2dfe7"/><path d="M94 96h16M102 88v16" stroke="#eaf6fb" stroke-width="7" stroke-linecap="round"/><path d="M152 82h16" stroke="#fff5ec" stroke-width="7" stroke-linecap="round"/></svg></div><div class="feature-icon mb-3">03</div><h3 class="h5 fw-bold">Usage familial et terrain</h3><p class="muted-copy mb-0">Le Gonhi permet de partager un compteur, d’inviter des proches et d’organiser les usages au sein d’un même cadre familial.</p></div></div>
-                    <div class="col-lg-4"><div class="feature-card p-4 h-100"><div class="feature-art"><svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="320" height="180" fill="#f5f8fa"/><rect x="52" y="28" width="92" height="124" rx="24" fill="#15364d"/><rect x="68" y="48" width="60" height="72" rx="14" fill="#eff6f9"/><circle cx="98" cy="136" r="7" fill="#7ea0b5"/><rect x="168" y="44" width="102" height="92" rx="24" fill="#ffffff"/><path d="M210 66a26 26 0 100 52 26 26 0 000-52zm0 10a16 16 0 110 32 16 16 0 010-32z" fill="#cb6f2c"/><circle cx="242" cy="112" r="12" fill="#1e5877"/><path d="M242 106v12M236 112h12" stroke="#e6f4fb" stroke-width="6" stroke-linecap="round"/></svg></div><div class="feature-icon mb-3">04</div><h3 class="h5 fw-bold">Preuves plus exploitables</h3><p class="muted-copy mb-0">La géolocalisation, la photo et les champs demandés à l’usager rendent le dossier plus solide pour les équipes.</p></div></div>
-                    <div class="col-lg-4"><div class="feature-card p-4 h-100"><div class="feature-art"><svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="320" height="180" fill="#f4f7fa"/><rect x="44" y="40" width="232" height="102" rx="28" fill="#ffffff"/><path d="M82 92l28 28 38-48" stroke="#1f7a4f" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/><rect x="150" y="64" width="92" height="12" rx="6" fill="#c9d7df"/><rect x="150" y="88" width="74" height="12" rx="6" fill="#d8e4ea"/><rect x="150" y="112" width="48" height="12" rx="6" fill="#d8e4ea"/><circle cx="252" cy="62" r="18" fill="#cb6f2c"/><path d="M252 54v16M244 62h16" stroke="#fff3eb" stroke-width="6" stroke-linecap="round"/></svg></div><div class="feature-icon mb-3">05</div><h3 class="h5 fw-bold">Résolution vérifiable</h3><p class="muted-copy mb-0">L’usager confirme la résolution, voit si le TCM a été respecté et peut déclarer un dommage si nécessaire.</p></div></div>
-                    <div class="col-lg-4"><div class="feature-card p-4 h-100"><div class="feature-art"><svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="320" height="180" fill="#f5f8fa"/><rect x="56" y="34" width="208" height="114" rx="28" fill="#ffffff"/><rect x="82" y="58" width="156" height="16" rx="8" fill="#d7e3ea"/><rect x="82" y="88" width="120" height="12" rx="6" fill="#e5edf1"/><rect x="82" y="112" width="98" height="12" rx="6" fill="#e5edf1"/><circle cx="220" cy="108" r="24" fill="#1e5877"/><path d="M210 108l7 7 13-16" stroke="#e9f6fc" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><circle cx="98" cy="130" r="8" fill="#cb6f2c"/></svg></div><div class="feature-icon mb-3">06</div><h3 class="h5 fw-bold">Mémoire de service</h3><p class="muted-copy mb-0">Les reçus, historiques et interactions restent accessibles pour mieux comprendre ce qui s’est passé sur chaque dossier.</p></div></div>
+                    <div class="col-lg-4"><div class="feature-card p-4 h-100"><div class="feature-art"><svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="320" height="180" fill="#f3f6f8"/><rect x="28" y="26" width="120" height="128" rx="22" fill="#ffffff"/><rect x="172" y="44" width="120" height="100" rx="24" fill="#1e5877"/><circle cx="108" cy="88" r="22" fill="#ff0068"/><path d="M95 88h26M108 75v26" stroke="#fff2e8" stroke-width="8" stroke-linecap="round"/><rect x="62" y="58" width="28" height="8" rx="4" fill="#c8d7e0"/><rect x="62" y="76" width="22" height="8" rx="4" fill="#c8d7e0"/><rect x="62" y="112" width="54" height="10" rx="5" fill="#c8d7e0"/><path d="M195 111l19-23 19 18 16-10 25 27h-79z" fill="#dff0f8"/><circle cx="232" cy="74" r="12" fill="#f7c27f"/></svg></div><div class="feature-icon mb-3">01</div><h3 class="h5 fw-bold">Signalement mieux qualifié</h3><p class="muted-copy mb-0">Le parcours guide l’usager sur le bon réseau, le bon compteur, la bonne localisation et les bonnes informations complémentaires.</p></div></div>
+                    <div class="col-lg-4"><div class="feature-card p-4 h-100"><div class="feature-art"><svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="320" height="180" fill="#f4f7f9"/><rect x="40" y="34" width="240" height="112" rx="28" fill="#ffffff"/><rect x="60" y="58" width="92" height="16" rx="8" fill="#d2dfe7"/><rect x="60" y="90" width="200" height="12" rx="6" fill="#e3ebf0"/><rect x="60" y="114" width="126" height="12" rx="6" fill="#e3ebf0"/><circle cx="232" cy="66" r="22" fill="#ff0068"/><path d="M232 54v13l9 6" stroke="#fff3eb" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><rect x="60" y="146" width="60" height="12" rx="6" fill="#1e5877" opacity=".18"/><rect x="128" y="146" width="90" height="12" rx="6" fill="#1e5877" opacity=".28"/></svg></div><div class="feature-icon mb-3">02</div><h3 class="h5 fw-bold">Suivi clair du dossier</h3><p class="muted-copy mb-0">Chaque signalement garde son statut, son temps de traitement, sa réponse institutionnelle, le TCM appliqué et, si besoin, la suite liée aux dommages.</p></div></div>
+                    <div class="col-lg-4"><div class="feature-card p-4 h-100"><div class="feature-art"><svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="320" height="180" fill="#f3f7f9"/><rect x="34" y="56" width="252" height="90" rx="28" fill="#ffffff"/><circle cx="102" cy="98" r="28" fill="#1e5877"/><circle cx="160" cy="84" r="24" fill="#ff0068"/><circle cx="216" cy="102" r="26" fill="#dfeaf0"/><rect x="78" y="128" width="154" height="12" rx="6" fill="#d2dfe7"/><path d="M94 96h16M102 88v16" stroke="#eaf6fb" stroke-width="7" stroke-linecap="round"/><path d="M152 82h16" stroke="#fff5ec" stroke-width="7" stroke-linecap="round"/></svg></div><div class="feature-icon mb-3">03</div><h3 class="h5 fw-bold">Usage familial et terrain</h3><p class="muted-copy mb-0">Le Gonhi permet de partager un compteur, d’inviter des proches et d’organiser les usages au sein d’un même cadre familial.</p></div></div>
+                    <div class="col-lg-4"><div class="feature-card p-4 h-100"><div class="feature-art"><svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="320" height="180" fill="#f5f8fa"/><rect x="52" y="28" width="92" height="124" rx="24" fill="#15364d"/><rect x="68" y="48" width="60" height="72" rx="14" fill="#eff6f9"/><circle cx="98" cy="136" r="7" fill="#7ea0b5"/><rect x="168" y="44" width="102" height="92" rx="24" fill="#ffffff"/><path d="M210 66a26 26 0 100 52 26 26 0 000-52zm0 10a16 16 0 110 32 16 16 0 010-32z" fill="#ff0068"/><circle cx="242" cy="112" r="12" fill="#1e5877"/><path d="M242 106v12M236 112h12" stroke="#e6f4fb" stroke-width="6" stroke-linecap="round"/></svg></div><div class="feature-icon mb-3">04</div><h3 class="h5 fw-bold">Preuves plus exploitables</h3><p class="muted-copy mb-0">La géolocalisation, la photo et les champs demandés à l’usager rendent le dossier plus solide pour les équipes.</p></div></div>
+                    <div class="col-lg-4"><div class="feature-card p-4 h-100"><div class="feature-art"><svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="320" height="180" fill="#f4f7fa"/><rect x="44" y="40" width="232" height="102" rx="28" fill="#ffffff"/><path d="M82 92l28 28 38-48" stroke="#1f7a4f" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/><rect x="150" y="64" width="92" height="12" rx="6" fill="#c9d7df"/><rect x="150" y="88" width="74" height="12" rx="6" fill="#d8e4ea"/><rect x="150" y="112" width="48" height="12" rx="6" fill="#d8e4ea"/><circle cx="252" cy="62" r="18" fill="#ff0068"/><path d="M252 54v16M244 62h16" stroke="#fff3eb" stroke-width="6" stroke-linecap="round"/></svg></div><div class="feature-icon mb-3">05</div><h3 class="h5 fw-bold">Résolution vérifiable</h3><p class="muted-copy mb-0">L’usager confirme la résolution, voit si le TCM a été respecté et peut déclarer un dommage si nécessaire.</p></div></div>
+                    <div class="col-lg-4"><div class="feature-card p-4 h-100"><div class="feature-art"><svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="320" height="180" fill="#f5f8fa"/><rect x="56" y="34" width="208" height="114" rx="28" fill="#ffffff"/><rect x="82" y="58" width="156" height="16" rx="8" fill="#d7e3ea"/><rect x="82" y="88" width="120" height="12" rx="6" fill="#e5edf1"/><rect x="82" y="112" width="98" height="12" rx="6" fill="#e5edf1"/><circle cx="220" cy="108" r="24" fill="#1e5877"/><path d="M210 108l7 7 13-16" stroke="#e9f6fc" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><circle cx="98" cy="130" r="8" fill="#ff0068"/></svg></div><div class="feature-icon mb-3">06</div><h3 class="h5 fw-bold">Mémoire de service</h3><p class="muted-copy mb-0">Les reçus, historiques et interactions restent accessibles pour mieux comprendre ce qui s’est passé sur chaque dossier.</p></div></div>
                 </div>
             </section>
 
@@ -622,7 +773,7 @@
                                     <rect x="104" y="246" width="288" height="18" rx="9" fill="#edf3f6"/>
                                     <rect x="332" y="110" width="116" height="110" rx="24" fill="#15364d"/>
                                     <path d="M365 168l20 20 32-40" stroke="#dff4ff" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <circle cx="388" cy="148" r="20" fill="#cb6f2c"/>
+                                    <circle cx="388" cy="148" r="20" fill="#ff0068"/>
                                     <path d="M388 138v20M378 148h20" stroke="#fff4eb" stroke-width="7" stroke-linecap="round"/>
                                 </svg>
                             </div>
@@ -684,7 +835,7 @@
                                     <rect x="54" y="74" width="118" height="92" rx="24" fill="#ffffff"/>
                                     <rect x="220" y="52" width="118" height="114" rx="24" fill="#ffffff"/>
                                     <rect x="386" y="86" width="118" height="80" rx="24" fill="#ffffff"/>
-                                    <circle cx="112" cy="120" r="24" fill="#cb6f2c"/>
+                                    <circle cx="112" cy="120" r="24" fill="#ff0068"/>
                                     <path d="M100 120h24M112 108v24" stroke="#fff3eb" stroke-width="7" stroke-linecap="round"/>
                                     <circle cx="278" cy="108" r="24" fill="#1e5877"/>
                                     <path d="M265 108h11l8 8 15-19" stroke="#e8f6fc" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
@@ -697,7 +848,7 @@
                             <h2 class="section-heading">Un bon signalement ne vaut pas par son coût, mais par la qualité de service qu’il déclenche.</h2>
                             <div class="mission-point">
                                 <div class="fw-bold mb-2">Pour l’usager</div>
-                                <div class="muted-copy mb-0">Moins d’incertitude, plus de visibilité et une meilleure capacité à prouver ce qui a été signalé.</div>
+                                <div class="muted-copy mb-0">Moins d’incertitude, plus de visibilité et une meilleure capacité à prouver ce qui a été déclaré.</div>
                             </div>
                             <div class="mission-point">
                                 <div class="fw-bold mb-2">Pour l’institution</div>
@@ -731,7 +882,7 @@
                                 <rect x="286" y="88" width="124" height="16" rx="8" fill="#d5e2e9"/>
                                 <rect x="286" y="120" width="96" height="12" rx="6" fill="#e4edf1"/>
                                 <rect x="286" y="146" width="146" height="12" rx="6" fill="#e4edf1"/>
-                                <circle cx="412" cy="156" r="26" fill="#cb6f2c"/>
+                                <circle cx="412" cy="156" r="26" fill="#ff0068"/>
                                 <path d="M400 156h24M412 144v24" stroke="#fff3eb" stroke-width="7" stroke-linecap="round"/>
                             </svg>
                         </div>
