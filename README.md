@@ -14,6 +14,12 @@ Pour changer rapidement l'environnement local :
 - `sh scripts/use-env-postgres.sh`
 - `sh scripts/use-env-mysql.sh`
 
+## Workflow des branches
+
+Le workflow d'equipe pour les circuits `PostgreSQL` et `MySQL` est documente ici :
+
+- [docs/branch-workflow.md](docs/branch-workflow.md)
+
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
