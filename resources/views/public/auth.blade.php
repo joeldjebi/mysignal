@@ -324,7 +324,7 @@
                                         <input class="form-control" type="password" name="password_confirmation" minlength="8" required>
                                     </div>
                                     <div class="col-12">
-                                        <button class="btn btn-main w-100" type="submit">Creer mon compte et signaler maintenant</button>
+                                        <button class="btn btn-main w-100" type="submit" id="registerSubmitButton" disabled>Verifier le numero pour continuer</button>
                                     </div>
                                 </form>
                             </section>
@@ -343,6 +343,9 @@
                 const dialCodeOptions = @json($dialCodeOptions);
 
                 const authAlert = document.getElementById('authAlert');
+                const verificationToken = document.getElementById('verificationToken');
+                const registerSubmitButton = document.getElementById('registerSubmitButton');
+                let verifiedPhone = '';
 
                 function showAlert(message, type = 'danger') {
                     authAlert.className = `alert alert-${type}`;
@@ -377,6 +380,20 @@
                     }
 
                     return phone?.value || '';
+                }
+
+                function setRegistrationVerified(phone = '') {
+                    verifiedPhone = phone;
+                    verificationToken.value = '';
+                    registerSubmitButton.disabled = true;
+                    registerSubmitButton.textContent = 'Verifier le numero pour continuer';
+                }
+
+                function enableRegistrationSubmit(token, phone) {
+                    verifiedPhone = phone;
+                    verificationToken.value = token;
+                    registerSubmitButton.disabled = false;
+                    registerSubmitButton.textContent = 'Creer mon compte et signaler maintenant';
                 }
 
                 async function publicApi(path, payload) {
@@ -464,6 +481,7 @@
 
                     try {
                         const phone = composePhoneNumber(form);
+                        setRegistrationVerified(phone);
                         const response = await publicApi('/auth/request-otp', { phone });
                         const testingCode = response?.data?.otp_code_for_testing ? ` Code local: ${response.data.otp_code_for_testing}` : '';
                         showAlert(`Code OTP envoye.${testingCode}`, 'success');
@@ -471,6 +489,9 @@
                         showAlert(error.message);
                     } finally {
                         setLoading(button, false);
+                        if (!verificationToken.value) {
+                            setRegistrationVerified(composePhoneNumber(form));
+                        }
                     }
                 });
 
@@ -484,7 +505,7 @@
                         const phone = composePhoneNumber(form);
                         const code = form.querySelector('[name="otp_code"]').value;
                         const response = await publicApi('/auth/verify-otp', { phone, code });
-                        document.getElementById('verificationToken').value = response.data.verification_token;
+                        enableRegistrationSubmit(response.data.verification_token, phone);
                         showAlert('Numero verifie. Vous pouvez creer le compte.', 'success');
                     } catch (error) {
                         showAlert(error.message);
@@ -503,6 +524,13 @@
                     try {
                         const payload = Object.fromEntries(new FormData(form).entries());
                         payload.phone = composePhoneNumber(form);
+
+                        if (!payload.verification_token || payload.phone !== verifiedPhone) {
+                            setRegistrationVerified(payload.phone);
+                            showAlert('Veuillez verifier votre numero avec le code OTP avant de creer le compte.');
+                            return;
+                        }
+
                         payload.is_whatsapp_number = payload.is_whatsapp_number === '1';
                         delete payload.phone_dial_code;
                         delete payload.phone_local;
@@ -516,6 +544,10 @@
                 });
 
                 document.getElementById('registerPublicUserTypeId').addEventListener('change', syncUserTypeFields);
+                document.querySelectorAll('#registerForm [name="phone_dial_code"], #registerForm [name="phone_local"]').forEach((input) => {
+                    input.addEventListener('input', () => setRegistrationVerified(composePhoneNumber(document.getElementById('registerForm'))));
+                    input.addEventListener('change', () => setRegistrationVerified(composePhoneNumber(document.getElementById('registerForm'))));
+                });
 
                 if (localStorage.getItem(tokenKey)) {
                     sessionStorage.setItem(dashboardPanelStorageKey, 'reports');
@@ -524,6 +556,7 @@
                 }
 
                 populateDialCodeSelects();
+                setRegistrationVerified();
                 syncUserTypeFields();
             })();
         </script>

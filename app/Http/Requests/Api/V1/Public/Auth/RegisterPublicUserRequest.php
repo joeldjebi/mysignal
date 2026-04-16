@@ -44,6 +44,8 @@ class RegisterPublicUserRequest extends FormRequest
         return [
             'email.unique' => 'Cette adresse email est deja utilisee par un autre compte.',
             'phone.regex' => 'Le numero de telephone doit contenir entre 8 et 15 chiffres.',
+            'verification_token.required' => 'Veuillez verifier votre numero avec le code OTP avant de creer le compte.',
+            'verification_token.uuid' => 'La verification du numero est invalide. Veuillez verifier a nouveau le code OTP.',
         ];
     }
 
