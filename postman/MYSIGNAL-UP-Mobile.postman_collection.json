@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "d9fc140d-3013-4373-b6cf-cd1fbc59c205",
     "name": "MYSIGNAL UP Mobile API",
-    "description": "Collection Postman pour l integration mobile des usagers publics (UP). Elle couvre l authentification OTP, la gestion du profil, des compteurs, des foyers Gonhi, des signalements, des paiements et des dossiers contentieux.",
+    "description": "Collection Postman pour l integration mobile des usagers publics (UP). Elle couvre l authentification OTP, la gestion du profil, des compteurs, des foyers Gonhi, des signalements, des paiements, des abonnements UP, des dossiers contentieux et des retours d experience.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -25,8 +25,11 @@
     { "key": "meterId", "value": "" },
     { "key": "reportId", "value": "" },
     { "key": "paymentId", "value": "" },
+    { "key": "subscriptionPaymentId", "value": "" },
     { "key": "householdId", "value": "" },
-    { "key": "invitationId", "value": "" }
+    { "key": "invitationId", "value": "" },
+    { "key": "reparationCaseId", "value": "" },
+    { "key": "rexFeedbackId", "value": "" }
   ],
   "item": [
     {
@@ -503,11 +506,204 @@
       "item": [
         {
           "name": "List Reparation Cases",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "const firstCase = json?.data?.reparation_cases?.[0] || json?.data?.cases?.[0];",
+                  "if (firstCase?.id) pm.environment.set('reparationCaseId', firstCase.id);"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [{ "key": "Accept", "value": "application/json" }],
             "url": "{{baseUrl}}/v1/public/reparation-cases",
             "description": "Liste les dossiers ouverts par le SA et visibles pour l usager public."
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 - Abonnements UP",
+      "description": "Flux d abonnement annuel UP et paiement simule associe.",
+      "item": [
+        {
+          "name": "List Subscriptions",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/subscriptions",
+            "description": "Liste les abonnements UP de l usager courant."
+          }
+        },
+        {
+          "name": "Get Current Subscription",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/subscription",
+            "description": "Retourne le dernier abonnement UP, ou subscription: null si aucun abonnement n existe."
+          }
+        },
+        {
+          "name": "Initialize Subscription",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/v1/public/subscription",
+            "description": "Initialise un abonnement UP pending a partir du plan actif. Si un abonnement pending existe deja, il est retourne."
+          }
+        },
+        {
+          "name": "List Subscription Payments",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/subscription/payments",
+            "description": "Liste les paiements d abonnement de l usager courant."
+          }
+        },
+        {
+          "name": "Create Subscription Payment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json?.data?.payment?.id) pm.environment.set('subscriptionPaymentId', json.data.payment.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/v1/public/subscription/payments",
+            "description": "Initialise un paiement d abonnement. Le paiement reste pending jusqu a confirmation."
+          }
+        },
+        {
+          "name": "Confirm Subscription Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/v1/public/subscription/payments/{{subscriptionPaymentId}}/confirm",
+            "description": "Confirme le paiement simule et active l abonnement UP."
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 - Retours d experience",
+      "description": "REX mobile sur signalement, dommage ou dossier contentieux eligible.",
+      "item": [
+        {
+          "name": "List REX Feedbacks",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/rex-feedbacks",
+            "description": "Liste les retours d experience soumis par l usager courant."
+          }
+        },
+        {
+          "name": "Create REX - Incident Report",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json?.data?.feedback?.id) pm.environment.set('rexFeedbackId', json.data.feedback.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"context_type\": \"incident_report\",\n  \"context_id\": {{reportId}},\n  \"rating\": 5,\n  \"is_resolved\": true,\n  \"response_time_rating\": 4,\n  \"communication_rating\": 5,\n  \"quality_rating\": 4,\n  \"fairness_rating\": 5,\n  \"comment\": \"Traitement clair et satisfaisant.\"\n}"
+            },
+            "url": "{{baseUrl}}/v1/public/rex-feedbacks",
+            "description": "Soumet ou met a jour un REX pour un signalement eligible: resolved, closed ou resolution confirmee."
+          }
+        },
+        {
+          "name": "Create REX - Damage Declaration",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json?.data?.feedback?.id) pm.environment.set('rexFeedbackId', json.data.feedback.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"context_type\": \"damage_declaration\",\n  \"context_id\": {{reportId}},\n  \"rating\": 4,\n  \"is_resolved\": true,\n  \"response_time_rating\": 4,\n  \"communication_rating\": 4,\n  \"quality_rating\": 4,\n  \"fairness_rating\": 3,\n  \"comment\": \"Retour apres traitement du dommage.\"\n}"
+            },
+            "url": "{{baseUrl}}/v1/public/rex-feedbacks",
+            "description": "Soumet ou met a jour un REX pour un dommage declare et traite."
+          }
+        },
+        {
+          "name": "Create REX - Reparation Case",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json?.data?.feedback?.id) pm.environment.set('rexFeedbackId', json.data.feedback.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"context_type\": \"reparation_case\",\n  \"context_id\": {{reparationCaseId}},\n  \"rating\": 5,\n  \"is_resolved\": true,\n  \"response_time_rating\": 4,\n  \"communication_rating\": 5,\n  \"quality_rating\": 5,\n  \"fairness_rating\": 5,\n  \"comment\": \"Dossier contentieux bien suivi.\"\n}"
+            },
+            "url": "{{baseUrl}}/v1/public/rex-feedbacks",
+            "description": "Soumet ou met a jour un REX pour un dossier contentieux eligible: approved, rejected, compensated ou closed."
           }
         }
       ]
