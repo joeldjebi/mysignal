@@ -770,18 +770,156 @@
     .news-meta { font-size: .75rem; color: var(--text-muted); }
 
     /* ===== CLIENTS ===== */
-    .section-clients { padding: 60px 0; background: #fff; }
-    .client-logo {
-      display: flex; align-items: center; justify-content: center;
-      height: 60px;
-      opacity: .5;
-      transition: opacity .2s;
-      font-weight: 700;
-      font-size: 1.2rem;
-      color: var(--text-dark);
-      letter-spacing: 1px;
+    .section-clients {
+      padding: 86px 0;
+      background: #fff;
+      position: relative;
+      overflow: hidden;
     }
-    .client-logo:hover { opacity: 1; }
+    .domain-card {
+      height: 100%;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #fff;
+      border: 1px solid rgba(24,52,71,.08);
+      box-shadow: 0 20px 55px rgba(24,52,71,.08);
+      transition: transform .2s, box-shadow .2s;
+    }
+    .domain-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 28px 70px rgba(24,52,71,.13);
+    }
+    .domain-image {
+      height: 190px;
+      position: relative;
+      overflow: hidden;
+      background: var(--bg-light);
+    }
+    .domain-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      filter: saturate(.95) contrast(1.02);
+      transition: transform .35s;
+    }
+    .domain-card:hover .domain-image img { transform: scale(1.05); }
+    .domain-image::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 35%, rgba(24,52,71,.72));
+    }
+    .domain-badge {
+      position: absolute;
+      left: 16px;
+      bottom: 14px;
+      z-index: 1;
+      color: #fff;
+      font-weight: 800;
+      font-size: .86rem;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+    .domain-body {
+      padding: 20px;
+    }
+    .domain-body p {
+      color: var(--text-muted);
+      font-size: .84rem;
+      line-height: 1.65;
+      margin: 0;
+    }
+    .domain-action {
+      margin-top: 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--primary);
+      font-weight: 800;
+      font-size: .78rem;
+      text-decoration: none;
+    }
+
+    /* ===== PARTNERS ===== */
+    .section-partners {
+      padding: 74px 0;
+      background:
+        linear-gradient(135deg, rgba(24,52,71,.96), rgba(37,111,143,.94)),
+        var(--primary);
+      color: #fff;
+      overflow: hidden;
+    }
+    .partner-sub { color: rgba(255,255,255,.72); font-size: .9rem; }
+    .partners-carousel {
+      margin-top: 38px;
+      overflow: hidden;
+      position: relative;
+    }
+    .partners-carousel::before,
+    .partners-carousel::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 90px;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .partners-carousel::before { left: 0; background: linear-gradient(90deg, rgba(24,52,71,.96), transparent); }
+    .partners-carousel::after { right: 0; background: linear-gradient(270deg, rgba(37,111,143,.94), transparent); }
+    .partners-track {
+      display: flex;
+      gap: 16px;
+      width: max-content;
+      animation: partnersScroll 26s linear infinite;
+    }
+    .partners-carousel:hover .partners-track { animation-play-state: paused; }
+    .partner-logo-card {
+      flex: 0 0 calc((1140px - 64px) / 5);
+      min-height: 112px;
+      border-radius: 8px;
+      background: rgba(255,255,255,.11);
+      border: 1px solid rgba(255,255,255,.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 8px;
+      text-align: center;
+      padding: 18px;
+      backdrop-filter: blur(10px);
+    }
+    .partner-mark {
+      width: 42px;
+      height: 42px;
+      border-radius: 8px;
+      background: #fff;
+      color: var(--primary);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: .9rem;
+    }
+    .partner-name {
+      color: #fff;
+      font-weight: 800;
+      font-size: .86rem;
+      letter-spacing: .04em;
+    }
+    @keyframes partnersScroll {
+      from { transform: translateX(0); }
+      to { transform: translateX(calc(-50% - 8px)); }
+    }
+    @media (max-width: 991px) {
+      .partner-logo-card { flex-basis: 190px; }
+    }
+    @media (max-width: 575px) {
+      .partner-logo-card { flex-basis: 170px; }
+      .partners-carousel::before,
+      .partners-carousel::after { width: 44px; }
+    }
 
     /* ===== FOOTER ===== */
     footer {
@@ -901,10 +1039,11 @@
     </button>
     <div class="collapse navbar-collapse" id="navMenu">
       <ul class="navbar-nav ms-auto align-items-center gap-1">
-        @foreach ($lines($blockBody('navigation', "Fonctionnalites | #features\nApercus | #screenshots\nFAQ | #faq\nActualites | #news")) as $navLine)
+        @foreach ($lines($blockBody('navigation', "Fonctionnalites | #features\nFAQ | #faq\nDomaines | #domains")) as $navLine)
           @php
             [$navLabel, $navUrl] = $parts($navLine, 2);
           @endphp
+          @continue(in_array($navUrl, ['#screenshots', '#news'], true))
           <li class="nav-item"><a class="nav-link" href="{{ $navUrl ?: '#' }}">{{ $navLabel }}</a></li>
         @endforeach
         <li class="nav-item ms-2"><a class="nav-link btn-nav" href="{{ route('public.auth') }}">{{ $blockMeta('navigation', 'cta_label', 'Se connecter et signaler maintenant') }}</a></li>
@@ -1221,38 +1360,6 @@
 </section>
 @endif
 
-<!-- ===== SCREENSHOTS ===== -->
-@if ($isVisible('screenshots'))
-<section class="section-screenshots" id="screenshots">
-  <div class="container">
-    <div class="row text-center mb-5">
-      <div class="col-lg-6 mx-auto">
-        <span class="badge-pill">{{ $blockSubtitle('screenshots', 'Apercu plateforme') }}</span>
-        <h2 class="section-title">{{ $blockTitle('screenshots', 'Ecrans essentiels') }}</h2>
-        <p class="section-sub">{{ $blockBody('screenshots', 'Un apercu des espaces utiles pour suivre les signalements, abonnements, REX et parametres.') }}</p>
-      </div>
-    </div>
-    <div class="row g-4">
-      @foreach ($lines($blockMeta('screenshots', 'items', "Tableau de bord | 📈\nAbonnements | 👥\nSignalements | 💬\nParametres | ⚙️")) as $screenLine)
-        @php
-          [$screenLabel, $screenIcon] = $parts($screenLine, 2);
-        @endphp
-      <div class="col-6 col-md-3">
-        <div class="screenshot-card">
-          <div class="screenshot-inner" style="background:linear-gradient(135deg,#eef8fb,#d9edf3)">
-            <div style="text-align:center">
-              <div style="font-size:3rem">{{ $screenIcon ?: '•' }}</div>
-              <div class="label mt-2">{{ $screenLabel }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      @endforeach
-    </div>
-  </div>
-</section>
-@endif
-
 <!-- ===== WORK PROCESS ===== -->
 @if ($isVisible('process'))
 <section class="section-process">
@@ -1416,56 +1523,70 @@
 </section>
 @endif
 
-<!-- ===== NEWS ===== -->
-@if ($isVisible('news'))
-<section class="section-news" id="news">
+<!-- ===== CLIENTS ===== -->
+@if ($isVisible('clients'))
+<section class="section-clients" id="domains">
   <div class="container">
-    <div class="row text-center mb-5">
-      <div class="col-lg-6 mx-auto">
-        <span class="badge-pill">{{ $blockSubtitle('news', 'Actualites') }}</span>
-        <h2 class="section-title">{{ $blockTitle('news', 'Points forts MySignal') }}</h2>
-        <p class="section-sub">{{ $blockBody('news', "Les modules importants pour la protection consommateur, les UP et l'administration.") }}</p>
-      </div>
+    <div class="text-center mb-5">
+      <h2 class="section-title">{{ $blockTitle('clients', 'Domaines couverts') }}</h2>
+      <p class="section-sub">{{ $blockBody('clients', 'MySignal accompagne plusieurs univers de consommation et de services.') }}</p>
     </div>
+    @php
+      $defaultDomains = "Commerce | Signaler une pratique commerciale confuse, un service non conforme ou un litige apres achat. | https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=900&q=80\nServices | Suivre une demande liee a un prestataire, une intervention ou une qualite de service attendue. | https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=900&q=80\nAssurance | Documenter un dossier, garder les preuves et suivre les reponses obtenues. | https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=900&q=80\nTransport | Declarer une difficulte de transport, un retard, une prestation ou un incident de parcours. | https://images.unsplash.com/photo-1494412651409-8963ce7935a7?auto=format&fit=crop&w=900&q=80\nSante | Centraliser les informations utiles pour suivre une reclamation ou une experience de prise en charge. | https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=900&q=80\nEnergie | Signaler une coupure, une surtension, un compteur ou tout incident lie a la fourniture. | https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=900&q=80";
+      $domainItems = $lines($blockMeta('clients', 'items', $defaultDomains));
+      $domainsNeedDefaults = collect($domainItems)->every(fn ($domainLine) => trim($parts($domainLine, 3)[1] ?? '') === '');
+      $domainItems = $domainsNeedDefaults ? $lines($defaultDomains) : $domainItems;
+    @endphp
     <div class="row g-4">
-      @foreach ($lines($blockMeta('news', 'items', "Signalement | Un parcours clair pour declarer un dommage | Les consommateurs peuvent deposer un signalement et retrouver son evolution dans leur tableau de bord. | 📱 | 10 avril 2026\nAbonnement | Un plan annuel parametrable par le SA | Le Super Administrateur gere les plans, les statuts, les notifications et l'historique des UP. | 💡 | 5 avril 2026\nREX | Des retours apres resolution ou traitement | Les REX aident a mesurer le delai, la communication, la qualite et l'equite du traitement. | 🚀 | 28 mars 2026")) as $newsLine)
+      @foreach ($domainItems as $domainLine)
         @php
-          [$newsTag, $newsTitle, $newsText, $newsIcon, $newsDate] = $parts($newsLine, 5);
+          [$domainTitle, $domainText, $domainImage] = $parts($domainLine, 3);
         @endphp
-      <div class="col-md-4">
-        <div class="news-card">
-          <div class="news-thumb c{{ ($loop->index % 3) + 1 }}">{{ $newsIcon ?: '•' }}</div>
-          <div class="news-body">
-            <span class="news-tag">{{ $newsTag }}</span>
-            <h6>{{ $newsTitle }}</h6>
-            <p>{{ $newsText }}</p>
-            <div class="news-meta d-flex align-items-center gap-2">
-              <i class="bi bi-calendar3"></i> {{ $newsDate }}
-              <span>•</span> <i class="bi bi-clock"></i> 5 min read
+        <div class="col-md-6 col-xl-4">
+          <article class="domain-card">
+            <div class="domain-image">
+              <img src="{{ $domainImage }}" alt="{{ $domainTitle }}">
+              <div class="domain-badge">{{ $domainTitle }}</div>
             </div>
-          </div>
+            <div class="domain-body">
+              <p>{{ $domainText }}</p>
+              <a class="domain-action" href="{{ route('public.auth') }}">Faire un signalement <i class="bi bi-arrow-right"></i></a>
+            </div>
+          </article>
         </div>
-      </div>
       @endforeach
     </div>
   </div>
 </section>
 @endif
 
-<!-- ===== CLIENTS ===== -->
-@if ($isVisible('clients'))
-<section class="section-clients">
+<!-- ===== PARTNERS ===== -->
+@if ($isVisible('partners'))
+<section class="section-partners">
   <div class="container">
-    <div class="text-center mb-5">
-      <h2 class="section-title">{{ $blockTitle('clients', 'Domaines couverts') }}</h2>
-      <p class="section-sub">{{ $blockBody('clients', 'MySignal accompagne plusieurs univers de consommation et de services.') }}</p>
+    <div class="row align-items-end g-4">
+      <div class="col-lg-7">
+        <span class="badge-pill" style="background:rgba(255,255,255,.15);color:#fff;">{{ $blockSubtitle('partners', 'Partenaires') }}</span>
+        <h2 class="section-title mb-2" style="color:#fff">{{ $blockTitle('partners', 'Ils nous font confiance') }}</h2>
+        <p class="partner-sub mb-0">{{ $blockBody('partners', 'Des acteurs publics, prives et communautaires s appuient sur MySignal pour rendre le traitement des signalements plus lisible.') }}</p>
+      </div>
     </div>
-    <div class="row align-items-center g-4">
-      @foreach ($lines($blockMeta('clients', 'items', "COMMERCE\nSERVICES\nASSURANCE\nTRANSPORT\nSANTE\nENERGIE")) as $client)
-        <div class="col-6 col-md-2">
-          <div class="client-logo">{{ $client }}</div>
-        </div>
-      @endforeach
+    @php
+      $partnerItems = $lines($blockMeta('partners', 'items', "ACEPEN | AC\nMON NRJ | NRJ\nMON EAU | EAU\nCITOYENS | CT\nSERVICES CI | SCI\nCOLLECTIVITES | COL\nRESEAUX | RX\nASSISTANCE | AST\nMEDIATION | MED\nOBSERVATOIRE | OBS"));
+      $partnerLoopItems = array_merge($partnerItems, $partnerItems);
+    @endphp
+    <div class="partners-carousel">
+      <div class="partners-track">
+        @foreach ($partnerLoopItems as $partnerLine)
+          @php
+            [$partnerName, $partnerMark] = $parts($partnerLine, 2);
+          @endphp
+          <div class="partner-logo-card">
+            <div class="partner-mark">{{ $partnerMark ?: strtoupper(substr($partnerName, 0, 2)) }}</div>
+            <div class="partner-name">{{ $partnerName }}</div>
+          </div>
+        @endforeach
+      </div>
     </div>
   </div>
 </section>
@@ -1501,10 +1622,11 @@
       <div class="col-6 col-lg-2">
         <h6>{{ $blockMeta('footer', 'column_2_title', 'Modules') }}</h6>
         <ul>
-          @foreach ($lines($blockMeta('footer', 'column_2_links', "Fonctionnalites | #features\nFAQ | #faq\nREX | #testimonials\nCarte membre | #screenshots")) as $footerLine)
+          @foreach ($lines($blockMeta('footer', 'column_2_links', "Fonctionnalites | #features\nFAQ | #faq\nREX | #testimonials\nDomaines couverts | #domains")) as $footerLine)
             @php
               [$footerLabel, $footerUrl] = $parts($footerLine, 2);
             @endphp
+            @continue(in_array($footerUrl, ['#screenshots', '#news'], true))
             <li><a href="{{ $footerUrl ?: '#' }}">{{ $footerLabel }}</a></li>
           @endforeach
         </ul>

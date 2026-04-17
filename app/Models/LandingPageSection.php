@@ -64,7 +64,8 @@ class LandingPageSection extends Model
             'faq' => $meta + ['questions' => $this->lineItems('questions', ['title', 'body'])],
             'testimonials' => $meta + ['items' => $this->lineItems('items', ['body', 'title', 'subtitle', 'icon'])],
             'news' => $meta + ['items' => $this->lineItems('items', ['subtitle', 'title', 'body', 'icon', 'value'])],
-            'clients' => $meta + ['items' => $this->lineItems('items', ['title'])],
+            'clients' => $meta + ['items' => $this->lineItems('items', ['title', 'body', 'icon'])],
+            'partners' => $meta + ['items' => $this->lineItems('items', ['title', 'icon'])],
             'footer' => $meta + [
                 'column_1_links' => $this->lineItems('column_1_links', ['title', 'url']),
                 'column_2_links' => $this->lineItems('column_2_links', ['title', 'url']),
