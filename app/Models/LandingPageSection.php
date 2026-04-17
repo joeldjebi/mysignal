@@ -52,7 +52,7 @@ class LandingPageSection extends Model
 
         return match ($this->key) {
             'hero' => $meta + ['stats' => $this->lineItems('stats', ['value', 'title'])],
-            'manage' => $meta + ['items' => $this->lineItems('items', ['title'])],
+            'manage' => $meta + ['items' => $this->lineItems('items', ['title', 'body', 'icon'])],
             'share' => $meta + ['cards' => $this->lineItems('cards', ['title', 'body', 'icon'])],
             'access_banner' => $meta + ['buttons' => $this->lineItems('buttons', ['title', 'subtitle', 'icon'])],
             'app_features' => $meta + ['items' => $this->lineItems('items', ['title', 'body', 'icon'])],

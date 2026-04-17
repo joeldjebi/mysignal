@@ -216,11 +216,178 @@
 
     /* ===== MANAGE SECTION ===== */
     .section-manage {
-      padding: 80px 0;
-      background: var(--bg-light);
+      padding: 90px 0;
+      background:
+        linear-gradient(135deg, rgba(24,52,71,.05), rgba(255,255,255,.92) 48%, rgba(37,111,143,.08)),
+        var(--bg-light);
+      position: relative;
+      overflow: hidden;
     }
     .section-title { font-weight: 800; font-size: 1.8rem; margin-bottom: 16px; }
     .section-sub  { color: var(--text-muted); font-size: .9rem; margin-bottom: 40px; }
+    .premium-process-copy { max-width: 520px; }
+    .premium-process-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin: 28px 0 30px;
+    }
+    .premium-process-step {
+      position: relative;
+      background: rgba(255,255,255,.9);
+      border: 1px solid rgba(24,52,71,.08);
+      border-radius: 8px;
+      padding: 18px;
+      min-height: 160px;
+      box-shadow: 0 18px 45px rgba(24,52,71,.08);
+    }
+    .premium-step-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .premium-step-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      background: var(--gradient);
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+      box-shadow: 0 14px 28px rgba(24,52,71,.18);
+    }
+    .premium-step-number {
+      font-size: .72rem;
+      font-weight: 800;
+      color: var(--primary);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .premium-process-step h6 {
+      font-weight: 800;
+      font-size: .95rem;
+      margin-bottom: 8px;
+    }
+    .premium-process-step p {
+      color: var(--text-muted);
+      font-size: .8rem;
+      line-height: 1.6;
+      margin: 0;
+    }
+    .premium-case-board {
+      position: relative;
+      max-width: 440px;
+      margin: auto;
+      background: #fff;
+      border: 1px solid rgba(24,52,71,.08);
+      border-radius: 8px;
+      padding: 26px;
+      box-shadow: 0 30px 80px rgba(24,52,71,.16);
+    }
+    .premium-case-board::before {
+      content: '';
+      position: absolute;
+      inset: 12px;
+      border: 1px dashed rgba(37,111,143,.18);
+      border-radius: 8px;
+      pointer-events: none;
+    }
+    .case-board-header {
+      position: relative;
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: flex-start;
+      margin-bottom: 24px;
+    }
+    .case-board-kicker {
+      font-size: .72rem;
+      color: var(--text-muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 6px;
+    }
+    .case-board-title {
+      font-weight: 800;
+      color: var(--primary);
+      font-size: 1.15rem;
+    }
+    .case-board-status {
+      border-radius: 999px;
+      background: rgba(91,235,175,.2);
+      color: #14764e;
+      font-size: .72rem;
+      font-weight: 800;
+      padding: 6px 12px;
+      white-space: nowrap;
+    }
+    .case-timeline {
+      position: relative;
+      display: grid;
+      gap: 14px;
+    }
+    .case-timeline::before {
+      content: '';
+      position: absolute;
+      left: 17px;
+      top: 10px;
+      bottom: 10px;
+      width: 2px;
+      background: linear-gradient(180deg, var(--primary), var(--accent));
+      opacity: .22;
+    }
+    .case-timeline-row {
+      position: relative;
+      display: grid;
+      grid-template-columns: 36px minmax(0, 1fr);
+      gap: 14px;
+      align-items: start;
+    }
+    .case-timeline-dot {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: var(--primary);
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .8rem;
+      font-weight: 800;
+      box-shadow: 0 10px 22px rgba(24,52,71,.18);
+    }
+    .case-timeline-row:nth-child(even) .case-timeline-dot { background: var(--accent); }
+    .case-timeline-content {
+      background: var(--bg-light);
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+    .case-timeline-content strong {
+      display: block;
+      font-size: .84rem;
+      margin-bottom: 3px;
+      color: var(--text-dark);
+    }
+    .case-timeline-content span {
+      color: var(--text-muted);
+      font-size: .76rem;
+    }
+    .premium-process-note {
+      position: relative;
+      margin-top: 22px;
+      border-radius: 8px;
+      background: var(--gradient);
+      color: #fff;
+      padding: 16px 18px;
+      font-size: .82rem;
+      line-height: 1.6;
+      box-shadow: 0 18px 45px rgba(24,52,71,.16);
+    }
     .check-list li {
       list-style: none;
       padding: 6px 0;
@@ -242,6 +409,12 @@
       margin: auto;
     }
     .phone-mockup-lg .screen { height: 460px; background: linear-gradient(180deg, #eef8fb 0%, #fff 100%); padding: 20px; }
+
+    @media (max-width: 767px) {
+      .premium-process-grid { grid-template-columns: 1fr; }
+      .premium-case-board { padding: 20px; }
+      .case-board-header { flex-direction: column; }
+    }
 
     /* ===== SHARE SECTION ===== */
     .section-share { padding: 80px 0; background: #fff; }
@@ -764,48 +937,64 @@
 @if ($isVisible('manage'))
 <section class="section-manage" id="features">
   <div class="container">
+    @php
+      $defaultManageSteps = "Decrire le probleme | Le consommateur renseigne les faits, le lieu, les preuves et les informations utiles. | bi-pencil-square\nTransmettre le signalement | MySignal structure la demande et l'oriente vers le bon circuit de traitement. | bi-send-check\nSuivre l'avancement | Chaque changement de statut reste visible dans un espace clair et securise. | bi-activity\nCloturer avec retour | Une fois le dossier traite, le consommateur peut partager son retour d'experience. | bi-chat-square-heart";
+      $manageSteps = $lines($blockMeta('manage', 'items', $defaultManageSteps));
+      $manageStepsNeedDefaults = collect($manageSteps)->every(fn ($stepLine) => trim($parts($stepLine, 3)[1] ?? '') === '');
+      $manageSteps = $manageStepsNeedDefaults ? $lines($defaultManageSteps) : $manageSteps;
+      $boardSteps = array_slice($manageSteps, 0, 4);
+    @endphp
     <div class="row align-items-center g-5">
-      <div class="col-lg-6 order-lg-2">
-        <span class="badge-pill">{{ $blockSubtitle('manage', 'Pourquoi MySignal ?') }}</span>
-        <h2 class="section-title">{!! nl2br(e($blockTitle('manage', 'Un seul espace pour suivre vos droits consommateur'))) !!}</h2>
-        <p class="section-sub">{{ $blockBody('manage', "MySignal centralise les signalements, les dossiers ouverts, les abonnements annuels, les notifications et les retours d'experience.") }}</p>
-        <ul class="check-list ps-0 mb-4">
-          @foreach ($lines($blockMeta('manage', 'items', "Creation et suivi des signalements consommateurs\nNotifications avant expiration des abonnements\nCarte membre virtuelle avec QR code pour les abonnes actifs\nHistorique des abonnements et des REX\nParametrage par le Super Administrateur\nTableau de bord clair pour les UP et les consommateurs")) as $item)
-            <li>{{ $item }}</li>
+      <div class="col-lg-7">
+        <div class="premium-process-copy">
+          <span class="badge-pill">{{ $blockSubtitle('manage', 'Pourquoi MySignal ?') }}</span>
+          <h2 class="section-title">{!! nl2br(e($blockTitle('manage', 'Un parcours clair pour signaler et suivre un probleme'))) !!}</h2>
+          <p class="section-sub">{{ $blockBody('manage', "MySignal transforme chaque signalement en dossier lisible: les faits sont collectes, transmis au bon interlocuteur, suivis jusqu'au traitement, puis enrichis par un retour d'experience.") }}</p>
+        </div>
+
+        <div class="premium-process-grid">
+          @foreach ($manageSteps as $stepLine)
+            @php
+              [$stepTitle, $stepText, $stepIcon] = $parts($stepLine, 3);
+            @endphp
+            <article class="premium-process-step">
+              <div class="premium-step-top">
+                <span class="premium-step-icon"><i class="bi {{ $stepIcon ?: 'bi-check2-circle' }}"></i></span>
+                <span class="premium-step-number">Etape {{ str_pad((string) ($loop->index + 1), 2, '0', STR_PAD_LEFT) }}</span>
+              </div>
+              <h6>{{ $stepTitle }}</h6>
+              <p>{{ $stepText }}</p>
+            </article>
           @endforeach
-        </ul>
-        <a href="#features" class="btn-primary-custom">{{ $blockMeta('manage', 'button', 'En savoir plus') }} <i class="bi bi-arrow-right ms-1"></i></a>
+        </div>
+
+        <a href="{{ route('public.auth') }}" class="btn-primary-custom">{{ $blockMeta('manage', 'button', 'Signaler maintenant') }} <i class="bi bi-arrow-right ms-1"></i></a>
       </div>
-      <div class="col-lg-6 order-lg-1 text-center">
-        <div class="phone-mockup-lg float">
-          <div class="screen">
-            <div style="background:var(--gradient);border-radius:12px;padding:14px;margin-bottom:12px">
-              <div style="color:rgba(255,255,255,.7);font-size:.65rem">Signalements suivis</div>
-              <div style="color:#fff;font-size:1.5rem;font-weight:800">48,295</div>
-              <div style="color:rgba(255,255,255,.8);font-size:.65rem">+8.2% ce mois</div>
+      <div class="col-lg-5">
+        <div class="premium-case-board float">
+          <div class="case-board-header">
+            <div>
+              <div class="case-board-kicker">Dossier signalement</div>
+              <div class="case-board-title">Suivi du traitement</div>
             </div>
-            <div style="background:#fff;border-radius:12px;padding:12px;margin-bottom:10px;box-shadow:0 2px 10px rgba(0,0,0,.05)">
-              <div style="display:flex;align-items:center;gap:10px">
-                <div style="width:36px;height:36px;border-radius:50%;background:rgba(24,52,71,.1);display:flex;align-items:center;justify-content:center;color:var(--primary)">👤</div>
-                <div>
-                  <div style="font-size:.72rem;font-weight:700">Unite Partenaire</div>
-                  <div style="font-size:.62rem;color:var(--text-muted)">Abonnement annuel</div>
+            <div class="case-board-status">En cours</div>
+          </div>
+          <div class="case-timeline">
+            @foreach ($boardSteps as $stepLine)
+              @php
+                [$stepTitle, $stepText] = $parts($stepLine, 3);
+              @endphp
+              <div class="case-timeline-row">
+                <div class="case-timeline-dot">{{ str_pad((string) ($loop->index + 1), 2, '0', STR_PAD_LEFT) }}</div>
+                <div class="case-timeline-content">
+                  <strong>{{ $stepTitle }}</strong>
+                  <span>{{ $stepText }}</span>
                 </div>
-                <div style="margin-left:auto;background:rgba(91,235,175,.18);color:#15955f;border-radius:20px;padding:2px 8px;font-size:.62rem;font-weight:700">Actif</div>
               </div>
-            </div>
-            <div style="background:#fff;border-radius:12px;padding:12px;box-shadow:0 2px 10px rgba(0,0,0,.05)">
-              <div style="font-size:.65rem;color:var(--text-muted);margin-bottom:8px">Activite hebdomadaire</div>
-              <div style="display:flex;align-items:flex-end;gap:6px;height:50px">
-                <div style="width:14px;background:var(--primary-light);border-radius:3px;height:30px"></div>
-                <div style="width:14px;background:var(--primary);border-radius:3px;height:45px"></div>
-                <div style="width:14px;background:var(--primary-light);border-radius:3px;height:25px"></div>
-                <div style="width:14px;background:var(--primary);border-radius:3px;height:50px"></div>
-                <div style="width:14px;background:var(--primary-light);border-radius:3px;height:35px"></div>
-                <div style="width:14px;background:var(--primary);border-radius:3px;height:40px"></div>
-                <div style="width:14px;background:var(--accent);border-radius:3px;height:28px"></div>
-              </div>
-            </div>
+            @endforeach
+          </div>
+          <div class="premium-process-note">
+            Chaque etape reste traçable afin que le consommateur sache ce qui a ete transmis, ce qui est en cours et ce qui a ete traite.
           </div>
         </div>
       </div>
