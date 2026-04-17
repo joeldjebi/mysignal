@@ -455,19 +455,95 @@
     .btn-store i { font-size: 1.4rem; }
 
     /* ===== APP FEATURES ===== */
-    .section-app-features { padding: 80px 0; background: #fff; }
-    .app-feature-item { margin-bottom: 32px; }
+    .section-app-features {
+      padding: 86px 0;
+      background:
+        linear-gradient(180deg, #fff 0%, #f4f9fb 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    .section-app-features::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(24,52,71,.04) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(24,52,71,.04) 1px, transparent 1px);
+      background-size: 46px 46px;
+      mask-image: linear-gradient(180deg, transparent, #000 18%, #000 82%, transparent);
+      pointer-events: none;
+    }
+    .section-app-features .container { position: relative; z-index: 1; }
+    .app-feature-item {
+      margin-bottom: 18px;
+      background: rgba(255,255,255,.92);
+      border: 1px solid rgba(24,52,71,.08);
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 16px 38px rgba(24,52,71,.07);
+      transition: transform .2s, box-shadow .2s;
+    }
+    .app-feature-item:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 24px 52px rgba(24,52,71,.12);
+    }
     .app-feature-item .icon-box {
       width: 48px; height: 48px;
-      border-radius: 12px;
-      background: rgba(24,52,71,.1);
+      border-radius: 8px;
+      background: var(--gradient);
       display: flex; align-items: center; justify-content: center;
-      color: var(--primary);
+      color: #fff;
       font-size: 1.2rem;
       flex-shrink: 0;
+      box-shadow: 0 12px 26px rgba(24,52,71,.16);
     }
     .app-feature-item h6 { font-weight: 700; margin-bottom: 4px; font-size: .9rem; }
     .app-feature-item p  { font-size: .8rem; color: var(--text-muted); margin: 0; }
+    .app-feature-index {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: rgba(24,52,71,.08);
+      color: var(--primary);
+      font-size: .7rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+    .feature-phone-shell {
+      width: 230px;
+      margin: auto;
+      border-radius: 8px;
+      padding: 14px;
+      background: rgba(255,255,255,.68);
+      border: 1px solid rgba(24,52,71,.08);
+      box-shadow: 0 28px 70px rgba(24,52,71,.16);
+    }
+    .feature-phone-screen {
+      height: 400px;
+      border-radius: 8px;
+      background: linear-gradient(180deg,#eef8fb 0%,#fff 100%);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow: hidden;
+    }
+    .feature-phone-metric {
+      background: var(--gradient);
+      border-radius: 8px;
+      padding: 16px;
+      color: #fff;
+      text-align: left;
+    }
+    .feature-phone-panel {
+      background: #fff;
+      border-radius: 8px;
+      padding: 14px;
+      box-shadow: 0 8px 22px rgba(24,52,71,.08);
+    }
 
     /* ===== SCREENSHOTS ===== */
     .section-screenshots { padding: 80px 0; background: var(--bg-light); }
@@ -1003,6 +1079,93 @@
 </section>
 @endif
 
+<!-- ===== APP FEATURES ===== -->
+@if ($isVisible('app_features'))
+<section class="section-app-features">
+  <div class="container">
+    <div class="row text-center mb-5">
+      <div class="col-lg-6 mx-auto">
+        <span class="badge-pill">{{ $blockSubtitle('app_features', 'Ce que MySignal couvre') }}</span>
+        <h2 class="section-title">{{ $blockTitle('app_features', 'Fonctionnalites MySignal') }}</h2>
+        <p class="section-sub">{{ $blockBody('app_features', 'Un parcours pense pour signaler, suivre, retrouver son historique et donner un retour apres traitement.') }}</p>
+      </div>
+    </div>
+    @php
+      $appFeatureItems = $lines($blockMeta('app_features', 'items', "Signalements encadres | Les consommateurs declarent les dommages avec les informations utiles au traitement. | bi-people\nNotifications utiles | Les UP sont prevenues avant expiration et gardent la main sur leur renouvellement. | bi-headset\nHistorique complet | Abonnements, statuts et REX restent consultables dans les espaces dedies. | bi-graph-up-arrow\nRenouvellement manuel | Le statut d'abonnement reste visible, avec une periode de grace d'une journee. | bi-calendar-check\nCarte membre | Les membres actifs disposent d'une carte virtuelle avec QR code sur leur profil. | bi-cloud-check\nParametrage SA | Le Super Administrateur configure les plans, modules, historiques et acces. | bi-puzzle"));
+    @endphp
+    <div class="row align-items-center g-4 g-lg-5">
+      <div class="col-lg-4">
+        @foreach (array_slice($appFeatureItems, 0, 3) as $featureLine)
+          @php
+            [$featureTitle, $featureText, $featureIcon] = $parts($featureLine, 3);
+          @endphp
+          <div class="app-feature-item d-flex gap-3">
+            <div class="icon-box"><i class="bi {{ $featureIcon ?: 'bi-check2-circle' }}"></i></div>
+            <div>
+              <span class="app-feature-index">{{ str_pad((string) ($loop->index + 1), 2, '0', STR_PAD_LEFT) }}</span>
+              <h6>{{ $featureTitle }}</h6>
+              <p>{{ $featureText }}</p>
+            </div>
+          </div>
+        @endforeach
+      </div>
+      <div class="col-lg-4 text-center">
+        <div class="feature-phone-shell float">
+          <div class="feature-phone-screen">
+            <div class="feature-phone-metric">
+              <div style="font-size:.68rem;opacity:.78;text-transform:uppercase;letter-spacing:.08em">Signalements actifs</div>
+              <div style="font-size:2rem;font-weight:800;line-height:1.1;margin-top:6px">1,284</div>
+              <div style="font-size:.75rem;opacity:.82;margin-top:5px">Suivi centralise</div>
+            </div>
+            <div class="feature-phone-panel">
+              <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:10px;font-weight:700">Modules cles</div>
+              <div style="display:flex;flex-direction:column;gap:9px">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+                  <span style="font-size:.68rem;font-weight:700">Depot</span>
+                  <div style="flex:1;height:6px;border-radius:3px;background:#edf3f8;overflow:hidden"><div style="width:86%;height:100%;background:var(--primary);border-radius:3px"></div></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+                  <span style="font-size:.68rem;font-weight:700">Suivi</span>
+                  <div style="flex:1;height:6px;border-radius:3px;background:#edf3f8;overflow:hidden"><div style="width:74%;height:100%;background:var(--primary-light);border-radius:3px"></div></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+                  <span style="font-size:.68rem;font-weight:700">REX</span>
+                  <div style="flex:1;height:6px;border-radius:3px;background:#edf3f8;overflow:hidden"><div style="width:62%;height:100%;background:var(--accent);border-radius:3px"></div></div>
+                </div>
+              </div>
+            </div>
+            <div class="feature-phone-panel">
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="width:38px;height:38px;border-radius:8px;background:rgba(91,235,175,.2);color:#14764e;display:flex;align-items:center;justify-content:center"><i class="bi bi-check2-circle"></i></div>
+                <div style="text-align:left">
+                  <div style="font-size:.76rem;font-weight:800;color:var(--text-dark)">Dossier mis a jour</div>
+                  <div style="font-size:.68rem;color:var(--text-muted)">Historique conserve</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        @foreach (array_slice($appFeatureItems, 3, 3) as $featureLine)
+          @php
+            [$featureTitle, $featureText, $featureIcon] = $parts($featureLine, 3);
+          @endphp
+          <div class="app-feature-item d-flex gap-3">
+            <div class="icon-box" style="background:rgba(255,0,104,.1);color:var(--accent);box-shadow:none"><i class="bi {{ $featureIcon ?: 'bi-check2-circle' }}"></i></div>
+            <div>
+              <span class="app-feature-index">{{ str_pad((string) ($loop->index + 4), 2, '0', STR_PAD_LEFT) }}</span>
+              <h6>{{ $featureTitle }}</h6>
+              <p>{{ $featureText }}</p>
+            </div>
+          </div>
+        @endforeach
+      </div>
+    </div>
+  </div>
+</section>
+@endif
+
 <!-- ===== SHARE SECTION ===== -->
 @if ($isVisible('share'))
 <section class="section-share">
@@ -1053,81 +1216,6 @@
           <div><div style="font-size:.65rem;opacity:.6">{{ $buttonSub }}</div><div style="font-weight:800;font-size:.9rem">{{ $buttonTitle }}</div></div>
         </a>
       @endforeach
-    </div>
-  </div>
-</section>
-@endif
-
-<!-- ===== APP FEATURES ===== -->
-@if ($isVisible('app_features'))
-<section class="section-app-features">
-  <div class="container">
-    <div class="row text-center mb-5">
-      <div class="col-lg-6 mx-auto">
-        <span class="badge-pill">{{ $blockSubtitle('app_features', 'Ce que MySignal couvre') }}</span>
-        <h2 class="section-title">{{ $blockTitle('app_features', 'Fonctionnalites MySignal') }}</h2>
-        <p class="section-sub">{{ $blockBody('app_features', 'Un parcours pense pour signaler, suivre, renouveler son abonnement et donner un retour apres resolution.') }}</p>
-      </div>
-    </div>
-    @php
-      $appFeatureItems = $lines($blockMeta('app_features', 'items', "Signalements encadres | Les consommateurs declarent les dommages avec les informations utiles au traitement. | bi-people\nNotifications utiles | Les UP sont prevenues avant expiration et gardent la main sur leur renouvellement. | bi-headset\nHistorique complet | Abonnements, statuts et REX restent consultables dans les espaces dedies. | bi-graph-up-arrow\nRenouvellement manuel | Le statut d'abonnement reste visible, avec une periode de grace d'une journee. | bi-calendar-check\nCarte membre | Les membres actifs disposent d'une carte virtuelle avec QR code sur leur profil. | bi-cloud-check\nParametrage SA | Le Super Administrateur configure les plans, modules, historiques et acces. | bi-puzzle"));
-    @endphp
-    <div class="row align-items-center g-5">
-      <div class="col-lg-4">
-        @foreach (array_slice($appFeatureItems, 0, 3) as $featureLine)
-          @php
-            [$featureTitle, $featureText, $featureIcon] = $parts($featureLine, 3);
-          @endphp
-          <div class="app-feature-item d-flex gap-3">
-            <div class="icon-box"><i class="bi {{ $featureIcon ?: 'bi-check2-circle' }}"></i></div>
-            <div>
-              <h6>{{ $featureTitle }}</h6>
-              <p>{{ $featureText }}</p>
-            </div>
-          </div>
-        @endforeach
-      </div>
-      <div class="col-lg-4 text-center">
-        <div class="phone-mockup-lg float" style="width:200px;margin:auto">
-          <div style="height:380px;background:linear-gradient(180deg,#eef8fb 0%,#fff 100%);padding:16px;display:flex;flex-direction:column;gap:10px">
-            <div style="background:var(--gradient);border-radius:12px;padding:14px;color:#fff;text-align:center">
-              <div style="font-size:.65rem;opacity:.8">Signalements actifs</div>
-              <div style="font-size:1.8rem;font-weight:800">1,284</div>
-            </div>
-            <div style="background:#fff;border-radius:12px;padding:12px;box-shadow:0 2px 10px rgba(0,0,0,.06)">
-              <div style="font-size:.65rem;color:var(--text-muted);margin-bottom:6px">Modules cles</div>
-              <div style="display:flex;flex-direction:column;gap:5px">
-                <div style="display:flex;justify-content:space-between;align-items:center">
-                  <span style="font-size:.65rem">Suivi</span>
-                  <div style="width:70%;height:5px;border-radius:3px;background:#eee;overflow:hidden"><div style="width:80%;height:100%;background:var(--primary);border-radius:3px"></div></div>
-                </div>
-                <div style="display:flex;justify-content:space-between;align-items:center">
-                  <span style="font-size:.65rem">REX</span>
-                  <div style="width:70%;height:5px;border-radius:3px;background:#eee;overflow:hidden"><div style="width:65%;height:100%;background:var(--accent);border-radius:3px"></div></div>
-                </div>
-                <div style="display:flex;justify-content:space-between;align-items:center">
-                  <span style="font-size:.65rem">Abonnement</span>
-                  <div style="width:70%;height:5px;border-radius:3px;background:#eee;overflow:hidden"><div style="width:90%;height:100%;background:var(--success);border-radius:3px"></div></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-lg-4">
-        @foreach (array_slice($appFeatureItems, 3, 3) as $featureLine)
-          @php
-            [$featureTitle, $featureText, $featureIcon] = $parts($featureLine, 3);
-          @endphp
-          <div class="app-feature-item d-flex gap-3">
-            <div class="icon-box" style="background:rgba(255,0,104,.1);color:var(--accent)"><i class="bi {{ $featureIcon ?: 'bi-check2-circle' }}"></i></div>
-            <div>
-              <h6>{{ $featureTitle }}</h6>
-              <p>{{ $featureText }}</p>
-            </div>
-          </div>
-        @endforeach
-      </div>
     </div>
   </div>
 </section>
