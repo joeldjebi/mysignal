@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MySignal - Plateforme de signalement consommateur</title>
+  <title>My-Signal - Plateforme de signalement consommateur</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
@@ -1031,8 +1031,7 @@
 <nav class="navbar navbar-expand-lg">
   <div class="container">
     <a class="navbar-brand" href="#">
-      <img src="{{ asset('image/logo/logo-my-signal.png') }}" alt="MySignal">
-        <span>MySignal</span>
+      <img src="{{ asset('image/logo/logo-my-signal.png') }}" alt="My-Signal">
     </a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
       <span class="navbar-toggler-icon"></span>
@@ -1065,7 +1064,7 @@
         @endphp
         <p class="badge-pill" style="background:rgba(255,255,255,.15);color:#fff;">{{ $blockSubtitle('hero', 'Plateforme de protection consommateur') }}</p>
         <h1 class="hero-title fade-up">{{ $heroTitleParts[0] }}@if($heroTitleParts[1] !== ''), <span>{{ $heroAccentParts[0] }}</span> {{ $heroAccentParts[1] }}@endif</h1>
-        <p class="hero-text fade-up delay-1">{{ $blockBody('hero', 'MySignal accompagne les consommateurs et les Unites Partenaires dans le suivi des signalements, des abonnements, des REX et des dossiers traites.') }}</p>
+        <p class="hero-text fade-up delay-1">{{ $blockBody('hero', 'My-Signal accompagne les consommateurs et les Unites Partenaires dans le suivi des signalements, des abonnements, des REX et des dossiers traites.') }}</p>
         <div class="fade-up delay-2">
           <a href="{{ route('public.auth') }}" class="btn-hero-primary">{{ $blockMeta('hero', 'primary_button', 'Activer mon acces') }}</a>
           <a href="#" class="btn-hero-outline">
@@ -1153,7 +1152,7 @@
 <section class="section-manage" id="features">
   <div class="container">
     @php
-      $defaultManageSteps = "Decrire le probleme | Le consommateur renseigne les faits, le lieu, les preuves et les informations utiles. | bi-pencil-square\nTransmettre le signalement | MySignal structure la demande et l'oriente vers le bon circuit de traitement. | bi-send-check\nSuivre l'avancement | Chaque changement de statut reste visible dans un espace clair et securise. | bi-activity\nCloturer avec retour | Une fois le dossier traite, le consommateur peut partager son retour d'experience. | bi-chat-square-heart";
+      $defaultManageSteps = "Decrire le probleme | Le consommateur renseigne les faits, le lieu, les preuves et les informations utiles. | bi-pencil-square\nTransmettre le signalement | My-Signal structure la demande et l'oriente vers le bon circuit de traitement. | bi-send-check\nSuivre l'avancement | Chaque changement de statut reste visible dans un espace clair et securise. | bi-activity\nCloturer avec retour | Une fois le dossier traite, le consommateur peut partager son retour d'experience. | bi-chat-square-heart";
       $manageSteps = $lines($blockMeta('manage', 'items', $defaultManageSteps));
       $manageStepsNeedDefaults = collect($manageSteps)->every(fn ($stepLine) => trim($parts($stepLine, 3)[1] ?? '') === '');
       $manageSteps = $manageStepsNeedDefaults ? $lines($defaultManageSteps) : $manageSteps;
@@ -1162,9 +1161,9 @@
     <div class="row align-items-center g-5">
       <div class="col-lg-7">
         <div class="premium-process-copy">
-          <span class="badge-pill">{{ $blockSubtitle('manage', 'Pourquoi MySignal ?') }}</span>
+          <span class="badge-pill">{{ $blockSubtitle('manage', 'Pourquoi My-Signal ?') }}</span>
           <h2 class="section-title">{!! nl2br(e($blockTitle('manage', 'Un parcours clair pour signaler et suivre un probleme'))) !!}</h2>
-          <p class="section-sub">{{ $blockBody('manage', "MySignal transforme chaque signalement en dossier lisible: les faits sont collectes, transmis au bon interlocuteur, suivis jusqu'au traitement, puis enrichis par un retour d'experience.") }}</p>
+          <p class="section-sub">{{ $blockBody('manage', "My-Signal transforme chaque signalement en dossier lisible: les faits sont collectes, transmis au bon interlocuteur, suivis jusqu'au traitement, puis enrichis par un retour d'experience.") }}</p>
         </div>
 
         <div class="premium-process-grid">
@@ -1224,8 +1223,8 @@
   <div class="container">
     <div class="row text-center mb-5">
       <div class="col-lg-6 mx-auto">
-        <span class="badge-pill">{{ $blockSubtitle('app_features', 'Ce que MySignal couvre') }}</span>
-        <h2 class="section-title">{{ $blockTitle('app_features', 'Fonctionnalites MySignal') }}</h2>
+        <span class="badge-pill">{{ $blockSubtitle('app_features', 'Ce que My-Signal couvre') }}</span>
+        <h2 class="section-title">{{ $blockTitle('app_features', 'Fonctionnalites My-Signal') }}</h2>
         <p class="section-sub">{{ $blockBody('app_features', 'Un parcours pense pour signaler, suivre, retrouver son historique et donner un retour apres traitement.') }}</p>
       </div>
     </div>
@@ -1343,7 +1342,7 @@
 <section class="download-banner">
   <div class="container position-relative" style="z-index:1">
     <span class="badge-pill" style="background:rgba(255,255,255,.2);color:#fff;">{{ $blockSubtitle('access_banner', 'Disponible en ligne') }}</span>
-    <h2>{{ $blockTitle('access_banner', 'Accedez a votre espace MySignal') }}</h2>
+    <h2>{{ $blockTitle('access_banner', 'Accedez a votre espace My-Signal') }}</h2>
     <p>{!! nl2br(e($blockBody('access_banner', 'Activez votre abonnement, suivez vos signalements et retrouvez votre carte membre depuis votre profil.'))) !!}</p>
     <div>
       @foreach ($lines($blockMeta('access_banner', 'buttons', "Consommateur | Espace | bi-person\nUnite Partenaire | Espace | bi-building")) as $buttonLine)
@@ -1432,7 +1431,7 @@
     <div class="row text-center mb-5">
       <div class="col-lg-6 mx-auto">
         <span class="badge-pill">{{ $blockSubtitle('faq', 'Questions frequentes') }}</span>
-        <h2 class="section-title">{{ $blockTitle('faq', 'Comprendre MySignal') }}</h2>
+        <h2 class="section-title">{{ $blockTitle('faq', 'Comprendre My-Signal') }}</h2>
         <p class="section-sub">{{ $blockBody('faq', "Les points essentiels sur l'abonnement, le signalement, la carte membre et les REX.") }}</p>
       </div>
     </div>
@@ -1442,7 +1441,7 @@
       </div>
       <div class="col-lg-7">
         <div class="accordion" id="faqAccordion">
-          @foreach ($lines($blockMeta('faq', 'questions', "Comment activer mon espace MySignal ? | Creez votre compte, connectez-vous, puis suivez l'invitation d'abonnement. L'activation vous donne acces aux fonctions liees a votre profil.\nLe renouvellement est-il automatique ? | Non. Le renouvellement est manuel. Une notification est envoyee avant l'expiration, avec une periode de grace d'un jour.\nQuand puis-je faire un retour d'experience ? | Le REX est propose apres la resolution d'un dommage ou apres le traitement d'un dossier ouvert, si le module est autorise.\nQui peut obtenir la carte membre ? | Les membres eligibles avec un abonnement actif disposent d'une carte virtuelle visible dans leur profil, avec QR code.")) as $faqLine)
+          @foreach ($lines($blockMeta('faq', 'questions', "Comment activer mon espace My-Signal ? | Creez votre compte, connectez-vous, puis suivez l'invitation d'abonnement. L'activation vous donne acces aux fonctions liees a votre profil.\nLe renouvellement est-il automatique ? | Non. Le renouvellement est manuel. Une notification est envoyee avant l'expiration, avec une periode de grace d'un jour.\nQuand puis-je faire un retour d'experience ? | Le REX est propose apres la resolution d'un dommage ou apres le traitement d'un dossier ouvert, si le module est autorise.\nQui peut obtenir la carte membre ? | Les membres eligibles avec un abonnement actif disposent d'une carte virtuelle visible dans leur profil, avec QR code.")) as $faqLine)
             @php
               [$question, $answer] = $parts($faqLine, 2);
             @endphp
@@ -1512,7 +1511,7 @@
         </div>
         <div class="col-md-6">
           <h3 style="font-weight:800;margin-bottom:12px">{{ $blockTitle('cta', 'Pret a suivre vos signalements autrement ?') }}</h3>
-          <p style="color:var(--text-muted);font-size:.88rem;margin:0">{{ $blockBody('cta', "MySignal rassemble le signalement, le suivi, l'abonnement annuel, la carte membre et les retours d'experience dans un meme parcours.") }}</p>
+          <p style="color:var(--text-muted);font-size:.88rem;margin:0">{{ $blockBody('cta', "My-Signal rassemble le signalement, le suivi, l'abonnement annuel, la carte membre et les retours d'experience dans un meme parcours.") }}</p>
         </div>
         <div class="col-md-3 text-md-end">
           <a href="{{ route('public.auth') }}" class="btn-primary-custom">{{ $blockMeta('cta', 'button', 'Activer mon espace') }}</a>
@@ -1529,7 +1528,7 @@
   <div class="container">
     <div class="text-center mb-5">
       <h2 class="section-title">{{ $blockTitle('clients', 'Domaines couverts') }}</h2>
-      <p class="section-sub">{{ $blockBody('clients', 'MySignal accompagne plusieurs univers de consommation et de services.') }}</p>
+      <p class="section-sub">{{ $blockBody('clients', 'My-Signal accompagne plusieurs univers de consommation et de services.') }}</p>
     </div>
     @php
       $defaultDomains = "Commerce | Signaler une pratique commerciale confuse, un service non conforme ou un litige apres achat. | https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=900&q=80\nServices | Suivre une demande liee a un prestataire, une intervention ou une qualite de service attendue. | https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=900&q=80\nAssurance | Documenter un dossier, garder les preuves et suivre les reponses obtenues. | https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=900&q=80\nTransport | Declarer une difficulte de transport, un retard, une prestation ou un incident de parcours. | https://images.unsplash.com/photo-1494412651409-8963ce7935a7?auto=format&fit=crop&w=900&q=80\nSante | Centraliser les informations utiles pour suivre une reclamation ou une experience de prise en charge. | https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=900&q=80\nEnergie | Signaler une coupure, une surtension, un compteur ou tout incident lie a la fourniture. | https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=900&q=80";
@@ -1568,7 +1567,7 @@
       <div class="col-lg-7">
         <span class="badge-pill" style="background:rgba(255,255,255,.15);color:#fff;">{{ $blockSubtitle('partners', 'Partenaires') }}</span>
         <h2 class="section-title mb-2" style="color:#fff">{{ $blockTitle('partners', 'Ils nous font confiance') }}</h2>
-        <p class="partner-sub mb-0">{{ $blockBody('partners', 'Des acteurs publics, prives et communautaires s appuient sur MySignal pour rendre le traitement des signalements plus lisible.') }}</p>
+        <p class="partner-sub mb-0">{{ $blockBody('partners', 'Des acteurs publics, prives et communautaires s appuient sur My-Signal pour rendre le traitement des signalements plus lisible.') }}</p>
       </div>
     </div>
     @php
@@ -1609,7 +1608,7 @@
         </div>
       </div>
       <div class="col-6 col-lg-2">
-        <h6>{{ $blockMeta('footer', 'column_1_title', 'MySignal') }}</h6>
+        <h6>{{ $blockMeta('footer', 'column_1_title', 'My-Signal') }}</h6>
         <ul>
           @foreach ($lines($blockMeta('footer', 'column_1_links', "A propos | #\nProtection consommateur | #\nUnites Partenaires | #\nContact | #")) as $footerLine)
             @php
@@ -1644,7 +1643,7 @@
       </div>
       <div class="col-6 col-lg-2">
         <h6>{{ $blockMeta('footer', 'newsletter_title', 'Alertes') }}</h6>
-        <p style="font-size:.82rem">{{ $blockMeta('footer', 'newsletter_text', 'Recevez les informations importantes sur les modules MySignal.') }}</p>
+        <p style="font-size:.82rem">{{ $blockMeta('footer', 'newsletter_text', 'Recevez les informations importantes sur les modules My-Signal.') }}</p>
         <div class="newsletter-form flex-column">
           <input type="email" placeholder="Votre adresse email" class="mb-2">
           <button>S'inscrire <i class="bi bi-send-fill ms-1"></i></button>
@@ -1653,7 +1652,7 @@
     </div>
     <div class="footer-bottom">
       <div class="row align-items-center">
-        <div class="col-md-6 text-md-start">© 2026 MySignal. Tous droits reserves.</div>
+        <div class="col-md-6 text-md-start">© 2026 My-Signal. Tous droits reserves.</div>
         <div class="col-md-6 text-md-end mt-2 mt-md-0">
           {{ $blockSubtitle('footer', 'Plateforme de protection consommateur') }}
         </div>
