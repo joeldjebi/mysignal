@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>My-Signal - Plateforme de signalement consommateur</title>
+  <link rel="icon" type="image/png" href="{{ asset('image/logo/logo-my-signal.png') }}" />
+  <link rel="apple-touch-icon" href="{{ asset('image/logo/logo-my-signal.png') }}" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
@@ -35,6 +37,7 @@
       --primary-dark: #102736;
       --primary-light: {{ $secondaryColor }};
       --accent: {{ $accentColor }};
+      --action-color: #ff0068;
       --yellow: #ffa117;
       --success: #5bebaf;
       --text-dark: #183447;
@@ -85,7 +88,7 @@
     }
     .nav-link:hover { color: var(--primary) !important; }
     .btn-nav {
-      background: var(--gradient);
+      background: var(--action-color);
       color: #fff !important;
       border-radius: 30px;
       padding: 8px 24px !important;
@@ -93,6 +96,19 @@
       font-size: .85rem;
     }
     .btn-nav:hover { opacity: .88; }
+    .navbar-partner-logo {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 14px;
+    }
+    .navbar-partner-logo img {
+      height: 50px;
+      width: 50px;
+      object-fit: cover;
+      border-radius: 8px;
+      display: block;
+    }
 
     /* ===== HERO ===== */
     .hero {
@@ -120,8 +136,8 @@
     .hero-title span { color: var(--yellow); }
     .hero-text { color: rgba(255,255,255,.82); font-size: .95rem; margin-bottom: 32px; }
     .btn-hero-primary {
-      background: #fff;
-      color: var(--primary);
+      background: var(--action-color);
+      color: #fff;
       border-radius: 30px;
       padding: 12px 30px;
       font-weight: 700;
@@ -129,7 +145,7 @@
       border: none;
       transition: all .2s;
     }
-    .btn-hero-primary:hover { background: var(--yellow); color: #fff; }
+    .btn-hero-primary:hover { background: #e0005c; color: #fff; }
     .btn-hero-outline {
       background: transparent;
       border: 2px solid rgba(255,255,255,.5);
@@ -252,7 +268,7 @@
       width: 44px;
       height: 44px;
       border-radius: 8px;
-      background: var(--gradient);
+      background: #ff0068;
       color: #fff;
       display: inline-flex;
       align-items: center;
@@ -260,6 +276,10 @@
       font-size: 1.15rem;
       box-shadow: 0 14px 28px rgba(24,52,71,.18);
     }
+    .premium-process-step:nth-child(1) .premium-step-icon { background: #ff0068; }
+    .premium-process-step:nth-child(2) .premium-step-icon { background: #6791fe; }
+    .premium-process-step:nth-child(3) .premium-step-icon { background: #ffa117; }
+    .premium-process-step:nth-child(4) .premium-step-icon { background: #5bebaf; color: #183447; }
     .premium-step-number {
       font-size: .72rem;
       font-weight: 800;
@@ -338,7 +358,7 @@
       top: 10px;
       bottom: 10px;
       width: 2px;
-      background: linear-gradient(180deg, var(--primary), var(--accent));
+      background: linear-gradient(180deg, #ff0068, #6791fe, #ffa117, #5bebaf);
       opacity: .22;
     }
     .case-timeline-row {
@@ -352,7 +372,7 @@
       width: 36px;
       height: 36px;
       border-radius: 8px;
-      background: var(--primary);
+      background: #ff0068;
       color: #fff;
       display: inline-flex;
       align-items: center;
@@ -361,7 +381,10 @@
       font-weight: 800;
       box-shadow: 0 10px 22px rgba(24,52,71,.18);
     }
-    .case-timeline-row:nth-child(even) .case-timeline-dot { background: var(--accent); }
+    .case-timeline-row:nth-child(1) .case-timeline-dot { background: #ff0068; }
+    .case-timeline-row:nth-child(2) .case-timeline-dot { background: #6791fe; }
+    .case-timeline-row:nth-child(3) .case-timeline-dot { background: #ffa117; }
+    .case-timeline-row:nth-child(4) .case-timeline-dot { background: #5bebaf; color: #183447; }
     .case-timeline-content {
       background: var(--bg-light);
       border-radius: 8px;
@@ -441,8 +464,8 @@
     .download-banner p  { opacity: .85; margin-bottom: 32px; font-size: .9rem; }
     .btn-store {
       display: inline-flex; align-items: center; gap: 10px;
-      background: #fff;
-      color: var(--primary);
+      background: var(--action-color);
+      color: #fff;
       border-radius: 12px;
       padding: 12px 24px;
       font-weight: 700;
@@ -451,7 +474,7 @@
       font-size: .88rem;
       transition: all .2s;
     }
-    .btn-store:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.15); color: var(--primary); }
+    .btn-store:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.15); color: #fff; background: #e0005c; }
     .btn-store i { font-size: 1.4rem; }
 
     /* ===== APP FEATURES ===== */
@@ -835,7 +858,7 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      color: var(--primary);
+      color: var(--action-color);
       font-weight: 800;
       font-size: .78rem;
       text-decoration: none;
@@ -966,7 +989,7 @@
     }
     .newsletter-form input::placeholder { color: rgba(255,255,255,.4); }
     .newsletter-form button {
-      background: var(--gradient);
+      background: var(--action-color);
       border: none;
       border-radius: 30px;
       padding: 10px 20px;
@@ -989,7 +1012,7 @@
       letter-spacing: .5px;
     }
     .btn-primary-custom {
-      background: var(--gradient);
+      background: var(--action-color);
       color: #fff;
       border-radius: 30px;
       padding: 12px 32px;
@@ -1046,6 +1069,11 @@
           <li class="nav-item"><a class="nav-link" href="{{ $navUrl ?: '#' }}">{{ $navLabel }}</a></li>
         @endforeach
         <li class="nav-item ms-2"><a class="nav-link btn-nav" href="{{ route('public.auth') }}">{{ $blockMeta('navigation', 'cta_label', 'Se connecter et signaler maintenant') }}</a></li>
+        <li class="nav-item">
+          <a class="navbar-partner-logo" href="#" aria-label="UFC">
+            <img src="{{ asset('image/logo/ufc.jpg') }}" alt="UFC">
+          </a>
+        </li>
       </ul>
     </div>
   </div>
@@ -1230,15 +1258,18 @@
     </div>
     @php
       $appFeatureItems = $lines($blockMeta('app_features', 'items', "Signalements encadres | Les consommateurs declarent les dommages avec les informations utiles au traitement. | bi-people\nNotifications utiles | Les UP sont prevenues avant expiration et gardent la main sur leur renouvellement. | bi-headset\nHistorique complet | Abonnements, statuts et REX restent consultables dans les espaces dedies. | bi-graph-up-arrow\nRenouvellement manuel | Le statut d'abonnement reste visible, avec une periode de grace d'une journee. | bi-calendar-check\nCarte membre | Les membres actifs disposent d'une carte virtuelle avec QR code sur leur profil. | bi-cloud-check\nParametrage SA | Le Super Administrateur configure les plans, modules, historiques et acces. | bi-puzzle"));
+      $appFeatureIconColors = ['#ff0068', '#6791fe', '#ffa117', '#5bebaf'];
     @endphp
     <div class="row align-items-center g-4 g-lg-5">
       <div class="col-lg-4">
         @foreach (array_slice($appFeatureItems, 0, 3) as $featureLine)
           @php
             [$featureTitle, $featureText, $featureIcon] = $parts($featureLine, 3);
+            $featureColor = $appFeatureIconColors[$loop->index % count($appFeatureIconColors)];
+            $featureIconTextColor = $featureColor === '#5bebaf' ? '#183447' : '#fff';
           @endphp
           <div class="app-feature-item d-flex gap-3">
-            <div class="icon-box"><i class="bi {{ $featureIcon ?: 'bi-check2-circle' }}"></i></div>
+            <div class="icon-box" style="background: {{ $featureColor }}; color: {{ $featureIconTextColor }}"><i class="bi {{ $featureIcon ?: 'bi-check2-circle' }}"></i></div>
             <div>
               <span class="app-feature-index">{{ str_pad((string) ($loop->index + 1), 2, '0', STR_PAD_LEFT) }}</span>
               <h6>{{ $featureTitle }}</h6>
@@ -1288,9 +1319,12 @@
         @foreach (array_slice($appFeatureItems, 3, 3) as $featureLine)
           @php
             [$featureTitle, $featureText, $featureIcon] = $parts($featureLine, 3);
+            $featureColorIndex = $loop->index + 3;
+            $featureColor = $appFeatureIconColors[$featureColorIndex % count($appFeatureIconColors)];
+            $featureIconTextColor = $featureColor === '#5bebaf' ? '#183447' : '#fff';
           @endphp
           <div class="app-feature-item d-flex gap-3">
-            <div class="icon-box" style="background:rgba(255,0,104,.1);color:var(--accent);box-shadow:none"><i class="bi {{ $featureIcon ?: 'bi-check2-circle' }}"></i></div>
+            <div class="icon-box" style="background: {{ $featureColor }}; color: {{ $featureIconTextColor }}"><i class="bi {{ $featureIcon ?: 'bi-check2-circle' }}"></i></div>
             <div>
               <span class="app-feature-index">{{ str_pad((string) ($loop->index + 4), 2, '0', STR_PAD_LEFT) }}</span>
               <h6>{{ $featureTitle }}</h6>
@@ -1345,7 +1379,17 @@
     <h2>{{ $blockTitle('access_banner', 'Accedez a votre espace My-Signal') }}</h2>
     <p>{!! nl2br(e($blockBody('access_banner', 'Activez votre abonnement, suivez vos signalements et retrouvez votre carte membre depuis votre profil.'))) !!}</p>
     <div>
-      @foreach ($lines($blockMeta('access_banner', 'buttons', "Consommateur | Espace | bi-person\nUnite Partenaire | Espace | bi-building")) as $buttonLine)
+      @php
+        $defaultPublicUserTypes = "Usager public | Particulier | bi-person\nUsager public entreprise | Entreprise | bi-building\nTravailleur independant | Independant | bi-person-workspace";
+        $accessBannerButtons = $blockMeta('access_banner', 'buttons', $defaultPublicUserTypes);
+        if (in_array(trim($accessBannerButtons), [
+          "Consommateur | Espace | bi-person\nUnite Partenaire | Espace | bi-building",
+          "Commerce | Achat et service | bi-bag-check\nServices | Prestation | bi-briefcase\nAssurance | Sinistre | bi-shield-check\nTransport | Parcours | bi-truck\nSante | Prise en charge | bi-heart-pulse\nEnergie | Fourniture | bi-lightning-charge",
+        ], true)) {
+          $accessBannerButtons = $defaultPublicUserTypes;
+        }
+      @endphp
+      @foreach ($lines($accessBannerButtons) as $buttonLine)
         @php
           [$buttonTitle, $buttonSub, $buttonIcon] = $parts($buttonLine, 3);
         @endphp

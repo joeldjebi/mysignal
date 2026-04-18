@@ -322,13 +322,14 @@ class LandingPageController extends Controller
                 'meta_fields' => [],
                 'item_groups' => [
                     'buttons' => [
-                        'label' => 'Boutons',
+                        'label' => 'Types d usagers publics',
                         'columns' => ['title' => 'Titre', 'subtitle' => 'Sur-titre', 'icon' => 'Icone'],
                         'items' => [
-                            ['title' => 'Consommateur', 'subtitle' => 'Espace', 'icon' => 'bi-person', 'is_active' => true],
-                            ['title' => 'Unite Partenaire', 'subtitle' => 'Espace', 'icon' => 'bi-building', 'is_active' => true],
+                            ['title' => 'Usager public', 'subtitle' => 'Particulier', 'icon' => 'bi-person', 'is_active' => true],
+                            ['title' => 'Usager public entreprise', 'subtitle' => 'Entreprise', 'icon' => 'bi-building', 'is_active' => true],
+                            ['title' => 'Travailleur independant', 'subtitle' => 'Independant', 'icon' => 'bi-person-workspace', 'is_active' => true],
                         ],
-                        'empty_rows' => 1,
+                        'empty_rows' => 2,
                     ],
                 ],
                 'sort_order' => 60,
