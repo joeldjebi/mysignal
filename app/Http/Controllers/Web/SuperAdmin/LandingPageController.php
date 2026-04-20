@@ -325,9 +325,9 @@ class LandingPageController extends Controller
                         'label' => 'Types d usagers publics',
                         'columns' => ['title' => 'Titre', 'subtitle' => 'Sur-titre', 'icon' => 'Icone'],
                         'items' => [
-                            ['title' => 'Usager public', 'subtitle' => 'Particulier', 'icon' => 'bi-person', 'is_active' => true],
-                            ['title' => 'Usager public entreprise', 'subtitle' => 'Entreprise', 'icon' => 'bi-building', 'is_active' => true],
-                            ['title' => 'Travailleur independant', 'subtitle' => 'Independant', 'icon' => 'bi-person-workspace', 'is_active' => true],
+                            ['title' => 'Particulier', 'subtitle' => 'Usager public', 'icon' => 'bi-person', 'is_active' => true],
+                            ['title' => 'Entreprises, institutions', 'subtitle' => 'Usager public entreprise', 'icon' => 'bi-building', 'is_active' => true],
+                            ['title' => 'Auto entrepreneur', 'subtitle' => 'Travailleur independant', 'icon' => 'bi-person-workspace', 'is_active' => true],
                         ],
                         'empty_rows' => 2,
                     ],

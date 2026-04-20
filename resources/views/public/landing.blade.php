@@ -1380,11 +1380,12 @@
     <p>{!! nl2br(e($blockBody('access_banner', 'Activez votre abonnement, suivez vos signalements et retrouvez votre carte membre depuis votre profil.'))) !!}</p>
     <div>
       @php
-        $defaultPublicUserTypes = "Usager public | Particulier | bi-person\nUsager public entreprise | Entreprise | bi-building\nTravailleur independant | Independant | bi-person-workspace";
+        $defaultPublicUserTypes = "Particulier | Usager public | bi-person\nEntreprises, institutions | Usager public entreprise | bi-building\nAuto entrepreneur | Travailleur independant | bi-person-workspace";
         $accessBannerButtons = $blockMeta('access_banner', 'buttons', $defaultPublicUserTypes);
         if (in_array(trim($accessBannerButtons), [
           "Consommateur | Espace | bi-person\nUnite Partenaire | Espace | bi-building",
           "Commerce | Achat et service | bi-bag-check\nServices | Prestation | bi-briefcase\nAssurance | Sinistre | bi-shield-check\nTransport | Parcours | bi-truck\nSante | Prise en charge | bi-heart-pulse\nEnergie | Fourniture | bi-lightning-charge",
+          "Usager public | Particulier | bi-person\nUsager public entreprise | Entreprise | bi-building\nTravailleur independant | Independant | bi-person-workspace",
         ], true)) {
           $accessBannerButtons = $defaultPublicUserTypes;
         }
