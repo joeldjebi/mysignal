@@ -27,6 +27,10 @@ return Application::configure(basePath: dirname(__DIR__))
                     return route('institution.login');
                 }
 
+                if ($request->is('partner') || $request->is('partner/*')) {
+                    return route('partner.login');
+                }
+
                 return route('public.landing');
             },
             users: function (Request $request): string {
@@ -65,6 +69,12 @@ return Application::configure(basePath: dirname(__DIR__))
                 }
 
                 if ($user?->organization_id !== null) {
+                    $user->loadMissing('organization.organizationType');
+
+                    if ($user?->organization?->organizationType?->code === 'PARTNER_ESTABLISHMENT') {
+                        return route('partner.dashboard');
+                    }
+
                     return route('institution.dashboard');
                 }
 
@@ -79,6 +89,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'institution_admin' => \App\Http\Middleware\EnsureInstitutionAdmin::class,
             'institution_feature' => \App\Http\Middleware\EnsureInstitutionFeature::class,
             'institution_permission' => \App\Http\Middleware\EnsureInstitutionPermission::class,
+            'partner_access' => \App\Http\Middleware\EnsurePartnerAccess::class,
+            'partner_web_permission' => \App\Http\Middleware\EnsurePartnerWebPermission::class,
+            'partner_user' => \App\Http\Middleware\EnsurePartnerUser::class,
+            'partner_permission' => \App\Http\Middleware\EnsurePartnerPermission::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

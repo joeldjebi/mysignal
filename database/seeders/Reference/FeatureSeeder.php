@@ -123,6 +123,46 @@ class FeatureSeeder extends Seeder
                 'name' => 'Consultation des REX',
                 'description' => 'Permet aux utilisateurs autorises de consulter les retours d experience des usagers publics.',
             ],
+            [
+                'code' => 'PARTNER_DASHBOARD_ACCESS',
+                'name' => 'Dashboard partenaire',
+                'description' => 'Acces au tableau de bord web des etablissements partenaires.',
+            ],
+            [
+                'code' => 'PARTNER_DISCOUNT_SCAN',
+                'name' => 'Scan des cartes de reduction',
+                'description' => 'Permet de verifier une carte de reduction depuis l application mobile partenaire.',
+            ],
+            [
+                'code' => 'PARTNER_DISCOUNT_APPLY',
+                'name' => 'Application des reductions',
+                'description' => 'Permet d appliquer une reduction validee par un partenaire.',
+            ],
+            [
+                'code' => 'PARTNER_DISCOUNT_HISTORY',
+                'name' => 'Historique des reductions partenaires',
+                'description' => 'Permet de consulter l historique des reductions appliquees par un partenaire.',
+            ],
+            [
+                'code' => 'PARTNER_DISCOUNT_OFFERS_MANAGE',
+                'name' => 'Gestion des offres partenaires',
+                'description' => 'Permet de creer et mettre a jour les offres de reduction d un partenaire.',
+            ],
+            [
+                'code' => 'PARTNER_USERS_MANAGE',
+                'name' => 'Gestion des utilisateurs partenaires',
+                'description' => 'Permet de gerer les comptes web et mobile des etablissements partenaires.',
+            ],
+            [
+                'code' => 'DISCOUNT_CARDS_MONITORING',
+                'name' => 'Supervision des cartes de reduction',
+                'description' => 'Expose le module de consultation des cartes de reduction creees pour les UP.',
+            ],
+            [
+                'code' => 'DISCOUNT_TRANSACTIONS_MONITORING',
+                'name' => 'Supervision des reductions appliquees',
+                'description' => 'Expose le module de consultation de l historique des reductions appliquees par les partenaires.',
+            ],
         ];
 
         foreach ($features as $feature) {

@@ -2,6 +2,7 @@
 
 namespace App\Domain\Subscriptions\Actions;
 
+use App\Domain\Discounts\Actions\IssueUpDiscountCardAction;
 use App\Domain\Payments\Enums\PaymentStatus;
 use App\Domain\Subscriptions\Enums\UpSubscriptionStatus;
 use App\Models\PublicUser;
@@ -12,6 +13,11 @@ use Illuminate\Validation\ValidationException;
 
 class ConfirmUpSubscriptionPaymentAction
 {
+    public function __construct(
+        private readonly IssueUpDiscountCardAction $issueUpDiscountCardAction,
+    ) {
+    }
+
     public function handle(PublicUser $publicUser, SubscriptionPayment $payment): SubscriptionPayment
     {
         if ((int) $payment->public_user_id !== (int) $publicUser->id) {
@@ -63,6 +69,8 @@ class ConfirmUpSubscriptionPaymentAction
                 'end_date' => $now->addMonthsNoOverflow($durationMonths),
                 'activated_at' => $now,
             ]);
+
+            $this->issueUpDiscountCardAction->handle($subscription->refresh());
 
             return $payment->refresh()->load('subscription.plan');
         });

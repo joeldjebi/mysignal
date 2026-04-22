@@ -182,7 +182,7 @@
                     <article class="app-admin-card">
                         <div class="app-admin-head">
                             <div class="app-admin-brand">
-                                <img src="{{ asset($application->logo_path ?: 'image/logo/logo-my-signal.png') }}" alt="Logo {{ $application->name }}" class="app-admin-logo">
+                                <img src="{{ $application->logoUrl() ?: asset('image/logo/logo-my-signal.png') }}" alt="Logo {{ $application->name }}" class="app-admin-logo">
                                 <div>
                                     <div class="app-admin-code">{{ $application->code }}</div>
                                     <div class="fw-bold mt-2">{{ $application->name }}</div>
@@ -260,7 +260,7 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <form method="POST" action="{{ route('super-admin.applications.store') }}" class="row g-3">
+                    <form method="POST" action="{{ route('super-admin.applications.store') }}" class="row g-3" enctype="multipart/form-data">
                         @csrf
                         <div class="col-md-4">
                             <label class="form-label">Code</label>
@@ -291,12 +291,14 @@
                             <textarea name="long_description" class="form-control" rows="4"></textarea>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Chemin logo</label>
-                            <input type="text" name="logo_path" class="form-control" value="image/logo/logo-my-signal.png">
+                            <label class="form-label">Logo</label>
+                            <input type="file" name="logo_file" class="form-control" accept=".jpg,.jpeg,.png,.webp">
+                            <div class="small text-secondary mt-2">Le fichier sera envoye sur Wasabi.</div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Chemin image hero</label>
-                            <input type="text" name="hero_image_path" class="form-control">
+                            <label class="form-label">Image hero</label>
+                            <input type="file" name="hero_image_file" class="form-control" accept=".jpg,.jpeg,.png,.webp">
+                            <div class="small text-secondary mt-2">Le fichier sera envoye sur Wasabi.</div>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Couleur primaire</label>

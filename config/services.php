@@ -44,4 +44,9 @@ return [
         'default_otp' => env('PUBLIC_AUTH_DEFAULT_OTP', '2604'),
     ],
 
+    'partner_auth' => [
+        'otp_digits' => (int) env('PARTNER_AUTH_OTP_DIGITS', 4),
+        'default_otp' => env('PARTNER_AUTH_DEFAULT_OTP', '2604'),
+    ],
+
 ];

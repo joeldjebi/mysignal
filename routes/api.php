@@ -1,7 +1,16 @@
 <?php
 
+use App\Http\Controllers\Api\V1\Partner\Auth\AuthenticatedPartnerUserController;
+use App\Http\Controllers\Api\V1\Partner\Auth\PartnerAuthController;
+use App\Http\Controllers\Api\V1\Partner\Auth\PartnerPasswordResetController;
+use App\Http\Controllers\Api\V1\Partner\Discounts\PartnerDiscountCardController;
+use App\Http\Controllers\Api\V1\Partner\Discounts\PartnerDiscountOfferController;
+use App\Http\Controllers\Api\V1\Partner\Discounts\PartnerDiscountTransactionController;
+use App\Http\Controllers\Api\V1\Partner\Profile\PartnerPasswordController;
+use App\Http\Controllers\Api\V1\Partner\Profile\PartnerProfileController;
 use App\Http\Controllers\Api\V1\Public\Auth\AuthenticatedPublicUserController;
 use App\Http\Controllers\Api\V1\Public\Auth\PublicAuthController;
+use App\Http\Controllers\Api\V1\Public\Discounts\PublicDiscountCardController;
 use App\Http\Controllers\Api\V1\Public\Households\PublicHouseholdController;
 use App\Http\Controllers\Api\V1\Public\Locations\PublicLocationController;
 use App\Http\Controllers\Api\V1\Public\Meters\PublicMeterController;
@@ -69,5 +78,44 @@ Route::prefix('v1/public')->group(function (): void {
         Route::get('subscription/payments', [PublicUpSubscriptionPaymentController::class, 'index']);
         Route::post('subscription/payments', [PublicUpSubscriptionPaymentController::class, 'store']);
         Route::post('subscription/payments/{payment}/confirm', [PublicUpSubscriptionPaymentController::class, 'confirm']);
+        Route::get('discount-card', [PublicDiscountCardController::class, 'show']);
+    });
+});
+
+Route::prefix('v1/partner')->group(function (): void {
+    Route::prefix('auth')->group(function (): void {
+        Route::post('login', [PartnerAuthController::class, 'login']);
+        Route::post('forgot-password/request-otp', [PartnerPasswordResetController::class, 'requestOtp'])
+            ->middleware('throttle:partner-auth-otp');
+        Route::post('forgot-password/verify-otp', [PartnerPasswordResetController::class, 'verifyOtp'])
+            ->middleware('throttle:partner-auth-otp');
+        Route::post('forgot-password/reset-password', [PartnerPasswordResetController::class, 'resetPassword'])
+            ->middleware('throttle:partner-auth-password-reset');
+    });
+
+    Route::middleware(['auth:partner_api', 'partner_user'])->group(function (): void {
+        Route::get('me', AuthenticatedPartnerUserController::class);
+        Route::post('auth/logout', [PartnerAuthController::class, 'logout']);
+        Route::put('profile', [PartnerProfileController::class, 'update']);
+        Route::put('profile/password', [PartnerPasswordController::class, 'update']);
+
+        Route::get('discount-offers', [PartnerDiscountOfferController::class, 'index'])
+            ->middleware('partner_permission:PARTNER_DISCOUNT_HISTORY_VIEW');
+        Route::post('discount-offers', [PartnerDiscountOfferController::class, 'store'])
+            ->middleware('partner_permission:PARTNER_DISCOUNT_OFFERS_MANAGE');
+        Route::put('discount-offers/{offer}', [PartnerDiscountOfferController::class, 'update'])
+            ->middleware('partner_permission:PARTNER_DISCOUNT_OFFERS_MANAGE');
+        Route::patch('discount-offers/{offer}/toggle-status', [PartnerDiscountOfferController::class, 'toggleStatus'])
+            ->middleware('partner_permission:PARTNER_DISCOUNT_OFFERS_MANAGE');
+        Route::post('discount-cards/verify', [PartnerDiscountCardController::class, 'verify'])
+            ->middleware('partner_permission:PARTNER_DISCOUNT_SCAN');
+        Route::get('discount-transactions', [PartnerDiscountTransactionController::class, 'index'])
+            ->middleware('partner_permission:PARTNER_DISCOUNT_HISTORY_VIEW');
+        Route::post('discount-transactions', [PartnerDiscountTransactionController::class, 'store'])
+            ->middleware('partner_permission:PARTNER_DISCOUNT_APPLY');
+        Route::get('mobile/history', [PartnerDiscountTransactionController::class, 'mobileHistory'])
+            ->middleware('partner_permission:PARTNER_DISCOUNT_HISTORY_VIEW');
+        Route::get('mobile/stats', [PartnerDiscountTransactionController::class, 'mobileStats'])
+            ->middleware('partner_permission:PARTNER_DISCOUNT_HISTORY_VIEW');
     });
 });

@@ -116,6 +116,23 @@ class PublicUser extends Authenticatable implements JWTSubject
         return $this->hasMany(SubscriptionPayment::class);
     }
 
+    public function discountCards(): HasMany
+    {
+        return $this->hasMany(UpDiscountCard::class);
+    }
+
+    public function activeDiscountCard(): HasOne
+    {
+        return $this->hasOne(UpDiscountCard::class)
+            ->where('status', 'active')
+            ->latestOfMany();
+    }
+
+    public function partnerDiscountTransactions(): HasMany
+    {
+        return $this->hasMany(PartnerDiscountTransaction::class);
+    }
+
     public function reparationCases(): HasMany
     {
         return $this->hasMany(ReparationCase::class);

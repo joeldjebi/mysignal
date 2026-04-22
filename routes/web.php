@@ -15,10 +15,17 @@ use App\Http\Controllers\Web\Institution\SlaController as InstitutionSlaControll
 use App\Http\Controllers\Web\Institution\SignalTypeController as InstitutionSignalTypeController;
 use App\Http\Controllers\Web\Institution\StatisticController as InstitutionStatisticController;
 use App\Http\Controllers\Web\Institution\UserController as InstitutionUserController;
+use App\Http\Controllers\Web\Partner\AuthController as PartnerAuthController;
+use App\Http\Controllers\Web\Partner\DashboardController as PartnerDashboardController;
+use App\Http\Controllers\Web\Partner\DiscountOfferController as PartnerDiscountOfferController;
+use App\Http\Controllers\Web\Partner\DiscountTransactionController as PartnerDiscountTransactionController;
+use App\Http\Controllers\Web\Partner\UserController as PartnerUserController;
 use App\Http\Controllers\Web\SuperAdmin\CityController;
 use App\Http\Controllers\Web\SuperAdmin\CommuneController;
 use App\Http\Controllers\Web\SuperAdmin\CountryController;
 use App\Http\Controllers\Web\SuperAdmin\BusinessSectorController;
+use App\Http\Controllers\Web\SuperAdmin\DiscountCardController;
+use App\Http\Controllers\Web\SuperAdmin\DiscountTransactionController;
 use App\Http\Controllers\Web\SuperAdmin\FeatureController;
 use App\Http\Controllers\Web\SuperAdmin\ActivityLogController as SuperAdminActivityLogController;
 use App\Http\Controllers\Web\SuperAdmin\InstitutionAdminController;
@@ -52,6 +59,7 @@ Route::get('/dashboard', [PublicPortalController::class, 'dashboard'])->name('pu
 Route::redirect('/admin', '/sa/login');
 Route::redirect('/admin/login', '/sa/login');
 Route::redirect('/backoffice', '/backoffice/login');
+Route::redirect('/partenaire', '/partner/login');
 
 Route::prefix('institution')->name('institution.')->group(function (): void {
     Route::middleware('guest')->group(function (): void {
@@ -204,6 +212,8 @@ Route::prefix('sa')->name('super-admin.')->group(function (): void {
         Route::patch('public-users/{publicUser}/toggle-status', [PublicUserController::class, 'toggleStatus'])->middleware('super_admin_permission:SA_PUBLIC_USERS_TOGGLE_STATUS')->name('public-users.toggle-status');
         Route::get('public-reports', [PublicIncidentReportController::class, 'index'])->middleware('super_admin_permission:SA_PUBLIC_REPORTS_VIEW')->name('public-reports.index');
         Route::get('payments', [PaymentController::class, 'index'])->middleware('super_admin_permission:SA_PAYMENTS_VIEW')->name('payments.index');
+        Route::get('discount-cards', [DiscountCardController::class, 'index'])->middleware('super_admin_permission:SA_DISCOUNT_CARDS_VIEW')->name('discount-cards.index');
+        Route::get('discount-transactions', [DiscountTransactionController::class, 'index'])->middleware('super_admin_permission:SA_DISCOUNT_TRANSACTIONS_VIEW')->name('discount-transactions.index');
         Route::get('activity-logs', [SuperAdminActivityLogController::class, 'index'])->name('activity-logs.index');
         Route::get('rex-feedbacks', [RexFeedbackController::class, 'index'])->middleware('super_admin_permission:SA_REX_FEEDBACKS_VIEW')->name('rex-feedbacks.index');
         Route::put('rex-feedbacks/settings', [RexFeedbackController::class, 'updateSettings'])->middleware('super_admin_permission:SA_REX_FEEDBACKS_MANAGE')->name('rex-feedbacks.settings');
@@ -220,6 +230,55 @@ Route::prefix('sa')->name('super-admin.')->group(function (): void {
         Route::patch('permissions/{permission}/toggle-status', [PermissionController::class, 'toggleStatus'])->middleware('super_admin_permission:SA_PERMISSIONS_MANAGE')->name('permissions.toggle-status');
         Route::resource('system-users', SystemUserController::class)->parameters(['system-users' => 'systemUser'])->except(['create'])->middleware('super_admin_permission:SA_SYSTEM_USERS_MANAGE');
         Route::patch('system-users/{systemUser}/toggle-status', [SystemUserController::class, 'toggleStatus'])->middleware('super_admin_permission:SA_SYSTEM_USERS_TOGGLE_STATUS')->name('system-users.toggle-status');
+    });
+});
+
+Route::prefix('partner')->name('partner.')->group(function (): void {
+    Route::middleware('guest')->group(function (): void {
+        Route::get('login', [PartnerAuthController::class, 'create'])->name('login');
+        Route::post('login', [PartnerAuthController::class, 'store'])->name('login.store');
+    });
+
+    Route::middleware(['auth', 'partner_access'])->group(function (): void {
+        Route::get('dashboard', PartnerDashboardController::class)
+            ->middleware('partner_web_permission:PARTNER_DASHBOARD_VIEW')
+            ->name('dashboard');
+        Route::post('logout', [PartnerAuthController::class, 'destroy'])->name('logout');
+
+        Route::get('offers', [PartnerDiscountOfferController::class, 'index'])
+            ->middleware('partner_web_permission:PARTNER_DISCOUNT_HISTORY_VIEW')
+            ->name('offers.index');
+        Route::get('discount-transactions', [PartnerDiscountTransactionController::class, 'index'])
+            ->middleware('partner_web_permission:PARTNER_DISCOUNT_HISTORY_VIEW')
+            ->name('discount-transactions.index');
+        Route::post('offers', [PartnerDiscountOfferController::class, 'store'])
+            ->middleware('partner_web_permission:PARTNER_DISCOUNT_OFFERS_MANAGE')
+            ->name('offers.store');
+        Route::get('offers/{offer}/edit', [PartnerDiscountOfferController::class, 'edit'])
+            ->middleware('partner_web_permission:PARTNER_DISCOUNT_OFFERS_MANAGE')
+            ->name('offers.edit');
+        Route::put('offers/{offer}', [PartnerDiscountOfferController::class, 'update'])
+            ->middleware('partner_web_permission:PARTNER_DISCOUNT_OFFERS_MANAGE')
+            ->name('offers.update');
+        Route::patch('offers/{offer}/toggle-status', [PartnerDiscountOfferController::class, 'toggleStatus'])
+            ->middleware('partner_web_permission:PARTNER_DISCOUNT_OFFERS_MANAGE')
+            ->name('offers.toggle-status');
+
+        Route::get('users', [PartnerUserController::class, 'index'])
+            ->middleware('partner_web_permission:PARTNER_USERS_MANAGE')
+            ->name('users.index');
+        Route::post('users', [PartnerUserController::class, 'store'])
+            ->middleware('partner_web_permission:PARTNER_USERS_CREATE')
+            ->name('users.store');
+        Route::get('users/{user}/edit', [PartnerUserController::class, 'edit'])
+            ->middleware('partner_web_permission:PARTNER_USERS_UPDATE')
+            ->name('users.edit');
+        Route::put('users/{user}', [PartnerUserController::class, 'update'])
+            ->middleware('partner_web_permission:PARTNER_USERS_UPDATE')
+            ->name('users.update');
+        Route::patch('users/{user}/toggle-status', [PartnerUserController::class, 'toggleStatus'])
+            ->middleware('partner_web_permission:PARTNER_USERS_TOGGLE_STATUS')
+            ->name('users.toggle-status');
     });
 });
 

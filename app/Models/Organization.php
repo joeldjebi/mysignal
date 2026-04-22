@@ -40,6 +40,16 @@ class Organization extends Model
         return $this->hasMany(User::class);
     }
 
+    public function partnerDiscountOffers(): HasMany
+    {
+        return $this->hasMany(PartnerDiscountOffer::class);
+    }
+
+    public function partnerDiscountTransactions(): HasMany
+    {
+        return $this->hasMany(PartnerDiscountTransaction::class);
+    }
+
     public function featureOverrides(): BelongsToMany
     {
         return $this->belongsToMany(Feature::class)

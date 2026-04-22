@@ -1,0 +1,246 @@
+{
+  "info": {
+    "_postman_id": "7df00dd4-58ae-4e10-a4ec-c18c113ed6f2",
+    "name": "MYSIGNAL Partner Mobile API",
+    "description": "Collection Postman pour les APIs mobile partenaire. Elle couvre l authentification `phone + password`, le scan des cartes de reduction, l historique personnel, les stats, la mise a jour du profil et les parcours mot de passe.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://127.0.0.1:8000/api" },
+    { "key": "accessToken", "value": "" },
+    { "key": "partnerPhone", "value": "+225 0758754662" },
+    { "key": "partnerPassword", "value": "12345678" },
+    { "key": "partnerEmail", "value": "agent.mobile.demo@mysignal.local" },
+    { "key": "verificationToken", "value": "" },
+    { "key": "otpCode", "value": "2604" },
+    { "key": "cardUuid", "value": "" },
+    { "key": "offerId", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "01 - Auth partenaire",
+      "description": "Connexion de l utilisateur partenaire. Le login accepte `phone + password` et normalise le numero automatiquement.",
+      "item": [
+        {
+          "name": "Login partenaire",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "if (json?.data?.access_token) pm.environment.set('accessToken', json.data.access_token);",
+                  "if (json?.data?.user?.phone) pm.environment.set('partnerPhone', json.data.user.phone);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{partnerPhone}}\",\n  \"password\": \"{{partnerPassword}}\"\n}"
+            },
+            "url": "{{baseUrl}}/v1/partner/auth/login",
+            "description": "Retourne un JWT partenaire et stocke `accessToken` dans l environnement."
+          }
+        },
+        {
+          "name": "Me partenaire",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/v1/partner/me",
+            "description": "Retourne le profil du user partenaire authentifie."
+          }
+        },
+        {
+          "name": "Logout partenaire",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/v1/partner/auth/logout",
+            "description": "Invalide la session JWT partenaire courante."
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Mobile reductions",
+      "description": "Endpoints utilises par l agent partenaire pour scanner, appliquer et suivre ses reductions.",
+      "item": [
+        {
+          "name": "Verifier une carte de reduction",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"card_uuid\": \"{{cardUuid}}\",\n  \"offer_id\": {{offerId}}\n}"
+            },
+            "url": "{{baseUrl}}/v1/partner/discount-cards/verify",
+            "description": "Verifie une carte de reduction avant application."
+          }
+        },
+        {
+          "name": "Appliquer une reduction",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"card_uuid\": \"{{cardUuid}}\",\n  \"offer_id\": {{offerId}},\n  \"original_amount\": 15000,\n  \"discount_amount\": 1000,\n  \"final_amount\": 14000,\n  \"metadata\": {\n    \"source\": \"mobile-app\",\n    \"note\": \"Reduction appliquee au comptoir\"\n  }\n}"
+            },
+            "url": "{{baseUrl}}/v1/partner/discount-transactions",
+            "description": "Applique une reduction et enregistre le scan."
+          }
+        },
+        {
+          "name": "Historique mobile",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/v1/partner/mobile/history",
+            "description": "Retourne les 20 derniers scans du user partenaire connecte."
+          }
+        },
+        {
+          "name": "Stats mobile",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/v1/partner/mobile/stats",
+            "description": "Retourne les stats personnelles de scan du user partenaire connecte."
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Profil et mot de passe",
+      "item": [
+        {
+          "name": "Mettre a jour le profil",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Agent Mobile Demo\",\n  \"email\": \"{{partnerEmail}}\",\n  \"phone\": \"{{partnerPhone}}\"\n}"
+            },
+            "url": "{{baseUrl}}/v1/partner/profile"
+          }
+        },
+        {
+          "name": "Mettre a jour le mot de passe",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"current_password\": \"{{partnerPassword}}\",\n  \"password\": \"12345678\",\n  \"password_confirmation\": \"12345678\"\n}"
+            },
+            "url": "{{baseUrl}}/v1/partner/profile/password"
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Mot de passe oublie",
+      "item": [
+        {
+          "name": "Demander OTP reset",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{partnerPhone}}\"\n}"
+            },
+            "url": "{{baseUrl}}/v1/partner/auth/forgot-password/request-otp"
+          }
+        },
+        {
+          "name": "Verifier OTP reset",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json?.data?.verification_token) pm.environment.set('verificationToken', json.data.verification_token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{partnerPhone}}\",\n  \"code\": \"{{otpCode}}\"\n}"
+            },
+            "url": "{{baseUrl}}/v1/partner/auth/forgot-password/verify-otp"
+          }
+        },
+        {
+          "name": "Reinitialiser le mot de passe",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{partnerPhone}}\",\n  \"verification_token\": \"{{verificationToken}}\",\n  \"password\": \"12345678\",\n  \"password_confirmation\": \"12345678\"\n}"
+            },
+            "url": "{{baseUrl}}/v1/partner/auth/forgot-password/reset-password"
+          }
+        }
+      ]
+    }
+  ]
+}

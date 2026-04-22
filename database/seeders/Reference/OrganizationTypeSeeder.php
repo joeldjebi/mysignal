@@ -50,6 +50,11 @@ class OrganizationTypeSeeder extends Seeder
                 'name' => 'Entreprise GO',
                 'description' => 'Type historique conserve pour compatibilite avec les premiers tests du systeme.',
             ],
+            [
+                'code' => 'PARTNER_ESTABLISHMENT',
+                'name' => 'Etablissement partenaire',
+                'description' => 'Boutiques, supermarches, pharmacies et enseignes partenaires habilites a verifier les cartes et appliquer des reductions.',
+            ],
         ];
 
         foreach ($organizationTypes as $organizationType) {

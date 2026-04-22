@@ -109,6 +109,8 @@ class InternalAccessController extends Controller
             'SA_SYSTEM_USERS_MANAGE' => 'super-admin.system-users.index',
             'SA_REPARATION_CASES_MANAGE' => 'super-admin.reparation-cases.index',
             'SA_PAYMENTS_VIEW' => 'super-admin.payments.index',
+            'SA_DISCOUNT_CARDS_VIEW' => 'super-admin.discount-cards.index',
+            'SA_DISCOUNT_TRANSACTIONS_VIEW' => 'super-admin.discount-transactions.index',
             'SA_ACTIVITY_LOGS_VIEW_SELF' => 'super-admin.activity-logs.index',
             'SA_ACTIVITY_LOGS_VIEW_INSTITUTION' => 'super-admin.activity-logs.index',
             'SA_ACTIVITY_LOGS_VIEW_PUBLIC' => 'super-admin.activity-logs.index',

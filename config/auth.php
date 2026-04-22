@@ -43,6 +43,10 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+        'partner_api' => [
+            'driver' => 'jwt',
+            'provider' => 'users',
+        ],
         'public_api' => [
             'driver' => 'jwt',
             'provider' => 'public_users',

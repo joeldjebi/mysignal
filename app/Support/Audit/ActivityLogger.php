@@ -44,6 +44,12 @@ class ActivityLogger
             return $publicUser;
         }
 
+        $partnerUser = auth('partner_api')->user();
+
+        if ($partnerUser instanceof User) {
+            return $partnerUser;
+        }
+
         $user = $request?->user();
 
         return $user instanceof User ? $user : null;
@@ -56,6 +62,10 @@ class ActivityLogger
         }
 
         if ($actor instanceof User) {
+            if ($actor->organization?->organizationType?->code === 'PARTNER_ESTABLISHMENT') {
+                return 'partner';
+            }
+
             if ($actor->is_super_admin) {
                 return 'super_admin';
             }
@@ -77,6 +87,10 @@ class ActivityLogger
 
         if ($request?->is('backoffice') || $request?->is('backoffice/*')) {
             return 'backoffice';
+        }
+
+        if ($request?->is('api/v1/partner') || $request?->is('api/v1/partner/*')) {
+            return 'partner';
         }
 
         return 'public';

@@ -364,6 +364,18 @@
                         <span><span class="d-block fw-semibold">Paiements</span><span class="small text-white-50">Historique des transactions</span></span>
                     </a>
                 @endif
+                @if ($authUser?->hasPermissionCode('SA_DISCOUNT_CARDS_VIEW'))
+                    <a href="{{ route('super-admin.discount-cards.index') }}" class="nav-pill {{ request()->routeIs('super-admin.discount-cards.*') ? 'active' : '' }}">
+                        <span class="nav-icon">CR</span>
+                        <span><span class="d-block fw-semibold">Cartes reduction</span><span class="small text-white-50">Cartes UP generees</span></span>
+                    </a>
+                @endif
+                @if ($authUser?->hasPermissionCode('SA_DISCOUNT_TRANSACTIONS_VIEW'))
+                    <a href="{{ route('super-admin.discount-transactions.index') }}" class="nav-pill {{ request()->routeIs('super-admin.discount-transactions.*') ? 'active' : '' }}">
+                        <span class="nav-icon">RD</span>
+                        <span><span class="d-block fw-semibold">Reductions appliquees</span><span class="small text-white-50">Historique partenaire</span></span>
+                    </a>
+                @endif
                 @if ($authUser?->is_super_admin || $authUser?->hasPermissionCode('SA_ACTIVITY_LOGS_VIEW_SELF') || $authUser?->hasPermissionCode('SA_ACTIVITY_LOGS_VIEW_INSTITUTION') || $authUser?->hasPermissionCode('SA_ACTIVITY_LOGS_VIEW_PUBLIC') || $authUser?->hasPermissionCode('SA_ACTIVITY_LOGS_VIEW_INTERNAL'))
                     <a href="{{ route('super-admin.activity-logs.index') }}" class="nav-pill {{ request()->routeIs('super-admin.activity-logs.*') ? 'active' : '' }}">
                         <span class="nav-icon">LG</span>

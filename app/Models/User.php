@@ -13,10 +13,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
 #[Fillable(['user_type_id', 'organization_id', 'name', 'email', 'phone', 'password', 'is_super_admin', 'status', 'created_by'])]
 #[Hidden(['password', 'remember_token'])]
-class User extends Authenticatable
+class User extends Authenticatable implements JWTSubject
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
@@ -68,6 +69,20 @@ class User extends Authenticatable
         return $this->hasMany(self::class, 'created_by');
     }
 
+    public function getJWTIdentifier(): mixed
+    {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims(): array
+    {
+        return [
+            'guard' => 'partner_api',
+            'organization_id' => $this->organization_id,
+            'is_super_admin' => $this->is_super_admin,
+        ];
+    }
+
     public function openedReparationCases(): HasMany
     {
         return $this->hasMany(ReparationCase::class, 'opened_by_user_id');
@@ -103,6 +118,21 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(self::class, 'activity_log_user_accesses', 'target_user_id', 'viewer_user_id')
             ->withTimestamps();
+    }
+
+    public function partnerDiscountOffers(): HasMany
+    {
+        return $this->hasMany(PartnerDiscountOffer::class, 'created_by');
+    }
+
+    public function updatedPartnerDiscountOffers(): HasMany
+    {
+        return $this->hasMany(PartnerDiscountOffer::class, 'updated_by');
+    }
+
+    public function partnerDiscountTransactions(): HasMany
+    {
+        return $this->hasMany(PartnerDiscountTransaction::class, 'partner_user_id');
     }
 
     public function permissionCodes(): Collection

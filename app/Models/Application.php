@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\WasabiService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -58,5 +59,32 @@ class Application extends Model
     public function contentBlocks(): HasMany
     {
         return $this->hasMany(ApplicationContentBlock::class);
+    }
+
+    public function logoUrl(): ?string
+    {
+        return $this->resolveAssetUrl($this->logo_path);
+    }
+
+    public function heroImageUrl(): ?string
+    {
+        return $this->resolveAssetUrl($this->hero_image_path);
+    }
+
+    private function resolveAssetUrl(?string $path): ?string
+    {
+        if (! filled($path)) {
+            return null;
+        }
+
+        if (filter_var($path, FILTER_VALIDATE_URL)) {
+            return $path;
+        }
+
+        if (str_starts_with((string) $path, 'applications/')) {
+            return app(WasabiService::class)->temporaryUrl($path);
+        }
+
+        return asset((string) $path);
     }
 }

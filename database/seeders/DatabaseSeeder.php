@@ -33,9 +33,9 @@ class DatabaseSeeder extends Seeder
             OrganizationTypeSeeder::class,
             PricingRuleSeeder::class,
             PublicUserTypeSeeder::class,
+            SuperAdminPermissionSeeder::class,
             RoleSeeder::class,
             SlaPolicySeeder::class,
-            SuperAdminPermissionSeeder::class,
             SuperAdminRoleUsersSeeder::class,
         ]);
     }

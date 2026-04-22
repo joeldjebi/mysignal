@@ -24,6 +24,7 @@ class SuperAdminRoleUsersSeeder extends Seeder
         Role::query()
             ->whereNull('organization_id')
             ->where('status', 'active')
+            ->whereNotIn('code', ['PARTNER_ADMIN', 'PARTNER_MANAGER', 'PARTNER_AGENT'])
             ->orderBy('name')
             ->get()
             ->each(function (Role $role) use ($portalAccessPermission, $superAdmin): void {

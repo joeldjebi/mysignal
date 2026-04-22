@@ -63,7 +63,7 @@
             <section class="panel-card h-100">
                 <div class="small text-secondary fw-semibold mb-2">Application</div>
                 <div class="d-flex align-items-center gap-3 mb-3">
-                    <img src="{{ asset($application->logo_path ?: 'image/logo/logo-my-signal.png') }}" alt="Logo {{ $application->name }}" style="width:52px;height:52px;border-radius:16px;object-fit:contain;background:#fff;padding:.35rem;box-shadow:0 12px 24px rgba(16,42,67,.08);">
+                    <img src="{{ $application->logoUrl() ?: asset('image/logo/logo-my-signal.png') }}" alt="Logo {{ $application->name }}" style="width:52px;height:52px;border-radius:16px;object-fit:contain;background:#fff;padding:.35rem;box-shadow:0 12px 24px rgba(16,42,67,.08);">
                     <div>
                         <div class="h5 fw-bold mb-1">{{ $application->name }}</div>
                         <div class="text-secondary small">{{ $application->code }} · {{ $application->slug }}</div>
@@ -101,7 +101,7 @@
         <div class="col-lg-8">
             <section class="panel-card">
                 <div class="fw-bold mb-3">Edition de l'application</div>
-                <form method="POST" action="{{ route('super-admin.applications.update', $application) }}" class="row g-3">
+                <form method="POST" action="{{ route('super-admin.applications.update', $application) }}" class="row g-3" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
                     <div class="col-md-4">
@@ -133,12 +133,24 @@
                         <textarea name="long_description" class="form-control" rows="4">{{ old('long_description', $application->long_description) }}</textarea>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Chemin logo</label>
-                        <input type="text" name="logo_path" value="{{ old('logo_path', $application->logo_path) }}" class="form-control">
+                        <label class="form-label">Logo</label>
+                        <input type="file" name="logo_file" class="form-control" accept=".jpg,.jpeg,.png,.webp">
+                        <div class="small text-secondary mt-2">Laisser vide pour conserver le logo actuel.</div>
+                        @if ($application->logoUrl())
+                            <div class="mt-3">
+                                <img src="{{ $application->logoUrl() }}" alt="Logo actuel" style="width:72px;height:72px;border-radius:18px;object-fit:contain;background:#fff;padding:.35rem;box-shadow:0 12px 24px rgba(16,42,67,.08);">
+                            </div>
+                        @endif
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Chemin image hero</label>
-                        <input type="text" name="hero_image_path" value="{{ old('hero_image_path', $application->hero_image_path) }}" class="form-control">
+                        <label class="form-label">Image hero</label>
+                        <input type="file" name="hero_image_file" class="form-control" accept=".jpg,.jpeg,.png,.webp">
+                        <div class="small text-secondary mt-2">Laisser vide pour conserver l image hero actuelle.</div>
+                        @if ($application->heroImageUrl())
+                            <div class="mt-3">
+                                <img src="{{ $application->heroImageUrl() }}" alt="Hero actuel" style="max-width:100%;height:72px;border-radius:18px;object-fit:cover;box-shadow:0 12px 24px rgba(16,42,67,.08);">
+                            </div>
+                        @endif
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Couleur primaire</label>

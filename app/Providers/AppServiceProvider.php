@@ -47,6 +47,17 @@ class AppServiceProvider extends ServiceProvider
                 Limit::perMinute(5)->by((string) $request->input('phone')),
             ];
         });
+
+        RateLimiter::for('partner-auth-otp', function (Request $request): array {
+            return [
+                Limit::perMinute(3)->by($request->ip()),
+                Limit::perMinute(3)->by((string) $request->input('phone')),
+            ];
+        });
+
+        RateLimiter::for('partner-auth-password-reset', function (Request $request): Limit {
+            return Limit::perMinute(5)->by($request->ip());
+        });
     }
 
     private function dialCodeOptions(): array

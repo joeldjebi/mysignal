@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web\SuperAdmin;
 use App\Http\Controllers\Controller;
 use App\Models\Application;
 use App\Models\Feature;
+use App\Services\WasabiService;
 use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -39,9 +40,9 @@ class ApplicationController extends Controller
         ]);
     }
 
-    public function store(Request $request, ActivityLogger $activityLogger): RedirectResponse
+    public function store(Request $request, ActivityLogger $activityLogger, WasabiService $wasabiService): RedirectResponse
     {
-        [$attributes, $featureIds] = $this->validatedPayload($request);
+        [$attributes, $featureIds] = $this->validatedPayload($request, null, $wasabiService);
         $application = Application::query()->create($attributes);
         $application->features()->sync($featureIds);
 
@@ -73,9 +74,9 @@ class ApplicationController extends Controller
         ]);
     }
 
-    public function update(Request $request, Application $application, ActivityLogger $activityLogger): RedirectResponse
+    public function update(Request $request, Application $application, ActivityLogger $activityLogger, WasabiService $wasabiService): RedirectResponse
     {
-        [$attributes, $featureIds] = $this->validatedPayload($request, $application);
+        [$attributes, $featureIds] = $this->validatedPayload($request, $application, $wasabiService);
         $before = $application->load('features');
         $application->update($attributes);
         $application->features()->sync($featureIds);
@@ -143,7 +144,7 @@ class ApplicationController extends Controller
         return back()->with('success', 'Le statut de l application a ete mis a jour.');
     }
 
-    private function validatedPayload(Request $request, ?Application $application = null): array
+    private function validatedPayload(Request $request, ?Application $application = null, ?WasabiService $wasabiService = null): array
     {
         $attributes = $request->validate([
             'code' => ['required', 'string', 'max:40', 'unique:applications,code,'.($application?->id ?? 'NULL')],
@@ -152,8 +153,8 @@ class ApplicationController extends Controller
             'tagline' => ['nullable', 'string', 'max:255'],
             'short_description' => ['nullable', 'string', 'max:255'],
             'long_description' => ['nullable', 'string'],
-            'logo_path' => ['nullable', 'string', 'max:255'],
-            'hero_image_path' => ['nullable', 'string', 'max:255'],
+            'logo_file' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'hero_image_file' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:6144'],
             'primary_color' => ['nullable', 'string', 'max:20'],
             'secondary_color' => ['nullable', 'string', 'max:20'],
             'accent_color' => ['nullable', 'string', 'max:20'],
@@ -162,6 +163,33 @@ class ApplicationController extends Controller
             'feature_ids.*' => ['integer', 'exists:features,id'],
         ]);
 
+        $logoPath = $application?->logo_path;
+        $heroImagePath = $application?->hero_image_path;
+
+        if ($request->hasFile('logo_file') && $wasabiService !== null) {
+            if (filled($application?->logo_path) && str_starts_with((string) $application->logo_path, 'applications/')) {
+                $wasabiService->deleteFile($application->logo_path);
+            }
+
+            $logoPath = $wasabiService->uploadFile(
+                $request->file('logo_file'),
+                config('wasabi.application_logo_directory', 'applications/logos'),
+                'application-logo'
+            );
+        }
+
+        if ($request->hasFile('hero_image_file') && $wasabiService !== null) {
+            if (filled($application?->hero_image_path) && str_starts_with((string) $application->hero_image_path, 'applications/')) {
+                $wasabiService->deleteFile($application->hero_image_path);
+            }
+
+            $heroImagePath = $wasabiService->uploadFile(
+                $request->file('hero_image_file'),
+                config('wasabi.application_hero_directory', 'applications/heroes'),
+                'application-hero'
+            );
+        }
+
         return [[
             'code' => strtoupper((string) $attributes['code']),
             'name' => $attributes['name'],
@@ -169,8 +197,8 @@ class ApplicationController extends Controller
             'tagline' => $attributes['tagline'] ?? null,
             'short_description' => $attributes['short_description'] ?? null,
             'long_description' => $attributes['long_description'] ?? null,
-            'logo_path' => $attributes['logo_path'] ?? null,
-            'hero_image_path' => $attributes['hero_image_path'] ?? null,
+            'logo_path' => $logoPath,
+            'hero_image_path' => $heroImagePath,
             'primary_color' => $attributes['primary_color'] ?? null,
             'secondary_color' => $attributes['secondary_color'] ?? null,
             'accent_color' => $attributes['accent_color'] ?? null,
