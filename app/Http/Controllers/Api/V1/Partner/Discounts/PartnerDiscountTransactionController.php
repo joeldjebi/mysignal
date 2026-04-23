@@ -101,7 +101,50 @@ class PartnerDiscountTransactionController extends Controller
             $query->whereDate('applied_at', '<=', $request->date('date_to')->toDateString());
         }
 
-        $transactions = (clone $query)->get(['discount_amount', 'final_amount', 'original_amount', 'applied_at']);
+        $transactions = (clone $query)->get([
+            'discount_amount',
+            'final_amount',
+            'original_amount',
+            'discount_type_snapshot',
+            'discount_value_snapshot',
+            'applied_at',
+        ]);
+
+        $resolveDiscountAmount = static function (PartnerDiscountTransaction $transaction): float {
+            if ($transaction->discount_amount !== null) {
+                return (float) $transaction->discount_amount;
+            }
+
+            $type = strtolower((string) $transaction->discount_type_snapshot);
+            $value = $transaction->discount_value_snapshot !== null ? (float) $transaction->discount_value_snapshot : null;
+            $originalAmount = $transaction->original_amount !== null ? (float) $transaction->original_amount : null;
+
+            if (in_array($type, ['fixed', 'fixed_amount', 'amount'], true) && $value !== null) {
+                return $originalAmount !== null ? min($value, $originalAmount) : $value;
+            }
+
+            if (in_array($type, ['percentage', 'percent'], true) && $value !== null && $originalAmount !== null) {
+                return $originalAmount * $value / 100;
+            }
+
+            if ($originalAmount !== null && $transaction->final_amount !== null) {
+                return max(0, $originalAmount - (float) $transaction->final_amount);
+            }
+
+            return 0;
+        };
+
+        $resolveFinalAmount = static function (PartnerDiscountTransaction $transaction) use ($resolveDiscountAmount): float {
+            if ($transaction->final_amount !== null) {
+                return (float) $transaction->final_amount;
+            }
+
+            if ($transaction->original_amount === null) {
+                return 0;
+            }
+
+            return max(0, (float) $transaction->original_amount - $resolveDiscountAmount($transaction));
+        };
 
         $todayCount = (clone $query)
             ->whereDate('applied_at', now()->toDateString())
@@ -111,9 +154,9 @@ class PartnerDiscountTransactionController extends Controller
             'stats' => [
                 'total_scans' => $transactions->count(),
                 'today_scans' => $todayCount,
-                'total_discount_amount' => (float) $transactions->sum(fn ($transaction) => (float) ($transaction->discount_amount ?? 0)),
+                'total_discount_amount' => (float) $transactions->sum($resolveDiscountAmount),
                 'total_original_amount' => (float) $transactions->sum(fn ($transaction) => (float) ($transaction->original_amount ?? 0)),
-                'total_final_amount' => (float) $transactions->sum(fn ($transaction) => (float) ($transaction->final_amount ?? 0)),
+                'total_final_amount' => (float) $transactions->sum($resolveFinalAmount),
                 'last_scan_at' => $transactions->sortByDesc('applied_at')->first()?->applied_at?->toIso8601String(),
             ],
         ]);

@@ -22,11 +22,13 @@ use App\Http\Controllers\Api\V1\Public\Rex\PublicRexFeedbackController;
 use App\Http\Controllers\Api\V1\Public\Signals\PublicSignalTypeController;
 use App\Http\Controllers\Api\V1\Public\Subscriptions\PublicUpSubscriptionController;
 use App\Http\Controllers\Api\V1\Public\Subscriptions\PublicUpSubscriptionPaymentController;
+use App\Http\Controllers\Api\V1\Public\UserTypes\PublicUserTypeController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1/public')->group(function (): void {
     Route::get('locations', [PublicLocationController::class, 'index']);
     Route::get('signal-types', [PublicSignalTypeController::class, 'index']);
+    Route::get('user-types', [PublicUserTypeController::class, 'index']);
 
     Route::prefix('auth')->group(function (): void {
         Route::post('request-otp', [PublicAuthController::class, 'requestOtp'])

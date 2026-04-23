@@ -22,6 +22,7 @@
     { "key": "phone", "value": "0700000000" },
     { "key": "password", "value": "12345678" },
     { "key": "publicUserTypeId", "value": "1" },
+    { "key": "publicUserTypeCode", "value": "UP" },
     { "key": "meterId", "value": "" },
     { "key": "reportId", "value": "" },
     { "key": "paymentId", "value": "" },
@@ -52,6 +53,32 @@
             "header": [{ "key": "Accept", "value": "application/json" }],
             "url": "{{baseUrl}}/v1/public/signal-types",
             "description": "Retourne les types de signaux actifs avec leurs champs dynamiques data_fields."
+          }
+        },
+        {
+          "name": "User Types",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "const userTypes = json?.data?.user_types || [];",
+                  "pm.test('User types returned', function () { pm.expect(userTypes.length).to.be.greaterThan(0); });",
+                  "const selected = userTypes.find((type) => type.code === (pm.environment.get('publicUserTypeCode') || 'UP')) || userTypes[0];",
+                  "if (selected?.id) pm.environment.set('publicUserTypeId', selected.id);",
+                  "if (selected?.code) pm.environment.set('publicUserTypeCode', selected.code);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/user-types",
+            "description": "Retourne les types de comptes UP actifs pour la creation de compte mobile, avec la regle tarifaire associee."
           }
         }
       ]
