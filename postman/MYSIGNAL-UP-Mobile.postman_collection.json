@@ -23,6 +23,8 @@
     { "key": "password", "value": "12345678" },
     { "key": "publicUserTypeId", "value": "1" },
     { "key": "publicUserTypeCode", "value": "UP" },
+    { "key": "communeId", "value": "1" },
+    { "key": "communeName", "value": "Cocody" },
     { "key": "meterId", "value": "" },
     { "key": "reportId", "value": "" },
     { "key": "paymentId", "value": "" },
@@ -44,6 +46,32 @@
             "header": [{ "key": "Accept", "value": "application/json" }],
             "url": "{{baseUrl}}/v1/public/locations",
             "description": "Retourne l arbre geographique complet."
+          }
+        },
+        {
+          "name": "Communes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "const communes = json?.data?.communes || [];",
+                  "pm.test('Communes returned', function () { pm.expect(communes.length).to.be.greaterThan(0); });",
+                  "const selected = communes.find((commune) => commune.name === (pm.environment.get('communeName') || 'Cocody')) || communes[0];",
+                  "if (selected?.id) pm.environment.set('communeId', selected.id);",
+                  "if (selected?.name) pm.environment.set('communeName', selected.name);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/communes",
+            "description": "Retourne la liste plate des communes actives pour les formulaires mobiles de creation UP."
           }
         },
         {
@@ -168,7 +196,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"public_user_type_id\": {{publicUserTypeId}},\n  \"first_name\": \"Jean\",\n  \"last_name\": \"Doe\",\n  \"phone\": \"{{phone}}\",\n  \"commune\": \"Cocody\",\n  \"password\": \"{{password}}\",\n  \"password_confirmation\": \"{{password}}\",\n  \"verification_token\": \"{{verificationToken}}\"\n}"
+              "raw": "{\n  \"public_user_type_id\": {{publicUserTypeId}},\n  \"first_name\": \"Jean\",\n  \"last_name\": \"Doe\",\n  \"phone\": \"{{phone}}\",\n  \"commune\": \"{{communeName}}\",\n  \"password\": \"{{password}}\",\n  \"password_confirmation\": \"{{password}}\",\n  \"verification_token\": \"{{verificationToken}}\"\n}"
             },
             "url": "{{baseUrl}}/v1/public/auth/register",
             "description": "Cree un compte UP et retourne directement un access token."
@@ -274,7 +302,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"application_id\": 1,\n  \"organization_id\": 1,\n  \"meter_number\": \"AB12345678\",\n  \"label\": \"Compteur principal\",\n  \"commune\": \"Cocody\",\n  \"address\": \"Rue 12\",\n  \"is_primary\": true\n}"
+              "raw": "{\n  \"application_id\": 1,\n  \"organization_id\": 1,\n  \"meter_number\": \"AB12345678\",\n  \"label\": \"Compteur principal\",\n  \"commune\": \"{{communeName}}\",\n  \"address\": \"Rue 12\",\n  \"is_primary\": true\n}"
             },
             "url": "{{baseUrl}}/v1/public/meters"
           }
@@ -329,7 +357,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Famille Doe\",\n  \"commune\": \"Cocody\",\n  \"address\": \"Rue 12\"\n}"
+              "raw": "{\n  \"name\": \"Famille Doe\",\n  \"commune\": \"{{communeName}}\",\n  \"address\": \"Rue 12\"\n}"
             },
             "url": "{{baseUrl}}/v1/public/households"
           }
@@ -430,7 +458,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"meter_id\": {{meterId}},\n  \"application_id\": 1,\n  \"organization_id\": 1,\n  \"country_id\": 1,\n  \"city_id\": 1,\n  \"commune_id\": 1,\n  \"signal_code\": \"NETWORK_OUTAGE\",\n  \"description\": \"Coupure depuis 2 heures\",\n  \"address\": \"Rue 12\",\n  \"occurred_at\": \"2026-04-10T12:00:00Z\",\n  \"latitude\": 5.348,\n  \"longitude\": -4.001,\n  \"location_source\": \"gps\",\n  \"signal_payload\": {\n    \"service_category\": \"Internet\"\n  }\n}"
+              "raw": "{\n  \"meter_id\": {{meterId}},\n  \"application_id\": 1,\n  \"organization_id\": 1,\n  \"country_id\": 1,\n  \"city_id\": 1,\n  \"commune_id\": {{communeId}},\n  \"signal_code\": \"NETWORK_OUTAGE\",\n  \"description\": \"Coupure depuis 2 heures\",\n  \"address\": \"Rue 12\",\n  \"occurred_at\": \"2026-04-10T12:00:00Z\",\n  \"latitude\": 5.348,\n  \"longitude\": -4.001,\n  \"location_source\": \"gps\",\n  \"signal_payload\": {\n    \"service_category\": \"Internet\"\n  }\n}"
             },
             "url": "{{baseUrl}}/v1/public/reports"
           }

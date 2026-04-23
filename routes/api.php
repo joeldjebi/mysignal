@@ -27,6 +27,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1/public')->group(function (): void {
     Route::get('locations', [PublicLocationController::class, 'index']);
+    Route::get('communes', [PublicLocationController::class, 'communes']);
     Route::get('signal-types', [PublicSignalTypeController::class, 'index']);
     Route::get('user-types', [PublicUserTypeController::class, 'index']);
 
