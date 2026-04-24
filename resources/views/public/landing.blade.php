@@ -15,7 +15,7 @@
     $blockTitle = fn (string $key, string $default) => optional($landingBlock($key))->title ?: $default;
     $blockSubtitle = fn (string $key, ?string $default = null) => optional($landingBlock($key))->subtitle ?: $default;
     $blockBody = fn (string $key, string $default = '') => optional($landingBlock($key))->body ?: $default;
-    $blockMeta = fn (string $key, string $field, string $default = '') => $landingBlock($key)?->meta[$field] ?? $default;
+    $blockMeta = fn (string $key, string $field, $default = '') => $landingBlock($key)?->meta[$field] ?? $default;
     $isVisible = fn (string $key) => ! $landingBlocks->has($key) || $landingBlocks->get($key)->status === 'active';
     $lines = function (?string $value): array {
       return collect(preg_split('/\r\n|\r|\n/', (string) $value))
@@ -914,8 +914,8 @@
       backdrop-filter: blur(10px);
     }
     .partner-mark {
-      width: 42px;
-      height: 42px;
+      width: 54px;
+      height: 54px;
       border-radius: 8px;
       background: #fff;
       color: var(--primary);
@@ -924,6 +924,14 @@
       justify-content: center;
       font-weight: 900;
       font-size: .9rem;
+      overflow: hidden;
+      padding: 6px;
+    }
+    .partner-mark img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
     }
     .partner-name {
       color: #fff;
@@ -1622,17 +1630,39 @@
       </div>
     </div>
     @php
-      $partnerItems = $lines($blockMeta('partners', 'items', "ACEPEN | AC\nMON NRJ | NRJ\nMON EAU | EAU\nCITOYENS | CT\nSERVICES CI | SCI\nCOLLECTIVITES | COL\nRESEAUX | RX\nASSISTANCE | AST\nMEDIATION | MED\nOBSERVATOIRE | OBS"));
-      $partnerLoopItems = array_merge($partnerItems, $partnerItems);
+      $partnerCards = $blockMeta('partners', 'cards', []);
+      if (! is_array($partnerCards) || $partnerCards === []) {
+        $partnerCards = collect($lines($blockMeta('partners', 'items', "ACEPEN | AC\nMON NRJ | NRJ\nMON EAU | EAU\nCITOYENS | CT\nSERVICES CI | SCI\nCOLLECTIVITES | COL\nRESEAUX | RX\nASSISTANCE | AST\nMEDIATION | MED\nOBSERVATOIRE | OBS")))
+          ->map(function (string $partnerLine) use ($parts): array {
+            [$partnerName, $partnerMark] = $parts($partnerLine, 2);
+
+            return [
+              'title' => $partnerName,
+              'icon' => $partnerMark,
+              'logo_url' => null,
+            ];
+          })
+          ->all();
+      }
+
+      $partnerLoopItems = array_merge($partnerCards, $partnerCards);
     @endphp
     <div class="partners-carousel">
       <div class="partners-track">
-        @foreach ($partnerLoopItems as $partnerLine)
+        @foreach ($partnerLoopItems as $partnerItem)
           @php
-            [$partnerName, $partnerMark] = $parts($partnerLine, 2);
+            $partnerName = trim((string) ($partnerItem['title'] ?? 'Partenaire'));
+            $partnerMark = trim((string) ($partnerItem['icon'] ?? ''));
+            $partnerLogo = trim((string) ($partnerItem['logo_url'] ?? $partnerItem['url'] ?? ''));
           @endphp
           <div class="partner-logo-card">
-            <div class="partner-mark">{{ $partnerMark ?: strtoupper(substr($partnerName, 0, 2)) }}</div>
+            <div class="partner-mark">
+              @if ($partnerLogo !== '')
+                <img src="{{ $partnerLogo }}" alt="Logo {{ $partnerName }}">
+              @else
+                {{ $partnerMark ?: strtoupper(substr($partnerName, 0, 2)) }}
+              @endif
+            </div>
             <div class="partner-name">{{ $partnerName }}</div>
           </div>
         @endforeach

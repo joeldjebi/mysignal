@@ -44,6 +44,7 @@ class PublicPortalController extends Controller
                 ->orderBy('sort_order')
                 ->get()
                 ->keyBy('block_key')
+                ->toBase()
                 ->merge($this->landingSections()),
         ]);
     }

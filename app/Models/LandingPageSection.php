@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\WasabiService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -65,7 +66,14 @@ class LandingPageSection extends Model
             'testimonials' => $meta + ['items' => $this->lineItems('items', ['body', 'title', 'subtitle', 'icon'])],
             'news' => $meta + ['items' => $this->lineItems('items', ['subtitle', 'title', 'body', 'icon', 'value'])],
             'clients' => $meta + ['items' => $this->lineItems('items', ['title', 'body', 'icon'])],
-            'partners' => $meta + ['items' => $this->lineItems('items', ['title', 'icon'])],
+            'partners' => $meta + [
+                'items' => $this->lineItems('items', ['title', 'icon']),
+                'cards' => $this->structuredItems('items')
+                    ->map(fn (array $item): array => $item + [
+                        'logo_url' => $this->resolveAssetUrl($item['url'] ?? null),
+                    ])
+                    ->all(),
+            ],
             'footer' => $meta + [
                 'column_1_links' => $this->lineItems('column_1_links', ['title', 'url']),
                 'column_2_links' => $this->lineItems('column_2_links', ['title', 'url']),
@@ -93,5 +101,36 @@ class LandingPageSection extends Model
             ->where('item_key', $group)
             ->where('is_active', true)
             ->values();
+    }
+
+    private function structuredItems(string $group): Collection
+    {
+        return $this->activeItems($group)
+            ->map(fn (LandingPageSectionItem $item): array => [
+                'title' => $item->title,
+                'subtitle' => $item->subtitle,
+                'body' => $item->body,
+                'icon' => $item->icon,
+                'url' => $item->url,
+                'value' => $item->value,
+            ])
+            ->values();
+    }
+
+    private function resolveAssetUrl(?string $path): ?string
+    {
+        if (! filled($path)) {
+            return null;
+        }
+
+        if (filter_var($path, FILTER_VALIDATE_URL)) {
+            return $path;
+        }
+
+        if (str_starts_with((string) $path, 'applications/') || str_starts_with((string) $path, 'landing/')) {
+            return app(WasabiService::class)->temporaryUrl($path);
+        }
+
+        return asset((string) $path);
     }
 }

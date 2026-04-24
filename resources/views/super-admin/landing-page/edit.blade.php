@@ -14,7 +14,7 @@
         $inputType = fn (string $field): string => in_array($field, ['url'], true) ? 'text' : 'text';
     @endphp
 
-    <form method="POST" action="{{ route('super-admin.landing-page.update') }}" class="row g-4">
+    <form method="POST" action="{{ route('super-admin.landing-page.update') }}" class="row g-4" enctype="multipart/form-data">
         @csrf
         @method('PUT')
 
@@ -99,6 +99,24 @@
                                                                         @endphp
                                                                         @if ($field === 'body')
                                                                             <textarea class="form-control" rows="2" name="items[{{ $key }}][{{ $groupKey }}][{{ $index }}][{{ $field }}]">{{ $value }}</textarea>
+                                                                        @elseif ($key === 'partners' && $groupKey === 'items' && $field === 'url')
+                                                                            @php
+                                                                                $previewUrl = $value;
+                                                                                if ($previewUrl && (str_starts_with($previewUrl, 'landing/') || str_starts_with($previewUrl, 'applications/'))) {
+                                                                                    $previewUrl = app(\App\Services\WasabiService::class)->temporaryUrl($previewUrl);
+                                                                                }
+                                                                            @endphp
+                                                                            <div class="d-grid gap-2">
+                                                                                <input type="hidden" name="items[{{ $key }}][{{ $groupKey }}][{{ $index }}][existing_url]" value="{{ $value }}">
+                                                                                @if ($value)
+                                                                                    <div class="d-flex align-items-center gap-2">
+                                                                                        <img src="{{ $previewUrl }}" alt="Logo partenaire" style="width:42px;height:42px;border-radius:12px;object-fit:contain;background:#fff;padding:.3rem;border:1px solid rgba(16,42,67,.08)">
+                                                                                        <span class="small text-secondary text-break">{{ $value }}</span>
+                                                                                    </div>
+                                                                                @endif
+                                                                                <input type="file" class="form-control" name="items[{{ $key }}][{{ $groupKey }}][{{ $index }}][url_file]" accept=".jpg,.jpeg,.png,.webp">
+                                                                                <div class="small text-secondary">Charge un logo image. Si aucun fichier n est choisi, le logo actuel est conserve.</div>
+                                                                            </div>
                                                                         @else
                                                                             <input type="{{ $inputType($field) }}" class="form-control" name="items[{{ $key }}][{{ $groupKey }}][{{ $index }}][{{ $field }}]" value="{{ $value }}">
                                                                         @endif

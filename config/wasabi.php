@@ -10,6 +10,7 @@ return [
     'avatar_directory' => env('WASABI_AVATAR_DIRECTORY', 'images/avatar'),
     'application_logo_directory' => env('WASABI_APPLICATION_LOGO_DIRECTORY', 'applications/logos'),
     'application_hero_directory' => env('WASABI_APPLICATION_HERO_DIRECTORY', 'applications/heroes'),
+    'landing_partner_logo_directory' => env('WASABI_LANDING_PARTNER_LOGO_DIRECTORY', 'landing/partners'),
     'report_signal_directory' => env('WASABI_REPORT_SIGNAL_DIRECTORY', 'reports/signals'),
     'report_damage_directory' => env('WASABI_REPORT_DAMAGE_DIRECTORY', 'reports/damages'),
 ];

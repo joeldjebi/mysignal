@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web\SuperAdmin;
 use App\Http\Controllers\Controller;
 use App\Models\ApplicationContentBlock;
 use App\Models\LandingPageSection;
+use App\Services\WasabiService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -31,7 +32,7 @@ class LandingPageController extends Controller
         ]);
     }
 
-    public function update(Request $request): RedirectResponse
+    public function update(Request $request, WasabiService $wasabiService): RedirectResponse
     {
         $attributes = $request->validate([
             'primary_color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
@@ -48,8 +49,10 @@ class LandingPageController extends Controller
             'items.*.*.*.title' => ['nullable', 'string', 'max:180'],
             'items.*.*.*.subtitle' => ['nullable', 'string', 'max:255'],
             'items.*.*.*.body' => ['nullable', 'string'],
-            'items.*.*.*.icon' => ['nullable', 'string', 'max:80'],
-            'items.*.*.*.url' => ['nullable', 'string', 'max:255'],
+            'items.*.*.*.icon' => ['nullable', 'string', 'max:2048'],
+            'items.*.*.*.url' => ['nullable', 'string', 'max:2048'],
+            'items.*.*.*.existing_url' => ['nullable', 'string', 'max:2048'],
+            'items.*.*.*.url_file' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             'items.*.*.*.value' => ['nullable', 'string', 'max:120'],
             'items.*.*.*.is_active' => ['nullable', 'boolean'],
         ]);
@@ -109,6 +112,23 @@ class LandingPageController extends Controller
                     $itemInput = collect($itemInput)
                         ->map(fn ($value) => is_string($value) ? trim($value) : $value)
                         ->all();
+
+                    if ($key === 'partners' && $groupKey === 'items') {
+                        $existingUrl = trim((string) ($itemInput['existing_url'] ?? ''));
+                        $itemInput['url'] = $existingUrl !== '' ? $existingUrl : ($itemInput['url'] ?? null);
+
+                        if ($request->hasFile("items.$key.$groupKey.$index.url_file")) {
+                            if ($existingUrl !== '' && str_starts_with($existingUrl, 'landing/')) {
+                                $wasabiService->deleteFile($existingUrl);
+                            }
+
+                            $itemInput['url'] = $wasabiService->uploadFile(
+                                $request->file("items.$key.$groupKey.$index.url_file"),
+                                config('wasabi.landing_partner_logo_directory', 'landing/partners'),
+                                'landing-partner-logo'
+                            );
+                        }
+                    }
 
                     if (! $this->hasUsefulItemValue($itemInput, $group['columns'])) {
                         continue;
@@ -499,18 +519,18 @@ class LandingPageController extends Controller
                 'item_groups' => [
                     'items' => [
                         'label' => 'Logos partenaires',
-                        'columns' => ['title' => 'Nom', 'icon' => 'Sigle'],
+                        'columns' => ['title' => 'Nom', 'url' => 'Logo', 'icon' => 'Sigle de secours'],
                         'items' => [
-                            ['title' => 'ACEPEN', 'icon' => 'AC', 'is_active' => true],
-                            ['title' => 'MON NRJ', 'icon' => 'NRJ', 'is_active' => true],
-                            ['title' => 'MON EAU', 'icon' => 'EAU', 'is_active' => true],
-                            ['title' => 'CITOYENS', 'icon' => 'CT', 'is_active' => true],
-                            ['title' => 'SERVICES CI', 'icon' => 'SCI', 'is_active' => true],
-                            ['title' => 'COLLECTIVITES', 'icon' => 'COL', 'is_active' => true],
-                            ['title' => 'RESEAUX', 'icon' => 'RX', 'is_active' => true],
-                            ['title' => 'ASSISTANCE', 'icon' => 'AST', 'is_active' => true],
-                            ['title' => 'MEDIATION', 'icon' => 'MED', 'is_active' => true],
-                            ['title' => 'OBSERVATOIRE', 'icon' => 'OBS', 'is_active' => true],
+                            ['title' => 'ACEPEN', 'url' => null, 'icon' => 'AC', 'is_active' => true],
+                            ['title' => 'MON NRJ', 'url' => null, 'icon' => 'NRJ', 'is_active' => true],
+                            ['title' => 'MON EAU', 'url' => null, 'icon' => 'EAU', 'is_active' => true],
+                            ['title' => 'CITOYENS', 'url' => null, 'icon' => 'CT', 'is_active' => true],
+                            ['title' => 'SERVICES CI', 'url' => null, 'icon' => 'SCI', 'is_active' => true],
+                            ['title' => 'COLLECTIVITES', 'url' => null, 'icon' => 'COL', 'is_active' => true],
+                            ['title' => 'RESEAUX', 'url' => null, 'icon' => 'RX', 'is_active' => true],
+                            ['title' => 'ASSISTANCE', 'url' => null, 'icon' => 'AST', 'is_active' => true],
+                            ['title' => 'MEDIATION', 'url' => null, 'icon' => 'MED', 'is_active' => true],
+                            ['title' => 'OBSERVATOIRE', 'url' => null, 'icon' => 'OBS', 'is_active' => true],
                         ],
                         'empty_rows' => 2,
                     ],
