@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\V1\Partner\Profile\PartnerPasswordController;
 use App\Http\Controllers\Api\V1\Partner\Profile\PartnerProfileController;
 use App\Http\Controllers\Api\V1\Public\Auth\AuthenticatedPublicUserController;
 use App\Http\Controllers\Api\V1\Public\Auth\PublicAuthController;
+use App\Http\Controllers\Api\V1\Public\Catalogs\PublicCatalogController;
 use App\Http\Controllers\Api\V1\Public\Discounts\PublicDiscountCardController;
 use App\Http\Controllers\Api\V1\Public\Households\PublicHouseholdController;
 use App\Http\Controllers\Api\V1\Public\Locations\PublicLocationController;
@@ -26,6 +27,13 @@ use App\Http\Controllers\Api\V1\Public\UserTypes\PublicUserTypeController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1/public')->group(function (): void {
+    Route::get('applications', [PublicCatalogController::class, 'applications']);
+    Route::get('application-types', [PublicCatalogController::class, 'applicationTypes']);
+    Route::get('organization-types', [PublicCatalogController::class, 'organizationTypes']);
+    Route::get('organizations', [PublicCatalogController::class, 'organizations']);
+    Route::get('countries', [PublicCatalogController::class, 'countries']);
+    Route::get('cities', [PublicCatalogController::class, 'cities']);
+    Route::get('service-categories', [PublicCatalogController::class, 'serviceCategories']);
     Route::get('locations', [PublicLocationController::class, 'index']);
     Route::get('communes', [PublicLocationController::class, 'communes']);
     Route::get('signal-types', [PublicSignalTypeController::class, 'index']);

@@ -23,8 +23,15 @@
     { "key": "password", "value": "12345678" },
     { "key": "publicUserTypeId", "value": "1" },
     { "key": "publicUserTypeCode", "value": "UP" },
+    { "key": "applicationId", "value": "1" },
+    { "key": "applicationCode", "value": "MON_NRJ" },
+    { "key": "organizationId", "value": "1" },
+    { "key": "organizationTypeId", "value": "1" },
+    { "key": "countryId", "value": "1" },
+    { "key": "cityId", "value": "1" },
     { "key": "communeId", "value": "1" },
     { "key": "communeName", "value": "Cocody" },
+    { "key": "serviceCategory", "value": "Internet" },
     { "key": "meterId", "value": "" },
     { "key": "reportId", "value": "" },
     { "key": "paymentId", "value": "" },
@@ -39,6 +46,142 @@
       "name": "01 - Catalogues publics",
       "description": "Routes accessibles sans authentification pour initialiser les catalogues de l application mobile.",
       "item": [
+        {
+          "name": "Applications",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "const applications = json?.data?.applications || [];",
+                  "pm.test('Applications returned', function () { pm.expect(applications.length).to.be.greaterThan(0); });",
+                  "const selected = applications.find((application) => application.code === (pm.environment.get('applicationCode') || 'MON_NRJ')) || applications[0];",
+                  "if (selected?.id) pm.environment.set('applicationId', selected.id);",
+                  "if (selected?.code) pm.environment.set('applicationCode', selected.code);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/applications",
+            "description": "Retourne la liste des applications actives pour les formulaires mobiles."
+          }
+        },
+        {
+          "name": "Application Types",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "const applicationTypes = json?.data?.application_types || [];",
+                  "pm.test('Application types returned', function () { pm.expect(applicationTypes.length).to.be.greaterThan(0); });",
+                  "const selected = applicationTypes[0];",
+                  "if (selected?.id) pm.environment.set('organizationTypeId', selected.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/application-types",
+            "description": "Retourne les types d organisations exposes a l application mobile."
+          }
+        },
+        {
+          "name": "Organization Types",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/organization-types",
+            "description": "Alias explicite des types d organisations actifs."
+          }
+        },
+        {
+          "name": "Organizations",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "const organizations = json?.data?.organizations || [];",
+                  "pm.test('Organizations returned', function () { pm.expect(organizations.length).to.be.greaterThan(0); });",
+                  "const selected = organizations[0];",
+                  "if (selected?.id) pm.environment.set('organizationId', selected.id);",
+                  "if (selected?.organization_type?.id) pm.environment.set('organizationTypeId', selected.organization_type.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/organizations?application_id={{applicationId}}",
+            "description": "Retourne les organisations actives, filtrables par application ou type d organisation."
+          }
+        },
+        {
+          "name": "Countries",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "const countries = json?.data?.countries || [];",
+                  "pm.test('Countries returned', function () { pm.expect(countries.length).to.be.greaterThan(0); });",
+                  "const selected = countries.find((country) => country.code === 'CI') || countries[0];",
+                  "if (selected?.id) pm.environment.set('countryId', selected.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/countries",
+            "description": "Retourne la liste plate des pays actifs."
+          }
+        },
+        {
+          "name": "Cities",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "const cities = json?.data?.cities || [];",
+                  "pm.test('Cities returned', function () { pm.expect(cities.length).to.be.greaterThan(0); });",
+                  "const selected = cities.find((city) => city.name === 'Abidjan') || cities[0];",
+                  "if (selected?.id) pm.environment.set('cityId', selected.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/cities?country_id={{countryId}}",
+            "description": "Retourne la liste plate des villes actives, filtrable par pays."
+          }
+        },
         {
           "name": "Locations",
           "request": {
@@ -72,6 +215,31 @@
             "header": [{ "key": "Accept", "value": "application/json" }],
             "url": "{{baseUrl}}/v1/public/communes",
             "description": "Retourne la liste plate des communes actives pour les formulaires mobiles de creation UP."
+          }
+        },
+        {
+          "name": "Service Categories",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "const categories = json?.data?.service_categories || [];",
+                  "pm.test('Service categories returned', function () { pm.expect(categories.length).to.be.greaterThan(0); });",
+                  "const selected = categories.find((category) => category.name === (pm.environment.get('serviceCategory') || 'Internet')) || categories[0];",
+                  "if (selected?.name) pm.environment.set('serviceCategory', selected.name);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/service-categories?application_id={{applicationId}}&organization_id={{organizationId}}",
+            "description": "Retourne les categories de service derivees des types de signaux et filtrables par application ou organisation."
           }
         },
         {
@@ -458,7 +626,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"meter_id\": {{meterId}},\n  \"application_id\": 1,\n  \"organization_id\": 1,\n  \"country_id\": 1,\n  \"city_id\": 1,\n  \"commune_id\": {{communeId}},\n  \"signal_code\": \"NETWORK_OUTAGE\",\n  \"description\": \"Coupure depuis 2 heures\",\n  \"address\": \"Rue 12\",\n  \"occurred_at\": \"2026-04-10T12:00:00Z\",\n  \"latitude\": 5.348,\n  \"longitude\": -4.001,\n  \"location_source\": \"gps\",\n  \"signal_payload\": {\n    \"service_category\": \"Internet\"\n  }\n}"
+              "raw": "{\n  \"meter_id\": {{meterId}},\n  \"application_id\": {{applicationId}},\n  \"organization_id\": {{organizationId}},\n  \"country_id\": {{countryId}},\n  \"city_id\": {{cityId}},\n  \"commune_id\": {{communeId}},\n  \"signal_code\": \"NETWORK_OUTAGE\",\n  \"description\": \"Coupure depuis 2 heures\",\n  \"address\": \"Rue 12\",\n  \"occurred_at\": \"2026-04-10T12:00:00Z\",\n  \"latitude\": 5.348,\n  \"longitude\": -4.001,\n  \"location_source\": \"gps\",\n  \"signal_payload\": {\n    \"service_category\": \"{{serviceCategory}}\"\n  }\n}"
             },
             "url": "{{baseUrl}}/v1/public/reports"
           }
