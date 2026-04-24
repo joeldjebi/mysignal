@@ -68,6 +68,45 @@ class PublicIncidentReportTest extends TestCase
             ->assertJsonCount(1, 'data.reports');
     }
 
+    public function test_public_user_gets_validation_error_when_country_is_invalid(): void
+    {
+        $this->seed(LocationReferenceSeeder::class);
+
+        $user = PublicUser::query()->create([
+            'first_name' => 'Awa',
+            'last_name' => 'Kone',
+            'phone' => '0700000409',
+            'commune' => 'Cocody',
+            'password' => 'secret123',
+            'status' => 'active',
+            'phone_verified_at' => now(),
+        ]);
+
+        $token = JWTAuth::fromUser($user);
+
+        $meterId = $this->withToken($token)->postJson('/api/v1/public/meters', [
+            'network_type' => 'CIE',
+            'meter_number' => 'CIE-40009',
+            'label' => 'Appartement',
+            'is_primary' => true,
+        ])->json('data.meter.id');
+
+        $city = City::query()->where('code', 'ABJ')->firstOrFail();
+        $commune = Commune::query()->where('code', 'ABJ-COCODY')->firstOrFail();
+
+        $this->withToken($token)->postJson('/api/v1/public/reports', [
+            'meter_id' => $meterId,
+            'country_id' => 999999,
+            'city_id' => $city->id,
+            'commune_id' => $commune->id,
+            'signal_code' => 'EL-01',
+            'description' => 'Coupure constatee depuis 18h00.',
+            'signal_payload' => [],
+        ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['country_id']);
+    }
+
     public function test_public_user_can_confirm_resolution_of_resolved_report(): void
     {
         $this->seed([

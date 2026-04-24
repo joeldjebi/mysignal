@@ -259,6 +259,7 @@ Format des champs :
 
 Champs speciaux utilises par le web :
 - `photo_reference` et `meter_photo_reference` sont traites comme des photos. L app mobile doit envoyer un objet avec `type`, `name`, `mime_type` et `data_url`.
+- Les images envoyees en `data_url` sont televersees sur Wasabi par l API. La base conserve ensuite le `path` Wasabi et les metadonnees du fichier, pas le contenu base64.
 - `precise_gps` et `gps_location` sont pre-remplis avec la position GPS courante quand elle est disponible.
 
 ### Compteurs
@@ -378,6 +379,8 @@ Exemple avec champs dynamiques requis :
 ```
 
 Si un champ requis est absent, l API retourne une erreur `422` sur `signal_payload.<key>`. Pour un champ `select`, la valeur envoyee doit faire partie de `options`.
+
+Pour les images, `data_url` doit contenir une vraie chaine base64 complete, par exemple `data:image/jpeg;base64,/9j/...`. La valeur `data:image/jpeg;base64,...` dans les exemples est seulement un placeholder.
 
 #### GET `/v1/public/reports/{report}`
 Retourne le detail d un signalement.

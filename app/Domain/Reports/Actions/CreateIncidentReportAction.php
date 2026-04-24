@@ -32,7 +32,14 @@ class CreateIncidentReportAction
             ]);
         }
 
-        $country = Country::query()->whereKey($payload['country_id'])->where('status', 'active')->firstOrFail();
+        $country = Country::query()->whereKey($payload['country_id'])->where('status', 'active')->first();
+
+        if ($country === null) {
+            throw ValidationException::withMessages([
+                'country_id' => ['Le pays selectionne est invalide.'],
+            ]);
+        }
+
         $city = City::query()->whereKey($payload['city_id'])->where('country_id', $country->id)->where('status', 'active')->first();
         $commune = Commune::query()->whereKey($payload['commune_id'])->where('city_id', $payload['city_id'])->where('status', 'active')->first();
 
