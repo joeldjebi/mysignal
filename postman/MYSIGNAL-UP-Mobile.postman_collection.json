@@ -647,6 +647,22 @@
           }
         },
         {
+          "name": "Create Report With Dynamic Fields",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"meter_id\": {{meterId}},\n  \"country_id\": {{countryId}},\n  \"city_id\": {{cityId}},\n  \"commune_id\": {{communeId}},\n  \"signal_code\": \"EL-04\",\n  \"description\": \"Compteur illisible\",\n  \"address\": \"Rue 12\",\n  \"latitude\": 5.348,\n  \"longitude\": -4.001,\n  \"location_source\": \"gps\",\n  \"signal_payload\": {\n    \"meter_photo_reference\": {\n      \"type\": \"image\",\n      \"name\": \"compteur.jpg\",\n      \"mime_type\": \"image/jpeg\",\n      \"data_url\": \"data:image/jpeg;base64,...\"\n    },\n    \"meter_serial_number\": \"CIE-12345\"\n  }\n}"
+            },
+            "url": "{{baseUrl}}/v1/public/reports",
+            "description": "Exemple de signalement avec champs dynamiques issus de GET /v1/public/signal-types. Remplacer signal_code et les cles signal_payload par les data_fields du type selectionne."
+          }
+        },
+        {
           "name": "Show Report",
           "request": {
             "method": "GET",

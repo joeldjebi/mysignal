@@ -238,6 +238,29 @@ Retourne le catalogue des types de signaux actifs avec :
 -TCM cible
 - `data_fields` pour les formulaires dynamiques
 
+Chaque entree `data_fields` decrit un champ complementaire a afficher quand le `signal_code` correspondant est selectionne :
+
+```json
+{
+  "key": "service_category",
+  "label": "Categorie de service",
+  "type": "select",
+  "required": true,
+  "options": ["Internet", "TV", "Telephone"]
+}
+```
+
+Format des champs :
+- `key` : cle a envoyer dans `signal_payload`
+- `label` : libelle a afficher dans le formulaire mobile
+- `type` : `text`, `number`, `textarea` ou `select`
+- `required` : si `true`, la cle doit etre presente et non vide dans `signal_payload`
+- `options` : valeurs autorisees pour les champs `select`
+
+Champs speciaux utilises par le web :
+- `photo_reference` et `meter_photo_reference` sont traites comme des photos. L app mobile doit envoyer un objet avec `type`, `name`, `mime_type` et `data_url`.
+- `precise_gps` et `gps_location` sont pre-remplis avec la position GPS courante quand elle est disponible.
+
 ### Compteurs
 
 #### GET `/v1/public/meters`
@@ -304,6 +327,13 @@ Liste les signalements du compte.
 #### POST `/v1/public/reports`
 Cree un signalement.
 
+Avant de creer un signalement, l app mobile doit appeler `GET /v1/public/signal-types`, filtrer les types de signaux compatibles avec le compteur selectionne, puis construire `signal_payload` a partir des `data_fields` du `signal_code` choisi.
+
+Compatibilite d un type de signal avec un compteur :
+- `application_id` du type de signal doit correspondre a l `application_id` du compteur
+- si le type de signal a un `organization_id`, il doit correspondre a l `organization_id` du compteur
+- si le type de signal a `organization_id: null`, il sert de type generique pour l application
+
 Body d exemple :
 ```json
 {
@@ -325,6 +355,29 @@ Body d exemple :
   }
 }
 ```
+
+Exemple avec champs dynamiques requis :
+```json
+{
+  "meter_id": 1,
+  "country_id": 1,
+  "city_id": 1,
+  "commune_id": 1,
+  "signal_code": "EL-04",
+  "description": "Compteur illisible",
+  "signal_payload": {
+    "meter_photo_reference": {
+      "type": "image",
+      "name": "compteur.jpg",
+      "mime_type": "image/jpeg",
+      "data_url": "data:image/jpeg;base64,..."
+    },
+    "meter_serial_number": "CIE-12345"
+  }
+}
+```
+
+Si un champ requis est absent, l API retourne une erreur `422` sur `signal_payload.<key>`. Pour un champ `select`, la valeur envoyee doit faire partie de `options`.
 
 #### GET `/v1/public/reports/{report}`
 Retourne le detail d un signalement.
