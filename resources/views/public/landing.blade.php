@@ -1575,16 +1575,16 @@
       <h2 class="section-title">{{ $blockTitle('clients', 'Domaines couverts') }}</h2>
       <p class="section-sub">{{ $blockBody('clients', 'My-Signal accompagne plusieurs univers de consommation et de services.') }}</p>
     </div>
-    @php
-      $defaultDomains = "Commerce | Signaler une pratique commerciale confuse, un service non conforme ou un litige apres achat. | https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=900&q=80\nServices | Suivre une demande liee a un prestataire, une intervention ou une qualite de service attendue. | https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=900&q=80\nAssurance | Documenter un dossier, garder les preuves et suivre les reponses obtenues. | https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=900&q=80\nTransport | Declarer une difficulte de transport, un retard, une prestation ou un incident de parcours. | https://images.unsplash.com/photo-1494412651409-8963ce7935a7?auto=format&fit=crop&w=900&q=80\nSante | Centraliser les informations utiles pour suivre une reclamation ou une experience de prise en charge. | https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=900&q=80\nEnergie | Signaler une coupure, une surtension, un compteur ou tout incident lie a la fourniture. | https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=900&q=80";
-      $domainItems = $lines($blockMeta('clients', 'items', $defaultDomains));
-      $domainsNeedDefaults = collect($domainItems)->every(fn ($domainLine) => trim($parts($domainLine, 3)[1] ?? '') === '');
-      $domainItems = $domainsNeedDefaults ? $lines($defaultDomains) : $domainItems;
-    @endphp
     <div class="row g-4">
-      @foreach ($domainItems as $domainLine)
+      @forelse ($applications as $application)
         @php
-          [$domainTitle, $domainText, $domainImage] = $parts($domainLine, 3);
+          $domainTitle = $application->name;
+          $domainText = $application->short_description
+              ?: $application->tagline
+              ?: 'Suivez vos signalements et declenchez vos demarches depuis cet univers My-Signal.';
+          $domainImage = $application->heroImageUrl()
+              ?: $application->logoUrl()
+              ?: asset('image/logo/logo-my-signal.png');
         @endphp
         <div class="col-md-6 col-xl-4">
           <article class="domain-card">
@@ -1598,7 +1598,13 @@
             </div>
           </article>
         </div>
-      @endforeach
+      @empty
+        <div class="col-12">
+          <div class="alert alert-light border-0 shadow-sm rounded-4 text-center mb-0">
+            Aucune application active n est disponible pour le moment.
+          </div>
+        </div>
+      @endforelse
     </div>
   </div>
 </section>
