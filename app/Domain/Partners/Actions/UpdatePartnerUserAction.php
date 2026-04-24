@@ -29,8 +29,6 @@ class UpdatePartnerUserAction
 
             $target->update($attributes);
             $target->roles()->sync([$role->id]);
-            $target->permissions()->sync([]);
-
             return $target->fresh(['organization.organizationType', 'roles.permissions']);
         });
     }
