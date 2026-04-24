@@ -246,6 +246,8 @@ Liste les compteurs du compte courant.
 #### POST `/v1/public/meters`
 Ajoute un compteur.
 
+Un UP peut ajouter plusieurs compteurs, y compris pour la meme application ou la meme organisation. Chaque appel cree un nouveau rattachement tant que le compteur n est pas deja rattache au compte courant.
+
 Body d exemple :
 ```json
 {

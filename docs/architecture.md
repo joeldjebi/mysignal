@@ -81,7 +81,7 @@ On demarrera avec une configuration codee pour aller vite sur l'authentification
 
 La V1 du module public prevoit deja des points de bascule vers le parametrage super admin :
 
-- limite de compteurs par type de reseau
+- rattachement libre de plusieurs compteurs par UP
 - types de reseau supportes
 - statuts de compteur
 - regles de format metier

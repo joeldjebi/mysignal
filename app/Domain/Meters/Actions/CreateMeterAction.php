@@ -30,7 +30,6 @@ class CreateMeterAction
             }
 
             $networkType = $networkType !== '' ? $networkType : ($organization->code ?: $application->code);
-            $this->ensureMeterLimitIsNotExceeded($user, $organization->id);
 
             $meter = Meter::query()->firstOrCreate(
                 [
@@ -189,18 +188,4 @@ class CreateMeterAction
         );
     }
 
-    private function ensureMeterLimitIsNotExceeded(PublicUser $user, int $organizationId): void
-    {
-        $limit = config('acepen.public.max_meters_per_network', 1);
-
-        $count = $user->meters()
-            ->where('organization_id', $organizationId)
-            ->count();
-
-        if ($count >= $limit) {
-            throw ValidationException::withMessages([
-                'network_type' => ['Le nombre maximal de compteurs pour cette organisation est atteint.'],
-            ]);
-        }
-    }
 }

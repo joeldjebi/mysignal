@@ -476,6 +476,21 @@
           }
         },
         {
+          "name": "Create Additional Meter",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"application_id\": 1,\n  \"organization_id\": 1,\n  \"meter_number\": \"AB87654321\",\n  \"label\": \"Compteur secondaire\",\n  \"commune\": \"{{communeName}}\",\n  \"address\": \"Rue 24\",\n  \"is_primary\": false\n}"
+            },
+            "url": "{{baseUrl}}/v1/public/meters"
+          }
+        },
+        {
           "name": "Show Meter",
           "request": {
             "method": "GET",

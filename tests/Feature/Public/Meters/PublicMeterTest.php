@@ -75,8 +75,6 @@ class PublicMeterTest extends TestCase
             'is_primary' => true,
         ])->json('data.meter.id');
 
-        config()->set('acepen.public.max_meters_per_network', 2);
-
         $secondMeter = $this->withToken($token)->postJson('/api/v1/public/meters', [
             'network_type' => 'CIE',
             'meter_number' => 'CIE-20001',
@@ -105,7 +103,7 @@ class PublicMeterTest extends TestCase
         ]);
     }
 
-    public function test_public_user_cannot_exceed_default_meter_limit_for_same_network(): void
+    public function test_public_user_can_create_multiple_meters_for_same_network(): void
     {
         $this->seed(LocationReferenceSeeder::class);
 
@@ -131,7 +129,12 @@ class PublicMeterTest extends TestCase
             'meter_number' => 'SOD-1001',
         ]);
 
-        $response->assertStatus(422)
-            ->assertJsonValidationErrors(['network_type']);
+        $response->assertCreated()
+            ->assertJsonPath('data.meter.network_type', 'SODECI')
+            ->assertJsonPath('data.meter.meter_number', 'SOD-1001');
+
+        $this->withToken($token)->getJson('/api/v1/public/meters')
+            ->assertOk()
+            ->assertJsonCount(2, 'data.meters');
     }
 }
