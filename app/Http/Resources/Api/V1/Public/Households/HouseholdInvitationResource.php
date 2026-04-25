@@ -16,7 +16,7 @@ class HouseholdInvitationResource extends JsonResource
             'expires_at' => $this->expires_at?->toIso8601String(),
             'accepted_at' => $this->accepted_at?->toIso8601String(),
             'declined_at' => $this->declined_at?->toIso8601String(),
-            'status' => $this->accepted_at ? 'accepted' : ($this->declined_at ? 'declined' : ($this->expires_at && $this->expires_at->isPast() ? 'expired' : 'pending')),
+            'status' => $this->accepted_at ? 'accepted' : ($this->declined_at ? 'declined' : 'pending'),
             'household' => $this->whenLoaded('household', fn () => [
                 'id' => $this->household?->id,
                 'name' => $this->household?->name,

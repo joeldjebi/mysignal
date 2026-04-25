@@ -6,7 +6,6 @@ use App\Models\Household;
 use App\Models\HouseholdInvitation;
 use App\Models\Meter;
 use App\Models\PublicUser;
-use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -55,9 +54,8 @@ class InviteHouseholdMemberAction
         }
 
         $code = (string) random_int(100000, 999999);
-        $expiresAt = CarbonImmutable::now()->addMinutes(config('acepen.households.invitation_expiry_minutes', 30));
 
-        return DB::transaction(function () use ($household, $payload, $actor, $code, $expiresAt): HouseholdInvitation {
+        return DB::transaction(function () use ($household, $payload, $actor, $code): HouseholdInvitation {
             HouseholdInvitation::query()
                 ->where('household_id', $household->id)
                 ->where('phone', $payload['phone'])
@@ -70,7 +68,7 @@ class InviteHouseholdMemberAction
                 'phone' => $payload['phone'],
                 'relationship' => $payload['relationship'],
                 'code' => $code,
-                'expires_at' => $expiresAt,
+                'expires_at' => null,
                 'invited_by' => $actor->id,
             ]);
         });

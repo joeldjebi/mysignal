@@ -91,6 +91,12 @@
                 flex: 1;
                 overflow: auto;
                 padding-right: 0.25rem;
+                display: flex;
+                flex-direction: column;
+            }
+            .sidebar-bottom-links {
+                margin-top: auto;
+                padding-top: 1rem;
             }
             .nav-pill {
                 width: 100%;
@@ -778,7 +784,7 @@
                 font-size: 1.02rem;
                 font-weight: 900;
                 color: var(--acepen-navy);
-                letter-spacing: -0.03em;
+                letter-spacing: 0;
             }
             .quick-action-arrow {
                 width: 34px;
@@ -819,6 +825,134 @@
                 border-radius: 24px;
                 padding: 1.2rem;
                 background: #f8fbff;
+            }
+            .overview-status-grid {
+                display: grid;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 0.9rem;
+            }
+            .overview-status-tile {
+                border: 1px solid rgba(24, 52, 71, 0.08);
+                border-radius: 18px;
+                padding: 1rem;
+                background: #f8fbff;
+            }
+            .overview-status-number {
+                font-size: 2rem;
+                line-height: 1;
+                font-weight: 900;
+                color: var(--acepen-navy);
+            }
+            .overview-action-grid {
+                display: grid;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 1rem;
+            }
+            .overview-report-list {
+                display: grid;
+                gap: 0.85rem;
+            }
+            .overview-report-card {
+                display: flex;
+                justify-content: space-between;
+                gap: 1rem;
+                align-items: center;
+                border: 1px solid rgba(24, 52, 71, 0.08);
+                border-radius: 18px;
+                padding: 1rem;
+                background: #fff;
+                box-shadow: 0 16px 30px rgba(15, 39, 56, 0.04);
+            }
+            .overview-report-title {
+                font-weight: 900;
+                color: var(--acepen-navy);
+            }
+            .overview-report-meta {
+                color: var(--acepen-muted);
+                font-size: 0.86rem;
+            }
+            .simple-home {
+                min-height: 64vh;
+                display: grid;
+                align-items: center;
+            }
+            .simple-home-card {
+                border-radius: 28px;
+                padding: clamp(1.4rem, 4vw, 3rem);
+                background:
+                    linear-gradient(135deg, rgba(16, 42, 67, 0.96), rgba(24, 52, 71, 0.92)),
+                    url('{{ asset('image/logo/logo-my-signal.png') }}');
+                background-size: cover;
+                background-position: center;
+                color: #fff;
+                box-shadow: 0 28px 60px rgba(15, 39, 56, 0.18);
+                overflow: hidden;
+                position: relative;
+            }
+            .simple-home-card::after {
+                content: "";
+                position: absolute;
+                inset: 0;
+                background: rgba(16, 42, 67, 0.74);
+            }
+            .simple-home-content {
+                position: relative;
+                z-index: 1;
+                max-width: 760px;
+            }
+            .simple-home-title {
+                font-size: clamp(2rem, 4vw, 3.6rem);
+                line-height: 1.02;
+                font-weight: 900;
+                margin-bottom: 1rem;
+            }
+            .simple-home-copy {
+                font-size: 1.08rem;
+                color: rgba(255, 255, 255, 0.78);
+                max-width: 620px;
+                margin-bottom: 2rem;
+            }
+            .simple-home-actions {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.9rem;
+            }
+            .simple-home-main-action {
+                min-height: 3.25rem;
+                border-radius: 999px;
+                padding-inline: 1.35rem;
+                font-weight: 900;
+                font-size: 1rem;
+            }
+            .simple-home-secondary {
+                min-height: 3.25rem;
+                border-radius: 999px;
+                border: 1px solid rgba(255, 255, 255, 0.24);
+                background: rgba(255, 255, 255, 0.1);
+                color: #fff;
+                padding-inline: 1.2rem;
+                font-weight: 800;
+            }
+            .simple-home-secondary:hover {
+                color: #fff;
+                background: rgba(255, 255, 255, 0.18);
+            }
+            .simple-home-note {
+                margin-top: 1.8rem;
+                display: inline-flex;
+                align-items: center;
+                gap: 0.55rem;
+                border-radius: 999px;
+                padding: 0.65rem 0.9rem;
+                background: rgba(255, 255, 255, 0.12);
+                color: rgba(255, 255, 255, 0.82);
+                font-size: 0.92rem;
+            }
+            @media (max-width: 991.98px) {
+                .overview-status-grid,
+                .overview-action-grid {
+                    grid-template-columns: 1fr;
+                }
             }
             .payment-history-grid {
                 gap: 1rem;
@@ -989,20 +1123,6 @@
                                 <span class="small text-white-50">Declaration et suivi</span>
                             </span>
                         </button>
-                        <button class="nav-pill" type="button" data-panel-target="payments">
-                            <span class="nav-icon">PM</span>
-                            <span>
-                                <span class="d-block fw-semibold">Mes paiements</span>
-                                <span class="small text-white-50">Historique et recus</span>
-                            </span>
-                        </button>
-                        <button class="nav-pill" type="button" data-panel-target="subscriptions">
-                            <span class="nav-icon">AB</span>
-                            <span>
-                                <span class="d-block fw-semibold">Mes abonnements</span>
-                                <span class="small text-white-50">Plans, statuts et paiements</span>
-                            </span>
-                        </button>
                         <button class="nav-pill" type="button" data-panel-target="rex">
                             <span class="nav-icon">RX</span>
                             <span>
@@ -1024,6 +1144,22 @@
                                 <span class="small text-white-50">Avancement et historique</span>
                             </span>
                         </button>
+                        <div class="sidebar-bottom-links">
+                            <button class="nav-pill" type="button" data-panel-target="subscriptions">
+                                <span class="nav-icon">AB</span>
+                                <span>
+                                    <span class="d-block fw-semibold">Mes abonnements</span>
+                                    <span class="small text-white-50">Plan et statut</span>
+                                </span>
+                            </button>
+                            <button class="nav-pill" type="button" data-panel-target="payments">
+                                <span class="nav-icon">PM</span>
+                                <span>
+                                    <span class="d-block fw-semibold">Mes paiements</span>
+                                    <span class="small text-white-50">Historique et recus</span>
+                                </span>
+                            </button>
+                        </div>
                     </div>
 
                 </aside>
@@ -1034,9 +1170,9 @@
                             <button class="btn btn-ghost-premium topbar-menu-button mb-3 px-3" id="openPublicSidebarButton" type="button">Menu</button>
                             <div class="small text-secondary fw-semibold mb-1">Dashboard utilisateur</div>
                             <div class="h4 mb-1 fw-bold" id="dashboardGreeting">Bienvenue</div>
-                            <div class="text-secondary">Un espace plus clair pour piloter votre profil, vos identifiants, votre Gbonhi et vos declarations.</div>
+                            <div class="text-secondary">Choisissez une action, nous vous guidons ensuite.</div>
                         </div>
-                        <div class="d-flex flex-wrap gap-2">
+                        <div class="d-none">
                             <button class="btn btn-premium btn-sm px-3" id="openSubscriptionModalButton" type="button">Prendre un abonnement</button>
                             <span class="status-pill" id="userStatus">active</span>
                             <span class="status-pill" id="topbarSubscriptionBadge">Abonnement non actif</span>
@@ -1045,133 +1181,35 @@
                             <span class="status-pill" id="topbarPaymentsBadge">0 paiement</span>
                         </div>
                         <div class="topbar-session">
-                            <div class="small text-white-50 mb-1">Session active</div>
-                            <div class="topbar-session-meta mt-1" id="sidebarUserLocation">Localisation non renseignee</div>
-                            <div class="topbar-session-meta mt-1" id="sidebarUserGps">GPS non renseigne</div>
-                            <div class="topbar-session-actions">
-                                <button type="button" class="btn btn-sm btn-topbar-session d-none" id="sidebarRequestGpsButton">Renseigner le GPS</button>
-                                <button id="logoutButton" class="btn btn-sm btn-topbar-session" type="button">Se deconnecter</button>
-                            </div>
+                            <div class="d-none" id="sidebarUserLocation">Localisation non renseignee</div>
+                            <div class="d-none" id="sidebarUserGps">GPS non renseigne</div>
+                            <button type="button" class="d-none" id="sidebarRequestGpsButton">Renseigner le GPS</button>
+                            <button id="logoutButton" class="btn btn-sm btn-topbar-session" type="button">Se deconnecter</button>
                         </div>
                     </header>
 
                     <section class="public-panel active" data-panel="overview">
-                        <div class="panel-grid">
-                            <section class="dashboard-card" id="subscriptionOverviewCard">
-                                <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
-                                    <div>
-                                        <div class="section-title">Abonnement annuel UP</div>
-                                        <div class="muted-label" id="subscriptionOverviewText">Active ton abonnement pour effectuer des signalements.</div>
+                        <div class="simple-home">
+                            <section class="simple-home-card" id="subscriptionOverviewCard">
+                                <div class="simple-home-content">
+                                    <div class="text-uppercase small fw-bold opacity-75 mb-3">Vue d'ensemble</div>
+                                    <h1 class="simple-home-title">Que voulez-vous faire maintenant ?</h1>
+                                    <p class="simple-home-copy">Cet espace sert surtout a signaler un probleme et suivre vos demandes. Commencez par l'action dont vous avez besoin.</p>
+
+                                    <div class="simple-home-actions">
+                                        <button class="btn btn-premium simple-home-main-action" type="button" data-panel-target="reports">Faire un signalement</button>
+                                        <button class="simple-home-secondary" type="button" data-panel-target="meters">Ajouter un identifiant</button>
+                                        <button class="simple-home-secondary" type="button" data-panel-target="payments">Voir mes paiements</button>
                                     </div>
-                                    <button class="btn btn-premium px-4" id="subscriptionOverviewButton" type="button">Prendre un abonnement</button>
+
+                                    <div class="simple-home-note" id="subscriptionOverviewText">Abonnement non actif</div>
+                                    <button class="d-none" id="subscriptionOverviewButton" type="button">Prendre un abonnement</button>
+                                    <span class="d-none" id="meterCount">0</span>
+                                    <span class="d-none" id="reportCount">0</span>
+                                    <span class="d-none" id="householdMemberCount">0</span>
+                                    <div class="d-none" id="overviewReportsList"></div>
                                 </div>
                             </section>
-
-                            <section class="hero-card">
-                                <div class="row g-4 align-items-end position-relative" style="z-index:1;">
-                                    <div class="col-lg-7">
-                                        <div class="text-uppercase small fw-bold opacity-75 mb-2">Vue d'ensemble</div>
-                                        <h1 class="display-6 fw-bold mb-2">Un cockpit personnel.</h1>
-                                        <p class="text-white text-opacity-75 mb-0">Retrouve rapidement tes informations essentielles, puis accede aux actions importantes depuis la sidebar ou les raccourcis ci-dessous.</p>
-                                    </div>
-                                    <div class="col-lg-5">
-                                        <div class="row g-3">
-                                            <div class="col-4"><div class="metric-tile"><div class="small opacity-75">identifiants</div><div class="h3 fw-bold mb-0" id="meterCount">0</div></div></div>
-                                            <div class="col-4"><div class="metric-tile"><div class="small opacity-75">Membres</div><div class="h3 fw-bold mb-0" id="householdMemberCount">0</div></div></div>
-                                            <div class="col-4"><div class="metric-tile"><div class="small opacity-75">Signalements</div><div class="h3 fw-bold mb-0" id="reportCount">0</div></div></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </section>
-
-                            <div class="overview-grid">
-                                <section class="dashboard-card">
-                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
-                                        <div>
-                                            <div class="section-title">Raccourcis essentiels</div>
-                                            <div class="muted-label">Accede directement aux zones les plus utilisees de ton espace public.</div>
-                                        </div>
-                                    </div>
-                                    <div class="row g-3">
-                                        <div class="col-md-6 col-xl-3">
-                                            <button class="quick-action" type="button" data-panel-target="meters">
-                                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                                    <div class="quick-action-icon">ID</div>
-                                                    <div class="quick-action-arrow">›</div>
-                                                </div>
-                                                <div class="small text-secondary fw-semibold mb-2">Identifiants</div>
-                                                <div class="quick-action-title mb-2">Ajouter ou mettre a jour un identifiant</div>
-                                                <div class="muted-label">CIE, SODECI, commune, adresse et position GPS.</div>
-                                            </button>
-                                        </div>
-                                        <div class="col-md-6 col-xl-3">
-                                            <button class="quick-action" type="button" data-panel-target="reports">
-                                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                                    <div class="quick-action-icon">SG</div>
-                                                    <div class="quick-action-arrow">›</div>
-                                                </div>
-                                                <div class="small text-secondary fw-semibold mb-2">Signalements</div>
-                                                <div class="quick-action-title mb-2">Faire un nouveau signalement</div>
-                                                <div class="muted-label">Declaration, geolocalisation, paiement et suivi.</div>
-                                            </button>
-                                        </div>
-                                        <div class="col-md-6 col-xl-3">
-                                            <button class="quick-action" type="button" data-panel-target="profile">
-                                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                                    <div class="quick-action-icon">PR</div>
-                                                    <div class="quick-action-arrow">›</div>
-                                                </div>
-                                                <div class="small text-secondary fw-semibold mb-2">Profil</div>
-                                                <div class="quick-action-title mb-2">Verifier mes informations</div>
-                                                <div class="muted-label">Identite, email et commune de rattachement.</div>
-                                            </button>
-                                        </div>
-                                        <div class="col-md-6 col-xl-3">
-                                            <button class="quick-action" type="button" data-panel-target="household">
-                                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                                    <div class="quick-action-icon">GB</div>
-                                                    <div class="quick-action-arrow">›</div>
-                                                </div>
-                                                <div class="small text-secondary fw-semibold mb-2">Gbonhi</div>
-                                                <div class="quick-action-title mb-2">Inviter ma famille</div>
-                                                <div class="muted-label">Membres, invitations et identifiant commun du Gbonhi.</div>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </section>
-
-                                <section class="dashboard-card">
-                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
-                                        <div>
-                                            <div class="section-title">Mes derniers signalements</div>
-                                            <div class="muted-label">Suivi rapide de vos declarations, avec recherche, filtre et pagination.</div>
-                                        </div>
-                                        <button class="btn btn-premium px-4" type="button" data-panel-target="reports">Nouveau signalement</button>
-                                    </div>
-                                    <div class="mini-card mb-3">
-                                        <div class="row g-3 align-items-end">
-                                            <div class="col-lg-6">
-                                                <label class="form-label fw-semibold">Recherche</label>
-                                                <input class="form-control" id="overviewReportSearchFilter" placeholder="Reference, type, commune...">
-                                            </div>
-                                            <div class="col-md-6 col-lg-3">
-                                                <label class="form-label fw-semibold">Statut</label>
-                                                <select class="form-select" id="overviewReportStatusFilter">
-                                                    <option value="">Tous</option>
-                                                    <option value="submitted">Soumis</option>
-                                                    <option value="in_progress">En cours</option>
-                                                    <option value="resolved">Resolu</option>
-                                                    <option value="rejected">Non retenu</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-md-6 col-lg-3">
-                                                <button class="btn btn-ghost-premium w-100" type="button" id="resetOverviewReportFiltersButton">Reset</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div id="overviewReportsList"></div>
-                                </section>
-                            </div>
                         </div>
                     </section>
 
@@ -2741,8 +2779,8 @@
                 }
 
                 function restoreActivePanel() {
-                    const savedPanel = sessionStorage.getItem(dashboardPanelStorageKey);
-                    activatePanel(savedPanel || 'overview');
+                    sessionStorage.removeItem(dashboardPanelStorageKey);
+                    activatePanel('overview');
                 }
 
                 function openSidebar() {
@@ -3655,7 +3693,7 @@
                         list.innerHTML = `
                             <div class="overview-report-empty">
                                 <div class="fw-bold mb-1">Aucun signalement pour le moment</div>
-                                <div class="muted-label mb-3">Vos futures declarations apparaitront ici avec leur statut, leur organisation et leur paiement.</div>
+                                <div class="muted-label mb-3">Commence par faire un signalement. Tu pourras ensuite suivre son statut ici.</div>
                                 <button class="btn btn-premium px-4" type="button" data-panel-target="reports">Faire un signalement</button>
                             </div>
                         `;
@@ -3665,73 +3703,31 @@
                         return;
                     }
 
-                    const filteredReports = getOverviewFilteredReports(reports);
-                    const totalPages = Math.max(1, Math.ceil(filteredReports.length / state.overviewReportsPageSize));
-                    state.overviewReportsPage = Math.min(state.overviewReportsPage, totalPages);
-
-                    if (!filteredReports.length) {
-                        list.innerHTML = `
-                            <div class="overview-report-empty">
-                                <div class="fw-bold mb-1">Aucun signalement ne correspond aux filtres</div>
-                                <div class="muted-label">Modifiez la recherche ou le statut pour retrouver vos declarations.</div>
-                            </div>
-                        `;
-                        return;
-                    }
-
-                    const start = (state.overviewReportsPage - 1) * state.overviewReportsPageSize;
-                    const currentReports = filteredReports.slice(start, start + state.overviewReportsPageSize);
-                    const end = start + currentReports.length;
+                    const currentReports = reports.slice(0, 3);
 
                     list.innerHTML = `
-                        <div class="report-table-shell">
-                            <div class="report-table-wrap">
-                                <table class="overview-report-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Reference</th>
-                                            <th>Signalement</th>
-                                            <th>Organisation</th>
-                                            <th>Statut</th>
-                                            <th>Paiement</th>
-                                            <th class="text-end">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        ${currentReports.map((report) => `
-                                            <tr>
-                                                <td>
-                                                    <div class="report-ref">${report.reference}</div>
-                                                    <div class="report-sub">${formatDateTime(report.created_at)}</div>
-                                                </td>
-                                                <td>
-                                                    <div class="report-main">${report.signal_label || report.incident_type || report.signal_code}</div>
-                                                    <div class="report-sub">${report.location?.commune || '-'}${report.location?.city ? ' · ' + report.location.city : ''}</div>
-                                                </td>
-                                                <td>
-                                                    <div class="report-main">${report.organization?.name || report.network_type || '-'}</div>
-                                                    <div class="report-sub">${report.application?.name || 'Application non definie'}</div>
-                                                </td>
-                                                <td><span class="status-pill status-report-${report.status}">${getPublicStatusLabel(report.status)}</span></td>
-                                                <td><span class="status-pill status-payment-${report.payment_status}">${report.payment_status === 'paid' ? 'Paye' : 'En attente'}</span></td>
-                                                <td class="text-end">
-                                                    <button class="btn btn-sm btn-ghost-premium px-3" type="button" onclick="window.AcepenPortal.showReportDetails(${report.id})">Details</button>
-                                                </td>
-                                            </tr>
-                                        `).join('')}
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div class="pagination-shell">
-                                <div class="pagination-info">Affichage ${start + 1} à ${end} sur ${filteredReports.length} signalement${filteredReports.length > 1 ? 's' : ''}</div>
-                                <div class="pagination-actions">
-                                    <button class="pagination-chip" type="button" ${state.overviewReportsPage === 1 ? 'disabled' : ''} onclick="window.AcepenPortal.changeOverviewReportsPage(${state.overviewReportsPage - 1})">‹</button>
-                                    <div class="small fw-semibold text-secondary">Page ${state.overviewReportsPage} / ${totalPages}</div>
-                                    <button class="pagination-chip" type="button" ${state.overviewReportsPage === totalPages ? 'disabled' : ''} onclick="window.AcepenPortal.changeOverviewReportsPage(${state.overviewReportsPage + 1})">›</button>
+                        <div class="overview-report-list">
+                            ${currentReports.map((report) => `
+                                <div class="overview-report-card">
+                                    <div>
+                                        <div class="overview-report-title">${report.signal_label || report.incident_type || report.signal_code}</div>
+                                        <div class="overview-report-meta">${report.reference} · ${formatDateTime(report.created_at)}</div>
+                                        <div class="overview-report-meta">${report.organization?.name || report.network_type || '-'}${report.location?.commune ? ' · ' + report.location.commune : ''}</div>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="mb-2"><span class="status-pill status-report-${report.status}">${getPublicStatusLabel(report.status)}</span></div>
+                                        <button class="btn btn-sm btn-ghost-premium px-3" type="button" onclick="window.AcepenPortal.showReportDetails(${report.id})">Voir</button>
+                                    </div>
                                 </div>
+                            `).join('')}
+                            <div class="d-flex justify-content-end">
+                                <button class="btn btn-ghost-premium px-4" type="button" data-panel-target="reports">Tous mes signalements</button>
                             </div>
                         </div>
                     `;
+                    list.querySelectorAll('[data-panel-target]').forEach((button) => {
+                        button.addEventListener('click', () => activatePanel(button.dataset.panelTarget));
+                    });
                 }
 
                 function renderReports(reports) {
@@ -4539,7 +4535,7 @@
                         ? 'Abonnement actif'
                         : getSubscriptionStatusLabel(subscription?.status || (pendingPayment ? 'pending' : null));
                     const details = active
-                        ? `Valable jusqu au ${formatDateTime(subscription.end_date)}`
+                        ? `Abonnement valable jusqu au ${formatDateTime(subscription.end_date)}`
                         : pendingPayment
                             ? `Paiement ${pendingPayment.reference} en attente de confirmation.`
                             : 'Active ton abonnement annuel pour effectuer des signalements.';

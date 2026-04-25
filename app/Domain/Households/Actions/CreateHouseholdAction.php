@@ -9,18 +9,11 @@ use App\Models\HouseholdMember;
 use App\Models\PublicUser;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 
 class CreateHouseholdAction
 {
     public function handle(PublicUser $user, array $payload): Household
     {
-        if ($user->ownedHousehold()->exists()) {
-            throw ValidationException::withMessages([
-                'household' => ['Vous avez deja un foyer principal.'],
-            ]);
-        }
-
         return DB::transaction(function () use ($user, $payload): Household {
             $household = Household::query()->create([
                 'owner_public_user_id' => $user->id,

@@ -24,12 +24,6 @@ class DeclineHouseholdInvitationAction
             ]);
         }
 
-        if ($invitation->expires_at->isPast()) {
-            throw ValidationException::withMessages([
-                'invitation_id' => ['Cette invitation a expire.'],
-            ]);
-        }
-
         if ($invitation->phone !== $user->phone) {
             throw ValidationException::withMessages([
                 'invitation_id' => ['Cette invitation ne vous est pas destinee.'],

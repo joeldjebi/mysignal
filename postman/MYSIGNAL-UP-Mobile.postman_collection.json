@@ -542,15 +542,17 @@
               "mode": "raw",
               "raw": "{\n  \"name\": \"Famille Doe\",\n  \"commune\": \"{{communeName}}\",\n  \"address\": \"Rue 12\"\n}"
             },
-            "url": "{{baseUrl}}/v1/public/households"
+            "url": "{{baseUrl}}/v1/public/households",
+            "description": "Cree un Gonhi. Un compte UP peut creer plusieurs Gonhi."
           }
         },
         {
-          "name": "Get My Household",
+          "name": "Get My Households",
           "request": {
             "method": "GET",
             "header": [{ "key": "Accept", "value": "application/json" }],
-            "url": "{{baseUrl}}/v1/public/households/me"
+            "url": "{{baseUrl}}/v1/public/households/me",
+            "description": "Retourne household pour compatibilite et households[] pour la liste complete des Gonhi rattaches au compte."
           }
         },
         {
@@ -558,7 +560,8 @@
           "request": {
             "method": "GET",
             "header": [{ "key": "Accept", "value": "application/json" }],
-            "url": "{{baseUrl}}/v1/public/households/invitations/pending"
+            "url": "{{baseUrl}}/v1/public/households/invitations/pending",
+            "description": "Retourne les invitations en attente. Les invitations Gonhi n expirent pas."
           }
         },
         {
@@ -588,7 +591,8 @@
               "mode": "raw",
               "raw": "{\n  \"invitation_id\": {{invitationId}}\n}"
             },
-            "url": "{{baseUrl}}/v1/public/households/invitations/accept"
+            "url": "{{baseUrl}}/v1/public/households/invitations/accept",
+            "description": "Accepte une invitation. Un compte UP peut etre rattache a plusieurs Gonhi."
           }
         },
         {

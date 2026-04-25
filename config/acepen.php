@@ -1,10 +1,6 @@
 <?php
 
 return [
-    'households' => [
-        // Valeur temporairement codee en V1. Elle migrera ensuite vers un parametrage super admin.
-        'invitation_expiry_minutes' => env('HOUSEHOLD_INVITATION_EXPIRY_MINUTES', 30),
-    ],
     'reports' => [
         // Valeurs temporaires en V1. Elles migreront ensuite vers le parametrage super admin.
         'signal_types' => [

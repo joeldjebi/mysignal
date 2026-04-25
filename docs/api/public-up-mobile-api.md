@@ -296,11 +296,22 @@ Met a jour un compteur.
 #### POST `/v1/public/households`
 Creation d un foyer.
 
+Un UP peut creer plusieurs Gonhi. Chaque Gonhi cree rattache automatiquement son createur comme proprietaire de ce Gonhi.
+
 #### GET `/v1/public/households/me`
-Retourne le foyer de l usager, ou `household: null`.
+Retourne les Gonhi rattaches au compte courant.
+
+La reponse garde `household` pour compatibilite avec les anciennes versions mobiles, mais le nouveau champ a utiliser est `households`.
+
+```json
+{
+  "household": {},
+  "households": []
+}
+```
 
 #### GET `/v1/public/households/invitations/pending`
-Retourne les invitations en attente.
+Retourne les invitations en attente. Les invitations Gonhi n expirent pas : elles restent disponibles tant qu elles ne sont pas acceptees ou refusees.
 
 #### POST `/v1/public/households/{household}/invitations`
 Invite un membre.
@@ -315,7 +326,7 @@ Body :
 ```
 
 #### POST `/v1/public/households/invitations/accept`
-Accepte une invitation.
+Accepte une invitation. Un compte UP peut etre rattache a plusieurs Gonhi.
 
 #### POST `/v1/public/households/invitations/decline`
 Refuse une invitation.

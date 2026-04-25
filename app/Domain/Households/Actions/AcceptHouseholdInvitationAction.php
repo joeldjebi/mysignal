@@ -27,21 +27,9 @@ class AcceptHouseholdInvitationAction
             ]);
         }
 
-        if ($invitation->expires_at->isPast()) {
-            throw ValidationException::withMessages([
-                'invitation_id' => ['Cette invitation a expire.'],
-            ]);
-        }
-
         if ($invitation->phone !== $user->phone) {
             throw ValidationException::withMessages([
                 'invitation_id' => ['Cette invitation ne vous est pas destinee.'],
-            ]);
-        }
-
-        if ($user->householdMembers()->where('household_id', '!=', $invitation->household_id)->exists()) {
-            throw ValidationException::withMessages([
-                'household' => ['Ce compte est deja rattache a un autre foyer.'],
             ]);
         }
 

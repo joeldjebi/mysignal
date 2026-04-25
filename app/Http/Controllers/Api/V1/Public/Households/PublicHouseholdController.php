@@ -47,23 +47,30 @@ class PublicHouseholdController extends Controller
 
     public function showMine(Request $request)
     {
-        $member = $request->user('public_api')
+        $members = $request->user('public_api')
             ->householdMembers()
             ->with([
                 'household.members.publicUser',
                 'household.invitations' => fn ($query) => $query->whereNull('accepted_at'),
             ])
             ->latest('id')
-            ->first();
+            ->get();
 
-        if ($member === null) {
+        if ($members->isEmpty()) {
             return ApiResponse::success([
                 'household' => null,
+                'households' => [],
             ], 'Aucun Gonhi rattache a ce compte.');
         }
 
+        $households = $members
+            ->map(fn ($member) => $member->household)
+            ->filter()
+            ->values();
+
         return ApiResponse::success([
-            'household' => new HouseholdResource($member->household),
+            'household' => new HouseholdResource($households->first()),
+            'households' => HouseholdResource::collection($households),
         ]);
     }
 
@@ -111,7 +118,6 @@ class PublicHouseholdController extends Controller
         return \App\Models\HouseholdInvitation::query()
             ->when($phone, fn ($query) => $query->where('phone', $phone))
             ->whereNull('accepted_at')
-            ->whereNull('declined_at')
-            ->where('expires_at', '>', now());
+            ->whereNull('declined_at');
     }
 }
