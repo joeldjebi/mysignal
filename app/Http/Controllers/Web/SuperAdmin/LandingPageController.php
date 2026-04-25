@@ -250,9 +250,9 @@ class LandingPageController extends Controller
                 'title' => 'Signalez, suivez et faites valoir vos droits',
                 'subtitle' => 'Plateforme de protection consommateur',
                 'body' => 'MySignal accompagne les consommateurs et les Unites Partenaires dans le suivi des signalements, des abonnements, des REX et des dossiers traites.',
-                'meta_defaults' => ['primary_button' => 'Activer mon acces', 'secondary_button' => 'Voir le parcours'],
+                'meta_defaults' => ['primary_button' => 'Signalement maintenant', 'secondary_button' => 'Voir le parcours'],
                 'meta_fields' => [
-                    'primary_button' => ['label' => 'Bouton principal', 'default' => 'Activer mon acces'],
+                    'primary_button' => ['label' => 'Bouton principal', 'default' => 'Signalement maintenant'],
                     'secondary_button' => ['label' => 'Bouton secondaire', 'default' => 'Voir le parcours'],
                 ],
                 'item_groups' => [

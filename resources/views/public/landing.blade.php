@@ -1046,6 +1046,374 @@
     }
     .btn-outline-custom:hover { background: var(--primary); color: #fff; }
 
+    /* ===== RESPONSIVE LAYOUT ===== */
+    @media (max-width: 1199.98px) {
+      .hero {
+        min-height: auto;
+        padding: 76px 0 36px;
+      }
+      .hero-title {
+        font-size: 2.35rem;
+      }
+      .hero-phone-wrap {
+        height: 410px;
+      }
+      .phone-main {
+        width: 186px;
+        height: 360px;
+      }
+      .phone-secondary {
+        width: 142px;
+        height: 270px;
+        right: 22px;
+      }
+      .section-manage,
+      .section-app-features,
+      .section-share,
+      .section-process,
+      .section-pricing,
+      .section-faq,
+      .section-testimonials,
+      .section-team,
+      .section-cta,
+      .section-news,
+      .section-clients,
+      .section-partners {
+        padding: 68px 0;
+      }
+      .premium-process-copy {
+        max-width: none;
+      }
+      .feature-phone-shell {
+        width: min(230px, 100%);
+      }
+    }
+
+    @media (max-width: 991.98px) {
+      .navbar {
+        padding: 10px 0;
+      }
+      .navbar-brand img {
+        height: 38px;
+      }
+      .navbar-collapse {
+        margin-top: 12px;
+        padding: 12px;
+        border-radius: 8px;
+        background: #fff;
+        box-shadow: 0 18px 40px rgba(24,52,71,.12);
+      }
+      .navbar-nav {
+        align-items: stretch !important;
+        gap: 4px !important;
+      }
+      .nav-link {
+        padding: 10px 12px !important;
+        border-radius: 8px;
+      }
+      .nav-link:hover {
+        background: rgba(24,52,71,.06);
+      }
+      .btn-nav {
+        display: block;
+        text-align: center;
+        margin-top: 6px;
+      }
+      .navbar-partner-logo {
+        margin: 8px auto 0;
+      }
+      .hero {
+        padding: 58px 0 42px;
+        text-align: center;
+      }
+      .hero::before {
+        width: 340px;
+        height: 340px;
+        top: -150px;
+        right: -150px;
+      }
+      .hero-title {
+        font-size: clamp(2rem, 7vw, 2.55rem);
+      }
+      .hero-text {
+        max-width: 680px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .hero-stats {
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 18px 22px;
+        margin-top: 34px;
+      }
+      .hero .fade-up.delay-2 {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        max-width: 340px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .hero .fade-up.delay-2 .btn-hero-primary,
+      .hero .fade-up.delay-2 .btn-hero-outline {
+        width: 100%;
+        margin-left: 0;
+        text-align: center;
+      }
+      .hero-stats .divider {
+        display: none;
+      }
+      .hero-phone-wrap {
+        height: 360px;
+        margin-top: 8px;
+      }
+      .phone-secondary {
+        right: 18%;
+      }
+      .features-strip {
+        padding: 44px 0;
+      }
+      .premium-process-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .premium-case-board,
+      .faq-illustration,
+      .faq-illus-inner {
+        max-width: 100%;
+      }
+      .faq-illus-inner {
+        width: 220px;
+        height: 220px;
+        font-size: 5.5rem;
+      }
+      .process-chart {
+        width: 220px;
+        height: 220px;
+      }
+      .chart-center {
+        width: 104px;
+        height: 104px;
+      }
+      .stat-divider {
+        display: none;
+      }
+      .cta-box {
+        padding: 42px 28px;
+      }
+      .footer-bottom .row {
+        gap: 8px;
+      }
+    }
+
+    @media (max-width: 767.98px) {
+      .container {
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+      .hero {
+        padding: 42px 0 34px;
+      }
+      .hero-title {
+        font-size: clamp(1.75rem, 9vw, 2.2rem);
+        line-height: 1.15;
+      }
+      .hero-text,
+      .section-sub,
+      .partner-sub {
+        font-size: .86rem;
+      }
+      .btn-hero-primary,
+      .btn-hero-outline,
+      .btn-primary-custom,
+      .btn-outline-custom,
+      .btn-store {
+        width: 100%;
+        justify-content: center;
+        text-align: center;
+      }
+      .btn-hero-outline {
+        margin-left: 0;
+      }
+      .hero-stats {
+        display: grid !important;
+        grid-template-columns: 1fr;
+        gap: 12px;
+        margin-top: 28px;
+      }
+      .hero-stats > div:not(.divider) {
+        padding: 12px;
+        border-radius: 8px;
+        background: rgba(255,255,255,.1);
+      }
+      .hero-phone-wrap {
+        height: 315px;
+      }
+      .phone-main {
+        width: 160px;
+        height: 310px;
+      }
+      .phone-secondary {
+        display: none !important;
+      }
+      .section-title {
+        font-size: 1.45rem;
+      }
+      .section-manage,
+      .section-app-features,
+      .section-share,
+      .download-banner,
+      .section-process,
+      .stats-banner,
+      .section-pricing,
+      .section-faq,
+      .section-testimonials,
+      .section-team,
+      .section-cta,
+      .section-news,
+      .section-clients,
+      .section-partners {
+        padding: 48px 0;
+      }
+      .premium-process-grid {
+        grid-template-columns: 1fr;
+      }
+      .premium-process-step {
+        min-height: auto;
+        padding: 16px;
+      }
+      .premium-case-board {
+        padding: 18px;
+      }
+      .case-timeline-row {
+        grid-template-columns: 32px minmax(0, 1fr);
+        gap: 10px;
+      }
+      .case-timeline-dot {
+        width: 32px;
+        height: 32px;
+      }
+      .phone-mockup-lg {
+        width: min(220px, 100%);
+      }
+      .phone-mockup-lg .screen {
+        height: 390px;
+      }
+      .feature-phone-shell {
+        width: min(220px, 100%);
+      }
+      .feature-phone-screen {
+        height: 360px;
+      }
+      .app-feature-item {
+        padding: 14px;
+      }
+      .process-step {
+        gap: 14px;
+        margin-bottom: 24px;
+      }
+      .process-chart {
+        width: 190px;
+        height: 190px;
+      }
+      .chart-center {
+        width: 92px;
+        height: 92px;
+      }
+      .stat-item .num {
+        font-size: 1.75rem;
+      }
+      .pricing-card {
+        padding: 28px 22px;
+      }
+      .pricing-card .price {
+        font-size: 2.25rem;
+      }
+      .faq-illus-inner {
+        width: 180px;
+        height: 180px;
+        font-size: 4.4rem;
+      }
+      .testimonial-card,
+      .team-card,
+      .news-card,
+      .domain-card {
+        border-radius: 8px;
+      }
+      .cta-box {
+        padding: 32px 22px;
+        border-radius: 8px;
+        text-align: center;
+      }
+      .cta-illustration {
+        font-size: 4rem;
+      }
+      .domain-image {
+        height: 170px;
+      }
+      .partners-track {
+        gap: 12px;
+        animation-duration: 32s;
+      }
+      .partner-logo-card {
+        flex-basis: 150px;
+        min-height: 104px;
+        padding: 14px;
+      }
+      footer {
+        padding-top: 44px;
+      }
+      .newsletter-form {
+        flex-direction: column;
+      }
+      .newsletter-form button {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 575.98px) {
+      .navbar-brand img {
+        height: 34px;
+      }
+      .hero-title {
+        font-size: clamp(1.6rem, 10vw, 2rem);
+      }
+      .badge-pill {
+        font-size: .72rem;
+        padding: 6px 12px;
+      }
+      .feature-card p,
+      .premium-process-step p,
+      .case-timeline-content span,
+      .app-feature-item p,
+      .domain-body p,
+      footer p,
+      footer ul li a {
+        font-size: .78rem;
+      }
+      .feature-icon-wrap {
+        width: 54px;
+        height: 54px;
+        font-size: 1.25rem;
+      }
+      .download-banner h2 {
+        font-size: 1.55rem;
+      }
+      .download-banner p {
+        margin-bottom: 22px;
+      }
+      .accordion-button {
+        font-size: .84rem;
+        padding: 14px;
+      }
+      .accordion-body {
+        font-size: .84rem;
+      }
+      .footer-bottom {
+        font-size: .76rem;
+      }
+    }
+
     /* animations */
     @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
     .float { animation: float 3s ease-in-out infinite; }
@@ -1102,8 +1470,12 @@
         <h1 class="hero-title fade-up">{{ $heroTitleParts[0] }}@if($heroTitleParts[1] !== ''), <span>{{ $heroAccentParts[0] }}</span> {{ $heroAccentParts[1] }}@endif</h1>
         <p class="hero-text fade-up delay-1">{{ $blockBody('hero', 'My-Signal accompagne les consommateurs et les Unites Partenaires dans le suivi des signalements, des abonnements, des REX et des dossiers traites.') }}</p>
         <div class="fade-up delay-2">
-          <a href="{{ route('public.auth') }}" class="btn-hero-primary">{{ $blockMeta('hero', 'primary_button', 'Activer mon acces') }}</a>
-          <a href="#" class="btn-hero-outline">
+          @php
+            $heroPrimaryButton = $blockMeta('hero', 'primary_button', 'Signalement maintenant');
+            $heroPrimaryButton = $heroPrimaryButton === 'Activer mon acces' ? 'Signalement maintenant' : $heroPrimaryButton;
+          @endphp
+          <a href="{{ route('public.auth') }}" class="btn-hero-primary">{{ $heroPrimaryButton }}</a>
+          <a href="#process" class="btn-hero-outline">
             <i class="bi bi-play-circle-fill me-1"></i> {{ $blockMeta('hero', 'secondary_button', 'Voir le parcours') }}
           </a>
         </div>
@@ -1414,7 +1786,7 @@
 
 <!-- ===== WORK PROCESS ===== -->
 @if ($isVisible('process'))
-<section class="section-process">
+<section class="section-process" id="process">
   <div class="container">
     <div class="row text-center mb-5">
       <div class="col-lg-6 mx-auto">
