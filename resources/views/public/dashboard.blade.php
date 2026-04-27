@@ -1092,7 +1092,7 @@
                             <span class="nav-icon">DB</span>
                             <span>
                                 <span class="d-block fw-semibold">Vue d'ensemble</span>
-                                <span class="small text-white-50">Synthese et raccourcis</span>
+                                <span class="small text-white-50">Synthèse et raccourcis</span>
                             </span>
                         </button>
                         <button class="nav-pill" type="button" data-panel-target="profile">
@@ -1120,14 +1120,14 @@
                             <span class="nav-icon">SG</span>
                             <span>
                                 <span class="d-block fw-semibold">Mes signalements</span>
-                                <span class="small text-white-50">Declaration et suivi</span>
+                                <span class="small text-white-50">Déclaration et suivi</span>
                             </span>
                         </button>
                         <button class="nav-pill" type="button" data-panel-target="rex">
                             <span class="nav-icon">RX</span>
                             <span>
                                 <span class="d-block fw-semibold">Mes REX</span>
-                                <span class="small text-white-50">Retours d experience</span>
+                                <span class="small text-white-50">Retours d’expérience</span>
                             </span>
                         </button>
                         <button class="nav-pill" type="button" data-panel-target="damages">
@@ -1156,7 +1156,7 @@
                                 <span class="nav-icon">PM</span>
                                 <span>
                                     <span class="d-block fw-semibold">Mes paiements</span>
-                                    <span class="small text-white-50">Historique et recus</span>
+                                    <span class="small text-white-50">Historique et reçus</span>
                                 </span>
                             </button>
                         </div>
@@ -1181,8 +1181,8 @@
                             <span class="status-pill" id="topbarPaymentsBadge">0 paiement</span>
                         </div>
                         <div class="topbar-session">
-                            <div class="d-none" id="sidebarUserLocation">Localisation non renseignee</div>
-                            <div class="d-none" id="sidebarUserGps">GPS non renseigne</div>
+                            <div class="d-none" id="sidebarUserLocation">Localisation non renseignée</div>
+                            <div class="d-none" id="sidebarUserGps">GPS non renseigné</div>
                             <button type="button" class="d-none" id="sidebarRequestGpsButton">Renseigner le GPS</button>
                             <button id="logoutButton" class="btn btn-sm btn-topbar-session" type="button">Se deconnecter</button>
                         </div>
@@ -1194,7 +1194,7 @@
                                 <div class="simple-home-content">
                                     <div class="text-uppercase small fw-bold opacity-75 mb-3">Vue d'ensemble</div>
                                     <h1 class="simple-home-title">Que voulez-vous faire maintenant ?</h1>
-                                    <p class="simple-home-copy">Cet espace sert surtout a signaler un probleme et suivre vos demandes. Commencez par l'action dont vous avez besoin.</p>
+                                    <p class="simple-home-copy">Cet espace sert surtout à signaler un problème et suivre vos demandes. Commencez par l'action dont vous avez besoin.</p>
 
                                     <div class="simple-home-actions">
                                         <button class="btn btn-premium simple-home-main-action" type="button" data-panel-target="reports">Faire un signalement</button>
@@ -1218,7 +1218,7 @@
                             <div class="d-flex justify-content-between align-items-start mb-4">
                                 <div>
                                     <div class="section-title">Mon profil public</div>
-                                    <div class="muted-label">Votre identite, votre adresse et votre position de reference pour accelerer les futures declarations.</div>
+                                    <div class="muted-label">Votre identité, votre adresse et votre position de référence pour accélérer les futures déclarations.</div>
                                 </div>
                                 <span class="status-pill" id="profileStatusPill">active</span>
                             </div>
@@ -1226,18 +1226,18 @@
                                 <div class="col-xl-7">
                                     <form id="profileForm" class="row g-3">
                                         <div class="col-md-6">
-                                            <label class="form-label fw-semibold">Type d usager public</label>
+                                            <label class="form-label fw-semibold">Type d’usager public</label>
                                             <select class="form-select" id="profilePublicUserTypeSelect" required disabled>
                                                 @foreach ($publicUserTypes as $publicUserType)
                                                     <option value="{{ $publicUserType->id }}" data-profile-kind="{{ $publicUserType->profile_kind }}" data-type-code="{{ $publicUserType->code }}">{{ $publicUserType->name }}</option>
                                                 @endforeach
                                             </select>
-                                            <div class="location-search-hint">Ce type est defini a la creation du compte et ne peut pas etre modifie ici.</div>
+                                            <div class="location-search-hint">Ce type est défini à la création du compte et ne peut pas être modifié ici.</div>
                                         </div>
-                                        <div class="col-md-6"><label class="form-label fw-semibold">Prenom</label><input class="form-control" name="first_name" required></div>
+                                        <div class="col-md-6"><label class="form-label fw-semibold">Prénom</label><input class="form-control" name="first_name" required></div>
                                         <div class="col-md-6"><label class="form-label fw-semibold">Nom</label><input class="form-control" name="last_name" required></div>
                                         <div class="col-md-6">
-                                            <label class="form-label fw-semibold">Numero WhatsApp</label>
+                                            <label class="form-label fw-semibold">Numéro WhatsApp</label>
                                             <select class="form-select" name="is_whatsapp_number">
                                                 <option value="0">Non</option>
                                                 <option value="1">Oui</option>
@@ -1247,9 +1247,9 @@
                                         <div class="col-12 hidden" id="profileSectorFields">
                                             <div class="row g-3">
                                                 <div class="col-md-6">
-                                                    <label class="form-label fw-semibold">Secteur d activite</label>
+                                                    <label class="form-label fw-semibold">Secteur d’activité</label>
                                                     <select class="form-select" name="business_sector">
-                                                        <option value="">Selectionner un secteur</option>
+                                                        <option value="">Sélectionner un secteur</option>
                                                         @foreach ($businessSectors as $businessSector)
                                                             <option value="{{ $businessSector->name }}">{{ $businessSector->name }}</option>
                                                         @endforeach
@@ -1269,30 +1269,30 @@
                                         <div class="col-12">
                                             <label class="form-label fw-semibold">Adresse</label>
                                             <input class="form-control" name="address" id="profileAddressSearch" placeholder="Rechercher une adresse ou laisser la position automatique">
-                                            <div class="location-search-hint">Si Google Places est configure, ce champ propose des adresses et place automatiquement la position.</div>
+                                            <div class="location-search-hint">Si Google Places est configuré, ce champ propose des adresses et place automatiquement la position.</div>
                                         </div>
                                         <div class="col-12">
                                             <div class="geo-box">
                                                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
                                                     <div>
                                                         <div class="fw-bold">Position du compte</div>
-                                                        <div class="muted-label">Votre position est recuperee automatiquement quand vous ouvrez ce profil.</div>
+                                                        <div class="muted-label">Votre position est récupérée automatiquement quand vous ouvrez ce profil.</div>
                                                     </div>
                                                     <div class="d-flex gap-2 flex-wrap">
-                                                        <button class="btn btn-ghost-premium px-4" type="button" id="captureProfileLocationButton">Recuperer ma position</button>
+                                                        <button class="btn btn-ghost-premium px-4" type="button" id="captureProfileLocationButton">Récupérer ma position</button>
                                                         <button class="btn btn-ghost-premium px-4" type="button" id="toggleProfileManualLocationButton">Saisie manuelle</button>
                                                     </div>
                                                 </div>
                                                 <div class="row g-3">
                                                     <div class="col-md-4"><label class="form-label fw-semibold">Latitude</label><input class="form-control" name="latitude" id="profileLatitude" readonly></div>
                                                     <div class="col-md-4"><label class="form-label fw-semibold">Longitude</label><input class="form-control" name="longitude" id="profileLongitude" readonly></div>
-                                                    <div class="col-md-4"><label class="form-label fw-semibold">Precision (m)</label><input class="form-control" name="location_accuracy" id="profileAccuracy" readonly></div>
+                                                    <div class="col-md-4"><label class="form-label fw-semibold">Précision (m)</label><input class="form-control" name="location_accuracy" id="profileAccuracy" readonly></div>
                                                 </div>
-                                                <div class="geo-help mt-2">Si le navigateur refuse la geolocalisation, vous pouvez choisir une adresse ou activer la saisie manuelle.</div>
+                                                <div class="geo-help mt-2">Si le navigateur refuse la géolocalisation, vous pouvez choisir une adresse ou activer la saisie manuelle.</div>
                                                 <input type="hidden" name="location_source" id="profileLocationSource" value="">
                                             </div>
                                         </div>
-                                        <div class="col-12"><button class="btn btn-premium w-100" type="submit">Mettre a jour mon profil</button></div>
+                                        <div class="col-12"><button class="btn btn-premium w-100" type="submit">Mettre à jour mon profil</button></div>
                                     </form>
                                 </div>
                                 <div class="col-xl-5">
@@ -1307,14 +1307,14 @@
                                         <div class="soft-panel mb-3">
                                             <div class="small text-secondary fw-semibold mb-1">Adresse actuelle</div>
                                             <div class="fw-semibold" id="profileAddressCard">-</div>
-                                            <div class="muted-label" id="profileGpsCard">Position GPS non renseignee</div>
+                                            <div class="muted-label" id="profileGpsCard">Position GPS non renseignée</div>
                                         </div>
                                         <div class="soft-panel mb-3">
-                                            <div class="small text-secondary fw-semibold mb-1">Type d usager</div>
+                                            <div class="small text-secondary fw-semibold mb-1">Type d’usager</div>
                                             <div class="fw-semibold" id="profileUserTypeCard">-</div>
                                         </div>
                                         <div class="soft-panel mb-3">
-                                            <div class="small text-secondary fw-semibold mb-1">Numero WhatsApp</div>
+                                            <div class="small text-secondary fw-semibold mb-1">Numéro WhatsApp</div>
                                             <div class="fw-semibold" id="profileWhatsappCard">Non</div>
                                         </div>
                                         <div class="soft-panel">
@@ -1333,7 +1333,7 @@
                             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
                                 <div>
                                     <div class="section-title">Mes identifiants</div>
-                                    <div class="muted-label">Ajoutez vos identifiants CIE et SODECI, ... avec la localisation et la commune associees.</div>
+                                    <div class="muted-label">Ajoutez vos identifiants CIE et SODECI, ... avec la localisation et la commune associées.</div>
                                 </div>
                                 <button class="btn btn-ghost-premium px-4" type="button" data-bs-toggle="collapse" data-bs-target="#meterFormWrap">Ajouter ou modifier</button>
                             </div>
@@ -1360,8 +1360,8 @@
                                     </div>
                                     <div class="col-12">
                                         <div class="soft-panel">
-                                            <div class="fw-bold mb-1">Position du identifiant</div>
-                                            <div class="muted-label">La position de l'identifiant est recuperee automatiquement en arriere-plan pour vous. Si vous choisissez une adresse, la localisation est mise a jour automatiquement.</div>
+                                            <div class="fw-bold mb-1">Position de l’identifiant</div>
+                                            <div class="muted-label">La position de l'identifiant est récupérée automatiquement en arrière-plan pour vous. Si vous choisissez une adresse, la localisation est mise à jour automatiquement.</div>
                                         </div>
                                         <input type="hidden" name="latitude" id="meterLatitude">
                                         <input type="hidden" name="longitude" id="meterLongitude">
@@ -1381,20 +1381,33 @@
                             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
                                 <div>
                                     <div class="section-title">Mon Gbonhi et ma famille</div>
-                                    <div class="muted-label">Preparer les futurs signalements familiaux a partir d un Gbonhi principal.</div>
+                                    <div class="muted-label">Créez plusieurs Gbonhi, puis choisissez celui sur lequel inviter vos proches.</div>
                                 </div>
+                                <button class="btn btn-premium px-4" type="button" id="showHouseholdFormButton">Créer un autre Gbonhi</button>
                             </div>
-                            <div id="householdEmptyState" class="mini-card">
-                                <div class="fw-bold mb-2">Aucun Gbonhi enregistre</div>
-                                <p class="muted-label mb-3">Creez votre Gbonhi principal pour inviter vos proches et partager un identifiant commun.</p>
+                            <div id="householdEmptyState" class="mini-card mb-4">
+                                <div class="fw-bold mb-2">Aucun Gbonhi enregistré</div>
+                                <p class="muted-label mb-3">Créez votre Gbonhi principal pour inviter vos proches et partager un identifiant commun.</p>
                                 <form id="householdForm" class="row g-3">
                                     <div class="col-md-4"><label class="form-label fw-semibold">Nom du Gbonhi</label><input class="form-control" name="name"></div>
                                     <div class="col-md-4"><label class="form-label fw-semibold">Commune</label><select class="form-select" name="commune" id="householdCommuneSelect"></select></div>
                                     <div class="col-md-4"><label class="form-label fw-semibold">Adresse</label><input class="form-control" name="address"></div>
-                                    <div class="col-12"><button class="btn btn-premium" type="submit">Creer mon Gbonhi</button></div>
+                                    <div class="col-12 d-flex gap-2 flex-wrap">
+                                        <button class="btn btn-premium" type="submit">Créer le Gbonhi</button>
+                                        <button class="btn btn-ghost-premium d-none" type="button" id="cancelHouseholdFormButton">Annuler</button>
+                                    </div>
                                 </form>
                             </div>
                             <div id="householdPanel" class="d-none">
+                                <div class="mini-card mb-4">
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+                                        <div>
+                                            <div class="fw-bold">Mes Gbonhi</div>
+                                            <div class="muted-label">Sélectionnez un Gbonhi pour voir ses membres et envoyer des invitations.</div>
+                                        </div>
+                                    </div>
+                                    <div id="householdsList" class="vstack gap-2"></div>
+                                </div>
                                 <div class="mini-card mb-4">
                                     <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
                                         <div><div class="fw-bold fs-5" id="householdName">-</div><div class="muted-label" id="householdAddress">-</div></div>
@@ -1407,7 +1420,7 @@
                                             <div class="fw-bold mb-3">Inviter un membre</div>
                                             <form id="householdInvitationForm" class="row g-3">
                                                 <div class="col-12">
-                                                    <label class="form-label fw-semibold">Numero</label>
+                                                    <label class="form-label fw-semibold">Numéro</label>
                                                     <div class="input-group">
                                                         <select class="form-select flex-grow-0" name="phone_dial_code" data-dial-code-select style="width: 132px; max-width: 132px; min-width: 132px;"></select>
                                                         <input class="form-control" name="phone_local" required>
@@ -1418,7 +1431,17 @@
                                                     <label class="form-label fw-semibold">identifiant commun du Gbonhi</label>
                                                     <select class="form-select" name="meter_id" id="householdSharedMeterId" required></select>
                                                 </div>
-                                                <div class="col-12"><label class="form-label fw-semibold">Lien</label><select class="form-select" name="relationship" required><option value="spouse">Conjoint(e)</option><option value="child">Enfant</option><option value="parent">Parent</option><option value="sibling">Frere / soeur</option></select></div>
+                                                <div class="col-12"><label class="form-label fw-semibold">Lien</label>
+                                                    <select class="form-select" name="relationship" required>
+                                                        <option value="spouse">Conjoint(e)</option>
+                                                        <option value="child">Enfant</option>
+                                                        <option value="parent">Parent</option>
+                                                        <option value="sibling">Frere / soeur</option>
+                                                        <option value="other">Collègue</option>
+                                                        <option value="other">Collaborateur</option>
+                                                        <option value="other">Voisin</option>
+                                                    </select>
+                                                </div>
                                                 <div class="col-12"><button class="btn btn-premium w-100" type="submit">Envoyer l invitation</button></div>
                                             </form>
                                         </div>
@@ -1430,7 +1453,7 @@
                                 </div>
                             </div>
                             <div class="mini-card mt-4">
-                                <div class="fw-bold mb-3">Invitations Gbonhi recues</div>
+                                <div class="fw-bold mb-3">Invitations Gbonhi reçues</div>
                                 <div id="incomingHouseholdInvitationsList" class="vstack gap-2"></div>
                             </div>
                         </div>
@@ -1441,18 +1464,18 @@
                             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
                                 <div>
                                     <div class="section-title">Mes signalements</div>
-                                    <div class="muted-label">Un parcours de declaration moderne, ancre sur les identifiants et les references geographiques.</div>
+                                    <div class="muted-label">Un parcours de déclaration moderne, ancré sur les identifiants et les références géographiques.</div>
                                 </div>
                                 <div class="d-flex flex-wrap gap-2 justify-content-end">
                                     <button class="btn btn-ghost-premium px-4 d-none" type="button" id="openDamageDeclarationButton">Enregistrer un dommage</button>
-                                    <button class="btn btn-premium px-4" type="button" data-bs-toggle="modal" data-bs-target="#reportFormModal">Signaler un probleme</button>
+                                    <button class="btn btn-premium px-4" type="button" data-bs-toggle="modal" data-bs-target="#reportFormModal">Signaler un problème</button>
                                 </div>
                             </div>
                             <div class="mini-card mb-4">
                                 <div class="row g-3">
                                     <div class="col-lg-4">
                                         <label class="form-label fw-semibold">Recherche</label>
-                                        <input class="form-control" id="reportSearchFilter" placeholder="Reference, type, commune...">
+                                        <input class="form-control" id="reportSearchFilter" placeholder="Référence, type, commune...">
                                     </div>
                                     <div class="col-md-4 col-lg-2">
                                         <label class="form-label fw-semibold">Statut</label>
@@ -1460,7 +1483,7 @@
                                             <option value="">Tous</option>
                                             <option value="submitted">Soumis</option>
                                             <option value="in_progress">En cours de traitement</option>
-                                            <option value="resolved">Resolu par l'institution</option>
+                                            <option value="resolved">Résolu par l'institution</option>
                                             <option value="rejected">Non retenu</option>
                                         </select>
                                     </div>
@@ -1468,7 +1491,7 @@
                                         <label class="form-label fw-semibold">Paiement</label>
                                         <select class="form-select" id="reportPaymentFilter">
                                             <option value="">Tous</option>
-                                            <option value="paid">Paye</option>
+                                            <option value="paid">Payé</option>
                                             <option value="pending">En attente</option>
                                         </select>
                                     </div>
@@ -1479,12 +1502,12 @@
                                         </select>
                                     </div>
                                     <div class="col-md-4 col-lg-3">
-                                        <label class="form-label fw-semibold">Resolution</label>
+                                        <label class="form-label fw-semibold">Résolution</label>
                                         <select class="form-select" id="reportResolutionFilter">
                                             <option value="">Toutes</option>
                                             <option value="awaiting_institution">En attente de traitement</option>
-                                            <option value="institution_resolved">Resolu, en attente de votre confirmation</option>
-                                            <option value="confirmed">Resolution confirmee</option>
+                                            <option value="institution_resolved">Résolu, en attente de votre confirmation</option>
+                                            <option value="confirmed">Résolution confirmée</option>
                                             <option value="rejected">Signalement non retenu</option>
                                         </select>
                                     </div>
@@ -1502,7 +1525,7 @@
                             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
                                 <div>
                                     <div class="section-title">Historique des paiements</div>
-                                    <div class="muted-label">Retrouve tous tes paiements confirmes ou en attente, puis telecharge ton recu quand il est disponible.</div>
+                                    <div class="muted-label">Retrouve tous tes paiements confirmés ou en attente, puis télécharge ton reçu quand il est disponible.</div>
                                 </div>
                                 <button class="btn btn-ghost-premium px-4" type="button" data-panel-target="reports">Voir les signalements</button>
                             </div>
@@ -1510,19 +1533,19 @@
                                 <div class="row g-3">
                                     <div class="col-lg-5">
                                         <label class="form-label fw-semibold">Recherche</label>
-                                        <input class="form-control" id="paymentSearchFilter" placeholder="Reference paiement, signalement, canal...">
+                                        <input class="form-control" id="paymentSearchFilter" placeholder="Référence paiement, signalement, canal...">
                                     </div>
                                     <div class="col-md-4 col-lg-3">
                                         <label class="form-label fw-semibold">Statut</label>
                                         <select class="form-select" id="paymentStatusFilter">
                                             <option value="">Tous</option>
-                                            <option value="paid">Confirmes</option>
+                                            <option value="paid">Confirmés</option>
                                             <option value="pending">En attente</option>
-                                            <option value="failed">Echoues</option>
+                                            <option value="failed">Échoués</option>
                                         </select>
                                     </div>
                                     <div class="col-md-4 col-lg-3">
-                                        <label class="form-label fw-semibold">Recu</label>
+                                        <label class="form-label fw-semibold">Reçu</label>
                                         <select class="form-select" id="paymentReceiptFilter">
                                             <option value="">Tous</option>
                                             <option value="available">Disponible</option>
@@ -1543,7 +1566,7 @@
                             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
                                 <div>
                                     <div class="section-title">Historique des abonnements</div>
-                                    <div class="muted-label">Retrouve tes souscriptions annuelles, leurs statuts, leurs periodes et les paiements associes.</div>
+                                    <div class="muted-label">Retrouve tes souscriptions annuelles, leurs statuts, leurs périodes et les paiements associés.</div>
                                 </div>
                                 <button class="btn btn-premium px-4" type="button" id="openSubscriptionFromHistoryButton">Prendre un abonnement</button>
                             </div>
@@ -1551,7 +1574,7 @@
                                 <div class="row g-3">
                                     <div class="col-lg-5">
                                         <label class="form-label fw-semibold">Recherche</label>
-                                        <input class="form-control" id="subscriptionSearchFilter" placeholder="Plan, reference paiement, montant...">
+                                        <input class="form-control" id="subscriptionSearchFilter" placeholder="Plan, référence paiement, montant...">
                                     </div>
                                     <div class="col-md-4 col-lg-3">
                                         <label class="form-label fw-semibold">Statut</label>
@@ -1559,19 +1582,19 @@
                                             <option value="">Tous</option>
                                             <option value="active">Actifs</option>
                                             <option value="pending">En attente</option>
-                                            <option value="expired">Expires</option>
-                                            <option value="cancelled">Annules</option>
+                                            <option value="expired">Expirés</option>
+                                            <option value="cancelled">Annulés</option>
                                             <option value="suspended">Suspendus</option>
-                                            <option value="payment_failed">Paiement echoue</option>
+                                            <option value="payment_failed">Paiement échoué</option>
                                         </select>
                                     </div>
                                     <div class="col-md-4 col-lg-3">
                                         <label class="form-label fw-semibold">Paiement</label>
                                         <select class="form-select" id="subscriptionPaymentStatusFilter">
                                             <option value="">Tous</option>
-                                            <option value="paid">Confirmes</option>
+                                            <option value="paid">Confirmés</option>
                                             <option value="pending">En attente</option>
-                                            <option value="failed">Echoues</option>
+                                            <option value="failed">Échoués</option>
                                         </select>
                                     </div>
                                     <div class="col-md-4 col-lg-1 d-flex align-items-end">
@@ -1587,15 +1610,15 @@
                         <div class="dashboard-card">
                             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
                                 <div>
-                                    <div class="section-title">Mes retours d experience</div>
-                                    <div class="muted-label">Historique global de tes retours sur les signalements, dommages et dossiers traites.</div>
+                                    <div class="section-title">Mes retours d’expérience</div>
+                                    <div class="muted-label">Historique global de tes retours sur les signalements, dommages et dossiers traités.</div>
                                 </div>
                             </div>
                             <div class="mini-card mb-4">
                                 <div class="row g-3 align-items-end">
                                     <div class="col-md-4">
                                         <label class="form-label small text-secondary">Recherche</label>
-                                        <input class="form-control" id="rexSearchFilter" placeholder="Reference, organisation, commentaire...">
+                                        <input class="form-control" id="rexSearchFilter" placeholder="Référence, organisation, commentaire...">
                                     </div>
                                     <div class="col-md-3">
                                         <label class="form-label small text-secondary">Type</label>
@@ -1631,7 +1654,7 @@
                             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
                                 <div>
                                     <div class="section-title">Historique des dommages</div>
-                                    <div class="muted-label">Retrouvez les dommages declares apres resolution, leur statut de traitement et leurs justificatifs.</div>
+                                    <div class="muted-label">Retrouvez les dommages déclarés après résolution, leur statut de traitement et leurs justificatifs.</div>
                                 </div>
                                 <button class="btn btn-ghost-premium px-4" type="button" data-panel-target="reports">Voir les signalements</button>
                             </div>
@@ -1639,7 +1662,7 @@
                                 <div class="row g-3">
                                     <div class="col-lg-4">
                                         <label class="form-label fw-semibold">Recherche</label>
-                                        <input class="form-control" id="damageSearchFilter" placeholder="Reference, resume, organisation...">
+                                        <input class="form-control" id="damageSearchFilter" placeholder="Référence, résumé, organisation...">
                                     </div>
                                     <div class="col-md-4 col-lg-3">
                                         <label class="form-label fw-semibold">Organisation</label>
@@ -1653,8 +1676,8 @@
                                             <option value="">Tous</option>
                                             <option value="submitted">Soumis</option>
                                             <option value="in_progress">En cours</option>
-                                            <option value="resolved">Resolu</option>
-                                            <option value="rejected">Rejete</option>
+                                            <option value="resolved">Résolu</option>
+                                            <option value="rejected">Rejeté</option>
                                         </select>
                                     </div>
                                     <div class="col-md-4 col-lg-2">
@@ -1679,7 +1702,7 @@
                             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
                                 <div>
                                     <div class="section-title">Historique de mes dossiers</div>
-                                    <div class="muted-label">Consulte l avancement des dossiers ouverts a partir de tes signalements et les mises a jour enregistrees par le traitement du dossier.</div>
+                                    <div class="muted-label">Consulte l’avancement des dossiers ouverts à partir de tes signalements et les mises à jour enregistrées par le traitement du dossier.</div>
                                 </div>
                                 <button class="btn btn-ghost-premium px-4" type="button" data-panel-target="reports">Voir les signalements</button>
                             </div>
@@ -1696,32 +1719,32 @@
                     <div class="modal-header px-4 py-3 border-0" style="background: var(--acepen-navy); color: white;">
                         <div>
                             <div class="small text-white-50 fw-semibold mb-1">Nouveau signalement</div>
-                            <div class="h5 fw-bold mb-0">Declarer un probleme</div>
+                            <div class="h5 fw-bold mb-0">Déclarer un problème</div>
                         </div>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                             <div class="modal-body p-4 p-lg-4">
                         <form id="reportForm" class="row g-3">
                             <div class="col-md-4">
-                                <label class="form-label fw-semibold">Application concernee<span class="required-star">*</span></label>
+                                <label class="form-label fw-semibold">Application concernée<span class="required-star">*</span></label>
                                 <div class="select-search-shell">
                                     <input class="form-control select-search-input" style="display:block;width:100%;" type="search" data-search-select-target="reportApplicationId" autocomplete="off" placeholder="Rechercher une application">
                                     <button class="select-search-toggle" type="button" data-search-toggle-target="reportApplicationId" aria-label="Afficher les options"></button>
                                 </div>
-                                <div class="select-search-help">Champ de selection avec recherche.</div>
+                                <div class="select-search-help">Champ de sélection avec recherche.</div>
                                 <select class="form-select d-none" id="reportApplicationId" required></select>
                                 <div class="select-search-results" id="reportApplicationIdResults"></div>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label fw-semibold">Organisation concernee<span class="required-star">*</span></label>
+                                <label class="form-label fw-semibold">Organisation concernée<span class="required-star">*</span></label>
                                 <div class="select-search-shell">
                                     <input class="form-control select-search-input" style="display:block;width:100%;" type="search" data-search-select-target="reportOrganizationType" autocomplete="off" placeholder="Rechercher une organisation">
                                     <button class="select-search-toggle" type="button" data-search-toggle-target="reportOrganizationType" aria-label="Afficher les options"></button>
                                 </div>
-                                <div class="select-search-help">Champ de selection avec recherche.</div>
+                                <div class="select-search-help">Champ de sélection avec recherche.</div>
                                 <select class="form-select d-none" id="reportOrganizationType" required></select>
                                 <div class="select-search-results" id="reportOrganizationTypeResults"></div>
-                                <div class="location-search-hint">Choisissez d abord l application, puis l organisation concernee, pour afficher uniquement les identifiants et types de signal compatibles.</div>
+                                <div class="location-search-hint">Choisissez d’abord l’application, puis l’organisation concernée, pour afficher uniquement les identifiants et types de signal compatibles.</div>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label fw-semibold">identifiant<span class="required-star">*</span></label>
@@ -1729,7 +1752,7 @@
                                     <input class="form-control select-search-input" style="display:block;width:100%;" type="search" data-search-select-target="reportMeterId" autocomplete="off" placeholder="Rechercher un identifiant">
                                     <button class="select-search-toggle" type="button" data-search-toggle-target="reportMeterId" aria-label="Afficher les options"></button>
                                 </div>
-                                <div class="select-search-help">Champ de selection avec recherche.</div>
+                                <div class="select-search-help">Champ de sélection avec recherche.</div>
                                 <select class="form-select d-none" name="meter_id" id="reportMeterId" required></select>
                                 <div class="select-search-results" id="reportMeterIdResults"></div>
                             </div>
@@ -1739,15 +1762,15 @@
                                     <input class="form-control select-search-input" style="display:block;width:100%;" type="search" data-search-select-target="reportSignalCode" autocomplete="off" placeholder="Rechercher un type de signal">
                                     <button class="select-search-toggle" type="button" data-search-toggle-target="reportSignalCode" aria-label="Afficher les options"></button>
                                 </div>
-                                <div class="select-search-help">Champ de selection avec recherche.</div>
+                                <div class="select-search-help">Champ de sélection avec recherche.</div>
                                 <select class="form-select d-none" name="signal_code" id="reportSignalCode" required></select>
                                 <div class="select-search-results" id="reportSignalCodeResults"></div>
-                                <div class="location-search-hint mt-2" id="reportSignalInlineDescription">Selectionnez un type de signal pour afficher sa description et son delai de resolution.</div>
+                                <div class="location-search-hint mt-2" id="reportSignalInlineDescription">Sélectionnez un type de signal pour afficher sa description et son délai de résolution.</div>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label fw-semibold">Date et heure<span class="required-star">*</span></label>
                                 <input class="form-control" type="datetime-local" name="occurred_at" id="reportOccurredAt" readonly>
-                                <div class="location-search-hint">La date et l heure actuelles sont appliquees automatiquement au signalement.</div>
+                                <div class="location-search-hint">La date et l’heure actuelles sont appliquées automatiquement au signalement.</div>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label fw-semibold">Pays<span class="required-star">*</span></label>
@@ -1755,7 +1778,7 @@
                                     <input class="form-control select-search-input" style="display:block;width:100%;" type="search" data-search-select-target="reportCountryId" autocomplete="off" placeholder="Rechercher un pays">
                                     <button class="select-search-toggle" type="button" data-search-toggle-target="reportCountryId" aria-label="Afficher les options"></button>
                                 </div>
-                                <div class="select-search-help">Champ de selection avec recherche.</div>
+                                <div class="select-search-help">Champ de sélection avec recherche.</div>
                                 <select class="form-select d-none" name="country_id" id="reportCountryId" required></select>
                                 <div class="select-search-results" id="reportCountryIdResults"></div>
                             </div>
@@ -1765,7 +1788,7 @@
                                     <input class="form-control select-search-input" style="display:block;width:100%;" type="search" data-search-select-target="reportCityId" autocomplete="off" placeholder="Rechercher une ville">
                                     <button class="select-search-toggle" type="button" data-search-toggle-target="reportCityId" aria-label="Afficher les options"></button>
                                 </div>
-                                <div class="select-search-help">Champ de selection avec recherche.</div>
+                                <div class="select-search-help">Champ de sélection avec recherche.</div>
                                 <select class="form-select d-none" name="city_id" id="reportCityId" required></select>
                                 <div class="select-search-results" id="reportCityIdResults"></div>
                             </div>
@@ -1775,19 +1798,19 @@
                                     <input class="form-control select-search-input" style="display:block;width:100%;" type="search" data-search-select-target="reportCommuneId" autocomplete="off" placeholder="Rechercher une commune">
                                     <button class="select-search-toggle" type="button" data-search-toggle-target="reportCommuneId" aria-label="Afficher les options"></button>
                                 </div>
-                                <div class="select-search-help">Champ de selection avec recherche.</div>
+                                <div class="select-search-help">Champ de sélection avec recherche.</div>
                                 <select class="form-select d-none" name="commune_id" id="reportCommuneId" required></select>
                                 <div class="select-search-results" id="reportCommuneIdResults"></div>
                             </div>
                             <div class="col-12">
                                 <label class="form-label fw-semibold">Adresse du lieu</label>
                                 <input class="form-control" name="address" id="reportAddressSearch" placeholder="Rechercher une adresse ou utiliser la position automatique">
-                                <div class="location-search-hint">Ce champ peut recuperer automatiquement la localisation du signalement a partir de Google Places.</div>
+                                <div class="location-search-hint">Ce champ peut récupérer automatiquement la localisation du signalement à partir de Google Places.</div>
                             </div>
                             <div class="col-12">
                                 <div class="soft-panel">
                                     <div class="fw-bold mb-1">Position du signalement</div>
-                                    <div class="muted-label">La position du signalement est recuperee automatiquement en arriere-plan. Si elle n est pas disponible, la position du identifiant ou l adresse choisie est utilisee automatiquement.</div>
+                                    <div class="muted-label">La position du signalement est récupérée automatiquement en arrière-plan. Si elle n’est pas disponible, la position de l’identifiant ou l’adresse choisie est utilisée automatiquement.</div>
                                 </div>
                                 <input type="hidden" name="latitude" id="reportLatitude">
                                 <input type="hidden" name="longitude" id="reportLongitude">
@@ -1796,14 +1819,14 @@
                             </div>
                             <div class="col-12">
                                 <div class="soft-panel d-none" id="reportNoMeterHint">
-                                    <div class="fw-bold mb-1">Aucun identifiant disponible pour ce reseau</div>
-                                    <div class="muted-label">Ajoutez d abord un identifiant sur ce reseau dans la section <strong>Mes identifiants</strong>, puis revenez declarer votre signalement.</div>
+                                    <div class="fw-bold mb-1">Aucun identifiant disponible pour ce réseau</div>
+                                    <div class="muted-label">Ajoutez d’abord un identifiant sur ce réseau dans la section <strong>Mes identifiants</strong>, puis revenez déclarer votre signalement.</div>
                                 </div>
                             </div>
                             <div class="col-12">
                                 <div class="signal-field-card">
-                                    <div class="fw-bold mb-2" id="reportSignalMetaTitle">Donnees complementaires</div>
-                                    <div class="muted-label mb-3" id="reportSignalMetaDescription">Selectionnez un type de signal pour voir les donnees requises.</div>
+                                    <div class="fw-bold mb-2" id="reportSignalMetaTitle">Données complémentaires</div>
+                                    <div class="muted-label mb-3" id="reportSignalMetaDescription">Sélectionnez un type de signal pour voir les données requises.</div>
                                     <div id="signalPayloadFields" class="row g-3"></div>
                                 </div>
                             </div>
@@ -1820,7 +1843,7 @@
                 <div class="modal-content border-0" style="border-radius: 28px; overflow: hidden;">
                     <div class="modal-header px-4 py-3 border-0" style="background: var(--acepen-navy); color: white;">
                         <div>
-                            <div class="small text-white-50 fw-semibold mb-1">Detail du signalement</div>
+                            <div class="small text-white-50 fw-semibold mb-1">Détail du signalement</div>
                             <div class="h5 fw-bold mb-0" id="reportDetailTitle">Signalement</div>
                         </div>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -1837,8 +1860,8 @@
                 <div class="modal-content border-0" style="border-radius: 28px; overflow: hidden;">
                     <div class="modal-header px-4 py-3 border-0" style="background: var(--acepen-copper); color: white;">
                         <div>
-                            <div class="small text-white-50 fw-semibold mb-1">Declaration de dommage</div>
-                            <div class="h5 fw-bold mb-0" id="damageDeclarationTitle">Signaler un dommage apres resolution</div>
+                            <div class="small text-white-50 fw-semibold mb-1">Déclaration de dommage</div>
+                            <div class="h5 fw-bold mb-0" id="damageDeclarationTitle">Signaler un dommage après résolution</div>
                         </div>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
@@ -1848,32 +1871,32 @@
                             <div class="col-12">
                                 <div class="soft-panel">
                                     <div class="fw-bold mb-1">Quand utiliser ce bouton ?</div>
-                                    <div class="muted-label">Utilisez cette declaration si le probleme a bien ete traite mais qu un dommage materiel, financier ou d usage reste a signaler apres la resolution du sinistre.</div>
+                                    <div class="muted-label">Utilisez cette déclaration si le problème a bien été traité mais qu’un dommage matériel, financier ou d’usage reste à signaler après la résolution du sinistre.</div>
                                 </div>
                             </div>
                             <div class="col-12">
                                 <label class="form-label fw-semibold">Resume du dommage</label>
-                                <input class="form-control" type="text" name="damage_summary" maxlength="255" placeholder="Ex: appareils endommages, denrees perdues, installation interne touchee" required>
+                                <input class="form-control" type="text" name="damage_summary" maxlength="255" placeholder="Ex: appareils endommagés, denrées perdues, installation interne touchée" required>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label fw-semibold">Montant estime (FCFA)</label>
+                                <label class="form-label fw-semibold">Montant estimé (FCFA)</label>
                                 <input class="form-control" type="number" min="0" step="0.01" name="damage_amount_estimated" placeholder="15000">
                             </div>
                             <div class="col-md-8">
                                 <label class="form-label fw-semibold">Justificatif</label>
                                 <input class="form-control" type="file" id="damageAttachmentInput" accept="image/*,application/pdf">
-                                <div class="geo-help mt-2">Photo ou PDF facultatif. Sur mobile, l appareil peut proposer directement la camera si disponible.</div>
+                                <div class="geo-help mt-2">Photo ou PDF facultatif. Sur mobile, l’appareil peut proposer directement la caméra si disponible.</div>
                             </div>
                             <div class="col-12 d-none" id="damageAttachmentPreviewWrap">
                                 <div class="soft-panel">
-                                    <div class="small text-secondary fw-semibold mb-2">Apercu du justificatif</div>
-                                    <img id="damageAttachmentPreviewImage" alt="Apercu du justificatif" class="img-fluid rounded-4 d-none" style="max-height: 220px; object-fit: cover;">
+                                    <div class="small text-secondary fw-semibold mb-2">Aperçu du justificatif</div>
+                                    <img id="damageAttachmentPreviewImage" alt="Aperçu du justificatif" class="img-fluid rounded-4 d-none" style="max-height: 220px; object-fit: cover;">
                                     <div id="damageAttachmentPreviewFile" class="fw-semibold d-none"></div>
                                 </div>
                             </div>
                             <div class="col-12">
-                                <label class="form-label fw-semibold">Details complementaires</label>
-                                <textarea class="form-control" name="damage_notes" rows="4" placeholder="Expliquez l impact du sinistre, ce qui reste endommage et les informations utiles pour l analyse."></textarea>
+                                <label class="form-label fw-semibold">Détails complémentaires</label>
+                                <textarea class="form-control" name="damage_notes" rows="4" placeholder="Expliquez l’impact du sinistre, ce qui reste endommagé et les informations utiles pour l’analyse."></textarea>
                             </div>
                             <div class="col-12 d-flex justify-content-end gap-2">
                                 <button class="btn btn-ghost-premium px-4" type="button" data-bs-dismiss="modal">Annuler</button>
@@ -1890,8 +1913,8 @@
                 <div class="modal-content border-0" style="border-radius: 28px; overflow: hidden;">
                     <div class="modal-header px-4 py-3 border-0" style="background: var(--acepen-navy); color: white;">
                         <div>
-                            <div class="small text-white-50 fw-semibold mb-1">Apercu du recu</div>
-                            <div class="h5 fw-bold mb-0" id="paymentReceiptPreviewTitle">Recu de paiement</div>
+                            <div class="small text-white-50 fw-semibold mb-1">Aperçu du reçu</div>
+                            <div class="h5 fw-bold mb-0" id="paymentReceiptPreviewTitle">Reçu de paiement</div>
                         </div>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
@@ -1900,7 +1923,7 @@
                     </div>
                     <div class="modal-footer border-0 px-4 pb-4 pt-0" style="background: #f4f7fb;">
                         <button class="btn btn-ghost-premium px-4" type="button" data-bs-dismiss="modal">Fermer</button>
-                        <button class="btn btn-premium px-4" type="button" id="paymentReceiptPreviewDownloadButton">Telecharger le PDF</button>
+                        <button class="btn btn-premium px-4" type="button" id="paymentReceiptPreviewDownloadButton">Télécharger le PDF</button>
                     </div>
                 </div>
             </div>
@@ -1928,8 +1951,8 @@
                             </div>
                         </div>
                         <div class="soft-panel mb-3">
-                            <div class="fw-bold mb-1">Ce que l abonnement débloque</div>
-                            <div class="muted-label">La creation de signalements est reservee aux UP avec un abonnement annuel actif ou en periode de grace.</div>
+                            <div class="fw-bold mb-1">Ce que l’abonnement débloque</div>
+                            <div class="muted-label">La création de signalements est réservée aux UP avec un abonnement annuel actif ou en période de grâce.</div>
                         </div>
                         <div class="soft-panel d-none" id="subscriptionPaymentPanel">
                             <div class="small text-secondary fw-semibold mb-1">Paiement en attente</div>
@@ -1957,7 +1980,7 @@
                 <div class="modal-content border-0" style="border-radius: 28px; overflow: hidden;">
                     <div class="modal-header px-4 py-3 border-0" style="background: var(--acepen-navy); color: white;">
                         <div>
-                            <div class="small text-white-50 fw-semibold mb-1">Retour d experience</div>
+                            <div class="small text-white-50 fw-semibold mb-1">Retour d’expérience</div>
                             <div class="h5 fw-bold mb-0" id="rexFeedbackTitle">Donner mon retour</div>
                         </div>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -1969,16 +1992,16 @@
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">Note globale</label>
                                 <select class="form-select" name="rating" required>
-                                    <option value="">Selectionner</option>
+                                    <option value="">Sélectionner</option>
                                     <option value="5">5 - Excellent</option>
                                     <option value="4">4 - Bon</option>
                                     <option value="3">3 - Moyen</option>
                                     <option value="2">2 - Insatisfaisant</option>
-                                    <option value="1">1 - Tres insatisfaisant</option>
+                                    <option value="1">1 - Très insatisfaisant</option>
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">Le besoin est-il resolu ?</label>
+                                <label class="form-label fw-semibold">Le besoin est-il résolu ?</label>
                                 <select class="form-select" name="is_resolved">
                                     <option value="">Non applicable</option>
                                     <option value="1">Oui</option>
@@ -1986,10 +2009,10 @@
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">Le traitement a-t-il ete assez rapide ?</label>
+                                <label class="form-label fw-semibold">Le traitement a-t-il été assez rapide ?</label>
                                 <select class="form-select" name="response_time_rating">
                                     <option value="">Non note</option>
-                                    <option value="5">5 - Tres satisfait</option>
+                                    <option value="5">5 - Très satisfait</option>
                                     <option value="4">4 - Satisfait</option>
                                     <option value="3">3 - Moyen</option>
                                     <option value="2">2 - Peu satisfait</option>
@@ -1997,10 +2020,10 @@
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">Les informations recues etaient-elles claires ?</label>
+                                <label class="form-label fw-semibold">Les informations reçues étaient-elles claires ?</label>
                                 <select class="form-select" name="communication_rating">
                                     <option value="">Non note</option>
-                                    <option value="5">5 - Tres satisfait</option>
+                                    <option value="5">5 - Très satisfait</option>
                                     <option value="4">4 - Satisfait</option>
                                     <option value="3">3 - Moyen</option>
                                     <option value="2">2 - Peu satisfait</option>
@@ -2008,10 +2031,10 @@
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">La solution apportee repond-elle au besoin ?</label>
+                                <label class="form-label fw-semibold">La solution apportée répond-elle au besoin ?</label>
                                 <select class="form-select" name="quality_rating">
                                     <option value="">Non note</option>
-                                    <option value="5">5 - Tres satisfait</option>
+                                    <option value="5">5 - Très satisfait</option>
                                     <option value="4">4 - Satisfait</option>
                                     <option value="3">3 - Moyen</option>
                                     <option value="2">2 - Peu satisfait</option>
@@ -2022,7 +2045,7 @@
                                 <label class="form-label fw-semibold">Le traitement vous a-t-il semble juste ?</label>
                                 <select class="form-select" name="fairness_rating">
                                     <option value="">Non note</option>
-                                    <option value="5">5 - Tres satisfait</option>
+                                    <option value="5">5 - Très satisfait</option>
                                     <option value="4">4 - Satisfait</option>
                                     <option value="3">3 - Moyen</option>
                                     <option value="2">2 - Peu satisfait</option>
@@ -2031,7 +2054,7 @@
                             </div>
                             <div class="col-12">
                                 <label class="form-label fw-semibold">Commentaire</label>
-                                <textarea class="form-control" name="comment" rows="4" maxlength="3000" placeholder="Expliquez votre experience, ce qui a bien fonctionne ou ce qui doit etre ameliore."></textarea>
+                                <textarea class="form-control" name="comment" rows="4" maxlength="3000" placeholder="Expliquez votre expérience, ce qui a bien fonctionné ou ce qui doit être amélioré."></textarea>
                             </div>
                             <div class="col-12 d-flex justify-content-end gap-2">
                                 <button class="btn btn-ghost-premium px-4" type="button" data-bs-dismiss="modal">Annuler</button>
@@ -2090,6 +2113,9 @@
                     subscriptionPayments: [],
                     subscriptionHistoryPage: 1,
                     subscriptionHistoryPageSize: 5,
+                    household: null,
+                    households: [],
+                    selectedHouseholdId: null,
                     rexFeedbacks: [],
                     rexFeedbacksPage: 1,
                     rexFeedbacksPageSize: 5,
@@ -2254,7 +2280,7 @@
 
                     results.innerHTML = matches.length
                         ? matches.map((option) => `<button class="public-select-option" type="button" data-public-select-value="${option.value}" data-public-select-label="${option.label}">${option.label}</button>`).join('')
-                        : '<div class="select-search-empty">Aucun resultat</div>';
+                        : '<div class="select-search-empty">Aucun résultat</div>';
 
                     const shouldOpen = forceOpen || normalizedQuery === '' || (!hasExactMatch && normalizedQuery !== selectedLabel);
                     results.classList.toggle('is-open', shouldOpen);
@@ -2270,12 +2296,12 @@
                         const shell = document.createElement('div');
                         shell.className = 'public-select-shell';
                         shell.innerHTML = `
-                            <input class="form-control public-select-input" id="${selectId}PublicInput" type="search" autocomplete="off" placeholder="Rechercher ou selectionner">
+                            <input class="form-control public-select-input" id="${selectId}PublicInput" type="search" autocomplete="off" placeholder="Rechercher ou sélectionner">
                             <button class="public-select-toggle" id="${selectId}PublicToggle" type="button" aria-label="Afficher les options"></button>
                         `;
                         const help = document.createElement('div');
                         help.className = 'public-select-help';
-                        help.textContent = 'Champ de selection avec recherche.';
+                        help.textContent = 'Champ de sélection avec recherche.';
                         const results = document.createElement('div');
                         results.className = 'public-select-results';
                         results.id = `${selectId}PublicResults`;
@@ -2388,7 +2414,7 @@
 
                     results.innerHTML = filteredOptions.length
                         ? filteredOptions.map((option) => `<button class="select-search-option" type="button" data-search-select-value="${option.value}" data-search-select-label="${option.label}">${option.label}</button>`).join('')
-                        : '<div class="select-search-empty">Aucun resultat</div>';
+                        : '<div class="select-search-empty">Aucun résultat</div>';
 
                     const shouldOpen = forceOpenAll || query === '' || (!hasExactMatch && query !== selectedLabel);
                     results.classList.toggle('is-open', shouldOpen);
@@ -2606,7 +2632,7 @@
                     }, 'meter_location');
 
                     if (!silent) {
-                        showToast('Position du identifiant appliquee au signalement.');
+                        showToast('Position de l’identifiant appliquée au signalement.');
                     }
                 }
 
@@ -2639,13 +2665,13 @@
                 function translateGeoError(error) {
                     switch (error.code) {
                         case error.PERMISSION_DENIED:
-                            return 'Acces a la position refuse. Active la localisation dans les parametres puis reessaie.';
+                            return 'Accès à la position refusé. Active la localisation dans les paramètres puis réessaie.';
                         case error.POSITION_UNAVAILABLE:
-                            return 'Position indisponible. Active les services de localisation du telephone ou du navigateur, ou utilise la saisie manuelle.';
+                            return 'Position indisponible. Active les services de localisation du téléphone ou du navigateur, ou utilise la saisie manuelle.';
                         case error.TIMEOUT:
-                            return 'Le delai de recuperation de la position a expire. Reessaie ou utilise la saisie manuelle.';
+                            return 'Le délai de récupération de la position a expiré. Réessaie ou utilise la saisie manuelle.';
                         default:
-                            return error.message || 'Impossible de recuperer la position.';
+                            return error.message || 'Impossible de récupérer la position.';
                     }
                 }
 
@@ -2676,7 +2702,7 @@
 
                     if (!navigator.geolocation) {
                         if (!silent) {
-                            showToast('La geolocalisation n est pas disponible sur cet appareil. Utilise la saisie manuelle.', true);
+                            showToast('La géolocalisation n’est pas disponible sur cet appareil. Utilise la saisie manuelle.', true);
                         }
                         return;
                     }
@@ -2686,7 +2712,7 @@
                             setGeoManualMode(prefix, false);
                             fillGeoFields(prefix, position.coords);
                             if (!silent) {
-                                showToast('Position geographique recuperee.');
+                                showToast('Position géographique récupérée.');
                             }
                         },
                         (error) => {
@@ -2696,7 +2722,7 @@
                                 if (error.code === error.PERMISSION_DENIED && force) {
                                     setTimeout(() => {
                                         if (!openLocationSettings()) {
-                                            showToast('Ouvre les parametres de ton navigateur et active la localisation pour ce site.', true);
+                                            showToast('Ouvre les paramètres de ton navigateur et active la localisation pour ce site.', true);
                                         }
                                     }, 350);
                                 }
@@ -2826,7 +2852,7 @@
                     subNeighborhoodSelect.value = subNeighborhoods.some((subNeighborhood) => subNeighborhood.name === selectedSubNeighborhood) ? selectedSubNeighborhood : '';
                 }
 
-                function buildOptions(items, placeholder = 'Selectionner') {
+                function buildOptions(items, placeholder = 'Sélectionner') {
                     if (!items.length) return `<option value="">${placeholder}</option>`;
                     return items.map((item) => `<option value="${item.id ?? item.name}">${item.name}</option>`).join('');
                 }
@@ -3252,9 +3278,9 @@
                     const container = document.getElementById('signalPayloadFields');
 
                     if (!signal) {
-                        inlineDescription.textContent = 'Selectionnez un type de signal pour afficher sa description et son delai de resolution.';
-                        title.textContent = 'Donnees complementaires';
-                        description.textContent = 'Selectionnez un type de signal pour voir les donnees requises.';
+                        inlineDescription.textContent = 'Sélectionnez un type de signal pour afficher sa description et son délai de résolution.';
+                        title.textContent = 'Données complémentaires';
+                        description.textContent = 'Sélectionnez un type de signal pour voir les données requises.';
                         container.innerHTML = '';
                         return;
                     }
@@ -3272,12 +3298,12 @@
                         signalDescriptionParts.push(signalDescription);
                     }
 
-                    signalDescriptionParts.push(slaLabel ? `SLA cible ${slaLabel}` : 'SLA cible non defini');
+                    signalDescriptionParts.push(slaLabel ? `SLA cible ${slaLabel}` : 'SLA cible non défini');
                     inlineDescription.textContent = signalDescriptionParts.join(' · ');
                     description.textContent = signalDescriptionParts.join(' · ');
 
                     if (!signal.data_fields?.length) {
-                        container.innerHTML = '<div class="col-12"><div class="muted-label">Aucune donnee complementaire requise pour ce signal.</div></div>';
+                        container.innerHTML = '<div class="col-12"><div class="muted-label">Aucune donnée complémentaire requise pour ce signal.</div></div>';
                         return;
                     }
 
@@ -3296,15 +3322,15 @@
                                             <input class="d-none" type="file" accept="image/*" data-signal-key="${field.key}" data-signal-field-type="photo" ${field.required ? 'required' : ''}>
                                         </label>
                                     </div>
-                                    <div class="muted-label mt-2">Choisissez une image existante ou prenez-la directement depuis l appareil.</div>
-                                    <img class="img-fluid rounded-4 border mt-3 d-none" data-signal-preview-for="${field.key}" alt="Apercu photo ${field.label}" style="max-height: 220px; object-fit: cover;">
+                                    <div class="muted-label mt-2">Choisissez une image existante ou prenez-la directement depuis l’appareil.</div>
+                                    <img class="img-fluid rounded-4 border mt-3 d-none" data-signal-preview-for="${field.key}" alt="Aperçu photo ${field.label}" style="max-height: 220px; object-fit: cover;">
                                 `
                                 : isGpsSignalField(field)
                                     ? `<input class="form-control" type="text" data-signal-key="${field.key}" data-signal-auto-gps="1" placeholder="${field.label}" readonly ${field.required ? 'required' : ''}>`
                                     : field.type === 'select'
                                         ? `
                                             <select class="form-select" data-signal-key="${field.key}" ${field.required ? 'required' : ''}>
-                                                <option value="">Selectionner</option>
+                                                <option value="">Sélectionner</option>
                                                 ${(field.options || []).map((option) => `<option value="${escapeHtml(option)}">${escapeHtml(option)}</option>`).join('')}
                                             </select>
                                         `
@@ -3334,19 +3360,19 @@
                     document.getElementById('dashboardGreeting').textContent = `Bienvenue ${user.first_name} ${user.last_name}`;
                     document.getElementById('userStatus').textContent = user.status || '-';
                     document.getElementById('profileStatusPill').textContent = user.status || '-';
-                    document.getElementById('sidebarUserLocation').textContent = [user.commune, user.address].filter(Boolean).join(' · ') || 'Localisation non renseignee';
+                    document.getElementById('sidebarUserLocation').textContent = [user.commune, user.address].filter(Boolean).join(' · ') || 'Localisation non renseignée';
                     const hasSidebarGps = !!(user.latitude && user.longitude);
                     document.getElementById('sidebarUserGps').textContent = hasSidebarGps
                         ? `GPS ${user.latitude}, ${user.longitude}`
-                        : 'GPS non renseigne';
+                        : 'GPS non renseigné';
                     document.getElementById('sidebarRequestGpsButton')?.classList.toggle('d-none', hasSidebarGps);
                     setTextIfExists('overviewUserName', `${user.first_name} ${user.last_name}`);
-                    setTextIfExists('overviewProfileLine', [user.phone, user.commune].filter(Boolean).join(' · ') || 'Informations de profil a completer');
+                    setTextIfExists('overviewProfileLine', [user.phone, user.commune].filter(Boolean).join(' · ') || 'Informations de profil à compléter');
                     document.getElementById('profileFullNameCard').textContent = `${user.first_name} ${user.last_name}`;
                     document.getElementById('profilePhoneCard').textContent = user.phone || '-';
                     document.getElementById('profileCommuneCard').textContent = user.commune || '-';
-                    document.getElementById('profileAddressCard').textContent = user.address || 'Adresse non renseignee';
-                    document.getElementById('profileGpsCard').textContent = user.latitude && user.longitude ? `GPS ${user.latitude}, ${user.longitude}` : 'Position GPS non renseignee';
+                    document.getElementById('profileAddressCard').textContent = user.address || 'Adresse non renseignée';
+                    document.getElementById('profileGpsCard').textContent = user.latitude && user.longitude ? `GPS ${user.latitude}, ${user.longitude}` : 'Position GPS non renseignée';
                     document.getElementById('profileUserTypeCard').textContent = user.public_user_type?.name || '-';
                     document.getElementById('profileWhatsappCard').textContent = user.is_whatsapp_number ? 'Oui' : 'Non';
                     document.getElementById('profileStatusCard').textContent = user.status || '-';
@@ -3498,7 +3524,7 @@
                             <div class="member-wallet-locked">
                                 <div class="small text-secondary fw-semibold mb-2">Carte membre consommateur</div>
                                 <div class="fw-bold mb-1">Disponible avec un abonnement actif</div>
-                                <div class="muted-label mb-3">Active ton abonnement annuel pour obtenir ta carte virtuelle et acceder aux reductions partenaires.</div>
+                                <div class="muted-label mb-3">Active ton abonnement annuel pour obtenir ta carte virtuelle et accéder aux réductions partenaires.</div>
                                 <button class="btn btn-premium w-100" type="button" id="memberWalletSubscribeButton">Prendre un abonnement</button>
                             </div>
                         `;
@@ -3563,12 +3589,12 @@
                         ? `${primaryMeter.organization_name || primaryMeter.network_type} · ${primaryMeter.meter_number}`
                         : 'Aucun identifiant principal');
                     setTextIfExists('overviewPrimaryMeterMeta', primaryMeter
-                        ? [primaryMeter.label, primaryMeter.commune, primaryMeter.address].filter(Boolean).join(' · ') || 'identifiant pret pour les declarations'
-                        : 'Ajoute un identifiant pour accelerer tes declarations.');
+                        ? [primaryMeter.label, primaryMeter.commune, primaryMeter.address].filter(Boolean).join(' · ') || 'identifiant prêt pour les déclarations'
+                        : 'Ajoute un identifiant pour accélérer tes déclarations.');
 
                     const list = document.getElementById('metersList');
                     if (!meters.length) {
-                        list.innerHTML = '<div class="col-12"><div class="mini-card"><div class="fw-bold mb-1">Aucun identifiant enregistre</div><div class="muted-label">Ajoutez vos identifiants pour alimenter vos futurs signalements.</div></div></div>';
+                        list.innerHTML = '<div class="col-12"><div class="mini-card"><div class="fw-bold mb-1">Aucun identifiant enregistré</div><div class="muted-label">Ajoutez vos identifiants pour alimenter vos futurs signalements.</div></div></div>';
                         return;
                     }
                     list.innerHTML = meters.map((meter) => `
@@ -3578,36 +3604,77 @@
                                     <div><div class="fw-bold">${meter.label || meter.organization_name || meter.network_type}</div><div class="muted-label">${meter.meter_number}</div></div>
                                     <span class="status-pill">${meter.is_primary ? 'Principal' : (meter.organization_name || meter.network_type)}</span>
                                 </div>
-                                <div class="muted-label mb-2">${meter.application_name || 'Application non definie'}</div>
-                                <div class="muted-label mb-3">${[meter.commune, meter.neighborhood, meter.sub_neighborhood].filter(Boolean).join(' · ') || 'Commune non renseignee'}${meter.address ? ' · ' + meter.address : ''}</div>
-                                <div class="muted-label mb-3">${meter.latitude && meter.longitude ? `GPS ${meter.latitude}, ${meter.longitude}` : 'Position GPS non renseignee'}</div>
+                                <div class="muted-label mb-2">${meter.application_name || 'Application non définie'}</div>
+                                <div class="muted-label mb-3">${[meter.commune, meter.neighborhood, meter.sub_neighborhood].filter(Boolean).join(' · ') || 'Commune non renseignée'}${meter.address ? ' · ' + meter.address : ''}</div>
+                                <div class="muted-label mb-3">${meter.latitude && meter.longitude ? `GPS ${meter.latitude}, ${meter.longitude}` : 'Position GPS non renseignée'}</div>
                                 <button class="btn btn-ghost-premium w-100" type="button" onclick="window.AcepenPortal.prefillMeter(${meter.id})">Modifier</button>
                             </div>
                         </div>
                     `).join('');
                 }
 
-                function renderHousehold(household) {
+                function setHouseholdFormVisible(visible) {
+                    const emptyState = document.getElementById('householdEmptyState');
+                    const cancelButton = document.getElementById('cancelHouseholdFormButton');
+
+                    emptyState.classList.toggle('d-none', !visible);
+                    cancelButton.classList.toggle('d-none', !state.households.length);
+                }
+
+                function renderHouseholdsList() {
+                    const list = document.getElementById('householdsList');
+
+                    if (!list) {
+                        return;
+                    }
+
+                    list.innerHTML = state.households.map((household) => `
+                        <button class="btn ${String(household.id) === String(state.selectedHouseholdId) ? 'btn-premium' : 'btn-ghost-premium'} w-100 text-start" type="button" data-household-select="${household.id}">
+                            <div class="fw-bold">${household.name || 'Gbonhi familial'}</div>
+                            <div class="small">${[household.commune, household.address].filter(Boolean).join(' · ') || 'Adresse non renseignée'} · ${household.members?.length ?? 0} membre(s)</div>
+                        </button>
+                    `).join('');
+
+                    list.querySelectorAll('[data-household-select]').forEach((button) => {
+                        button.addEventListener('click', () => {
+                            const selectedHousehold = state.households.find((item) => String(item.id) === String(button.dataset.householdSelect));
+
+                            if (selectedHousehold) {
+                                renderHousehold(selectedHousehold, state.households);
+                            }
+                        });
+                    });
+                }
+
+                function renderHousehold(household, households = null) {
+                    if (households !== null) {
+                        state.households = households;
+                    } else if (household && !state.households.some((item) => String(item.id) === String(household.id))) {
+                        state.households = [household, ...state.households];
+                    }
+
                     state.household = household;
+                    state.selectedHouseholdId = household?.id || null;
                     document.getElementById('householdMemberCount').textContent = household?.members?.length ?? 0;
                     setTextIfExists('overviewHouseholdSummary', household
                         ? household.name || 'Gbonhi principal'
-                        : 'Aucun Gbonhi enregistre');
+                        : 'Aucun Gbonhi enregistré');
                     setTextIfExists('overviewHouseholdMeta', household
                         ? `${household.members?.length ?? 0} membre(s) · ${household.pending_invitations?.length ?? 0} invitation(s) en attente`
-                        : 'Cree un Gbonhi pour centraliser les signalements familiaux.');
+                        : 'Crée un Gbonhi pour centraliser les signalements familiaux.');
 
-                    const emptyState = document.getElementById('householdEmptyState');
                     const panel = document.getElementById('householdPanel');
+                    document.getElementById('showHouseholdFormButton').textContent = state.households.length ? 'Créer un autre Gbonhi' : 'Créer mon Gbonhi';
                     if (!household) {
-                        emptyState.classList.remove('d-none');
+                        setHouseholdFormVisible(true);
                         panel.classList.add('d-none');
                         return;
                     }
-                    emptyState.classList.add('d-none');
+                    setHouseholdFormVisible(false);
                     panel.classList.remove('d-none');
+                    renderHouseholdsList();
                     document.getElementById('householdName').textContent = household.name || 'Gbonhi principal';
-                    document.getElementById('householdAddress').textContent = [household.commune, household.address].filter(Boolean).join(' · ') || 'Adresse non renseignee';
+                    document.getElementById('householdAddress').textContent = [household.commune, household.address].filter(Boolean).join(' · ') || 'Adresse non renseignée';
                     document.getElementById('householdStatus').textContent = household.status || 'active';
                     document.getElementById('householdMembersList').innerHTML = household.members?.length
                         ? household.members.map((member) => `<div class="d-flex justify-content-between align-items-center rounded-4 border px-3 py-3"><div><div class="fw-semibold">${member.user.first_name ?? ''} ${member.user.last_name ?? ''}</div><div class="muted-label">${member.user.phone ?? ''} · ${member.relationship}</div></div><span class="status-pill">${member.is_owner ? 'Titulaire' : 'Membre'}</span></div>`).join('')
@@ -3622,7 +3689,7 @@
                     const list = document.getElementById('incomingHouseholdInvitationsList');
 
                     if (!invitations.length) {
-                        list.innerHTML = '<div class="muted-label">Aucune invitation recue pour le moment.</div>';
+                        list.innerHTML = '<div class="muted-label">Aucune invitation reçue pour le moment.</div>';
                         return;
                     }
 
@@ -3631,11 +3698,11 @@
                             <div>
                                 <div class="fw-semibold">${invitation.household?.name || 'Gbonhi familial'}</div>
                                 <div class="muted-label">${[invitation.relationship, invitation.household?.commune, invitation.household?.address].filter(Boolean).join(' · ')}</div>
-                                <div class="muted-label">${invitation.meter ? `identifiant commun: ${(invitation.meter.organization_name || invitation.meter.network_type)} · ${invitation.meter.meter_number}${invitation.meter.label ? ' · ' + invitation.meter.label : ''}` : 'Aucun identifiant commun defini'}</div>
-                                <div class="muted-label">Expire le ${formatDateTime(invitation.expires_at)}</div>
+                                <div class="muted-label">${invitation.meter ? `identifiant commun: ${(invitation.meter.organization_name || invitation.meter.network_type)} · ${invitation.meter.meter_number}${invitation.meter.label ? ' · ' + invitation.meter.label : ''}` : 'Aucun identifiant commun défini'}</div>
+                                <div class="muted-label">Invitation sans expiration</div>
                             </div>
                             <div class="report-actions">
-                                <button class="btn btn-ghost-premium btn-sm px-3" type="button" onclick="window.AcepenPortal.declineInvitation(${invitation.id})">Decliner</button>
+                                <button class="btn btn-ghost-premium btn-sm px-3" type="button" onclick="window.AcepenPortal.declineInvitation(${invitation.id})">Décliner</button>
                                 <button class="btn btn-premium btn-sm px-3" type="button" onclick="window.AcepenPortal.acceptInvitation(${invitation.id})">Accepter</button>
                             </div>
                         </div>
@@ -3740,7 +3807,7 @@
                     const list = document.getElementById('reportsList');
                     renderReportOrganizationFilter(reports);
                     if (!reports.length) {
-                        list.innerHTML = '<div class="mini-card"><div class="fw-bold mb-1">Aucun signalement</div><div class="muted-label">Vos futurs signalements apparaitront ici avec leur reference unique.</div></div>';
+                        list.innerHTML = '<div class="mini-card"><div class="fw-bold mb-1">Aucun signalement</div><div class="muted-label">Vos futurs signalements apparaîtront ici avec leur référence unique.</div></div>';
                         return;
                     }
                     const filteredReports = getFilteredReports(reports);
@@ -3748,7 +3815,7 @@
                     state.reportsPage = Math.min(state.reportsPage, totalPages);
 
                     if (!filteredReports.length) {
-                        list.innerHTML = '<div class="mini-card"><div class="fw-bold mb-1">Aucun signalement ne correspond aux filtres</div><div class="muted-label">Ajuste les filtres pour retrouver plus facilement tes declarations.</div></div>';
+                        list.innerHTML = '<div class="mini-card"><div class="fw-bold mb-1">Aucun signalement ne correspond aux filtres</div><div class="muted-label">Ajuste les filtres pour retrouver plus facilement tes déclarations.</div></div>';
                         return;
                     }
 
@@ -3762,11 +3829,11 @@
                                 <table class="report-table">
                                     <thead>
                                         <tr>
-                                            <th>Reference</th>
+                                            <th>Référence</th>
                                             <th>Signal</th>
                                             <th>Localisation</th>
                                             <th>Paiement</th>
-                                            <th>Resolution</th>
+                                            <th>Résolution</th>
                                             <th class="text-end">Actions</th>
                                         </tr>
                                     </thead>
@@ -3776,35 +3843,35 @@
                                                 <td>
                                                     <div class="report-ref">${report.reference}</div>
                                                     <div class="report-sub">${report.organization?.name || report.network_type} · ${report.signal_code}</div>
-                                                    <div class="report-sub">${report.application?.name || 'Application non definie'}</div>
+                                                    <div class="report-sub">${report.application?.name || 'Application non définie'}</div>
                                                     <div class="report-sub">SLA ${report.target_sla_hours ?? '-'}h</div>
                                                 </td>
                                                 <td>
                                                     <div class="report-main">${report.signal_label || report.incident_type}</div>
                                                     <div class="report-sub">${report.description || 'Aucune description fournie.'}</div>
-                                                    <div class="report-sub mt-1">${report.organization?.name || report.organization_name || report.network_type || 'Organisation non definie'}</div>
+                                                    <div class="report-sub mt-1">${report.organization?.name || report.organization_name || report.network_type || 'Organisation non définie'}</div>
                                                 </td>
                                                 <td>
                                                     <div class="report-main">${report.location.commune || '-'}</div>
                                                     <div class="report-sub">${[report.location.country, report.location.city].filter(Boolean).join(' · ')}</div>
-                                                    <div class="report-sub">${report.location.address || 'Adresse non renseignee'}</div>
-                                                    <div class="report-sub">${report.location.latitude && report.location.longitude ? `GPS ${report.location.latitude}, ${report.location.longitude}` : 'Position non renseignee'}</div>
+                                                    <div class="report-sub">${report.location.address || 'Adresse non renseignée'}</div>
+                                                    <div class="report-sub">${report.location.latitude && report.location.longitude ? `GPS ${report.location.latitude}, ${report.location.longitude}` : 'Position non renseignée'}</div>
                                                 </td>
                                                 <td>
-                                                    <div class="report-main">${report.payment_status === 'paid' ? 'Paye' : 'En attente'}</div>
+                                                    <div class="report-main">${report.payment_status === 'paid' ? 'Payé' : 'En attente'}</div>
                                                     <div class="report-sub">Montant: 100 FCFA</div>
-                                                    <div class="report-sub">${report.paid_at ? `Confirme le ${new Date(report.paid_at).toLocaleString()}` : 'Paiement non confirme'}</div>
+                                                    <div class="report-sub">${report.paid_at ? `Confirmé le ${new Date(report.paid_at).toLocaleString()}` : 'Paiement non confirmé'}</div>
                                                 </td>
                                                 <td>
                                                     <div class="report-main"><span class="status-pill ${getResolutionStatusClass(report)}">${getResolutionLabel(report)}</span></div>
                                                     <div class="report-sub">${getResolutionHelpText(report)}</div>
                                                     <div class="report-sub">Temps de resolution: ${getResolutionDurationText(report)}</div>
                                                     <div class="report-sub">SLA institution: ${getSlaText(report)} · ${getSlaRespectText(report)}</div>
-                                                    <div class="report-sub">${report.resolution_confirmation?.confirmed_at ? `Confirmee le ${new Date(report.resolution_confirmation.confirmed_at).toLocaleString()}` : ''}</div>
+                                                    <div class="report-sub">${report.resolution_confirmation?.confirmed_at ? `Confirmée le ${new Date(report.resolution_confirmation.confirmed_at).toLocaleString()}` : ''}</div>
                                                 </td>
                                                 <td>
                                                     <div class="report-actions">
-                                                        <button class="btn btn-ghost-premium btn-sm px-3" type="button" onclick="window.AcepenPortal.showReportDetails(${report.id})">Details</button>
+                                                        <button class="btn btn-ghost-premium btn-sm px-3" type="button" onclick="window.AcepenPortal.showReportDetails(${report.id})">Détails</button>
                                                         ${report.payment_status !== 'paid'
                                                             ? `<button class="btn btn-premium btn-sm px-3" type="button" onclick="window.AcepenPortal.payReport(${report.id})">Payer</button>`
                                                             : ''}
@@ -3817,10 +3884,10 @@
                                                             type="button"
                                                             ${report.damage_declaration?.can_declare ? `onclick="window.AcepenPortal.openDamageForm(${report.id})"` : 'disabled'}
                                                             title="${report.damage_declaration?.can_declare
-                                                                ? `Enregistrer les dommages constates avant le ${formatDateTime(report.damage_declaration.available_until)}.`
+                                                                ? `Enregistrer les dommages constatés avant le ${formatDateTime(report.damage_declaration.available_until)}.`
                                                                 : (report.damage_declaration?.window_expired
-                                                                    ? 'Le delai de 24h apres confirmation est depasse.'
-                                                                    : 'Disponible apres confirmation de resolution du signalement.')}"
+                                                                    ? 'Le délai de 24h après confirmation est dépassé.'
+                                                                    : 'Disponible après confirmation de résolution du signalement.')}"
                                                         >
                                                             Dommage
                                                         </button>
@@ -3846,7 +3913,7 @@
 
                 function getPaymentStatusLabel(status) {
                     const labels = {
-                        paid: 'Confirme',
+                        paid: 'Confirmé',
                         pending: 'En attente',
                         failed: 'Echoue',
                     };
@@ -3873,11 +3940,11 @@
                         submitted: 'Soumis',
                         under_review: 'En analyse',
                         awaiting_documents: 'Pieces requises',
-                        sent_to_organization: 'Transmis a l organisation',
-                        organization_responded: 'Reponse organisation',
+                        sent_to_organization: 'Transmis à l’organisation',
+                        organization_responded: 'Réponse organisation',
                         approved: 'Valide',
-                        rejected: 'Rejete',
-                        compensated: 'Compense',
+                        rejected: 'Rejeté',
+                        compensated: 'Compensé',
                         closed: 'Clos',
                     };
 
@@ -3905,7 +3972,7 @@
                     const list = document.getElementById('reparationCasesList');
 
                     if (!cases.length) {
-                        list.innerHTML = '<div class="mini-card"><div class="fw-bold mb-1">Aucun dossier ouvert</div><div class="muted-label">Si un dossier est ouvert a partir d un signalement, son historique apparaitra ici.</div></div>';
+                        list.innerHTML = '<div class="mini-card"><div class="fw-bold mb-1">Aucun dossier ouvert</div><div class="muted-label">Si un dossier est ouvert à partir d’un signalement, son historique apparaîtra ici.</div></div>';
                         return;
                     }
 
@@ -3917,7 +3984,7 @@
                                         <div>
                                             <div class="fw-bold">${repairCase.reference}</div>
                                             <div class="muted-label">${repairCase.incident_report?.reference || '-'} · ${repairCase.incident_report?.signal_label || repairCase.incident_report?.signal_code || 'Signalement'}</div>
-                                            <div class="muted-label">${repairCase.incident_report?.organization_name || 'Organisation non definie'} · ${repairCase.incident_report?.application_name || 'Application non definie'}</div>
+                                            <div class="muted-label">${repairCase.incident_report?.organization_name || 'Organisation non définie'} · ${repairCase.incident_report?.application_name || 'Application non définie'}</div>
                                         </div>
                                         <div class="text-end">
                                             <span class="status-pill ${getReparationCaseStatusClass(repairCase.status)}">${getReparationCaseStatusLabel(repairCase.status)}</span>
@@ -3927,13 +3994,13 @@
                                     </div>
                                     <div class="soft-panel mb-3">
                                         <div class="small text-secondary fw-semibold mb-1">Objet du dossier</div>
-                                        <div class="fw-bold mb-1">${repairCase.damage_summary || 'Aucun resume de dommage renseigne.'}</div>
+                                        <div class="fw-bold mb-1">${repairCase.damage_summary || 'Aucun résumé de dommage renseigné.'}</div>
                                         <div class="muted-label">
-                                            Montant reclame: ${repairCase.damage_amount_claimed !== null ? formatMoney(repairCase.damage_amount_claimed) : 'Non renseigne'}
+                                            Montant réclamé: ${repairCase.damage_amount_claimed !== null ? formatMoney(repairCase.damage_amount_claimed) : 'Non renseigné'}
                                             ${repairCase.damage_amount_validated !== null ? ` · Montant valide: ${formatMoney(repairCase.damage_amount_validated)}` : ''}
                                         </div>
                                         <div class="muted-label mt-2">
-                                            Type: ${repairCase.case_type || '-'} · Priorite: ${repairCase.priority || '-'}
+                                            Type: ${repairCase.case_type || '-'} · Priorité: ${repairCase.priority || '-'}
                                             ${repairCase.bailiff ? ` · Huissier: ${repairCase.bailiff}` : ''}
                                             ${repairCase.lawyer ? ` · Avocat: ${repairCase.lawyer}` : ''}
                                         </div>
@@ -3947,8 +4014,8 @@
                                                         <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
                                                             <div>
                                                                 <div class="fw-bold mb-1">${step.title}</div>
-                                                                <div class="muted-label">${step.summary || 'Aucun detail complementaire fourni.'}</div>
-                                                                <div class="muted-label mt-1">${step.assigned_to ? `Responsable: ${step.assigned_to}` : 'Responsable non assigne'}</div>
+                                                                <div class="muted-label">${step.summary || 'Aucun détail complémentaire fourni.'}</div>
+                                                                <div class="muted-label mt-1">${step.assigned_to ? `Responsable: ${step.assigned_to}` : 'Responsable non assigné'}</div>
                                                             </div>
                                                             <div class="text-end">
                                                                 <div class="small fw-semibold">${step.completed_at ? formatDateTime(step.completed_at) : (step.created_at ? formatDateTime(step.created_at) : '-')}</div>
@@ -3964,7 +4031,7 @@
                                                             <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
                                                                 <div>
                                                                     <div class="fw-bold mb-1">${history.title}</div>
-                                                                    <div class="muted-label">${history.description || 'Aucun detail complementaire fourni.'}</div>
+                                                                    <div class="muted-label">${history.description || 'Aucun détail complémentaire fourni.'}</div>
                                                                 </div>
                                                                 <div class="text-end">
                                                                     <div class="small fw-semibold">${history.created_at ? formatDateTime(history.created_at) : '-'}</div>
@@ -3973,7 +4040,7 @@
                                                             </div>
                                                         </div>
                                                     `).join('')
-                                                : '<div class="soft-panel"><div class="fw-bold mb-1">Aucun historique visible</div><div class="muted-label">Les prochaines etapes enregistrees apparaitront ici.</div></div>'
+                                                : '<div class="soft-panel"><div class="fw-bold mb-1">Aucun historique visible</div><div class="muted-label">Les prochaines étapes enregistrées apparaîtront ici.</div></div>'
                                             }
                                         </div>
                                     </div>
@@ -4003,7 +4070,7 @@
                     }
 
                     if (hasRexFeedback(contextType, contextId)) {
-                        return `<button class="btn btn-ghost-premium btn-sm px-3 ${extraClass}" type="button" disabled title="Un REX a deja ete envoye pour cet element.">REX deja envoye</button>`;
+                        return `<button class="btn btn-ghost-premium btn-sm px-3 ${extraClass}" type="button" disabled title="Un REX a déjà été envoyé pour cet élément.">REX déjà envoyé</button>`;
                     }
 
                     const encodedTitle = encodeURIComponent(title || '');
@@ -4041,7 +4108,7 @@
                     }
 
                     if (!state.rexFeedbacks.length) {
-                        list.innerHTML = '<div class="mini-card"><div class="fw-bold mb-1">Aucun REX envoye</div><div class="muted-label">Tes retours d experience apparaitront ici apres soumission.</div></div>';
+                        list.innerHTML = '<div class="mini-card"><div class="fw-bold mb-1">Aucun REX envoyé</div><div class="muted-label">Tes retours d’expérience apparaîtront ici après soumission.</div></div>';
                         return;
                     }
 
@@ -4116,21 +4183,21 @@
                     const latestPaidPayment = payments.find((payment) => payment.status === 'paid') || payments[0];
                     setTextIfExists('overviewPaymentSummary', latestPaidPayment
                         ? `${formatMoney(latestPaidPayment.amount, latestPaidPayment.currency)} · ${getPaymentStatusLabel(latestPaidPayment.status)}`
-                        : 'Aucun paiement confirme');
+                        : 'Aucun paiement confirmé');
                     setTextIfExists('overviewPaymentMeta', latestPaidPayment
                         ? `${latestPaidPayment.incident_report?.reference || 'Signalement'} · ${latestPaidPayment.reference}`
-                        : 'Ton historique de paiements et tes recus apparaitront ici.');
+                        : 'Ton historique de paiements et tes reçus apparaîtront ici.');
 
                     const list = document.getElementById('paymentsList');
                     if (!payments.length) {
-                        list.innerHTML = '<div class="mini-card"><div class="fw-bold mb-1">Aucun paiement enregistre</div><div class="muted-label">Des qu un paiement sera initie pour un signalement, il apparaitra ici avec son recu.</div></div>';
+                        list.innerHTML = '<div class="mini-card"><div class="fw-bold mb-1">Aucun paiement enregistré</div><div class="muted-label">Dès qu’un paiement sera initié pour un signalement, il apparaîtra ici avec son reçu.</div></div>';
                         return;
                     }
 
                     const filteredPayments = getFilteredPayments(payments);
 
                     if (!filteredPayments.length) {
-                        list.innerHTML = '<div class="mini-card"><div class="fw-bold mb-1">Aucun paiement ne correspond aux filtres</div><div class="muted-label">Ajuste les filtres pour retrouver plus vite un recu ou un paiement.</div></div>';
+                        list.innerHTML = '<div class="mini-card"><div class="fw-bold mb-1">Aucun paiement ne correspond aux filtres</div><div class="muted-label">Ajuste les filtres pour retrouver plus vite un reçu ou un paiement.</div></div>';
                         return;
                     }
 
@@ -4141,7 +4208,7 @@
                                     <table class="payment-table">
                                         <thead>
                                             <tr>
-                                                <th>Reference</th>
+                                                <th>Référence</th>
                                                 <th>Montant</th>
                                                 <th>Signalement</th>
                                                 <th>Canal</th>
@@ -4167,11 +4234,11 @@
                                                     </td>
                                                     <td>
                                                         <div class="payment-ref">${payment.provider || '-'}</div>
-                                                        <div class="payment-sub">${payment.provider_reference || 'Reference fournisseur indisponible'}</div>
+                                                        <div class="payment-sub">${payment.provider_reference || 'Référence fournisseur indisponible'}</div>
                                                     </td>
                                                     <td>
                                                         <div class="payment-sub"><strong>Initie:</strong> ${formatDateTime(payment.initiated_at)}</div>
-                                                        <div class="payment-sub"><strong>Confirme:</strong> ${formatDateTime(payment.paid_at)}</div>
+                                                        <div class="payment-sub"><strong>Confirmé:</strong> ${formatDateTime(payment.paid_at)}</div>
                                                     </td>
                                                     <td><span class="status-pill ${getPaymentStatusClass(payment.status)}">${getPaymentStatusLabel(payment.status)}</span></td>
                                                     <td>
@@ -4180,10 +4247,10 @@
                                                                 ? `<button class="btn btn-ghost-premium btn-sm px-3" type="button" onclick="window.AcepenPortal.showReportDetails(${payment.incident_report.id})">Signalement</button>`
                                                                 : ''}
                                                             ${payment.can_download_receipt
-                                                                ? `<button class="btn btn-ghost-premium btn-sm px-3" type="button" onclick="window.AcepenPortal.previewReceipt(${payment.id})">Apercu recu</button>`
+                                                                ? `<button class="btn btn-ghost-premium btn-sm px-3" type="button" onclick="window.AcepenPortal.previewReceipt(${payment.id})">Aperçu reçu</button>`
                                                                 : ''}
                                                             ${payment.can_download_receipt
-                                                                ? `<button class="btn btn-premium btn-sm px-3" type="button" onclick="window.AcepenPortal.downloadReceipt(${payment.id}, '${payment.reference}')">Recu PDF</button>`
+                                                                ? `<button class="btn btn-premium btn-sm px-3" type="button" onclick="window.AcepenPortal.downloadReceipt(${payment.id}, '${payment.reference}')">Reçu PDF</button>`
                                                                 : ''}
                                                         </div>
                                                     </td>
@@ -4227,8 +4294,8 @@
                     const labels = {
                         submitted: 'Soumis',
                         in_progress: 'En cours',
-                        resolved: 'Resolu',
-                        rejected: 'Rejete',
+                        resolved: 'Résolu',
+                        rejected: 'Rejeté',
                     };
 
                     return labels[status] || status || '-';
@@ -4295,7 +4362,7 @@
                     const damages = getFilteredDamages(reports);
 
                     if (!damages.length) {
-                        list.innerHTML = '<div class="mini-card"><div class="fw-bold mb-1">Aucun dommage a afficher</div><div class="muted-label">Les dommages declares apres resolution apparaitront ici avec leur suivi.</div></div>';
+                        list.innerHTML = '<div class="mini-card"><div class="fw-bold mb-1">Aucun dommage à afficher</div><div class="muted-label">Les dommages déclarés après résolution apparaîtront ici avec leur suivi.</div></div>';
                         return;
                     }
 
@@ -4313,21 +4380,21 @@
                                         <div class="col-lg-8">
                                             <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-2">
                                                 <div>
-                                                    <div class="fw-bold">${report.damage_declaration?.summary || 'Dommage declare'}</div>
-                                                    <div class="muted-label">${report.reference} · ${report.organization?.name || report.organization_name || report.network_type || 'Organisation non definie'}</div>
+                                                    <div class="fw-bold">${report.damage_declaration?.summary || 'Dommage déclaré'}</div>
+                                                    <div class="muted-label">${report.reference} · ${report.organization?.name || report.organization_name || report.network_type || 'Organisation non définie'}</div>
                                                 </div>
                                                 <span class="status-pill ${getDamageStatusClass(report.damage_declaration?.resolution_status)}">${getDamageStatusLabel(report.damage_declaration?.resolution_status)}</span>
                                             </div>
-                                            <div class="muted-label mb-2">${report.damage_declaration?.notes || 'Aucun detail complementaire fourni.'}</div>
+                                            <div class="muted-label mb-2">${report.damage_declaration?.notes || 'Aucun détail complémentaire fourni.'}</div>
                                             <div class="muted-label">Declare le ${formatDateTime(report.damage_declaration?.declared_at)}</div>
                                             ${report.damage_declaration?.amount_estimated !== null
-                                                ? `<div class="muted-label">Montant estime: ${formatAmount(report.damage_declaration.amount_estimated)}</div>`
+                                                ? `<div class="muted-label">Montant estimé: ${formatAmount(report.damage_declaration.amount_estimated)}</div>`
                                                 : ''}
                                             ${report.damage_declaration?.resolved_at
                                                 ? `<div class="muted-label">Cloture du dommage: ${formatDateTime(report.damage_declaration.resolved_at)}</div>`
                                                 : ''}
                                             ${report.damage_declaration?.resolution_notes
-                                                ? `<div class="muted-label">Reponse institutionnelle: ${report.damage_declaration.resolution_notes}</div>`
+                                                ? `<div class="muted-label">Réponse institutionnelle: ${report.damage_declaration.resolution_notes}</div>`
                                                 : ''}
                                         </div>
                                         <div class="col-lg-4">
@@ -4357,7 +4424,7 @@
                                                     `)
                                                 : '<div class="muted-label">Aucun justificatif joint.</div>'}
                                             <div class="d-grid gap-2 mt-3">
-                                                <button class="btn btn-ghost-premium btn-sm" type="button" onclick="window.AcepenPortal.showReportDetails(${report.id})">Voir le detail</button>
+                                                <button class="btn btn-ghost-premium btn-sm" type="button" onclick="window.AcepenPortal.showReportDetails(${report.id})">Voir le détail</button>
                                             </div>
                                         </div>
                                     </div>
@@ -4389,18 +4456,18 @@
                     const downloadButton = document.getElementById('paymentReceiptPreviewDownloadButton');
                     const signalLabel = [payment.incident_report?.signal_code, payment.incident_report?.signal_label].filter(Boolean).join(' · ') || 'Signalement public';
 
-                    title.textContent = `Recu ${payment.reference}`;
+                    title.textContent = `Reçu ${payment.reference}`;
                     content.innerHTML = `
                         <div class="mx-auto" style="max-width: 820px;">
                             <div class="shadow-sm" style="border-radius: 28px; overflow: hidden; background: white; border: 1px solid rgba(12, 36, 53, 0.08);">
                                 <div class="px-4 px-lg-5 py-4" style="background: var(--acepen-navy); color: white;">
                                     <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
                                         <div>
-                                            <div class="small text-white-50 fw-semibold mb-2">Justificatif associe a un signalement public</div>
-                                            <div class="fs-3 fw-bold">Recu de paiement</div>
+                                            <div class="small text-white-50 fw-semibold mb-2">Justificatif associé à un signalement public</div>
+                                            <div class="fs-3 fw-bold">Reçu de paiement</div>
                                         </div>
                                         <div class="text-lg-end">
-                                            <div class="small text-white-50 fw-semibold">Reference</div>
+                                            <div class="small text-white-50 fw-semibold">Référence</div>
                                             <div class="fw-bold fs-5">${payment.reference}</div>
                                         </div>
                                     </div>
@@ -4430,7 +4497,7 @@
                                             <div class="soft-panel h-100">
                                                 <div class="small text-secondary fw-semibold mb-1">Canal de paiement</div>
                                                 <div class="fw-bold">${payment.provider || '-'}</div>
-                                                <div class="muted-label">${payment.provider_reference || 'Reference fournisseur indisponible'}</div>
+                                                <div class="muted-label">${payment.provider_reference || 'Référence fournisseur indisponible'}</div>
                                             </div>
                                         </div>
                                     </div>
@@ -4445,9 +4512,9 @@
                                         </div>
                                     </div>
                                     <div class="soft-panel">
-                                        <div class="small text-secondary fw-semibold mb-1">Detail de facturation</div>
+                                        <div class="small text-secondary fw-semibold mb-1">Détail de facturation</div>
                                         <div class="fw-semibold">${payment.pricing_rule?.label || 'Paiement signalement public'}</div>
-                                        <div class="muted-label">Document genere pour consultation avant telechargement du recu PDF.</div>
+                                        <div class="muted-label">Document généré pour consultation avant téléchargement du reçu PDF.</div>
                                     </div>
                                 </div>
                             </div>
@@ -4461,7 +4528,7 @@
                     const labels = {
                         submitted: 'Soumis',
                         in_progress: 'En cours de traitement',
-                        resolved: 'Resolu par l institution',
+                        resolved: 'Résolu par l’institution',
                         rejected: 'Non retenu',
                     };
 
@@ -4499,10 +4566,10 @@
                     const labels = {
                         pending: 'Paiement en attente',
                         active: 'Actif',
-                        expired: 'Expire',
+                        expired: 'Expiré',
                         cancelled: 'Annule',
                         suspended: 'Suspendu',
-                        payment_failed: 'Paiement echoue',
+                        payment_failed: 'Paiement échoué',
                     };
 
                     return labels[status] || 'Non actif';
@@ -4518,7 +4585,7 @@
                     }
 
                     const endDate = new Date(subscription.end_date);
-                    endDate.setDate(endDate.getDate() + Number(subscription.grace_period_days || 0));
+                    endDate.setDate(endDate.getDate() + Number(subscription.grâce_period_days || 0));
 
                     return endDate >= new Date();
                 }
@@ -4535,7 +4602,7 @@
                         ? 'Abonnement actif'
                         : getSubscriptionStatusLabel(subscription?.status || (pendingPayment ? 'pending' : null));
                     const details = active
-                        ? `Abonnement valable jusqu au ${formatDateTime(subscription.end_date)}`
+                        ? `Abonnement valable jusqu’au ${formatDateTime(subscription.end_date)}`
                         : pendingPayment
                             ? `Paiement ${pendingPayment.reference} en attente de confirmation.`
                             : 'Active ton abonnement annuel pour effectuer des signalements.';
@@ -4572,7 +4639,7 @@
                     }
 
                     if (!state.subscriptionHistory.length) {
-                        list.innerHTML = '<div class="muted-label">Aucun abonnement initie pour le moment.</div>';
+                        list.innerHTML = '<div class="muted-label">Aucun abonnement initié pour le moment.</div>';
                         return;
                     }
 
@@ -4587,15 +4654,15 @@
                                         <div class="fw-bold">${subscription.plan?.name || 'Abonnement annuel UP'}</div>
                                         <div class="muted-label">${formatAmount(subscription.amount, subscription.currency)} · ${subscription.plan?.duration_months || 12} mois</div>
                                         <div class="muted-label">Debut: ${formatDateTime(subscription.start_date)} · Fin: ${formatDateTime(subscription.end_date)}</div>
-                                        <div class="muted-label">Cree le ${formatDateTime(subscription.created_at)}</div>
+                                        <div class="muted-label">Crée le ${formatDateTime(subscription.created_at)}</div>
                                     </div>
                                     <span class="status-pill">${getSubscriptionStatusLabel(subscription.status)}</span>
                                 </div>
                                 <div class="mt-3">
-                                    <div class="small text-secondary fw-semibold mb-1">Paiement associe</div>
+                                    <div class="small text-secondary fw-semibold mb-1">Paiement associé</div>
                                     ${latestPayment
                                         ? `<div class="muted-label">${latestPayment.reference} · ${getPaymentStatusLabel(latestPayment.status)} · ${formatAmount(latestPayment.amount, latestPayment.currency)}</div>`
-                                        : '<div class="muted-label">Aucun paiement associe.</div>'}
+                                        : '<div class="muted-label">Aucun paiement associé.</div>'}
                                 </div>
                             </div>
                         `;
@@ -4642,7 +4709,7 @@
                     }
 
                     if (!state.subscriptionHistory.length) {
-                        list.innerHTML = '<div class="mini-card"><div class="fw-bold mb-1">Aucun abonnement</div><div class="muted-label">Tes souscriptions annuelles apparaitront ici avec leur statut et leur paiement.</div></div>';
+                        list.innerHTML = '<div class="mini-card"><div class="fw-bold mb-1">Aucun abonnement</div><div class="muted-label">Tes souscriptions annuelles apparaîtront ici avec leur statut et leur paiement.</div></div>';
                         return;
                     }
 
@@ -4681,12 +4748,12 @@
                                                     <td>
                                                         <div class="payment-ref">${subscription.plan?.name || 'Abonnement annuel UP'}</div>
                                                         <div class="payment-sub">${subscription.plan?.code || '-'} · ${subscription.plan?.duration_months || 12} mois</div>
-                                                        <div class="payment-sub">Cree le ${formatDateTime(subscription.created_at)}</div>
+                                                        <div class="payment-sub">Crée le ${formatDateTime(subscription.created_at)}</div>
                                                     </td>
                                                     <td>
                                                         <div class="payment-sub">Debut: ${formatDateTime(subscription.start_date)}</div>
                                                         <div class="payment-sub">Fin: ${formatDateTime(subscription.end_date)}</div>
-                                                        <div class="payment-sub">${subscription.grace_period_days || 0} jour(s) de grace</div>
+                                                        <div class="payment-sub">${subscription.grâce_period_days || 0} jour(s) de grâce</div>
                                                     </td>
                                                     <td><div class="payment-amount">${formatAmount(subscription.amount, subscription.currency)}</div></td>
                                                     <td><span class="status-pill">${getSubscriptionStatusLabel(subscription.status)}</span></td>
@@ -4695,9 +4762,9 @@
                                                             ? `
                                                                 <div class="payment-ref">${latestPayment.reference}</div>
                                                                 <div class="payment-sub">${getPaymentStatusLabel(latestPayment.status)} · ${formatAmount(latestPayment.amount, latestPayment.currency)}</div>
-                                                                <div class="payment-sub">${latestPayment.paid_at ? `Confirme le ${formatDateTime(latestPayment.paid_at)}` : 'Paiement non confirme'}</div>
+                                                                <div class="payment-sub">${latestPayment.paid_at ? `Confirmé le ${formatDateTime(latestPayment.paid_at)}` : 'Paiement non confirmé'}</div>
                                                             `
-                                                            : '<div class="payment-sub">Aucun paiement associe</div>'}
+                                                            : '<div class="payment-sub">Aucun paiement associé</div>'}
                                                     </td>
                                                 </tr>
                                             `;
@@ -4759,7 +4826,7 @@
                         const response = await apiFetch('/subscription/payments', { method: 'POST' });
                         state.subscription = response.data.payment.subscription || state.subscription;
                         await refreshSubscriptionData();
-                        showToast(response.message || 'Paiement d abonnement initialise.');
+                        showToast(response.message || 'Paiement d’abonnement initialise.');
                     } catch (error) {
                         showToast(error.message, true);
                     } finally {
@@ -4772,7 +4839,7 @@
                     const payment = getPendingSubscriptionPayment();
 
                     if (!payment) {
-                        showToast('Aucun paiement d abonnement en attente.', true);
+                        showToast('Aucun paiement d’abonnement en attente.', true);
                         return;
                     }
 
@@ -4797,7 +4864,7 @@
 
                 function getResolutionDurationText(report) {
                     if (!report.resolved_at || !report.created_at) {
-                        return 'En attente de resolution';
+                        return 'En attente de résolution';
                     }
 
                     const start = new Date(report.created_at);
@@ -4819,7 +4886,7 @@
 
                 function getSlaText(report) {
                     if (!report.target_sla_hours) {
-                        return 'SLA non configure';
+                        return 'SLA non configuré';
                     }
 
                     return `${report.target_sla_hours}h`;
@@ -4827,11 +4894,11 @@
 
                 function getSlaRespectText(report) {
                     if (report.sla?.is_respected === true) {
-                        return 'Le delai de resolution a ete respecte.';
+                        return 'Le délai de résolution a été respecté.';
                     }
 
                     if (report.sla?.is_respected === false) {
-                        return 'Le delai de resolution n a pas ete respecte.';
+                        return 'Le délai de résolution n’a pas été respecté.';
                     }
 
                     if (!report.target_sla_hours || !report.resolved_at || !report.created_at) {
@@ -4843,32 +4910,32 @@
                     const elapsedHours = (end.getTime() - start.getTime()) / 3600000;
 
                     return elapsedHours <= Number(report.target_sla_hours)
-                        ? 'Resolution dans le TCM'
-                        : 'Resolution hors TCM';
+                        ? 'Résolution dans le TCM'
+                        : 'Résolution hors TCM';
                 }
 
                 function getSlaImportanceText(report) {
-                    return report.sla?.importance?.label || 'Priorite non definie';
+                    return report.sla?.importance?.label || 'Priorité non définie';
                 }
 
                 function getSlaImportanceDetails(report) {
-                    return report.sla?.importance?.details || 'Le TCM fixe un delai cible de traitement pour proteger les usagers et limiter l aggravation du sinistre.';
+                    return report.sla?.importance?.details || 'Le TCM fixe un délai cible de traitement pour protéger les usagers et limiter l’aggravation du sinistre.';
                 }
 
                 function getDamageDeclarationLabel(report) {
                     if (report.damage_declaration?.declared_at) {
-                        return `Dommage enregistre le ${formatDateTime(report.damage_declaration.declared_at)}`;
+                        return `Dommage enregistré le ${formatDateTime(report.damage_declaration.declared_at)}`;
                     }
 
                     if (report.damage_declaration?.can_declare) {
-                        return `Tu peux declarer les dommages lies a ce sinistre jusqu au ${formatDateTime(report.damage_declaration.available_until)}.`;
+                        return `Tu peux déclarer les dommages liés à ce sinistre jusqu’au ${formatDateTime(report.damage_declaration.available_until)}.`;
                     }
 
                     if (report.damage_declaration?.window_expired) {
-                        return 'Le delai maximum de 24h apres ta confirmation est depasse. La declaration de dommage n est plus possible.';
+                        return 'Le délai maximum de 24h après ta confirmation est dépassé. La déclaration de dommage n’est plus possible.';
                     }
 
-                    return 'La declaration de dommage sera disponible apres ta confirmation de resolution.';
+                    return 'La déclaration de dommage sera disponible après ta confirmation de résolution.';
                 }
 
                 function canSubmitIncidentRex(report) {
@@ -4920,7 +4987,7 @@
 
                 function getResolutionLabel(report) {
                     if (report.resolution_confirmation?.status === 'confirmed') {
-                        return 'Resolution confirmee';
+                        return 'Résolution confirmée';
                     }
 
                     if (report.status === 'resolved') {
@@ -4952,18 +5019,18 @@
 
                 function getResolutionHelpText(report) {
                     if (report.resolution_confirmation?.status === 'confirmed') {
-                        return 'Tu as confirme que le probleme a bien ete resolu.';
+                        return 'Tu as confirmé que le problème a bien été résolu.';
                     }
 
                     if (report.status === 'resolved') {
-                        return report.official_response || 'L institution indique que le probleme est resolu. Verifie puis confirme si tout est revenu a la normale.';
+                        return report.official_response || 'L’institution indique que le problème est résolu. Vérifie puis confirme si tout est revenu à la normale.';
                     }
 
                     if (report.status === 'rejected') {
-                        return report.official_response || 'L institution n a pas retenu ce signalement.';
+                        return report.official_response || 'L’institution n’a pas retenu ce signalement.';
                     }
 
-                    return 'Ton signalement est toujours en cours de traitement par l institution.';
+                    return 'Ton signalement est toujours en cours de traitement par l’institution.';
                 }
 
                 function getResolutionFilterValue(report) {
@@ -5043,7 +5110,7 @@
                                     <div class="soft-panel mb-3">
                                         <div class="small text-secondary fw-semibold mb-1">Application</div>
                                         <div class="fw-semibold">${report.application?.name || '-'}</div>
-                                        <div class="muted-label">${report.application?.code || 'Aucun univers metier defini'}</div>
+                                        <div class="muted-label">${report.application?.code || 'Aucun univers métier défini'}</div>
                                     </div>
                                     <div class="soft-panel mb-3">
                                         <div class="small text-secondary fw-semibold mb-1">Date du signalement</div>
@@ -5052,11 +5119,11 @@
                                     <div class="soft-panel mb-3">
                                         <div class="small text-secondary fw-semibold mb-1">Localisation</div>
                                         <div class="fw-semibold">${[report.location.country, report.location.city, report.location.commune].filter(Boolean).join(' · ') || '-'}</div>
-                                        <div class="muted-label">${report.location.address || 'Adresse non renseignee'}</div>
-                                        <div class="muted-label">${report.location.latitude && report.location.longitude ? `GPS ${report.location.latitude}, ${report.location.longitude}` : 'Position GPS non renseignee'}</div>
+                                        <div class="muted-label">${report.location.address || 'Adresse non renseignée'}</div>
+                                        <div class="muted-label">${report.location.latitude && report.location.longitude ? `GPS ${report.location.latitude}, ${report.location.longitude}` : 'Position GPS non renseignée'}</div>
                                     </div>
                                     <div class="soft-panel">
-                                        <div class="small text-secondary fw-semibold mb-1">identifiant associe</div>
+                                        <div class="small text-secondary fw-semibold mb-1">Identifiant associé</div>
                                         <div class="fw-semibold">${report.meter?.meter_number || '-'}</div>
                                         <div class="muted-label">${report.meter?.label || report.meter?.organization_name || report.meter?.network_type || '-'}</div>
                                     </div>
@@ -5064,29 +5131,29 @@
                             </div>
                             <div class="col-lg-6">
                                 <div class="mini-card h-100">
-                                    <div class="small text-secondary fw-semibold mb-2">Resolution et solution</div>
+                                    <div class="small text-secondary fw-semibold mb-2">Résolution et solution</div>
                                     <div class="soft-panel mb-3">
-                                        <div class="small text-secondary fw-semibold mb-1">Etat de resolution</div>
+                                        <div class="small text-secondary fw-semibold mb-1">État de résolution</div>
                                         <div class="fw-semibold"><span class="status-pill ${getResolutionStatusClass(report)}">${getResolutionLabel(report)}</span></div>
                                         <div class="muted-label">${getResolutionHelpText(report)}</div>
                                     </div>
                                     <div class="soft-panel mb-3">
-                                        <div class="small text-secondary fw-semibold mb-1">Temps de resolution</div>
+                                        <div class="small text-secondary fw-semibold mb-1">Temps de résolution</div>
                                         <div class="fw-semibold">${getResolutionDurationText(report)}</div>
-                                        <div class="muted-label">${report.resolved_at ? `Probleme marque comme resolu le ${formatDateTime(report.resolved_at)}` : 'Le probleme n est pas encore marque comme resolu.'}</div>
+                                        <div class="muted-label">${report.resolved_at ? `Problème marqué comme résolu le ${formatDateTime(report.resolved_at)}` : 'Le problème n’est pas encore marqué comme résolu.'}</div>
                                     </div>
                                     <div class="soft-panel mb-3">
-                                        <div class="small text-secondary fw-semibold mb-1">SLA applique par l institution</div>
+                                        <div class="small text-secondary fw-semibold mb-1">SLA appliqué par l’institution</div>
                                         <div class="fw-semibold">${getSlaText(report)} · ${report.sla?.label || getSlaRespectText(report)}</div>
                                         <div class="muted-label">${getSlaRespectText(report)}</div>
                                         <div class="muted-label">Importance: ${getSlaImportanceText(report)}</div>
                                         <div class="muted-label">${getSlaImportanceDetails(report)}</div>
-                                        <div class="muted-label">${report.sla?.elapsed_hours !== null && report.sla?.elapsed_hours !== undefined ? `Temps constate: ${report.sla.elapsed_hours}h` : 'Le temps exact sera calcule une fois la resolution complete.'}</div>
+                                        <div class="muted-label">${report.sla?.elapsed_hours !== null && report.sla?.elapsed_hours !== undefined ? `Temps constaté: ${report.sla.elapsed_hours}h` : 'Le temps exact sera calculé une fois la résolution complète.'}</div>
                                     </div>
                                     <div class="soft-panel">
-                                        <div class="small text-secondary fw-semibold mb-1">Detail de la solution</div>
-                                        <div class="fw-semibold mb-1">${report.official_response ? 'Reponse institutionnelle disponible' : 'Aucune reponse officielle pour le moment'}</div>
-                                        <div class="muted-label">${report.official_response || 'L institution n a pas encore detaille la solution appliquee.'}</div>
+                                        <div class="small text-secondary fw-semibold mb-1">Détail de la solution</div>
+                                        <div class="fw-semibold mb-1">${report.official_response ? 'Réponse institutionnelle disponible' : 'Aucune réponse officielle pour le moment'}</div>
+                                        <div class="muted-label">${report.official_response || 'L’institution n’a pas encore détaillé la solution appliquée.'}</div>
                                     </div>
                                 </div>
                             </div>
@@ -5095,14 +5162,14 @@
                                     <div class="row g-3">
                                         <div class="col-md-3">
                                             <div class="small text-secondary fw-semibold mb-1">Paiement</div>
-                                            <div class="fw-semibold">${report.payment_status === 'paid' ? 'Paye' : 'En attente'}</div>
+                                            <div class="fw-semibold">${report.payment_status === 'paid' ? 'Payé' : 'En attente'}</div>
                                         </div>
                                         <div class="col-md-3">
-                                            <div class="small text-secondary fw-semibold mb-1">Paiement confirme</div>
+                                            <div class="small text-secondary fw-semibold mb-1">Paiement confirmé</div>
                                             <div class="fw-semibold">${formatDateTime(report.paid_at)}</div>
                                         </div>
                                         <div class="col-md-3">
-                                            <div class="small text-secondary fw-semibold mb-1">Resolution confirmee</div>
+                                            <div class="small text-secondary fw-semibold mb-1">Résolution confirmée</div>
                                             <div class="fw-semibold">${report.resolution_confirmation?.status === 'confirmed' ? 'Oui' : 'Non'}</div>
                                         </div>
                                         <div class="col-md-3">
@@ -5124,11 +5191,11 @@
                                 <div class="mini-card">
                                     <div class="row g-3 align-items-center">
                                         <div class="col-lg-8">
-                                            <div class="small text-secondary fw-semibold mb-1">Declaration de dommage apres resolution</div>
-                                            <div class="fw-semibold mb-1">${report.damage_declaration?.summary || 'Aucun dommage enregistre pour le moment'}</div>
+                                            <div class="small text-secondary fw-semibold mb-1">Déclaration de dommage après résolution</div>
+                                            <div class="fw-semibold mb-1">${report.damage_declaration?.summary || 'Aucun dommage enregistré pour le moment'}</div>
                                             <div class="muted-label">${getDamageDeclarationLabel(report)}</div>
                                             ${report.damage_declaration?.amount_estimated !== null
-                                                ? `<div class="muted-label">Montant estime: ${formatAmount(report.damage_declaration.amount_estimated)}</div>`
+                                                ? `<div class="muted-label">Montant estimé: ${formatAmount(report.damage_declaration.amount_estimated)}</div>`
                                                 : ''}
                                             ${report.damage_declaration?.notes
                                                 ? `<div class="muted-label">${report.damage_declaration.notes}</div>`
@@ -5215,7 +5282,10 @@
                     state.rexFeedbacks = rexFeedbacks.data.feedbacks || [];
                     renderSubscriptionStatus();
                     renderMeters(meters.data.meters);
-                    renderHousehold(household.data.household);
+                    const households = household.data.households || [];
+                    const selectedHousehold = households.find((item) => String(item.id) === String(state.selectedHouseholdId))
+                        || household.data.household;
+                    renderHousehold(selectedHousehold, households);
                     renderReports(reports.data.reports);
                     renderDamages(reports.data.reports);
                     renderPayments(payments.data.payments);
@@ -5250,7 +5320,7 @@
                         document.getElementById('meterAccuracy').value = meter.location_accuracy || '';
                         document.getElementById('meterLocationSource').value = meter.location_source || '';
                         form.is_primary.checked = Boolean(meter.is_primary);
-                        form.querySelector('button[type="submit"]').textContent = 'Mettre a jour le identifiant';
+                        form.querySelector('button[type="submit"]').textContent = 'Mettre à jour l’identifiant';
                         bootstrap.Collapse.getOrCreateInstance(document.getElementById('meterFormWrap')).show();
                     },
                     async payReport(reportId) {
@@ -5327,19 +5397,19 @@
 
                             if (!response.ok) {
                                 const payload = await response.json().catch(() => ({}));
-                                throw new Error(payload.message || 'Impossible de telecharger le recu.');
+                                throw new Error(payload.message || 'Impossible de télécharger le reçu.');
                             }
 
                             const blob = await response.blob();
                             const url = window.URL.createObjectURL(blob);
                             const link = document.createElement('a');
                             link.href = url;
-                            link.download = `recu-${paymentReference}.pdf`;
+                            link.download = `reçu-${paymentReference}.pdf`;
                             document.body.appendChild(link);
                             link.click();
                             link.remove();
                             window.URL.revokeObjectURL(url);
-                            showToast('Le recu a ete telecharge.');
+                            showToast('Le reçu a été téléchargé.');
                         } catch (error) {
                             showToast(error.message, true);
                         }
@@ -5348,7 +5418,7 @@
                         const payment = state.payments.find((item) => String(item.id) === String(paymentId));
 
                         if (!payment || !payment.can_download_receipt) {
-                            showToast('Le recu n est disponible que pour un paiement confirme.', true);
+                            showToast('Le reçu n’est disponible que pour un paiement confirmé.', true);
                             return;
                         }
 
@@ -5391,7 +5461,7 @@
                     },
                     openRexForm(contextType, contextId, title) {
                         if (hasRexFeedback(contextType, contextId)) {
-                            showToast('Un REX a deja ete envoye pour cet element.', true);
+                            showToast('Un REX a déjà été envoyé pour cet élément.', true);
                             return;
                         }
 
@@ -5722,18 +5792,26 @@
                     try {
                         const payload = Object.fromEntries(new FormData(form).entries());
                         const response = await apiFetch('/households', { method: 'POST', body: JSON.stringify(payload) });
-                        renderHousehold(response.data.household);
                         showToast(response.message);
                         form.reset();
-                        clearProfileGeoFields();
-                        setGeoManualMode('profile', false);
-                        state.autoGeoAttempts.profile = false;
-                        maybeCaptureCurrentPosition('profile');
+                        state.selectedHouseholdId = response.data.household?.id || null;
+                        await refreshDashboard();
+                        activatePanel('household');
                     } catch (error) {
                         showToast(error.message, true);
                     } finally {
                         setLoading(form, false);
                     }
+                });
+
+                document.getElementById('showHouseholdFormButton').addEventListener('click', () => {
+                    document.getElementById('householdForm').reset();
+                    setHouseholdFormVisible(true);
+                });
+
+                document.getElementById('cancelHouseholdFormButton').addEventListener('click', () => {
+                    document.getElementById('householdForm').reset();
+                    setHouseholdFormVisible(false);
                 });
 
                 document.getElementById('householdInvitationForm').addEventListener('submit', async (event) => {
@@ -5898,7 +5976,7 @@
                         return;
                     }
 
-                    showToast(error?.message || 'Impossible de charger certaines donnees du dashboard.', true);
+                    showToast(error?.message || 'Impossible de charger certaines données du dashboard.', true);
                 });
             })();
         </script>

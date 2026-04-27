@@ -1437,7 +1437,7 @@
     </button>
     <div class="collapse navbar-collapse" id="navMenu">
       <ul class="navbar-nav ms-auto align-items-center gap-1">
-        @foreach ($lines($blockBody('navigation', "Fonctionnalites | #features\nFAQ | #faq\nDomaines | #domains")) as $navLine)
+        @foreach ($lines($blockBody('navigation', "Fonctionnalités | #features\nFAQ | #faq\nDomaines | #domains")) as $navLine)
           @php
             [$navLabel, $navUrl] = $parts($navLine, 2);
           @endphp
@@ -1468,11 +1468,11 @@
         @endphp
         <p class="badge-pill" style="background:rgba(255,255,255,.15);color:#fff;">{{ $blockSubtitle('hero', 'Plateforme de protection consommateur') }}</p>
         <h1 class="hero-title fade-up">{{ $heroTitleParts[0] }}@if($heroTitleParts[1] !== ''), <span>{{ $heroAccentParts[0] }}</span> {{ $heroAccentParts[1] }}@endif</h1>
-        <p class="hero-text fade-up delay-1">{{ $blockBody('hero', 'My-Signal accompagne les consommateurs et les Unites Partenaires dans le suivi des signalements, des abonnements, des REX et des dossiers traites.') }}</p>
+        <p class="hero-text fade-up delay-1">{{ $blockBody('hero', 'My-Signal accompagne les consommateurs et les Unités Partenaires dans le suivi des signalements, des abonnements, des REX et des dossiers traités.') }}</p>
         <div class="fade-up delay-2">
           @php
             $heroPrimaryButton = $blockMeta('hero', 'primary_button', 'Signalement maintenant');
-            $heroPrimaryButton = $heroPrimaryButton === 'Activer mon acces' ? 'Signalement maintenant' : $heroPrimaryButton;
+            $heroPrimaryButton = in_array($heroPrimaryButton, ['Activer mon acces', 'Activer mon accès'], true) ? 'Signalement maintenant' : $heroPrimaryButton;
           @endphp
           <a href="{{ route('public.auth') }}" class="btn-hero-primary">{{ $heroPrimaryButton }}</a>
           <a href="#process" class="btn-hero-outline">
@@ -1480,7 +1480,7 @@
           </a>
         </div>
         <div class="hero-stats d-flex align-items-center fade-up delay-3">
-          @foreach ($lines($blockMeta('hero', 'stats', "573K+ | Utilisateurs actifs\n26,675 | Signalements suivis\n9.2K | Retours collectes")) as $statLine)
+          @foreach ($lines($blockMeta('hero', 'stats', "573K+ | Utilisateurs actifs\n26,675 | Signalements suivis\n9.2K | Retours collectés")) as $statLine)
             @php
               [$statValue, $statLabel] = $parts($statLine, 2);
             @endphp
@@ -1538,7 +1538,7 @@
 <section class="features-strip">
   <div class="container">
     <div class="row g-4 text-center">
-      @foreach ($lines($blockBody('feature_strip', "Signalement rapide | Deposez un dommage ou une reclamation en quelques etapes claires. | bi-lightning-charge-fill\nEspace securise | Vos dossiers, abonnements et retours restent accessibles depuis votre compte. | bi-shield-fill-check\nSuivi lisible | Consultez l'etat de vos signalements, dossiers et traitements. | bi-bar-chart-fill\nDialogue UP | Les Unites Partenaires disposent d'un espace pour traiter les demandes. | bi-people-fill")) as $featureLine)
+      @foreach ($lines($blockBody('feature_strip', "Signalement rapide | Déposez un dommage ou une réclamation en quelques étapes claires. | bi-lightning-charge-fill\nEspace sécurisé | Vos dossiers, abonnements et retours restent accessibles depuis votre compte. | bi-shield-fill-check\nSuivi lisible | Consultez l'état de vos signalements, dossiers et traitements. | bi-bar-chart-fill\nDialogue UP | Les Unités Partenaires disposent d'un espace pour traiter les demandes. | bi-people-fill")) as $featureLine)
         @php
           [$featureTitle, $featureText, $featureIcon] = $parts($featureLine, 3);
         @endphp
@@ -1560,7 +1560,7 @@
 <section class="section-manage" id="features">
   <div class="container">
     @php
-      $defaultManageSteps = "Decrire le probleme | Le consommateur renseigne les faits, le lieu, les preuves et les informations utiles. | bi-pencil-square\nTransmettre le signalement | My-Signal structure la demande et l'oriente vers le bon circuit de traitement. | bi-send-check\nSuivre l'avancement | Chaque changement de statut reste visible dans un espace clair et securise. | bi-activity\nCloturer avec retour | Une fois le dossier traite, le consommateur peut partager son retour d'experience. | bi-chat-square-heart";
+      $defaultManageSteps = "Décrire le problème | Le consommateur renseigne les faits, le lieu, les preuves et les informations utiles. | bi-pencil-square\nTransmettre le signalement | My-Signal structure la demande et l'oriente vers le bon circuit de traitement. | bi-send-check\nSuivre l'avancement | Chaque changement de statut reste visible dans un espace clair et sécurisé. | bi-activity\nClôturer avec retour | Une fois le dossier traité, le consommateur peut partager son retour d’expérience. | bi-chat-square-heart";
       $manageSteps = $lines($blockMeta('manage', 'items', $defaultManageSteps));
       $manageStepsNeedDefaults = collect($manageSteps)->every(fn ($stepLine) => trim($parts($stepLine, 3)[1] ?? '') === '');
       $manageSteps = $manageStepsNeedDefaults ? $lines($defaultManageSteps) : $manageSteps;
@@ -1570,8 +1570,8 @@
       <div class="col-lg-7">
         <div class="premium-process-copy">
           <span class="badge-pill">{{ $blockSubtitle('manage', 'Pourquoi My-Signal ?') }}</span>
-          <h2 class="section-title">{!! nl2br(e($blockTitle('manage', 'Un parcours clair pour signaler et suivre un probleme'))) !!}</h2>
-          <p class="section-sub">{{ $blockBody('manage', "My-Signal transforme chaque signalement en dossier lisible: les faits sont collectes, transmis au bon interlocuteur, suivis jusqu'au traitement, puis enrichis par un retour d'experience.") }}</p>
+          <h2 class="section-title">{!! nl2br(e($blockTitle('manage', 'Un parcours clair pour signaler et suivre un problème'))) !!}</h2>
+          <p class="section-sub">{{ $blockBody('manage', "My-Signal transforme chaque signalement en dossier lisible: les faits sont collectés, transmis au bon interlocuteur, suivis jusqu'au traitement, puis enrichis par un retour d’expérience.") }}</p>
         </div>
 
         <div class="premium-process-grid">
@@ -1616,7 +1616,7 @@
             @endforeach
           </div>
           <div class="premium-process-note">
-            Chaque etape reste traçable afin que le consommateur sache ce qui a ete transmis, ce qui est en cours et ce qui a ete traite.
+            Chaque étape reste traçable afin que le consommateur sache ce qui a été transmis, ce qui est en cours et ce qui a été traité.
           </div>
         </div>
       </div>
@@ -1632,12 +1632,12 @@
     <div class="row text-center mb-5">
       <div class="col-lg-6 mx-auto">
         <span class="badge-pill">{{ $blockSubtitle('app_features', 'Ce que My-Signal couvre') }}</span>
-        <h2 class="section-title">{{ $blockTitle('app_features', 'Fonctionnalites My-Signal') }}</h2>
-        <p class="section-sub">{{ $blockBody('app_features', 'Un parcours pense pour signaler, suivre, retrouver son historique et donner un retour apres traitement.') }}</p>
+        <h2 class="section-title">{{ $blockTitle('app_features', 'Fonctionnalités My-Signal') }}</h2>
+        <p class="section-sub">{{ $blockBody('app_features', 'Un parcours pensé pour signaler, suivre, retrouver son historique et donner un retour après traitement.') }}</p>
       </div>
     </div>
     @php
-      $appFeatureItems = $lines($blockMeta('app_features', 'items', "Signalements encadres | Les consommateurs declarent les dommages avec les informations utiles au traitement. | bi-people\nNotifications utiles | Les UP sont prevenues avant expiration et gardent la main sur leur renouvellement. | bi-headset\nHistorique complet | Abonnements, statuts et REX restent consultables dans les espaces dedies. | bi-graph-up-arrow\nRenouvellement manuel | Le statut d'abonnement reste visible, avec une periode de grace d'une journee. | bi-calendar-check\nCarte membre | Les membres actifs disposent d'une carte virtuelle avec QR code sur leur profil. | bi-cloud-check\nParametrage SA | Le Super Administrateur configure les plans, modules, historiques et acces. | bi-puzzle"));
+      $appFeatureItems = $lines($blockMeta('app_features', 'items', "Signalements encadrés | Les consommateurs déclarent les dommages avec les informations utiles au traitement. | bi-people\nNotifications utiles | Les UP sont prévenues avant expiration et gardent la main sur leur renouvellement. | bi-headset\nHistorique complet | Abonnements, statuts et REX restent consultables dans les espaces dédiés. | bi-graph-up-arrow\nRenouvellement manuel | Le statut d'abonnement reste visible, avec une période de grâce d'une journée. | bi-calendar-check\nCarte membre | Les membres actifs disposent d'une carte virtuelle avec QR code sur leur profil. | bi-cloud-check\nParamétrage SA | Le Super Administrateur configure les plans, modules, historiques et accès. | bi-puzzle"));
       $appFeatureIconColors = ['#ff0068', '#6791fe', '#ffa117', '#5bebaf'];
     @endphp
     <div class="row align-items-center g-4 g-lg-5">
@@ -1667,10 +1667,10 @@
               <div style="font-size:.75rem;opacity:.82;margin-top:5px">Suivi centralise</div>
             </div>
             <div class="feature-phone-panel">
-              <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:10px;font-weight:700">Modules cles</div>
+              <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:10px;font-weight:700">Modules clés</div>
               <div style="display:flex;flex-direction:column;gap:9px">
                 <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
-                  <span style="font-size:.68rem;font-weight:700">Depot</span>
+                  <span style="font-size:.68rem;font-weight:700">Dépôt</span>
                   <div style="flex:1;height:6px;border-radius:3px;background:#edf3f8;overflow:hidden"><div style="width:86%;height:100%;background:var(--primary);border-radius:3px"></div></div>
                 </div>
                 <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
@@ -1687,7 +1687,7 @@
               <div style="display:flex;align-items:center;gap:10px">
                 <div style="width:38px;height:38px;border-radius:8px;background:rgba(91,235,175,.2);color:#14764e;display:flex;align-items:center;justify-content:center"><i class="bi bi-check2-circle"></i></div>
                 <div style="text-align:left">
-                  <div style="font-size:.76rem;font-weight:800;color:var(--text-dark)">Dossier mis a jour</div>
+                  <div style="font-size:.76rem;font-weight:800;color:var(--text-dark)">Dossier mis à jour</div>
                   <div style="font-size:.68rem;color:var(--text-muted)">Historique conserve</div>
                 </div>
               </div>
@@ -1727,11 +1727,11 @@
         <div style="font-size:8rem;animation:float 3s ease-in-out infinite">📱</div>
       </div>
       <div class="col-lg-7">
-        <span class="badge-pill">{{ $blockSubtitle('share', 'Signalement guide') }}</span>
-        <h2 class="section-title">{!! nl2br(e($blockTitle('share', 'Declarez un dommage et gardez la trace'))) !!}</h2>
-        <p class="section-sub">{{ $blockBody('share', "Le consommateur peut suivre chaque etape: depot, traitement, resolution, dossier ouvert et retour d'experience apres la prise en charge.") }}</p>
+        <span class="badge-pill">{{ $blockSubtitle('share', 'Signalement guidé') }}</span>
+        <h2 class="section-title">{!! nl2br(e($blockTitle('share', 'Déclarez un dommage et gardez la trace'))) !!}</h2>
+        <p class="section-sub">{{ $blockBody('share', "Le consommateur peut suivre chaque étape: dépôt, traitement, résolution, dossier ouvert et retour d’expérience après la prise en charge.") }}</p>
         <div class="row g-3 mb-4">
-          @foreach ($lines($blockMeta('share', 'cards', "Depot simplifie | Un parcours clair pour signaler | 🔗\nDossier protege | Acces depuis votre espace | 🔒")) as $shareLine)
+          @foreach ($lines($blockMeta('share', 'cards', "Dépôt simplifié | Un parcours clair pour signaler | 🔗\nDossier protégé | Accès depuis votre espace | 🔒")) as $shareLine)
             @php
               [$shareTitle, $shareText, $shareIcon] = $parts($shareLine, 3);
             @endphp
@@ -1756,16 +1756,16 @@
 <section class="download-banner">
   <div class="container position-relative" style="z-index:1">
     <span class="badge-pill" style="background:rgba(255,255,255,.2);color:#fff;">{{ $blockSubtitle('access_banner', 'Disponible en ligne') }}</span>
-    <h2>{{ $blockTitle('access_banner', 'Accedez a votre espace My-Signal') }}</h2>
+    <h2>{{ $blockTitle('access_banner', 'Accédez à votre espace My-Signal') }}</h2>
     <p>{!! nl2br(e($blockBody('access_banner', 'Activez votre abonnement, suivez vos signalements et retrouvez votre carte membre depuis votre profil.'))) !!}</p>
     <div>
       @php
-        $defaultPublicUserTypes = "Particulier | Usager public | bi-person\nEntreprises, institutions | Usager public entreprise | bi-building\nAuto entrepreneur | Travailleur independant | bi-person-workspace";
+        $defaultPublicUserTypes = "Particulier | Usager public | bi-person\nEntreprises, institutions | Usager public entreprise | bi-building\nAuto entrepreneur | Travailleur indépendant | bi-person-workspace";
         $accessBannerButtons = $blockMeta('access_banner', 'buttons', $defaultPublicUserTypes);
         if (in_array(trim($accessBannerButtons), [
-          "Consommateur | Espace | bi-person\nUnite Partenaire | Espace | bi-building",
-          "Commerce | Achat et service | bi-bag-check\nServices | Prestation | bi-briefcase\nAssurance | Sinistre | bi-shield-check\nTransport | Parcours | bi-truck\nSante | Prise en charge | bi-heart-pulse\nEnergie | Fourniture | bi-lightning-charge",
-          "Usager public | Particulier | bi-person\nUsager public entreprise | Entreprise | bi-building\nTravailleur independant | Independant | bi-person-workspace",
+          "Consommateur | Espace | bi-person\nUnité Partenaire | Espace | bi-building",
+          "Commerce | Achat et service | bi-bag-check\nServices | Prestation | bi-briefcase\nAssurance | Sinistre | bi-shield-check\nTransport | Parcours | bi-truck\nSanté | Prise en charge | bi-heart-pulse\nÉnergie | Fourniture | bi-lightning-charge",
+          "Usager public | Particulier | bi-person\nUsager public entreprise | Entreprise | bi-building\nTravailleur indépendant | Indépendant | bi-person-workspace",
         ], true)) {
           $accessBannerButtons = $defaultPublicUserTypes;
         }
@@ -1790,14 +1790,14 @@
   <div class="container">
     <div class="row text-center mb-5">
       <div class="col-lg-6 mx-auto">
-        <span class="badge-pill">{{ $blockSubtitle('process', 'Comment ca marche') }}</span>
+        <span class="badge-pill">{{ $blockSubtitle('process', 'Comment ça marche') }}</span>
         <h2 class="section-title">{{ $blockTitle('process', 'Parcours de traitement') }}</h2>
-        <p class="section-sub">{{ $blockBody('process', "Un circuit simple pour declarer, suivre, resoudre et capitaliser les retours d'experience.") }}</p>
+        <p class="section-sub">{{ $blockBody('process', "Un circuit simple pour déclarer, suivre, résoudre et capitaliser les retours d’expérience.") }}</p>
       </div>
     </div>
     <div class="row align-items-center g-5">
       <div class="col-lg-6">
-        @foreach ($lines($blockMeta('process', 'steps', "Depot du signalement | Le consommateur renseigne son dommage et garde une trace dans son espace personnel.\nTraitement du dossier | L'UP suit les demandes, gere son abonnement et consulte les informations utiles.\nResolution et REX | Apres resolution ou traitement, le consommateur partage son retour d'experience.")) as $stepLine)
+        @foreach ($lines($blockMeta('process', 'steps', "Dépôt du signalement | Le consommateur renseigne son dommage et garde une trace dans son espace personnel.\nTraitement du dossier | L'UP suit les demandes, gère son abonnement et consulte les informations utiles.\nRésolution et REX | Après résolution ou traitement, le consommateur partage son retour d’expérience.")) as $stepLine)
           @php
             [$stepTitle, $stepText] = $parts($stepLine, 2);
           @endphp
@@ -1833,7 +1833,7 @@
 <section class="stats-banner">
   <div class="container">
     <div class="row text-center g-4">
-      @foreach ($lines($blockBody('stats', "10K+ | Consommateurs accompagnes\n245 | Dossiers traites\n45+ | UP abonnees\n12+ | Modules actifs")) as $statLine)
+      @foreach ($lines($blockBody('stats', "10K+ | Consommateurs accompagnés\n245 | Dossiers traités\n45+ | UP abonnées\n12+ | Modules actifs")) as $statLine)
         @php
           [$statValue, $statLabel] = $parts($statLine, 2);
         @endphp
@@ -1855,7 +1855,7 @@
   <div class="container">
     <div class="row text-center mb-5">
       <div class="col-lg-6 mx-auto">
-        <span class="badge-pill">{{ $blockSubtitle('faq', 'Questions frequentes') }}</span>
+        <span class="badge-pill">{{ $blockSubtitle('faq', 'Questions fréquentes') }}</span>
         <h2 class="section-title">{{ $blockTitle('faq', 'Comprendre My-Signal') }}</h2>
         <p class="section-sub">{{ $blockBody('faq', "Les points essentiels sur l'abonnement, le signalement, la carte membre et les REX.") }}</p>
       </div>
@@ -1866,7 +1866,7 @@
       </div>
       <div class="col-lg-7">
         <div class="accordion" id="faqAccordion">
-          @foreach ($lines($blockMeta('faq', 'questions', "Comment activer mon espace My-Signal ? | Creez votre compte, connectez-vous, puis suivez l'invitation d'abonnement. L'activation vous donne acces aux fonctions liees a votre profil.\nLe renouvellement est-il automatique ? | Non. Le renouvellement est manuel. Une notification est envoyee avant l'expiration, avec une periode de grace d'un jour.\nQuand puis-je faire un retour d'experience ? | Le REX est propose apres la resolution d'un dommage ou apres le traitement d'un dossier ouvert, si le module est autorise.\nQui peut obtenir la carte membre ? | Les membres eligibles avec un abonnement actif disposent d'une carte virtuelle visible dans leur profil, avec QR code.")) as $faqLine)
+          @foreach ($lines($blockMeta('faq', 'questions', "Comment activer mon espace My-Signal ? | Créez votre compte, connectez-vous, puis suivez l'invitation d'abonnement. L'activation vous donne accès aux fonctions liées à votre profil.\nLe renouvellement est-il automatique ? | Non. Le renouvellement est manuel. Une notification est envoyée avant l'expiration, avec une période de grâce d'un jour.\nQuand puis-je faire un retour d’expérience ? | Le REX est proposé après la résolution d'un dommage ou après le traitement d'un dossier ouvert, si le module est autorisé.\nQui peut obtenir la carte membre ? | Les membres éligibles avec un abonnement actif disposent d'une carte virtuelle visible dans leur profil, avec QR code.")) as $faqLine)
             @php
               [$question, $answer] = $parts($faqLine, 2);
             @endphp
@@ -1896,12 +1896,12 @@
   <div class="container">
     <div class="row text-center mb-5">
       <div class="col-lg-6 mx-auto">
-        <span class="badge-pill" style="background:rgba(255,255,255,.15);color:#fff;">{{ $blockSubtitle('testimonials', "Retours d'experience") }}</span>
+        <span class="badge-pill" style="background:rgba(255,255,255,.15);color:#fff;">{{ $blockSubtitle('testimonials', "Retours d’expérience") }}</span>
         <h2 class="section-title" style="color:#fff">{!! nl2br(e($blockTitle('testimonials', 'Ce que les utilisateurs peuvent partager'))) !!}</h2>
       </div>
     </div>
     <div class="row g-4">
-      @foreach ($lines($blockMeta('testimonials', 'items', "Le suivi m'a permis de savoir exactement ou en etait mon signalement et quand mon dossier a ete traite. | Consommateur | Signalement resolu | 👩\nLes notifications d'expiration et l'historique des abonnements rendent la gestion plus claire pour notre equipe. | Unite Partenaire | Abonnement actif | 👨\nApres traitement de mon dossier, j'ai pu laisser un REX simple sur le delai, la communication et la qualite de prise en charge. | Membre consommateur | REX apres dossier | 👩")) as $testimonialLine)
+      @foreach ($lines($blockMeta('testimonials', 'items', "Le suivi m'a permis de savoir exactement où en était mon signalement et quand mon dossier a été traité. | Consommateur | Signalement résolu | 👩\nLes notifications d'expiration et l'historique des abonnements rendent la gestion plus claire pour notre équipe. | Unité Partenaire | Abonnement actif | 👨\nAprès traitement de mon dossier, j'ai pu laisser un REX simple sur le délai, la communication et la qualité de prise en charge. | Membre consommateur | REX après dossier | 👩")) as $testimonialLine)
         @php
           [$testimonialText, $testimonialAuthor, $testimonialRole, $testimonialAvatar] = $parts($testimonialLine, 4);
         @endphp
@@ -1935,8 +1935,8 @@
           <div class="cta-illustration">💡</div>
         </div>
         <div class="col-md-6">
-          <h3 style="font-weight:800;margin-bottom:12px">{{ $blockTitle('cta', 'Pret a suivre vos signalements autrement ?') }}</h3>
-          <p style="color:var(--text-muted);font-size:.88rem;margin:0">{{ $blockBody('cta', "My-Signal rassemble le signalement, le suivi, l'abonnement annuel, la carte membre et les retours d'experience dans un meme parcours.") }}</p>
+          <h3 style="font-weight:800;margin-bottom:12px">{{ $blockTitle('cta', 'Prêt à suivre vos signalements autrement ?') }}</h3>
+          <p style="color:var(--text-muted);font-size:.88rem;margin:0">{{ $blockBody('cta', "My-Signal rassemble le signalement, le suivi, l'abonnement annuel, la carte membre et les retours d’expérience dans un même parcours.") }}</p>
         </div>
         <div class="col-md-3 text-md-end">
           <a href="{{ route('public.auth') }}" class="btn-primary-custom">{{ $blockMeta('cta', 'button', 'Activer mon espace') }}</a>
@@ -1961,7 +1961,7 @@
           $domainTitle = $application->name;
           $domainText = $application->short_description
               ?: $application->tagline
-              ?: 'Suivez vos signalements et declenchez vos demarches depuis cet univers My-Signal.';
+              ?: 'Suivez vos signalements et déclenchez vos démarches depuis cet univers My-Signal.';
           $domainImage = $application->heroImageUrl()
               ?: $application->logoUrl()
               ?: asset('image/logo/logo-my-signal.png');
@@ -1981,7 +1981,7 @@
       @empty
         <div class="col-12">
           <div class="alert alert-light border-0 shadow-sm rounded-4 text-center mb-0">
-            Aucune application active n est disponible pour le moment.
+            Aucune application active n’est disponible pour le moment.
           </div>
         </div>
       @endforelse
@@ -1998,13 +1998,13 @@
       <div class="col-lg-7">
         <span class="badge-pill" style="background:rgba(255,255,255,.15);color:#fff;">{{ $blockSubtitle('partners', 'Partenaires') }}</span>
         <h2 class="section-title mb-2" style="color:#fff">{{ $blockTitle('partners', 'Ils nous font confiance') }}</h2>
-        <p class="partner-sub mb-0">{{ $blockBody('partners', 'Des acteurs publics, prives et communautaires s appuient sur My-Signal pour rendre le traitement des signalements plus lisible.') }}</p>
+        <p class="partner-sub mb-0">{{ $blockBody('partners', 'Des acteurs publics, privés et communautaires s’appuient sur My-Signal pour rendre le traitement des signalements plus lisible.') }}</p>
       </div>
     </div>
     @php
       $partnerCards = $blockMeta('partners', 'cards', []);
       if (! is_array($partnerCards) || $partnerCards === []) {
-        $partnerCards = collect($lines($blockMeta('partners', 'items', "ACEPEN | AC\nMON NRJ | NRJ\nMON EAU | EAU\nCITOYENS | CT\nSERVICES CI | SCI\nCOLLECTIVITES | COL\nRESEAUX | RX\nASSISTANCE | AST\nMEDIATION | MED\nOBSERVATOIRE | OBS")))
+        $partnerCards = collect($lines($blockMeta('partners', 'items', "ACEPEN | AC\nMON NRJ | NRJ\nMON EAU | EAU\nCITOYENS | CT\nSERVICES CI | SCI\nCOLLECTIVITÉS | COL\nRÉSEAUX | RX\nASSISTANCE | AST\nMÉDIATION | MED\nOBSERVATOIRE | OBS")))
           ->map(function (string $partnerLine) use ($parts): array {
             [$partnerName, $partnerMark] = $parts($partnerLine, 2);
 
@@ -2051,7 +2051,7 @@
     <div class="row g-5">
       <div class="col-lg-4">
         <div class="brand">{{ $blockTitle('footer', 'My') }}<span></span></div>
-        <p>{{ $blockBody('footer', "La plateforme qui facilite le signalement, le suivi des dossiers, l'abonnement annuel des UP et les retours d'experience.") }}</p>
+        <p>{{ $blockBody('footer', "La plateforme qui facilite le signalement, le suivi des dossiers, l'abonnement annuel des UP et les retours d’expérience.") }}</p>
         <div class="footer-social">
           <a href="#"><i class="bi bi-facebook"></i></a>
           <a href="#"><i class="bi bi-twitter-x"></i></a>
@@ -2063,7 +2063,7 @@
       <div class="col-6 col-lg-2">
         <h6>{{ $blockMeta('footer', 'column_1_title', 'My-Signal') }}</h6>
         <ul>
-          @foreach ($lines($blockMeta('footer', 'column_1_links', "A propos | #\nProtection consommateur | #\nUnites Partenaires | #\nContact | #")) as $footerLine)
+          @foreach ($lines($blockMeta('footer', 'column_1_links', "À propos | #\nProtection consommateur | #\nUnités Partenaires | #\nContact | #")) as $footerLine)
             @php
               [$footerLabel, $footerUrl] = $parts($footerLine, 2);
             @endphp
@@ -2074,7 +2074,7 @@
       <div class="col-6 col-lg-2">
         <h6>{{ $blockMeta('footer', 'column_2_title', 'Modules') }}</h6>
         <ul>
-          @foreach ($lines($blockMeta('footer', 'column_2_links', "Fonctionnalites | #features\nFAQ | #faq\nREX | #testimonials\nDomaines couverts | #domains")) as $footerLine)
+          @foreach ($lines($blockMeta('footer', 'column_2_links', "Fonctionnalités | #features\nFAQ | #faq\nREX | #testimonials\nDomaines couverts | #domains")) as $footerLine)
             @php
               [$footerLabel, $footerUrl] = $parts($footerLine, 2);
             @endphp
@@ -2084,9 +2084,9 @@
         </ul>
       </div>
       <div class="col-6 col-lg-2">
-        <h6>{{ $blockMeta('footer', 'column_3_title', 'Legal') }}</h6>
+        <h6>{{ $blockMeta('footer', 'column_3_title', 'Légal') }}</h6>
         <ul>
-          @foreach ($lines($blockMeta('footer', 'column_3_links', "Confidentialite | #\nConditions d'utilisation | #\nCookies | #\nDonnees personnelles | #")) as $footerLine)
+          @foreach ($lines($blockMeta('footer', 'column_3_links', "Confidentialité | #\nConditions d'utilisation | #\nCookies | #\nDonnées personnelles | #")) as $footerLine)
             @php
               [$footerLabel, $footerUrl] = $parts($footerLine, 2);
             @endphp
@@ -2105,7 +2105,7 @@
     </div>
     <div class="footer-bottom">
       <div class="row align-items-center">
-        <div class="col-md-6 text-md-start">© 2026 My-Signal. Tous droits reserves.</div>
+        <div class="col-md-6 text-md-start">© 2026 My-Signal. Tous droits réservés.</div>
         <div class="col-md-6 text-md-end mt-2 mt-md-0">
           {{ $blockSubtitle('footer', 'Plateforme de protection consommateur') }}
         </div>
