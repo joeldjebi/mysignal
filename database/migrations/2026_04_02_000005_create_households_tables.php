@@ -39,7 +39,7 @@ return new class extends Migration
             $table->string('phone', 20)->index();
             $table->string('relationship', 50);
             $table->string('code', 6);
-            $table->timestamp('expires_at');
+            $table->timestamp('expires_at')->nullable();
             $table->timestamp('accepted_at')->nullable();
             $table->foreignId('invited_by')->constrained('public_users')->cascadeOnDelete();
             $table->timestamps();

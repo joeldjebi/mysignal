@@ -39,6 +39,23 @@ return [
         'key' => env('GOOGLE_MAPS_API_KEY'),
     ],
 
+    'firebase' => [
+        'enabled' => (bool) env('FIREBASE_PUSH_ENABLED', true),
+        'project_id' => env('FIREBASE_PROJECT_ID'),
+        'credentials' => env('FIREBASE_CREDENTIALS'),
+        'web' => [
+            'vapid_key' => env('FIREBASE_WEB_VAPID_KEY'),
+            'config' => [
+                'apiKey' => env('FIREBASE_WEB_API_KEY'),
+                'authDomain' => env('FIREBASE_WEB_AUTH_DOMAIN'),
+                'projectId' => env('FIREBASE_PROJECT_ID'),
+                'storageBucket' => env('FIREBASE_WEB_STORAGE_BUCKET'),
+                'messagingSenderId' => env('FIREBASE_WEB_MESSAGING_SENDER_ID'),
+                'appId' => env('FIREBASE_WEB_APP_ID'),
+            ],
+        ],
+    ],
+
     'public_auth' => [
         'otp_digits' => (int) env('PUBLIC_AUTH_OTP_DIGITS', 4),
         'default_otp' => env('PUBLIC_AUTH_DEFAULT_OTP', '2604'),

@@ -56,6 +56,32 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [PublicPortalController::class, 'landing'])->name('public.landing');
 Route::get('/auth', [PublicPortalController::class, 'auth'])->name('public.auth');
 Route::get('/dashboard', [PublicPortalController::class, 'dashboard'])->name('public.dashboard');
+Route::get('/firebase-messaging-sw.js', function () {
+    $config = array_filter(config('services.firebase.web.config', []), fn ($value) => filled($value));
+    $configJson = json_encode($config, JSON_UNESCAPED_SLASHES);
+    $enabled = config('services.firebase.enabled') && filled(config('services.firebase.web.vapid_key')) && filled($config['apiKey'] ?? null) && filled($config['messagingSenderId'] ?? null) && filled($config['appId'] ?? null);
+    $enabledJson = $enabled ? 'true' : 'false';
+
+    $javascript = <<<JS
+importScripts('https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.12.5/firebase-messaging-compat.js');
+
+const firebaseConfig = {$configJson};
+
+if ({$enabledJson} && firebaseConfig.apiKey) {
+    firebase.initializeApp(firebaseConfig);
+    const messaging = firebase.messaging();
+
+    messaging.onBackgroundMessage((payload) => {
+        console.log('[MYSIGNAL] Firebase background payload', payload);
+    });
+}
+JS;
+
+    return response($javascript, 200)
+        ->header('Content-Type', 'application/javascript; charset=UTF-8')
+        ->header('Service-Worker-Allowed', '/');
+})->name('firebase.messaging-sw');
 Route::redirect('/admin', '/sa/login');
 Route::redirect('/admin/login', '/sa/login');
 Route::redirect('/backoffice', '/backoffice/login');

@@ -2101,6 +2101,9 @@
                 const dialCodeOptions = @json($dialCodeOptions);
                 const publicUserTypes = @json($publicUserTypesPayload);
                 const serviceApplications = @json($serviceApplicationsPayload);
+                const firebaseWebConfig = @json(array_filter(config('services.firebase.web.config', []), fn ($value) => filled($value)));
+                const firebaseWebVapidKey = @json(config('services.firebase.web.vapid_key'));
+                const firebasePushEnabled = @json((bool) config('services.firebase.enabled'));
                 const state = {
                     token: localStorage.getItem(tokenKey),
                     currentUser: null,
@@ -2769,6 +2772,86 @@
                         throw error;
                     }
                     return data;
+                }
+
+                function hasFirebaseWebConfig() {
+                    return firebasePushEnabled
+                        && firebaseWebVapidKey
+                        && firebaseWebConfig.apiKey
+                        && firebaseWebConfig.messagingSenderId
+                        && firebaseWebConfig.appId;
+                }
+
+                function isPushSupportedInThisContext() {
+                    return 'Notification' in window
+                        && 'serviceWorker' in navigator
+                        && window.isSecureContext;
+                }
+
+                async function registerPublicWebPushToken() {
+                    if (!state.token) {
+                        return;
+                    }
+
+                    if (!hasFirebaseWebConfig()) {
+                        console.info('[MYSIGNAL] Firebase Web Push non configure. Variables attendues: FIREBASE_WEB_API_KEY, FIREBASE_WEB_MESSAGING_SENDER_ID, FIREBASE_WEB_APP_ID, FIREBASE_WEB_VAPID_KEY.');
+                        return;
+                    }
+
+                    if (!isPushSupportedInThisContext()) {
+                        console.info('[MYSIGNAL] Web Push non disponible sur ce navigateur ou ce contexte. Utilise HTTPS en production, ou localhost en local.');
+                        return;
+                    }
+
+                    try {
+                        const permission = await Notification.requestPermission();
+
+                        if (permission !== 'granted') {
+                            console.info('[MYSIGNAL] Autorisation notification refusee ou ignoree:', permission);
+                            return;
+                        }
+
+                        const [{ initializeApp }, { getMessaging, getToken, isSupported }] = await Promise.all([
+                            import('https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js'),
+                            import('https://www.gstatic.com/firebasejs/10.12.5/firebase-messaging.js'),
+                        ]);
+
+                        if (!(await isSupported())) {
+                            console.info('[MYSIGNAL] Firebase Messaging non supporte par ce navigateur.');
+                            return;
+                        }
+
+                        const firebaseApp = initializeApp(firebaseWebConfig);
+                        const messaging = getMessaging(firebaseApp);
+                        const serviceWorkerRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+                        const token = await getToken(messaging, {
+                            vapidKey: firebaseWebVapidKey,
+                            serviceWorkerRegistration,
+                        });
+
+                        if (!token) {
+                            console.info('[MYSIGNAL] Aucun token Firebase retourne par le navigateur.');
+                            return;
+                        }
+
+                        const payload = {
+                            token,
+                            platform: 'web',
+                            device_name: `${navigator.platform || 'Web'} - ${navigator.userAgent || 'Navigateur'}`.slice(0, 255),
+                            app_version: 'web-dashboard',
+                        };
+
+                        console.log('[MYSIGNAL] Payload push-token UP', payload);
+
+                        const response = await apiFetch('/push-tokens', {
+                            method: 'POST',
+                            body: JSON.stringify(payload),
+                        });
+
+                        console.log('[MYSIGNAL] Reponse push-token UP', response);
+                    } catch (error) {
+                        console.error('[MYSIGNAL] Impossible d enregistrer le token Firebase Web.', error);
+                    }
                 }
 
                 function logout(showMessage = true) {
@@ -5276,6 +5359,7 @@
                         apiFetch('/reparation-cases'),
                     ]);
                     renderUser(me.data.user);
+                    void registerPublicWebPushToken();
                     state.subscription = subscription.data.subscription;
                     state.subscriptionHistory = subscriptionHistory.data.subscriptions || [];
                     state.subscriptionPayments = subscriptionPayments.data.payments || [];

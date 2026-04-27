@@ -14,6 +14,8 @@ use App\Http\Requests\Api\V1\Public\Households\StoreHouseholdRequest;
 use App\Http\Resources\Api\V1\Public\Households\HouseholdInvitationResource;
 use App\Http\Resources\Api\V1\Public\Households\HouseholdResource;
 use App\Models\Household;
+use App\Models\PublicUser;
+use App\Services\Notifications\PushNotificationDispatcher;
 use App\Support\Api\ApiResponse;
 use Illuminate\Http\Request;
 
@@ -74,9 +76,24 @@ class PublicHouseholdController extends Controller
         ]);
     }
 
-    public function invite(Request $request, Household $household, InviteHouseholdMemberRequest $inviteRequest, InviteHouseholdMemberAction $action)
+    public function invite(Request $request, Household $household, InviteHouseholdMemberRequest $inviteRequest, InviteHouseholdMemberAction $action, PushNotificationDispatcher $notifications)
     {
         $invitation = $action->handle($request->user('public_api'), $household, $inviteRequest->validated());
+        $invitedUser = PublicUser::query()->where('phone', $invitation->phone)->first();
+
+        if ($invitedUser instanceof PublicUser) {
+            $notifications->notifyPublicUser(
+                $invitedUser,
+                'household_invitation_created',
+                'Invitation Gbonhi reçue',
+                'Vous avez reçu une invitation à rejoindre un Gbonhi.',
+                [
+                    'screen' => 'household',
+                    'invitation_id' => $invitation->id,
+                    'household_id' => $household->id,
+                ],
+            );
+        }
 
         return ApiResponse::success([
             'invitation' => new HouseholdInvitationResource($invitation),

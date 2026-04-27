@@ -124,6 +124,12 @@ class PublicHouseholdTest extends TestCase
             'public_user_id' => $member->id,
             'relationship' => 'child',
         ]);
+
+        $this->assertDatabaseHas('user_notifications', [
+            'recipient_type' => 'public',
+            'recipient_id' => $member->id,
+            'type' => 'household_invitation_created',
+        ]);
     }
 
     public function test_pending_invitations_do_not_expire(): void

@@ -24,6 +24,8 @@ use App\Http\Controllers\Api\V1\Public\Signals\PublicSignalTypeController;
 use App\Http\Controllers\Api\V1\Public\Subscriptions\PublicUpSubscriptionController;
 use App\Http\Controllers\Api\V1\Public\Subscriptions\PublicUpSubscriptionPaymentController;
 use App\Http\Controllers\Api\V1\Public\UserTypes\PublicUserTypeController;
+use App\Http\Controllers\Api\V1\Notifications\DeviceTokenController;
+use App\Http\Controllers\Api\V1\Notifications\UserNotificationController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1/public')->group(function (): void {
@@ -57,6 +59,11 @@ Route::prefix('v1/public')->group(function (): void {
         Route::get('me', AuthenticatedPublicUserController::class);
         Route::get('profile', [PublicProfileController::class, 'show']);
         Route::put('profile', [PublicProfileController::class, 'update']);
+        Route::post('push-tokens', [DeviceTokenController::class, 'storePublic']);
+        Route::delete('push-tokens', [DeviceTokenController::class, 'destroyPublic']);
+        Route::get('notifications', [UserNotificationController::class, 'publicIndex']);
+        Route::post('notifications/read-all', [UserNotificationController::class, 'publicMarkAllAsRead']);
+        Route::post('notifications/{notification}/read', [UserNotificationController::class, 'publicMarkAsRead']);
 
         Route::get('meters', [PublicMeterController::class, 'index']);
         Route::post('meters', [PublicMeterController::class, 'store']);
@@ -109,6 +116,11 @@ Route::prefix('v1/partner')->group(function (): void {
         Route::post('auth/logout', [PartnerAuthController::class, 'logout']);
         Route::put('profile', [PartnerProfileController::class, 'update']);
         Route::put('profile/password', [PartnerPasswordController::class, 'update']);
+        Route::post('push-tokens', [DeviceTokenController::class, 'storePartner']);
+        Route::delete('push-tokens', [DeviceTokenController::class, 'destroyPartner']);
+        Route::get('notifications', [UserNotificationController::class, 'partnerIndex']);
+        Route::post('notifications/read-all', [UserNotificationController::class, 'partnerMarkAllAsRead']);
+        Route::post('notifications/{notification}/read', [UserNotificationController::class, 'partnerMarkAsRead']);
 
         Route::get('discount-offers', [PartnerDiscountOfferController::class, 'index'])
             ->middleware('partner_permission:PARTNER_DISCOUNT_HISTORY_VIEW');
