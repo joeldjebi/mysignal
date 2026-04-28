@@ -32,17 +32,30 @@ class FirebaseCloudMessagingClient
         $errors = [];
 
         foreach ($tokens as $token) {
+            $message = [
+                'token' => $token,
+                'notification' => [
+                    'title' => $title,
+                    'body' => $body ?? '',
+                ],
+                'data' => $stringData,
+                'webpush' => [
+                    'notification' => [
+                        'title' => $title,
+                        'body' => $body ?? '',
+                        'icon' => '/favicon.ico',
+                        'badge' => '/favicon.ico',
+                    ],
+                    'fcm_options' => [
+                        'link' => url('/dashboard'),
+                    ],
+                ],
+            ];
+
             $response = Http::withToken($accessToken)
                 ->acceptJson()
                 ->post("https://fcm.googleapis.com/v1/projects/{$projectId}/messages:send", [
-                    'message' => [
-                        'token' => $token,
-                        'notification' => [
-                            'title' => $title,
-                            'body' => $body ?? '',
-                        ],
-                        'data' => $stringData,
-                    ],
+                    'message' => $message,
                 ]);
 
             if ($response->successful()) {

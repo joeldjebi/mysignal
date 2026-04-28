@@ -73,17 +73,27 @@ function normalizePayload(event) {
 
 self.addEventListener('push', (event) => {
     const payload = normalizePayload(event);
-    const notification = payload.notification || {};
-    const data = payload.data || {};
+    let wrappedPayload = payload;
+
+    if (payload.data?.FCM_MSG) {
+        try {
+            wrappedPayload = JSON.parse(payload.data.FCM_MSG);
+        } catch (error) {
+            wrappedPayload = payload;
+        }
+    }
+
+    const notification = wrappedPayload.notification || {};
+    const data = wrappedPayload.data || payload.data || {};
     const title = notification.title || data.title || 'MYSIGNAL';
     const options = {
         body: notification.body || data.body || '',
-        icon: '/favicon.ico',
-        badge: '/favicon.ico',
+        icon: notification.icon || '/favicon.ico',
+        badge: notification.badge || '/favicon.ico',
         data,
     };
 
-    console.log('[MYSIGNAL] Firebase background payload', payload);
+    console.log('[MYSIGNAL] Firebase background payload', wrappedPayload);
     event.waitUntil(self.registration.showNotification(title, options));
 });
 
