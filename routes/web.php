@@ -58,7 +58,7 @@ Route::get('/', [PublicPortalController::class, 'landing'])->name('public.landin
 Route::get('/auth', [PublicPortalController::class, 'auth'])->name('public.auth');
 Route::get('/dashboard', [PublicPortalController::class, 'dashboard'])->name('public.dashboard');
 Route::get('/firebase-messaging-sw.js', function () {
-    $javascript = <<<JS
+    $javascript = <<<'JS'
 function normalizePayload(event) {
     if (!event.data) {
         return {};
@@ -90,11 +90,23 @@ self.addEventListener('push', (event) => {
         body: notification.body || data.body || '',
         icon: notification.icon || '/favicon.ico',
         badge: notification.badge || '/favicon.ico',
+        tag: data.notification_id ? `mysignal-${data.notification_id}` : `mysignal-${Date.now()}`,
+        renotify: true,
+        requireInteraction: true,
+        timestamp: Date.now(),
         data,
     };
 
     console.log('[MYSIGNAL] Firebase background payload', wrappedPayload);
-    event.waitUntil(self.registration.showNotification(title, options));
+    event.waitUntil(
+        self.registration.showNotification(title, options)
+            .then(() => {
+                console.log('[MYSIGNAL] Notification affichee', { title, options });
+            })
+            .catch((error) => {
+                console.error('[MYSIGNAL] Echec affichage notification', error);
+            })
+    );
 });
 
 self.addEventListener('notificationclick', (event) => {
