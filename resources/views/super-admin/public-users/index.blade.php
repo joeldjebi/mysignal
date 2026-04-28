@@ -37,6 +37,14 @@
                         <option value="inactive" @selected(request('status') === 'inactive')>Inactif</option>
                     </select>
                 </div>
+                <div class="col-md-2">
+                    <label class="form-label small text-secondary">Notifications</label>
+                    <select name="push_token" class="form-select">
+                        <option value="">Tous</option>
+                        <option value="active" @selected(request('push_token') === 'active')>Token actif</option>
+                        <option value="none" @selected(request('push_token') === 'none')>Aucun token actif</option>
+                    </select>
+                </div>
                 <div class="col-md-2 d-flex gap-2">
                     <button class="btn btn-dark w-100">Filtrer</button>
                     <a href="{{ route('super-admin.public-users.index') }}" class="btn btn-outline-secondary">RAZ</a>
@@ -52,6 +60,7 @@
                         <th>Commune</th>
                         <th>Tarification</th>
                         <th>Abonnement</th>
+                        <th>Notifications</th>
                         <th>Statut</th>
                         <th class="text-end">Actions</th>
                     </tr>
@@ -103,10 +112,34 @@
                                     <span class="status-chip">Aucun</span>
                                 @endif
                             </td>
+                            <td>
+                                @php
+                                    $activeTokens = $publicUser->activeDeviceTokens;
+                                    $latestToken = $publicUser->latestDeviceToken;
+                                    $platforms = $activeTokens
+                                        ->pluck('platform')
+                                        ->filter()
+                                        ->map(fn ($platform) => strtoupper($platform))
+                                        ->unique()
+                                        ->values();
+                                @endphp
+                                @if ($activeTokens->isNotEmpty())
+                                    <div class="fw-semibold">{{ $activeTokens->count() }} token{{ $activeTokens->count() > 1 ? 's' : '' }} actif{{ $activeTokens->count() > 1 ? 's' : '' }}</div>
+                                    <div class="small text-secondary">{{ $platforms->isNotEmpty() ? $platforms->join(', ') : 'Plateforme non renseignee' }}</div>
+                                    <div class="small text-secondary">
+                                        {{ $latestToken?->last_seen_at ? 'Dernier: '.$latestToken->last_seen_at->format('d/m/Y H:i') : 'Dernier passage non renseigne' }}
+                                    </div>
+                                @else
+                                    <span class="status-chip">Aucun token actif</span>
+                                    @if ((int) $publicUser->device_tokens_count > 0)
+                                        <div class="small text-secondary">{{ $publicUser->device_tokens_count }} ancien{{ $publicUser->device_tokens_count > 1 ? 's' : '' }} token{{ $publicUser->device_tokens_count > 1 ? 's' : '' }} revoque{{ $publicUser->device_tokens_count > 1 ? 's' : '' }}</div>
+                                    @endif
+                                @endif
+                            </td>
                             <td><span class="status-chip">{{ $publicUser->status }}</span></td>
                             <td class="text-end">
                                 <div class="actions-wrap">
-                                    <a href="{{ route('super-admin.public-users.show', $publicUser) }}" class="btn btn-sm btn-dark">Voir les signalements</a>
+                                    <a href="{{ route('super-admin.public-users.show', $publicUser) }}" class="btn btn-sm btn-dark">Details</a>
                                     <a href="{{ route('super-admin.public-users.edit', $publicUser) }}" class="btn btn-sm btn-outline-dark">Modifier</a>
                                     @if (auth()->user()?->hasPermissionCode('SA_PUBLIC_USERS_TOGGLE_STATUS'))
                                         <form method="POST" action="{{ route('super-admin.public-users.toggle-status', $publicUser) }}">
@@ -124,7 +157,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="7" class="text-center text-secondary">Aucun usager public enregistre.</td></tr>
+                        <tr><td colspan="8" class="text-center text-secondary">Aucun usager public enregistre.</td></tr>
                     @endforelse
                 </tbody>
             </table>

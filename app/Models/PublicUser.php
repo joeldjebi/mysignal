@@ -138,6 +138,24 @@ class PublicUser extends Authenticatable implements JWTSubject
         return $this->hasMany(ReparationCase::class);
     }
 
+    public function deviceTokens(): HasMany
+    {
+        return $this->hasMany(DeviceToken::class, 'recipient_id')
+            ->where('recipient_type', 'public');
+    }
+
+    public function activeDeviceTokens(): HasMany
+    {
+        return $this->deviceTokens()->whereNull('revoked_at');
+    }
+
+    public function latestDeviceToken(): HasOne
+    {
+        return $this->hasOne(DeviceToken::class, 'recipient_id')
+            ->where('recipient_type', 'public')
+            ->latestOfMany('last_seen_at');
+    }
+
     public function publicUserType(): BelongsTo
     {
         return $this->belongsTo(PublicUserType::class);

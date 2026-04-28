@@ -24,6 +24,8 @@ class PublicUserController extends Controller
             'publicUserType.pricingRule',
             'latestSubscription.plan',
             'latestSubscription.payments',
+            'latestDeviceToken',
+            'activeDeviceTokens',
         ]);
 
         if (filled(request('search'))) {
@@ -45,8 +47,23 @@ class PublicUserController extends Controller
             $query->where('public_user_type_id', request('public_user_type_id'));
         }
 
+        if (request('push_token') === 'active') {
+            $query->whereHas('activeDeviceTokens');
+        }
+
+        if (request('push_token') === 'none') {
+            $query->whereDoesntHave('activeDeviceTokens');
+        }
+
         return view('super-admin.public-users.index', [
-            'publicUsers' => $query->latest()->paginate(12)->withQueryString(),
+            'publicUsers' => $query
+                ->withCount([
+                    'activeDeviceTokens as active_device_tokens_count',
+                    'deviceTokens as device_tokens_count',
+                ])
+                ->latest()
+                ->paginate(12)
+                ->withQueryString(),
             'publicUserTypes' => PublicUserType::query()->with('pricingRule')->where('status', 'active')->orderBy('sort_order')->orderBy('name')->get(),
             'communes' => Commune::query()->where('status', 'active')->orderBy('name')->get(),
             'businessSectors' => BusinessSector::query()->where('status', 'active')->orderBy('sort_order')->orderBy('name')->get(),
@@ -196,7 +213,10 @@ class PublicUserController extends Controller
         );
 
         return view('super-admin.public-users.show', [
-            'publicUser' => $publicUser->load('publicUserType.pricingRule'),
+            'publicUser' => $publicUser->load([
+                'publicUserType.pricingRule',
+                'deviceTokens' => fn ($query) => $query->latest('last_seen_at')->latest(),
+            ]),
             'subscriptions' => $subscriptions,
             'reports' => $paginatedReports,
             'reportStatuses' => ['submitted', 'in_progress', 'resolved', 'rejected', 'closed'],
