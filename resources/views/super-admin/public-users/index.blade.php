@@ -6,6 +6,9 @@
 
 @section('header-badges')
     <span class="badge-soft">{{ $publicUsers->total() }} usagers</span>
+    <a href="{{ route('super-admin.public-users.push-notifications.index') }}" class="btn btn-outline-dark">
+        Notifications UP
+    </a>
     <a href="{{ route('super-admin.public-users.create') }}" class="btn btn-dark">
         Nouvel usager
     </a>

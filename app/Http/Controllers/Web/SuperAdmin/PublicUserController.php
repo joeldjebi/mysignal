@@ -13,7 +13,6 @@ use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class PublicUserController extends Controller
@@ -67,6 +66,7 @@ class PublicUserController extends Controller
             'publicUserTypes' => PublicUserType::query()->with('pricingRule')->where('status', 'active')->orderBy('sort_order')->orderBy('name')->get(),
             'communes' => Commune::query()->where('status', 'active')->orderBy('name')->get(),
             'businessSectors' => BusinessSector::query()->where('status', 'active')->orderBy('sort_order')->orderBy('name')->get(),
+            'pushEligibleUsersCount' => PublicUser::query()->whereHas('activeDeviceTokens')->count(),
         ]);
     }
 

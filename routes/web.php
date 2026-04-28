@@ -40,6 +40,7 @@ use App\Http\Controllers\Web\SuperAdmin\PermissionController;
 use App\Http\Controllers\Web\SuperAdmin\PaymentController;
 use App\Http\Controllers\Web\SuperAdmin\PricingRuleController;
 use App\Http\Controllers\Web\SuperAdmin\PublicIncidentReportController;
+use App\Http\Controllers\Web\SuperAdmin\PublicUserPushNotificationController;
 use App\Http\Controllers\Web\SuperAdmin\PublicUserController;
 use App\Http\Controllers\Web\SuperAdmin\PublicUserTypeController;
 use App\Http\Controllers\Web\SuperAdmin\ReparationCaseController;
@@ -277,6 +278,8 @@ Route::prefix('sa')->name('super-admin.')->group(function (): void {
         Route::get('up-subscriptions', [UpSubscriptionController::class, 'index'])->middleware('super_admin_permission:SA_UP_SUBSCRIPTIONS_VIEW')->name('up-subscriptions.index');
         Route::resource('public-user-types', PublicUserTypeController::class)->parameters(['public-user-types' => 'publicUserType'])->except(['create', 'show'])->middleware('super_admin_permission:SA_PUBLIC_USER_TYPES_MANAGE');
         Route::patch('public-user-types/{publicUserType}/toggle-status', [PublicUserTypeController::class, 'toggleStatus'])->middleware('super_admin_permission:SA_PUBLIC_USER_TYPES_MANAGE')->name('public-user-types.toggle-status');
+        Route::get('public-users/push-notifications', [PublicUserPushNotificationController::class, 'index'])->middleware('super_admin_permission:SA_PUBLIC_USERS_MANAGE')->name('public-users.push-notifications.index');
+        Route::post('public-users/push-notifications', [PublicUserPushNotificationController::class, 'store'])->middleware('super_admin_permission:SA_PUBLIC_USERS_MANAGE')->name('public-users.push-notifications.store');
         Route::resource('public-users', PublicUserController::class)->parameters(['public-users' => 'publicUser'])->middleware('super_admin_permission:SA_PUBLIC_USERS_MANAGE');
         Route::patch('public-users/{publicUser}/toggle-status', [PublicUserController::class, 'toggleStatus'])->middleware('super_admin_permission:SA_PUBLIC_USERS_TOGGLE_STATUS')->name('public-users.toggle-status');
         Route::get('public-reports', [PublicIncidentReportController::class, 'index'])->middleware('super_admin_permission:SA_PUBLIC_REPORTS_VIEW')->name('public-reports.index');
