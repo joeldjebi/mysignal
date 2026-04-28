@@ -57,30 +57,73 @@ Route::get('/', [PublicPortalController::class, 'landing'])->name('public.landin
 Route::get('/auth', [PublicPortalController::class, 'auth'])->name('public.auth');
 Route::get('/dashboard', [PublicPortalController::class, 'dashboard'])->name('public.dashboard');
 Route::get('/firebase-messaging-sw.js', function () {
-    $config = array_filter(config('services.firebase.web.config', []), fn ($value) => filled($value));
-    $configJson = json_encode($config, JSON_UNESCAPED_SLASHES);
-    $enabled = config('services.firebase.enabled') && filled(config('services.firebase.web.vapid_key')) && filled($config['apiKey'] ?? null) && filled($config['messagingSenderId'] ?? null) && filled($config['appId'] ?? null);
-    $enabledJson = $enabled ? 'true' : 'false';
-
     $javascript = <<<JS
-importScripts('https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.12.5/firebase-messaging-compat.js');
+function normalizePayload(event) {
+    if (!event.data) {
+        return {};
+    }
 
-const firebaseConfig = {$configJson};
-
-if ({$enabledJson} && firebaseConfig.apiKey) {
-    firebase.initializeApp(firebaseConfig);
-    const messaging = firebase.messaging();
-
-    messaging.onBackgroundMessage((payload) => {
-        console.log('[MYSIGNAL] Firebase background payload', payload);
-    });
+    try {
+        return event.data.json();
+    } catch (error) {
+        return { notification: { title: 'MYSIGNAL', body: event.data.text() } };
+    }
 }
+
+self.addEventListener('push', (event) => {
+    const payload = normalizePayload(event);
+    const notification = payload.notification || {};
+    const data = payload.data || {};
+    const title = notification.title || data.title || 'MYSIGNAL';
+    const options = {
+        body: notification.body || data.body || '',
+        icon: '/favicon.ico',
+        badge: '/favicon.ico',
+        data,
+    };
+
+    console.log('[MYSIGNAL] Firebase background payload', payload);
+    event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+
+    const data = event.notification.data || {};
+    const screen = data.screen || 'overview';
+    const targetUrl = new URL('/dashboard', self.location.origin);
+
+    if (screen) {
+        targetUrl.hash = screen;
+    }
+
+    event.waitUntil((async () => {
+        const clientList = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+        const existingClient = clientList.find((client) => client.url.startsWith(targetUrl.origin));
+
+        if (existingClient) {
+            await existingClient.focus();
+            existingClient.postMessage({ type: 'MYSIGNAL_NOTIFICATION_CLICK', data });
+            return;
+        }
+
+        await clients.openWindow(targetUrl.href);
+    })());
+});
+
+self.addEventListener('install', (event) => {
+    event.waitUntil(self.skipWaiting());
+});
+
+self.addEventListener('activate', (event) => {
+    event.waitUntil(self.clients.claim());
+});
 JS;
 
     return response($javascript, 200)
         ->header('Content-Type', 'application/javascript; charset=UTF-8')
-        ->header('Service-Worker-Allowed', '/');
+        ->header('Service-Worker-Allowed', '/')
+        ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
 })->name('firebase.messaging-sw');
 Route::redirect('/admin', '/sa/login');
 Route::redirect('/admin/login', '/sa/login');
