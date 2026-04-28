@@ -2788,6 +2788,15 @@
                         && window.isSecureContext;
                 }
 
+                function getWebPushDeviceName() {
+                    const browserData = navigator.userAgentData?.brands
+                        ?.map((brand) => `${brand.brand} ${brand.version}`)
+                        .join(', ');
+                    const browserName = browserData || navigator.userAgent || 'Navigateur';
+
+                    return `${navigator.platform || 'Web'} - ${browserName}`.slice(0, 120);
+                }
+
                 async function registerPublicWebPushToken() {
                     if (!state.token) {
                         return;
@@ -2837,7 +2846,7 @@
                         const payload = {
                             token,
                             platform: 'web',
-                            device_name: `${navigator.platform || 'Web'} - ${navigator.userAgent || 'Navigateur'}`.slice(0, 255),
+                            device_name: getWebPushDeviceName(),
                             app_version: 'web-dashboard',
                         };
 
