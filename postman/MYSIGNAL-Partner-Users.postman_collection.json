@@ -24,7 +24,9 @@
     { "key": "verificationToken", "value": "" },
     { "key": "otpCode", "value": "2604" },
     { "key": "cardUuid", "value": "" },
-    { "key": "offerId", "value": "1" }
+    { "key": "offerId", "value": "1" },
+    { "key": "fcmToken", "value": "FCM_TOKEN_MOBILE" },
+    { "key": "notificationId", "value": "" }
   ],
   "item": [
     {
@@ -238,6 +240,85 @@
               "raw": "{\n  \"phone\": \"{{partnerPhone}}\",\n  \"verification_token\": \"{{verificationToken}}\",\n  \"password\": \"12345678\",\n  \"password_confirmation\": \"12345678\"\n}"
             },
             "url": "{{baseUrl}}/v1/partner/auth/forgot-password/reset-password"
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Notifications push",
+      "description": "Enregistrement du token Firebase et consultation simple des notifications du user partenaire mobile.",
+      "item": [
+        {
+          "name": "Register FCM Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{fcmToken}}\",\n  \"platform\": \"android\",\n  \"device_name\": \"Samsung A15\",\n  \"app_version\": \"1.0.0\"\n}"
+            },
+            "url": "{{baseUrl}}/v1/partner/push-tokens",
+            "description": "A appeler apres login partenaire et a chaque renouvellement du token Firebase."
+          }
+        },
+        {
+          "name": "List Notifications",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "const notifications = json?.data?.notifications || [];",
+                  "if (notifications[0]?.id) pm.environment.set('notificationId', notifications[0].id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/partner/notifications?limit=30",
+            "description": "Liste simple des notifications du user partenaire connecte. Pas de filtre requis pour l app mobile scan QR."
+          }
+        },
+        {
+          "name": "Mark Notification As Read",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/partner/notifications/{{notificationId}}/read",
+            "description": "Marque une notification partenaire comme lue."
+          }
+        },
+        {
+          "name": "Mark All Notifications As Read",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/partner/notifications/read-all",
+            "description": "Marque toutes les notifications du user partenaire comme lues."
+          }
+        },
+        {
+          "name": "Delete FCM Token",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{fcmToken}}\"\n}"
+            },
+            "url": "{{baseUrl}}/v1/partner/push-tokens",
+            "description": "A appeler a la deconnexion ou quand le token Firebase est remplace."
           }
         }
       ]

@@ -39,7 +39,12 @@
     { "key": "householdId", "value": "" },
     { "key": "invitationId", "value": "" },
     { "key": "reparationCaseId", "value": "" },
-    { "key": "rexFeedbackId", "value": "" }
+    { "key": "rexFeedbackId", "value": "" },
+    { "key": "fcmToken", "value": "FCM_TOKEN_MOBILE" },
+    { "key": "notificationId", "value": "" },
+    { "key": "notificationStatus", "value": "unread" },
+    { "key": "notificationCategory", "value": "mysignal" },
+    { "key": "notificationSearch", "value": "" }
   ],
   "item": [
     {
@@ -962,6 +967,96 @@
             },
             "url": "{{baseUrl}}/v1/public/rex-feedbacks",
             "description": "Soumet ou met a jour un REX pour un dossier contentieux eligible: approved, rejected, compensated ou closed."
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 - Notifications push",
+      "description": "Enregistrement du token Firebase et consultation des notifications UP avec filtres mobile.",
+      "item": [
+        {
+          "name": "Register FCM Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{fcmToken}}\",\n  \"platform\": \"android\",\n  \"device_name\": \"Samsung A15\",\n  \"app_version\": \"1.0.0\"\n}"
+            },
+            "url": "{{baseUrl}}/v1/public/push-tokens",
+            "description": "A appeler apres login et a chaque renouvellement du token Firebase."
+          }
+        },
+        {
+          "name": "List Notifications - Filtered",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "const notifications = json?.data?.notifications || [];",
+                  "if (notifications[0]?.id) pm.environment.set('notificationId', notifications[0].id);",
+                  "const categories = json?.data?.available_categories || [];",
+                  "if (categories[0]?.key) pm.environment.set('notificationCategory', categories[0].key);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/notifications?status={{notificationStatus}}&category={{notificationCategory}}&search={{notificationSearch}}&limit=30",
+            "description": "Liste les notifications du UP avec filtres: status=all/read/unread, category, search, limit. La reponse contient available_categories pour construire le select mobile."
+          }
+        },
+        {
+          "name": "List Notifications - All",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/notifications?status=all&limit=30",
+            "description": "Liste toutes les notifications du UP courant."
+          }
+        },
+        {
+          "name": "Mark Notification As Read",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/notifications/{{notificationId}}/read",
+            "description": "Marque une notification comme lue."
+          }
+        },
+        {
+          "name": "Mark All Notifications As Read",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/notifications/read-all",
+            "description": "Marque toutes les notifications du UP comme lues."
+          }
+        },
+        {
+          "name": "Delete FCM Token",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{fcmToken}}\"\n}"
+            },
+            "url": "{{baseUrl}}/v1/public/push-tokens",
+            "description": "A appeler a la deconnexion ou quand le token Firebase est remplace."
           }
         }
       ]

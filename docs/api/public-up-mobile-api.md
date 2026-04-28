@@ -93,12 +93,17 @@ Ces deux endpoints servent a alimenter :
 ### 3. Connexion
 - `POST /v1/public/auth/login`
 
-### 4. Session mobile
+### 4. Mot de passe oublie
+- `POST /v1/public/auth/forgot-password/request-otp`
+- `POST /v1/public/auth/forgot-password/verify-otp`
+- `POST /v1/public/auth/forgot-password/reset-password`
+
+### 5. Session mobile
 - `GET /v1/public/me`
 - `GET /v1/public/profile`
 - `PUT /v1/public/profile`
 
-### 5. Donnees metier principales
+### 6. Donnees metier principales
 - compteurs : `meters`
 - foyers Gonhi : `households`
 - signalements : `reports`
@@ -108,8 +113,8 @@ Ces deux endpoints servent a alimenter :
 ## Notes d integration importantes
 
 ### OTP en local
-En environnement `local` ou `testing`, le code OTP de test est expose par l API.
-La generation actuelle retourne aussi `1234` comme code OTP de travail en local.
+Pour les besoins de test, le code OTP UP par defaut est `2604`.
+Ce code est utilise pour l inscription et la reinitialisation du mot de passe tant que le systeme d envoi OTP n est pas encore branche.
 
 ### Types d usagers publics
 La route publique de catalogue des `public_user_types` n existe pas encore dans l API.
@@ -159,7 +164,7 @@ Succes :
   "data": {
     "phone": "0700000000",
     "expires_at": "2026-04-10T17:00:00+00:00",
-    "otp_code_for_testing": "1234"
+    "otp_code_for_testing": "2604"
   }
 }
 ```
@@ -171,12 +176,46 @@ Body :
 ```json
 {
   "phone": "0700000000",
-  "code": "1234"
+  "code": "2604"
 }
 ```
 
 #### POST `/v1/public/auth/register`
 Cree le compte public et retourne directement un token d acces.
+
+#### POST `/v1/public/auth/forgot-password/request-otp`
+Demande un OTP de reinitialisation du mot de passe pour un compte UP actif.
+
+Body :
+```json
+{
+  "phone": "2250700000000"
+}
+```
+
+#### POST `/v1/public/auth/forgot-password/verify-otp`
+Verifie le code OTP et retourne un `verification_token`.
+
+Body :
+```json
+{
+  "phone": "2250700000000",
+  "code": "2604"
+}
+```
+
+#### POST `/v1/public/auth/forgot-password/reset-password`
+Change le mot de passe avec le `verification_token`.
+
+Body :
+```json
+{
+  "phone": "2250700000000",
+  "verification_token": "{{verificationToken}}",
+  "password": "12345678",
+  "password_confirmation": "12345678"
+}
+```
 
 Body minimal `UP` :
 ```json
@@ -441,11 +480,131 @@ Retourne les dossiers visibles par l usager avec :
 - historique public
 - etapes publiques
 
+### Notifications push UP
+
+#### POST `/v1/public/push-tokens`
+Enregistre ou met a jour le token Firebase Cloud Messaging du telephone apres connexion.
+
+Body :
+```json
+{
+  "token": "FCM_TOKEN_MOBILE",
+  "platform": "android",
+  "device_name": "Samsung A15",
+  "app_version": "1.0.0"
+}
+```
+
+Reponse :
+```json
+{
+  "success": true,
+  "message": "Token de notification enregistre.",
+  "data": {
+    "device_token": {
+      "id": 5,
+      "platform": "android",
+      "device_name": "Samsung A15",
+      "app_version": "1.0.0",
+      "last_seen_at": "2026-04-28T15:30:00+00:00"
+    }
+  }
+}
+```
+
+Le token brut n est pas retourne dans la reponse.
+
+Valeurs autorisees pour `platform` :
+- `android`
+- `ios`
+- `web`
+
+#### DELETE `/v1/public/push-tokens`
+Revoque le token lors de la deconnexion ou quand Firebase renouvelle le token.
+
+Body :
+```json
+{
+  "token": "FCM_TOKEN_MOBILE"
+}
+```
+
+#### GET `/v1/public/notifications`
+Liste les notifications stockees du UP courant.
+
+Query params :
+- `status` : `all`, `read` ou `unread`
+- `category` : `mysignal`, `gbonhi`, `report`, `payment`, `subscription`, etc.
+- `search` : recherche dans le titre, le message ou le type technique
+- `limit` : de `1` a `100`, defaut `30`
+
+Exemples :
+```http
+GET /v1/public/notifications
+GET /v1/public/notifications?status=unread
+GET /v1/public/notifications?category=gbonhi
+GET /v1/public/notifications?status=read&category=mysignal&search=test&limit=50
+```
+
+Reponse :
+```json
+{
+  "success": true,
+  "message": "Operation effectuee avec succes.",
+  "data": {
+    "notifications": [
+      {
+        "id": 12,
+        "type": "super_admin_broadcast",
+        "title": "Test",
+        "body": "Message de notification",
+        "category": "mysignal",
+        "category_label": "Information MYSIGNAL",
+        "data": {
+          "screen": "dashboard",
+          "source": "super_admin"
+        },
+        "read_at": null,
+        "created_at": "2026-04-28T15:30:00+00:00"
+      }
+    ],
+    "unread_count": 3,
+    "filtered_count": 1,
+    "available_categories": [
+      {
+        "key": "gbonhi",
+        "label": "Gbonhi"
+      },
+      {
+        "key": "mysignal",
+        "label": "Information MYSIGNAL"
+      }
+    ],
+    "filters": {
+      "status": "unread",
+      "category": "mysignal",
+      "search": "test",
+      "limit": 50
+    }
+  }
+}
+```
+
+L app mobile doit utiliser `available_categories` pour afficher le filtre categorie et envoyer ensuite `category=<key>`.
+
+#### POST `/v1/public/notifications/{id}/read`
+Marque une notification comme lue. Retourne la notification mise a jour.
+
+#### POST `/v1/public/notifications/read-all`
+Marque toutes les notifications du UP courant comme lues.
+
 ## Recommandations mobile
 - stocker le `Bearer token` de maniere securisee
 - gerer `422` champ par champ pour les formulaires
 - precharger `locations` et `signal-types` au lancement ou au premier acces
 - exploiter `data_fields` de `signal-types` pour construire des formulaires dynamiques
+- enregistrer le token Firebase apres login avec `POST /v1/public/push-tokens`
+- utiliser `GET /v1/public/notifications` pour synchroniser lu/non lu et les filtres
 - prevoir un rendu PDF ou un telechargement externe pour le recu de paiement
 - considerer que `public_user_type_id` n a pas encore de route publique de catalogue
 

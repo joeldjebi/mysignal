@@ -12,9 +12,11 @@ class DeviceTokenController extends Controller
 {
     public function storePublic(Request $request)
     {
-        $this->store($request, 'public', 'public_api');
+        $deviceToken = $this->store($request, 'public', 'public_api');
 
-        return ApiResponse::success([], 'Token de notification enregistre.');
+        return ApiResponse::success([
+            'device_token' => $this->deviceTokenPayload($deviceToken),
+        ], 'Token de notification enregistre.');
     }
 
     public function destroyPublic(Request $request)
@@ -26,9 +28,11 @@ class DeviceTokenController extends Controller
 
     public function storePartner(Request $request)
     {
-        $this->store($request, 'partner', 'partner_api');
+        $deviceToken = $this->store($request, 'partner', 'partner_api');
 
-        return ApiResponse::success([], 'Token de notification enregistre.');
+        return ApiResponse::success([
+            'device_token' => $this->deviceTokenPayload($deviceToken),
+        ], 'Token de notification enregistre.');
     }
 
     public function destroyPartner(Request $request)
@@ -38,7 +42,7 @@ class DeviceTokenController extends Controller
         return ApiResponse::success([], 'Token de notification supprime.');
     }
 
-    private function store(Request $request, string $recipientType, string $guard): void
+    private function store(Request $request, string $recipientType, string $guard): DeviceToken
     {
         $attributes = $request->validate([
             'token' => ['required', 'string', 'max:4096'],
@@ -50,7 +54,7 @@ class DeviceTokenController extends Controller
         $user = $request->user($guard);
         $tokenHash = DeviceToken::hashToken($attributes['token']);
 
-        DeviceToken::query()->updateOrCreate(
+        return DeviceToken::query()->updateOrCreate(
             ['token_hash' => $tokenHash],
             [
                 'recipient_type' => $recipientType,
@@ -64,6 +68,17 @@ class DeviceTokenController extends Controller
                 'revoked_at' => null,
             ]
         );
+    }
+
+    private function deviceTokenPayload(DeviceToken $deviceToken): array
+    {
+        return [
+            'id' => $deviceToken->id,
+            'platform' => $deviceToken->platform,
+            'device_name' => $deviceToken->device_name,
+            'app_version' => $deviceToken->app_version,
+            'last_seen_at' => $deviceToken->last_seen_at?->toIso8601String(),
+        ];
     }
 
     private function destroy(Request $request, string $recipientType, string $guard): void

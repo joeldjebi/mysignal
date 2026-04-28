@@ -193,6 +193,51 @@
                 background: rgba(255, 255, 255, 0.14);
                 color: white;
             }
+            .notification-button {
+                position: relative;
+            }
+            .notification-badge {
+                min-width: 1.35rem;
+                height: 1.35rem;
+                border-radius: 999px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0 .35rem;
+                background: #d9480f;
+                color: #fff;
+                font-size: .72rem;
+                font-weight: 800;
+            }
+            .nav-pill .notification-badge {
+                margin-left: auto;
+            }
+            .notification-item {
+                border: 1px solid rgba(15, 41, 64, .08);
+                border-left: 4px solid transparent;
+                border-radius: 18px;
+                padding: 1rem;
+                background: rgba(255,255,255,.82);
+            }
+            .notification-item.unread {
+                border-left-color: var(--acepen-blue);
+                background: rgba(237, 243, 248, .96);
+            }
+            .notification-title {
+                color: var(--acepen-navy);
+                font-weight: 800;
+            }
+            .notification-category {
+                display: inline-flex;
+                align-items: center;
+                width: fit-content;
+                border-radius: 999px;
+                padding: .25rem .65rem;
+                background: rgba(15, 41, 64, .08);
+                color: var(--acepen-navy);
+                font-size: .74rem;
+                font-weight: 800;
+            }
             .hero-card,
             .dashboard-card,
             .mini-card {
@@ -1095,6 +1140,14 @@
                                 <span class="small text-white-50">Synthèse et raccourcis</span>
                             </span>
                         </button>
+                        <button class="nav-pill notification-button" type="button" data-panel-target="notifications">
+                            <span class="nav-icon">NT</span>
+                            <span>
+                                <span class="d-block fw-semibold">Notifications</span>
+                                <span class="small text-white-50">Messages et alertes</span>
+                            </span>
+                            <span class="notification-badge d-none" id="sidebarNotificationBadge">0</span>
+                        </button>
                         <button class="nav-pill" type="button" data-panel-target="profile">
                             <span class="nav-icon">PR</span>
                             <span>
@@ -1184,6 +1237,9 @@
                             <div class="d-none" id="sidebarUserLocation">Localisation non renseignée</div>
                             <div class="d-none" id="sidebarUserGps">GPS non renseigné</div>
                             <button type="button" class="d-none" id="sidebarRequestGpsButton">Renseigner le GPS</button>
+                            <button id="topbarNotificationsButton" class="btn btn-sm btn-topbar-session notification-button" type="button" data-panel-target="notifications">
+                                Notifications <span class="notification-badge d-none ms-2" id="topbarNotificationBadge">0</span>
+                            </button>
                             <button id="logoutButton" class="btn btn-sm btn-topbar-session" type="button">Se deconnecter</button>
                         </div>
                     </header>
@@ -1210,6 +1266,44 @@
                                     <div class="d-none" id="overviewReportsList"></div>
                                 </div>
                             </section>
+                        </div>
+                    </section>
+
+                    <section class="public-panel" data-panel="notifications">
+                        <div class="dashboard-card">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+                                <div>
+                                    <div class="section-title">Mes notifications</div>
+                                    <div class="muted-label">Retrouvez les messages envoyés par MYSIGNAL et les alertes liées à votre compte.</div>
+                                </div>
+                                <button class="btn btn-premium px-4" type="button" id="markAllNotificationsReadButton">Tout marquer comme lu</button>
+                            </div>
+                            <div class="mini-card mb-4">
+                                <div class="row g-3 align-items-end">
+                                    <div class="col-12 col-lg-4">
+                                        <label class="form-label fw-semibold">Recherche</label>
+                                        <input class="form-control" id="notificationSearchFilter" placeholder="Titre, message...">
+                                    </div>
+                                    <div class="col-12 col-md-4 col-lg-2">
+                                        <label class="form-label fw-semibold">Statut</label>
+                                        <select class="form-select" id="notificationReadFilter">
+                                            <option value="">Tous</option>
+                                            <option value="unread">Non lus</option>
+                                            <option value="read">Lus</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12 col-md-4 col-lg-3">
+                                        <label class="form-label fw-semibold">Catégorie</label>
+                                        <select class="form-select" id="notificationCategoryFilter">
+                                            <option value="">Toutes</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12 col-md-4 col-lg-3">
+                                        <button class="btn btn-ghost-premium w-100" type="button" id="resetNotificationFiltersButton">Reset</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="notificationsList"></div>
                         </div>
                     </section>
 
@@ -2112,6 +2206,7 @@
                     meters: [],
                     payments: [],
                     subscription: null,
+                    discountCard: null,
                     subscriptionHistory: [],
                     subscriptionPayments: [],
                     subscriptionHistoryPage: 1,
@@ -2126,6 +2221,8 @@
                     countries: [],
                     communes: [],
                     reports: [],
+                    notifications: [],
+                    unreadNotificationsCount: 0,
                     signalTypes: [],
                     reportsPage: 1,
                     reportsPageSize: 5,
@@ -2164,6 +2261,11 @@
                         organization: '',
                         resolution: '',
                         attachment: '',
+                    },
+                    notificationFilters: {
+                        search: '',
+                        status: '',
+                        category: '',
                     },
                     autoGeoAttempts: {
                         profile: false,
@@ -2852,6 +2954,7 @@
                                 }
 
                                 showToast(title);
+                                void refreshNotifications();
                             });
                         }
 
@@ -2920,8 +3023,9 @@
                 }
 
                 function restoreActivePanel() {
+                    const requestedPanel = window.location.hash.replace('#', '');
                     sessionStorage.removeItem(dashboardPanelStorageKey);
-                    activatePanel('overview');
+                    activatePanel(requestedPanel || 'overview');
                 }
 
                 function openSidebar() {
@@ -3529,7 +3633,15 @@
                     return `MS ${userPart.slice(0, 3)} ${userPart.slice(3)} ${subscriptionPart}`;
                 }
 
-                function buildMemberQrPayload(user, subscription) {
+                function buildMemberQrPayload(user, subscription, discountCard = state.discountCard) {
+                    if (discountCard?.qr_payload) {
+                        return String(discountCard.qr_payload);
+                    }
+
+                    if (discountCard?.card_uuid) {
+                        return String(discountCard.card_uuid);
+                    }
+
                     return JSON.stringify({
                         type: 'MYSIGNAL_CONSUMER_MEMBER_CARD',
                         member_id: user?.id || null,
@@ -3651,7 +3763,7 @@
                     const fullName = `${state.currentUser.first_name || ''} ${state.currentUser.last_name || ''}`.trim() || 'Membre consommateur';
                     const validUntil = formatMemberCardExpiry(subscription?.end_date);
                     const qrContainerId = 'memberWalletQr';
-                    const qrPayload = buildMemberQrPayload(state.currentUser, subscription);
+                    const qrPayload = buildMemberQrPayload(state.currentUser, subscription, state.discountCard);
 
                     wrap.innerHTML = `
                         <div class="member-wallet-card">
@@ -3910,6 +4022,151 @@
                     list.querySelectorAll('[data-panel-target]').forEach((button) => {
                         button.addEventListener('click', () => activatePanel(button.dataset.panelTarget));
                     });
+                }
+
+                function updateNotificationBadges() {
+                    const count = Number(state.unreadNotificationsCount || 0);
+
+                    ['sidebarNotificationBadge', 'topbarNotificationBadge'].forEach((id) => {
+                        const badge = document.getElementById(id);
+                        if (!badge) return;
+                        badge.textContent = count > 99 ? '99+' : String(count);
+                        badge.classList.toggle('d-none', count === 0);
+                    });
+
+                    const markAllButton = document.getElementById('markAllNotificationsReadButton');
+                    if (markAllButton) {
+                        markAllButton.disabled = count === 0;
+                    }
+                }
+
+                function getFilteredNotifications() {
+                    const search = normalizeText(state.notificationFilters.search);
+                    const status = state.notificationFilters.status;
+                    const category = state.notificationFilters.category;
+
+                    return state.notifications.filter((notification) => {
+                        const haystack = normalizeText([notification.title, notification.body, notification.type].filter(Boolean).join(' '));
+                        const isRead = !!notification.read_at;
+                        const notificationCategory = getNotificationCategoryKey(notification);
+
+                        return (!search || haystack.includes(search))
+                            && (!status || (status === 'read' ? isRead : !isRead))
+                            && (!category || notificationCategory === category);
+                    });
+                }
+
+                function getNotificationCategoryKey(notification) {
+                    return notification.category || notification.data?.category || notification.data?.source || notification.type || 'general';
+                }
+
+                function getNotificationCategoryLabel(notification) {
+                    const category = getNotificationCategoryKey(notification);
+                    const labels = {
+                        mysignal: 'Information MYSIGNAL',
+                        super_admin: 'Information MYSIGNAL',
+                        super_admin_broadcast: 'Information MYSIGNAL',
+                        gbonhi: 'Gbonhi',
+                        household: 'Gbonhi',
+                        household_invitation_created: 'Gbonhi',
+                        report: 'Signalement',
+                        reports: 'Signalement',
+                        payment: 'Paiement',
+                        payments: 'Paiement',
+                        subscription: 'Abonnement',
+                        subscriptions: 'Abonnement',
+                        discount: 'Remise',
+                        discounts: 'Remise',
+                        partner_discount: 'Remise',
+                        partner_discount_applied: 'Remise',
+                        public_discount_received: 'Remise',
+                    };
+
+                    return labels[category] || 'Général';
+                }
+
+                function renderNotificationCategoryFilter() {
+                    const select = document.getElementById('notificationCategoryFilter');
+                    if (!select) return;
+
+                    const categories = Array.from(new Map(state.notifications.map((notification) => {
+                        const key = getNotificationCategoryKey(notification);
+                        return [key, notification.category_label || getNotificationCategoryLabel(notification)];
+                    })).entries()).sort((a, b) => a[1].localeCompare(b[1]));
+
+                    const currentValue = state.notificationFilters.category;
+                    select.innerHTML = '<option value="">Toutes</option>'
+                        + categories.map(([key, label]) => `<option value="${escapeHtml(key)}">${escapeHtml(label)}</option>`).join('');
+                    select.value = categories.some(([key]) => key === currentValue) ? currentValue : '';
+                    state.notificationFilters.category = select.value;
+                }
+
+                function renderNotifications() {
+                    updateNotificationBadges();
+                    renderNotificationCategoryFilter();
+                    const list = document.getElementById('notificationsList');
+                    if (!list) return;
+
+                    const notifications = getFilteredNotifications();
+
+                    if (!state.notifications.length) {
+                        list.innerHTML = '<div class="mini-card text-center text-secondary">Aucune notification pour le moment.</div>';
+                        return;
+                    }
+
+                    if (!notifications.length) {
+                        list.innerHTML = '<div class="mini-card text-center text-secondary">Aucune notification ne correspond aux filtres.</div>';
+                        return;
+                    }
+
+                    list.innerHTML = `<div class="vstack gap-3">
+                        ${notifications.map((notification) => {
+                            const unread = !notification.read_at;
+
+                            return `
+                                <article class="notification-item ${unread ? 'unread' : ''}">
+                                    <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                                        <div>
+                                            <div class="notification-category mb-2">${escapeHtml(notification.category_label || getNotificationCategoryLabel(notification))}</div>
+                                            <div class="notification-title">${escapeHtml(notification.title || 'Notification')}</div>
+                                            <div class="muted-label">${escapeHtml(notification.body || '')}</div>
+                                            <div class="small text-secondary mt-2">${formatDateTime(notification.created_at)} · ${unread ? 'Non lu' : 'Lu'}</div>
+                                        </div>
+                                        ${unread ? `<button class="btn btn-sm btn-ghost-premium" type="button" data-notification-read="${notification.id}">Marquer comme lu</button>` : '<span class="status-pill">Lu</span>'}
+                                    </div>
+                                </article>
+                            `;
+                        }).join('')}
+                    </div>`;
+
+                    list.querySelectorAll('[data-notification-read]').forEach((button) => {
+                        button.addEventListener('click', () => markNotificationAsRead(button.dataset.notificationRead));
+                    });
+                }
+
+                async function refreshNotifications() {
+                    const response = await apiFetch('/notifications?limit=100');
+                    state.notifications = response.data.notifications || [];
+                    state.unreadNotificationsCount = response.data.unread_count || 0;
+                    renderNotifications();
+                }
+
+                async function markNotificationAsRead(notificationId) {
+                    try {
+                        await apiFetch(`/notifications/${notificationId}/read`, { method: 'POST' });
+                        await refreshNotifications();
+                    } catch (error) {
+                        showToast(error.message || 'Impossible de marquer la notification comme lue.', true);
+                    }
+                }
+
+                async function markAllNotificationsAsRead() {
+                    try {
+                        await apiFetch('/notifications/read-all', { method: 'POST' });
+                        await refreshNotifications();
+                    } catch (error) {
+                        showToast(error.message || 'Impossible de marquer les notifications comme lues.', true);
+                    }
                 }
 
                 function renderReports(reports) {
@@ -5377,25 +5634,30 @@
 
                 async function refreshDashboard() {
                     await loadReferenceData();
-                    const [me, meters, household, reports, payments, subscription, subscriptionHistory, subscriptionPayments, rexFeedbacks, invitations, reparationCases] = await Promise.all([
+                    const [me, meters, household, reports, payments, subscription, discountCard, subscriptionHistory, subscriptionPayments, rexFeedbacks, invitations, reparationCases, notifications] = await Promise.all([
                         apiFetch('/me'),
                         apiFetch('/meters'),
                         apiFetch('/households/me'),
                         apiFetch('/reports'),
                         apiFetch('/payments'),
                         apiFetch('/subscription'),
+                        apiFetch('/discount-card'),
                         apiFetch('/subscriptions'),
                         apiFetch('/subscription/payments'),
                         apiFetch('/rex-feedbacks'),
                         apiFetch('/households/invitations/pending'),
                         apiFetch('/reparation-cases'),
+                        apiFetch('/notifications?limit=100'),
                     ]);
                     renderUser(me.data.user);
                     void registerPublicWebPushToken();
                     state.subscription = subscription.data.subscription;
+                    state.discountCard = discountCard.data.card || null;
                     state.subscriptionHistory = subscriptionHistory.data.subscriptions || [];
                     state.subscriptionPayments = subscriptionPayments.data.payments || [];
                     state.rexFeedbacks = rexFeedbacks.data.feedbacks || [];
+                    state.notifications = notifications.data.notifications || [];
+                    state.unreadNotificationsCount = notifications.data.unread_count || 0;
                     renderSubscriptionStatus();
                     renderMeters(meters.data.meters);
                     const households = household.data.households || [];
@@ -5406,6 +5668,7 @@
                     renderDamages(reports.data.reports);
                     renderPayments(payments.data.payments);
                     renderRexFeedbacks(state.rexFeedbacks);
+                    renderNotifications();
                     renderIncomingHouseholdInvitations(invitations.data.invitations);
                     renderReparationCases(reparationCases.data.reparation_cases);
                     openSubscriptionPrompt();
@@ -5609,6 +5872,32 @@
                     document.getElementById('overviewReportSearchFilter').value = '';
                     document.getElementById('overviewReportStatusFilter').value = '';
                     renderOverviewReports(state.reports);
+                });
+                document.getElementById('notificationSearchFilter')?.addEventListener('input', (event) => {
+                    state.notificationFilters.search = event.currentTarget.value || '';
+                    renderNotifications();
+                });
+                document.getElementById('notificationReadFilter')?.addEventListener('change', (event) => {
+                    state.notificationFilters.status = event.currentTarget.value || '';
+                    renderNotifications();
+                });
+                document.getElementById('notificationCategoryFilter')?.addEventListener('change', (event) => {
+                    state.notificationFilters.category = event.currentTarget.value || '';
+                    renderNotifications();
+                });
+                document.getElementById('resetNotificationFiltersButton')?.addEventListener('click', () => {
+                    state.notificationFilters = { search: '', status: '', category: '' };
+                    document.getElementById('notificationSearchFilter').value = '';
+                    document.getElementById('notificationReadFilter').value = '';
+                    document.getElementById('notificationCategoryFilter').value = '';
+                    renderNotifications();
+                });
+                document.getElementById('markAllNotificationsReadButton')?.addEventListener('click', markAllNotificationsAsRead);
+                navigator.serviceWorker?.addEventListener('message', (event) => {
+                    if (event.data?.type === 'MYSIGNAL_NOTIFICATION_CLICK') {
+                        activatePanel('notifications');
+                        void refreshNotifications();
+                    }
                 });
                 document.getElementById('reportSearchFilter').addEventListener('input', (event) => {
                     state.reportFilters.search = event.currentTarget.value || '';

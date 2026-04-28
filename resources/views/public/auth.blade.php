@@ -85,7 +85,7 @@
 
             .auth-tabs {
                 display: grid;
-                grid-template-columns: repeat(2, minmax(0, 1fr));
+                grid-template-columns: repeat(3, minmax(0, 1fr));
                 gap: 8px;
                 padding: 6px;
                 border-radius: 14px;
@@ -209,6 +209,7 @@
                             <div class="auth-tabs" role="tablist">
                                 <button class="auth-tab active" type="button" data-auth-tab="login">Connexion</button>
                                 <button class="auth-tab" type="button" data-auth-tab="register">Creer un compte</button>
+                                <button class="auth-tab" type="button" data-auth-tab="forgot">Mot de passe oublié</button>
                             </div>
 
                             <div class="alert d-none" id="authAlert"></div>
@@ -229,6 +230,46 @@
                                     </div>
                                     <div class="col-12">
                                         <button class="btn btn-main w-100" type="submit">Se connecter et signaler maintenant</button>
+                                    </div>
+                                </form>
+                            </section>
+
+                            <section class="auth-pane" data-auth-pane="forgot">
+                                <form id="forgotPasswordForm" class="row g-3">
+                                    <div class="col-12">
+                                        <div class="status-box">
+                                            Renseignez votre numero UP, recevez le code OTP, puis choisissez un nouveau mot de passe.
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label fw-semibold">Numero de telephone</label>
+                                        <div class="input-group">
+                                            <select class="form-select flex-grow-0" name="phone_dial_code" data-dial-code-select style="width: 140px"></select>
+                                            <input class="form-control" name="phone_local" inputmode="numeric" required placeholder="0700000000">
+                                        </div>
+                                        <input type="hidden" name="phone">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <button class="btn btn-soft w-100" type="button" id="requestResetOtpButton">Recevoir le code OTP</button>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="input-group">
+                                            <input class="form-control" name="otp_code" placeholder="Code OTP">
+                                            <button class="btn btn-soft" type="button" id="verifyResetOtpButton">Verifier</button>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" name="verification_token" id="resetVerificationToken">
+
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Nouveau mot de passe</label>
+                                        <input class="form-control" type="password" name="password" minlength="8" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Confirmer le mot de passe</label>
+                                        <input class="form-control" type="password" name="password_confirmation" minlength="8" required>
+                                    </div>
+                                    <div class="col-12">
+                                        <button class="btn btn-main w-100" type="submit" id="resetPasswordSubmitButton" disabled>Verifier le numero pour continuer</button>
                                     </div>
                                 </form>
                             </section>
@@ -344,8 +385,11 @@
 
                 const authAlert = document.getElementById('authAlert');
                 const verificationToken = document.getElementById('verificationToken');
+                const resetVerificationToken = document.getElementById('resetVerificationToken');
                 const registerSubmitButton = document.getElementById('registerSubmitButton');
+                const resetPasswordSubmitButton = document.getElementById('resetPasswordSubmitButton');
                 let verifiedPhone = '';
+                let resetVerifiedPhone = '';
 
                 function showAlert(message, type = 'danger') {
                     authAlert.className = `alert alert-${type}`;
@@ -396,6 +440,20 @@
                     registerSubmitButton.textContent = 'Creer mon compte et signaler maintenant';
                 }
 
+                function setPasswordResetVerified(phone = '') {
+                    resetVerifiedPhone = phone;
+                    resetVerificationToken.value = '';
+                    resetPasswordSubmitButton.disabled = true;
+                    resetPasswordSubmitButton.textContent = 'Verifier le numero pour continuer';
+                }
+
+                function enablePasswordResetSubmit(token, phone) {
+                    resetVerifiedPhone = phone;
+                    resetVerificationToken.value = token;
+                    resetPasswordSubmitButton.disabled = false;
+                    resetPasswordSubmitButton.textContent = 'Changer mon mot de passe';
+                }
+
                 async function publicApi(path, payload) {
                     const response = await fetch(`${apiBase}${path}`, {
                         method: 'POST',
@@ -427,6 +485,12 @@
                     window.location.href = dashboardUrl;
                 }
 
+                function activateAuthTab(tabName) {
+                    clearAlert();
+                    document.querySelectorAll('[data-auth-tab]').forEach((candidate) => candidate.classList.toggle('active', candidate.dataset.authTab === tabName));
+                    document.querySelectorAll('[data-auth-pane]').forEach((pane) => pane.classList.toggle('active', pane.dataset.authPane === tabName));
+                }
+
                 function syncUserTypeFields() {
                     const select = document.getElementById('registerPublicUserTypeId');
                     const selected = select.options[select.selectedIndex];
@@ -449,9 +513,7 @@
 
                 document.querySelectorAll('[data-auth-tab]').forEach((tab) => {
                     tab.addEventListener('click', () => {
-                        clearAlert();
-                        document.querySelectorAll('[data-auth-tab]').forEach((candidate) => candidate.classList.toggle('active', candidate === tab));
-                        document.querySelectorAll('[data-auth-pane]').forEach((pane) => pane.classList.toggle('active', pane.dataset.authPane === tab.dataset.authTab));
+                        activateAuthTab(tab.dataset.authTab);
                     });
                 });
 
@@ -470,6 +532,9 @@
                         showAlert(error.message);
                     } finally {
                         setLoading(button, false);
+                        if (!verificationToken.value) {
+                            registerSubmitButton.disabled = true;
+                        }
                     }
                 });
 
@@ -511,6 +576,83 @@
                         showAlert(error.message);
                     } finally {
                         setLoading(button, false);
+                        if (!resetVerificationToken.value) {
+                            resetPasswordSubmitButton.disabled = true;
+                        }
+                    }
+                });
+
+                document.getElementById('requestResetOtpButton').addEventListener('click', async (event) => {
+                    clearAlert();
+                    const button = event.currentTarget;
+                    const form = document.getElementById('forgotPasswordForm');
+                    setLoading(button, true);
+
+                    try {
+                        const phone = composePhoneNumber(form);
+                        setPasswordResetVerified(phone);
+                        const response = await publicApi('/auth/forgot-password/request-otp', { phone });
+                        const testingCode = response?.data?.otp_code_for_testing ? ` Code local: ${response.data.otp_code_for_testing}` : '';
+                        showAlert(`Code OTP envoye.${testingCode}`, 'success');
+                    } catch (error) {
+                        showAlert(error.message);
+                    } finally {
+                        setLoading(button, false);
+                        if (!resetVerificationToken.value) {
+                            setPasswordResetVerified(composePhoneNumber(form));
+                        }
+                    }
+                });
+
+                document.getElementById('verifyResetOtpButton').addEventListener('click', async (event) => {
+                    clearAlert();
+                    const button = event.currentTarget;
+                    const form = document.getElementById('forgotPasswordForm');
+                    setLoading(button, true);
+
+                    try {
+                        const phone = composePhoneNumber(form);
+                        const code = form.querySelector('[name="otp_code"]').value;
+                        const response = await publicApi('/auth/forgot-password/verify-otp', { phone, code });
+                        enablePasswordResetSubmit(response.data.verification_token, phone);
+                        showAlert('Numero verifie. Vous pouvez choisir un nouveau mot de passe.', 'success');
+                    } catch (error) {
+                        showAlert(error.message);
+                    } finally {
+                        setLoading(button, false);
+                    }
+                });
+
+                document.getElementById('forgotPasswordForm').addEventListener('submit', async (event) => {
+                    event.preventDefault();
+                    clearAlert();
+                    const form = event.currentTarget;
+                    const button = form.querySelector('button[type="submit"]');
+                    setLoading(button, true);
+
+                    try {
+                        const payload = Object.fromEntries(new FormData(form).entries());
+                        payload.phone = composePhoneNumber(form);
+
+                        if (!payload.verification_token || payload.phone !== resetVerifiedPhone) {
+                            setPasswordResetVerified(payload.phone);
+                            showAlert('Veuillez verifier votre numero avec le code OTP avant de changer le mot de passe.');
+                            return;
+                        }
+
+                        delete payload.phone_dial_code;
+                        delete payload.phone_local;
+                        delete payload.otp_code;
+
+                        await publicApi('/auth/forgot-password/reset-password', payload);
+                        form.reset();
+                        setPasswordResetVerified();
+                        activateAuthTab('login');
+                        showAlert('Mot de passe reinitialise avec succes. Vous pouvez vous connecter.', 'success');
+                    } catch (error) {
+                        showAlert(error.message);
+                    } finally {
+                        setLoading(button, false);
                     }
                 });
 
@@ -548,6 +690,10 @@
                     input.addEventListener('input', () => setRegistrationVerified(composePhoneNumber(document.getElementById('registerForm'))));
                     input.addEventListener('change', () => setRegistrationVerified(composePhoneNumber(document.getElementById('registerForm'))));
                 });
+                document.querySelectorAll('#forgotPasswordForm [name="phone_dial_code"], #forgotPasswordForm [name="phone_local"]').forEach((input) => {
+                    input.addEventListener('input', () => setPasswordResetVerified(composePhoneNumber(document.getElementById('forgotPasswordForm'))));
+                    input.addEventListener('change', () => setPasswordResetVerified(composePhoneNumber(document.getElementById('forgotPasswordForm'))));
+                });
 
                 if (localStorage.getItem(tokenKey)) {
                     sessionStorage.setItem(dashboardPanelStorageKey, 'reports');
@@ -557,6 +703,7 @@
 
                 populateDialCodeSelects();
                 setRegistrationVerified();
+                setPasswordResetVerified();
                 syncUserTypeFields();
             })();
         </script>

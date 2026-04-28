@@ -7,9 +7,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Partner\Discounts\StorePartnerDiscountTransactionRequest;
 use App\Http\Resources\Api\V1\Partner\Discounts\PartnerDiscountTransactionResource;
 use App\Models\PartnerDiscountTransaction;
+use App\Models\User;
+use App\Services\Notifications\PushNotificationDispatcher;
 use App\Support\Api\ApiResponse;
 use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class PartnerDiscountTransactionController extends Controller
 {
@@ -48,9 +51,15 @@ class PartnerDiscountTransactionController extends Controller
         ]);
     }
 
-    public function store(StorePartnerDiscountTransactionRequest $request, ApplyPartnerDiscountAction $action, ActivityLogger $activityLogger)
+    public function store(
+        StorePartnerDiscountTransactionRequest $request,
+        ApplyPartnerDiscountAction $action,
+        ActivityLogger $activityLogger,
+        PushNotificationDispatcher $notifications,
+    )
     {
-        $transaction = $action->handle($request->user('partner_api'), $request->validated());
+        $partnerUser = $request->user('partner_api');
+        $transaction = $action->handle($partnerUser, $request->validated());
 
         $activityLogger->log(
             'partner.discount_transaction.created',
@@ -64,9 +73,11 @@ class PartnerDiscountTransactionController extends Controller
                 'scan_reference' => $transaction->scan_reference,
             ],
             $request,
-            $request->user('partner_api'),
+            $partnerUser,
             'partner',
         );
+
+        $this->sendDiscountNotifications($transaction, $partnerUser, $notifications);
 
         return ApiResponse::success([
             'transaction' => new PartnerDiscountTransactionResource($transaction),
@@ -160,5 +171,81 @@ class PartnerDiscountTransactionController extends Controller
                 'last_scan_at' => $transactions->sortByDesc('applied_at')->first()?->applied_at?->toIso8601String(),
             ],
         ]);
+    }
+
+    private function sendDiscountNotifications(PartnerDiscountTransaction $transaction, User $partnerUser, PushNotificationDispatcher $notifications): void
+    {
+        try {
+            $transaction->loadMissing(['offer', 'discountCard', 'partnerUser', 'publicUser', 'organization']);
+
+            $offerName = (string) ($transaction->offer?->name ?? 'remise partenaire');
+            $discountAmount = $this->formatAmount($transaction->discount_amount, $transaction->offer?->currency);
+            $publicUserName = trim((string) ($transaction->publicUser?->first_name.' '.$transaction->publicUser?->last_name));
+            $publicUserLabel = $publicUserName !== '' ? $publicUserName : 'UP';
+
+            $payload = [
+                'category' => 'discount',
+                'source' => 'partner_discount',
+                'screen' => 'notifications',
+                'transaction_id' => (string) $transaction->id,
+                'scan_reference' => (string) $transaction->scan_reference,
+                'offer_id' => (string) $transaction->partner_discount_offer_id,
+                'offer_name' => $offerName,
+                'discount_card_id' => (string) $transaction->up_discount_card_id,
+                'public_user_id' => (string) $transaction->public_user_id,
+                'organization_id' => (string) $transaction->organization_id,
+                'original_amount' => (string) ($transaction->original_amount ?? ''),
+                'discount_amount' => (string) ($transaction->discount_amount ?? ''),
+                'final_amount' => (string) ($transaction->final_amount ?? ''),
+                'currency' => (string) ($transaction->offer?->currency ?? ''),
+            ];
+
+            $notifications->notifyPartnerUser(
+                $partnerUser,
+                'partner_discount_applied',
+                'Remise appliquée',
+                "La remise {$offerName} a été appliquée pour {$publicUserLabel}.",
+                [
+                    ...$payload,
+                    'recipient_role' => 'partner_scanner',
+                ],
+            );
+
+            if ($transaction->publicUser !== null) {
+                $body = $discountAmount !== null
+                    ? "Une remise de {$discountAmount} vient d'être appliquée à votre compte."
+                    : "Une remise vient d'être appliquée à votre compte.";
+
+                $notifications->notifyPublicUser(
+                    $transaction->publicUser,
+                    'public_discount_received',
+                    'Remise reçue',
+                    $body,
+                    [
+                        ...$payload,
+                        'recipient_role' => 'public_user',
+                        'screen' => 'dashboard',
+                    ],
+                );
+            }
+        } catch (\Throwable $exception) {
+            Log::warning('Unable to create discount notifications.', [
+                'transaction_id' => $transaction->id,
+                'partner_user_id' => $partnerUser?->id,
+                'error' => $exception->getMessage(),
+            ]);
+        }
+    }
+
+    private function formatAmount($amount, ?string $currency): ?string
+    {
+        if ($amount === null) {
+            return null;
+        }
+
+        $formatted = number_format((float) $amount, 0, ',', ' ');
+        $currency = $currency !== null && $currency !== '' ? $currency : 'FCFA';
+
+        return "{$formatted} {$currency}";
     }
 }

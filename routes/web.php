@@ -113,7 +113,7 @@ self.addEventListener('notificationclick', (event) => {
     event.notification.close();
 
     const data = event.notification.data || {};
-    const screen = data.screen || 'overview';
+    const screen = data.screen === 'dashboard' ? 'notifications' : (data.screen || 'notifications');
     const targetUrl = new URL('/dashboard', self.location.origin);
 
     if (screen) {

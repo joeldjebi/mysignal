@@ -53,6 +53,15 @@ Route::prefix('v1/public')->group(function (): void {
 
         Route::post('login', [PublicAuthController::class, 'login'])
             ->middleware('throttle:public-auth-login');
+
+        Route::post('forgot-password/request-otp', [PublicAuthController::class, 'requestPasswordResetOtp'])
+            ->middleware('throttle:public-auth-otp');
+
+        Route::post('forgot-password/verify-otp', [PublicAuthController::class, 'verifyPasswordResetOtp'])
+            ->middleware('throttle:public-auth-otp');
+
+        Route::post('forgot-password/reset-password', [PublicAuthController::class, 'resetPassword'])
+            ->middleware('throttle:public-auth-register');
     });
 
     Route::middleware('auth:public_api')->group(function (): void {

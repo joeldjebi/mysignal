@@ -87,10 +87,24 @@ Dans le dashboard UP, le navigateur enregistre automatiquement son token Firebas
 UP :
 
 ```http
-GET /api/v1/public/notifications
+GET /api/v1/public/notifications?status=unread&category=mysignal&search=test&limit=30
 POST /api/v1/public/notifications/{id}/read
 POST /api/v1/public/notifications/read-all
 ```
+
+Filtres disponibles sur `GET /api/v1/public/notifications` :
+- `status` : `all`, `read` ou `unread`
+- `category` : cle de categorie, par exemple `mysignal`, `gbonhi`, `report`, `payment`, `subscription`
+- `search` : recherche dans le titre, le message ou le type technique
+- `limit` : entre `1` et `100`, defaut `30`
+
+La reponse contient :
+- `notifications` : liste filtree
+- `unread_count` : total des notifications non lues du UP
+- `filtered_count` : nombre total correspondant aux filtres
+- `available_categories` : categories disponibles pour construire le filtre mobile
+
+Chaque notification contient `category` et `category_label`.
 
 Partenaire :
 
@@ -99,6 +113,8 @@ GET /api/v1/partner/notifications
 POST /api/v1/partner/notifications/{id}/read
 POST /api/v1/partner/notifications/read-all
 ```
+
+Pour l'application mobile partenaire de scan QR, aucun filtre n'est necessaire. `GET /api/v1/partner/notifications` retourne simplement les dernieres notifications du user partenaire connecte et `unread_count`.
 
 ## Payload reçu dans l'application
 
