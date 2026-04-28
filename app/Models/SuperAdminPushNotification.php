@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'target_user_ids',
     'sent_user_ids',
     'failed_user_ids',
+    'failure_details',
     'sent_at',
 ])]
 class SuperAdminPushNotification extends Model
@@ -28,6 +29,7 @@ class SuperAdminPushNotification extends Model
             'target_user_ids' => 'array',
             'sent_user_ids' => 'array',
             'failed_user_ids' => 'array',
+            'failure_details' => 'array',
             'sent_at' => 'datetime',
         ];
     }

@@ -82,6 +82,7 @@ class PublicUserPushNotificationController extends Controller
 
         $sentUserIds = [];
         $failedUserIds = [];
+        $failureDetails = [];
 
         foreach ($users as $user) {
             try {
@@ -103,8 +104,18 @@ class PublicUserPushNotificationController extends Controller
                 }
 
                 $failedUserIds[] = $user->id;
+                $failureDetails[] = [
+                    'public_user_id' => $user->id,
+                    'phone' => $user->phone,
+                    'errors' => $result['errors'] ?? [],
+                ];
             } catch (\Throwable) {
                 $failedUserIds[] = $user->id;
+                $failureDetails[] = [
+                    'public_user_id' => $user->id,
+                    'phone' => $user->phone,
+                    'errors' => [['message' => 'Erreur interne pendant l envoi.']],
+                ];
             }
         }
 
@@ -118,6 +129,7 @@ class PublicUserPushNotificationController extends Controller
             'failed_count' => $failedCount,
             'sent_user_ids' => $sentUserIds,
             'failed_user_ids' => $failedUserIds,
+            'failure_details' => $failureDetails,
         ]);
 
         $activityLogger->log(

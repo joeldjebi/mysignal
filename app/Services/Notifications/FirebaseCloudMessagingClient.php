@@ -29,6 +29,7 @@ class FirebaseCloudMessagingClient
 
         $sent = 0;
         $failed = 0;
+        $errors = [];
 
         foreach ($tokens as $token) {
             $response = Http::withToken($accessToken)
@@ -50,10 +51,10 @@ class FirebaseCloudMessagingClient
             }
 
             $failed++;
-            $this->handleFailedToken($token, $response->json(), $response->status());
+            $errors[] = $this->handleFailedToken($token, $response->json(), $response->status());
         }
 
-        return ['sent' => $sent, 'failed' => $failed];
+        return ['sent' => $sent, 'failed' => $failed, 'errors' => $errors];
     }
 
     private function accessToken(): string
@@ -124,9 +125,10 @@ class FirebaseCloudMessagingClient
         return rtrim(strtr(base64_encode($value), '+/', '-_'), '=');
     }
 
-    private function handleFailedToken(string $token, ?array $payload, int $status): void
+    private function handleFailedToken(string $token, ?array $payload, int $status): array
     {
         $errorStatus = data_get($payload, 'error.status');
+        $message = data_get($payload, 'error.message');
 
         if (in_array($errorStatus, ['INVALID_ARGUMENT', 'NOT_FOUND'], true)) {
             DeviceToken::query()
@@ -137,7 +139,14 @@ class FirebaseCloudMessagingClient
         Log::warning('Firebase push notification failed.', [
             'status' => $status,
             'firebase_status' => $errorStatus,
-            'message' => data_get($payload, 'error.message'),
+            'message' => $message,
         ]);
+
+        return [
+            'token_hash' => DeviceToken::hashToken($token),
+            'http_status' => $status,
+            'firebase_status' => $errorStatus,
+            'message' => $message,
+        ];
     }
 }

@@ -132,6 +132,13 @@
                             <td>
                                 <div class="fw-semibold">{{ $item->sent_count }} / {{ $item->requested_count }} envoye{{ $item->sent_count > 1 ? 's' : '' }}</div>
                                 <div class="small text-secondary">{{ $item->failed_count }} echec{{ $item->failed_count > 1 ? 's' : '' }}</div>
+                                @if ($item->failed_count > 0 && filled($item->failure_details))
+                                    @php
+                                        $firstFailure = collect($item->failure_details)->first();
+                                        $firstError = collect($firstFailure['errors'] ?? [])->first();
+                                    @endphp
+                                    <div class="small text-danger">{{ $firstError['firebase_status'] ?? 'Erreur' }}{{ filled($firstError['message'] ?? null) ? ': '.$firstError['message'] : '' }}</div>
+                                @endif
                             </td>
                             <td><span class="status-chip">{{ $statusLabels[$item->status] ?? $item->status }}</span></td>
                             <td>{{ $item->sender?->name ?: '-' }}</td>

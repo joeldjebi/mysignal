@@ -54,7 +54,13 @@ class PushNotificationDispatcher
                 'notification_id' => $notification->id,
             ]);
         } catch (\Throwable $exception) {
-            $result = ['sent' => 0, 'failed' => count($tokens)];
+            $result = [
+                'sent' => 0,
+                'failed' => count($tokens),
+                'errors' => [[
+                    'message' => $exception->getMessage(),
+                ]],
+            ];
 
             Log::warning('Unable to send Firebase push notification.', [
                 'notification_id' => $notification->id,
@@ -68,6 +74,7 @@ class PushNotificationDispatcher
             'notification' => $notification,
             'sent' => (int) ($result['sent'] ?? 0),
             'failed' => (int) ($result['failed'] ?? 0),
+            'errors' => $result['errors'] ?? [],
         ];
     }
 }
