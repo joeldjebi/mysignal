@@ -10,7 +10,7 @@ use RuntimeException;
 
 class FirebaseCloudMessagingClient
 {
-    public function sendToTokens(array $tokens, string $title, ?string $body = null, array $data = []): void
+    public function sendToTokens(array $tokens, string $title, ?string $body = null, array $data = []): array
     {
         $tokens = collect($tokens)
             ->filter()
@@ -18,7 +18,7 @@ class FirebaseCloudMessagingClient
             ->values();
 
         if ($tokens->isEmpty() || ! config('services.firebase.enabled')) {
-            return;
+            return ['sent' => 0, 'failed' => 0];
         }
 
         $projectId = (string) config('services.firebase.project_id');
@@ -26,6 +26,9 @@ class FirebaseCloudMessagingClient
         $stringData = collect($data)
             ->mapWithKeys(fn ($value, $key) => [(string) $key => is_scalar($value) || $value === null ? (string) $value : json_encode($value)])
             ->all();
+
+        $sent = 0;
+        $failed = 0;
 
         foreach ($tokens as $token) {
             $response = Http::withToken($accessToken)
@@ -42,11 +45,15 @@ class FirebaseCloudMessagingClient
                 ]);
 
             if ($response->successful()) {
+                $sent++;
                 continue;
             }
 
+            $failed++;
             $this->handleFailedToken($token, $response->json(), $response->status());
         }
+
+        return ['sent' => $sent, 'failed' => $failed];
     }
 
     private function accessToken(): string

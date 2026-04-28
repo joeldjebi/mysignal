@@ -85,7 +85,7 @@ class PublicUserPushNotificationController extends Controller
 
         foreach ($users as $user) {
             try {
-                $notifications->notifyPublicUser(
+                $result = $notifications->notifyPublicUserWithResult(
                     $user,
                     'super_admin_broadcast',
                     $attributes['title'],
@@ -96,7 +96,13 @@ class PublicUserPushNotificationController extends Controller
                         'campaign_id' => $campaign->id,
                     ],
                 );
-                $sentUserIds[] = $user->id;
+
+                if ((int) $result['sent'] > 0) {
+                    $sentUserIds[] = $user->id;
+                    continue;
+                }
+
+                $failedUserIds[] = $user->id;
             } catch (\Throwable) {
                 $failedUserIds[] = $user->id;
             }

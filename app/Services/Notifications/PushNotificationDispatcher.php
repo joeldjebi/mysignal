@@ -16,15 +16,20 @@ class PushNotificationDispatcher
 
     public function notifyPublicUser(PublicUser $user, string $type, string $title, ?string $body = null, array $data = []): UserNotification
     {
+        return $this->notify('public', $user->id, $type, $title, $body, $data)['notification'];
+    }
+
+    public function notifyPublicUserWithResult(PublicUser $user, string $type, string $title, ?string $body = null, array $data = []): array
+    {
         return $this->notify('public', $user->id, $type, $title, $body, $data);
     }
 
     public function notifyPartnerUser(User $user, string $type, string $title, ?string $body = null, array $data = []): UserNotification
     {
-        return $this->notify('partner', $user->id, $type, $title, $body, $data);
+        return $this->notify('partner', $user->id, $type, $title, $body, $data)['notification'];
     }
 
-    private function notify(string $recipientType, int $recipientId, string $type, string $title, ?string $body, array $data): UserNotification
+    private function notify(string $recipientType, int $recipientId, string $type, string $title, ?string $body, array $data): array
     {
         $notification = UserNotification::query()->create([
             'recipient_type' => $recipientType,
@@ -43,12 +48,14 @@ class PushNotificationDispatcher
             ->all();
 
         try {
-            $this->firebase->sendToTokens($tokens, $title, $body, [
+            $result = $this->firebase->sendToTokens($tokens, $title, $body, [
                 ...$data,
                 'type' => $type,
                 'notification_id' => $notification->id,
             ]);
         } catch (\Throwable $exception) {
+            $result = ['sent' => 0, 'failed' => count($tokens)];
+
             Log::warning('Unable to send Firebase push notification.', [
                 'notification_id' => $notification->id,
                 'recipient_type' => $recipientType,
@@ -57,6 +64,10 @@ class PushNotificationDispatcher
             ]);
         }
 
-        return $notification;
+        return [
+            'notification' => $notification,
+            'sent' => (int) ($result['sent'] ?? 0),
+            'failed' => (int) ($result['failed'] ?? 0),
+        ];
     }
 }

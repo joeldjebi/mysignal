@@ -2170,6 +2170,7 @@
                         meter: false,
                         report: false,
                     },
+                    pushMessageHandlerRegistered: false,
                 };
                 const toast = new bootstrap.Toast(document.getElementById('appToast'));
                 const reportFormModalElement = document.getElementById('reportFormModal');
@@ -2820,7 +2821,7 @@
                             return;
                         }
 
-                        const [{ initializeApp }, { getMessaging, getToken, isSupported }] = await Promise.all([
+                        const [{ initializeApp, getApp, getApps }, { getMessaging, getToken, isSupported, onMessage }] = await Promise.all([
                             import('https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js'),
                             import('https://www.gstatic.com/firebasejs/10.12.5/firebase-messaging.js'),
                         ]);
@@ -2830,8 +2831,30 @@
                             return;
                         }
 
-                        const firebaseApp = initializeApp(firebaseWebConfig);
+                        const firebaseApp = getApps().length ? getApp() : initializeApp(firebaseWebConfig);
                         const messaging = getMessaging(firebaseApp);
+                        if (!state.pushMessageHandlerRegistered) {
+                            state.pushMessageHandlerRegistered = true;
+                            onMessage(messaging, (messagePayload) => {
+                                console.log('[MYSIGNAL] Firebase foreground payload', messagePayload);
+                                const notification = messagePayload.notification || {};
+                                const data = messagePayload.data || {};
+                                const title = notification.title || data.title || 'MYSIGNAL';
+                                const body = notification.body || data.body || '';
+
+                                if (Notification.permission === 'granted') {
+                                    new Notification(title, {
+                                        body,
+                                        icon: '/favicon.ico',
+                                        badge: '/favicon.ico',
+                                        data,
+                                    });
+                                }
+
+                                showToast(title);
+                            });
+                        }
+
                         const serviceWorkerRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
                         const token = await getToken(messaging, {
                             vapidKey: firebaseWebVapidKey,
