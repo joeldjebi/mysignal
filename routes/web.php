@@ -48,6 +48,7 @@ use App\Http\Controllers\Web\SuperAdmin\RexFeedbackController;
 use App\Http\Controllers\Web\SuperAdmin\RoleController;
 use App\Http\Controllers\Web\SuperAdmin\SignalTypeController;
 use App\Http\Controllers\Web\SuperAdmin\SubscriptionPlanController;
+use App\Http\Controllers\Web\SuperAdmin\UserAccessController;
 use App\Http\Controllers\Web\SuperAdmin\SystemUserController;
 use App\Http\Controllers\Web\SuperAdmin\UpSubscriptionController;
 use App\Http\Controllers\Web\SuperAdmin\AuthController as SuperAdminAuthController;
@@ -323,6 +324,9 @@ Route::prefix('sa')->name('super-admin.')->group(function (): void {
         Route::resource('permissions', PermissionController::class)->except(['create', 'show'])->middleware('super_admin_permission:SA_PERMISSIONS_MANAGE');
         Route::patch('permissions/{permission}/toggle-status', [PermissionController::class, 'toggleStatus'])->middleware('super_admin_permission:SA_PERMISSIONS_MANAGE')->name('permissions.toggle-status');
         Route::resource('system-users', SystemUserController::class)->parameters(['system-users' => 'systemUser'])->except(['create'])->middleware('super_admin_permission:SA_SYSTEM_USERS_MANAGE');
+        Route::post('system-users/{systemUser}/accesses', [UserAccessController::class, 'store'])->middleware('super_admin_permission:SA_SYSTEM_USERS_MANAGE')->name('system-users.accesses.store');
+        Route::put('system-users/{systemUser}/accesses/{access}', [UserAccessController::class, 'update'])->middleware('super_admin_permission:SA_SYSTEM_USERS_MANAGE')->name('system-users.accesses.update');
+        Route::delete('system-users/{systemUser}/accesses/{access}', [UserAccessController::class, 'destroy'])->middleware('super_admin_permission:SA_SYSTEM_USERS_MANAGE')->name('system-users.accesses.destroy');
         Route::patch('system-users/{systemUser}/toggle-status', [SystemUserController::class, 'toggleStatus'])->middleware('super_admin_permission:SA_SYSTEM_USERS_TOGGLE_STATUS')->name('system-users.toggle-status');
     });
 });

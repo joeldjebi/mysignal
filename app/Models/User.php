@@ -69,6 +69,11 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasMany(self::class, 'created_by');
     }
 
+    public function accesses(): HasMany
+    {
+        return $this->hasMany(UserAccess::class);
+    }
+
     public function getJWTIdentifier(): mixed
     {
         return $this->getKey();
@@ -146,6 +151,17 @@ class User extends Authenticatable implements JWTSubject
             ->values();
     }
 
+    public function effectivePermissionCodes(): Collection
+    {
+        $activeAccess = $this->getRelationValue('activeAccess');
+
+        if ($activeAccess instanceof UserAccess && $activeAccess->hasScopedAuthorization()) {
+            return $activeAccess->permissionCodes();
+        }
+
+        return $this->permissionCodes();
+    }
+
     public function hasPermissionCode(string $permissionCode): bool
     {
         if ($this->is_super_admin) {
@@ -153,5 +169,14 @@ class User extends Authenticatable implements JWTSubject
         }
 
         return $this->permissionCodes()->contains($permissionCode);
+    }
+
+    public function hasEffectivePermissionCode(string $permissionCode): bool
+    {
+        if ($this->is_super_admin) {
+            return true;
+        }
+
+        return $this->effectivePermissionCodes()->contains($permissionCode);
     }
 }

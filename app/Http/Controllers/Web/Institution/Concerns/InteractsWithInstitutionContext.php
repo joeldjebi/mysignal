@@ -30,10 +30,7 @@ trait InteractsWithInstitutionContext
         $directUserFeatureCodes = collect($user?->features?->pluck('code')->all() ?? [])
             ->unique()
             ->values();
-        $permissionCodes = collect($user?->permissions?->pluck('code')->all() ?? [])
-            ->merge(collect($user?->roles ?? [])->flatMap(fn ($role) => $role->permissions->pluck('code')))
-            ->unique()
-            ->values();
+        $permissionCodes = $user?->effectivePermissionCodes() ?? collect();
         $isInstitutionRootAdmin = (bool) ($user?->creator?->is_super_admin);
         $featureCodes = $isInstitutionRootAdmin
             ? ($directUserFeatureCodes->isNotEmpty()
@@ -179,10 +176,7 @@ trait InteractsWithInstitutionContext
     protected function institutionAuthorizationFlags(?User $user = null): array
     {
         $user = ($user ?? auth()->user())?->loadMissing(['creator', 'permissions', 'roles.permissions']);
-        $permissionCodes = collect($user?->permissions?->pluck('code')->all() ?? [])
-            ->merge(collect($user?->roles ?? [])->flatMap(fn ($role) => $role->permissions->pluck('code')))
-            ->unique()
-            ->values();
+        $permissionCodes = $user?->effectivePermissionCodes() ?? collect();
         $isInstitutionRootAdmin = (bool) ($user?->creator?->is_super_admin);
 
         return [
@@ -207,10 +201,7 @@ trait InteractsWithInstitutionContext
             return $availablePermissions;
         }
 
-        $actorPermissionCodes = collect($actor->permissions?->pluck('code')->all() ?? [])
-            ->merge(collect($actor->roles ?? [])->flatMap(fn ($role) => $role->permissions->pluck('code')))
-            ->unique()
-            ->values();
+        $actorPermissionCodes = $actor->effectivePermissionCodes();
 
         return $availablePermissions
             ->filter(fn (Permission $permission) => $actorPermissionCodes->contains($permission->code))

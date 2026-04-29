@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web\SuperAdmin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Support\Audit\ActivityLogger;
+use App\Support\Auth\SuperAdminAccessResolver;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -91,10 +92,19 @@ class InternalAccessController extends Controller
 
     private function isInternalPortalUser(?User $user): bool
     {
-        return $user !== null
-            && ! $user->is_super_admin
-            && $user->organization_id === null
-            && $user->hasPermissionCode('SA_ACCESS_PORTAL');
+        if ($user === null || $user->is_super_admin || $user->status !== 'active') {
+            return false;
+        }
+
+        $access = app(SuperAdminAccessResolver::class)->resolve($user);
+
+        if ($access !== null) {
+            app(SuperAdminAccessResolver::class)->apply($user, $access);
+        }
+
+        return $access !== null
+            && $access->portal === 'backoffice'
+            && $user->hasEffectivePermissionCode('SA_ACCESS_PORTAL');
     }
 
     private function resolveRedirectRoute(?User $user): string
@@ -122,7 +132,7 @@ class InternalAccessController extends Controller
             'SA_ROLES_MANAGE' => 'super-admin.roles.index',
             'SA_PERMISSIONS_MANAGE' => 'super-admin.permissions.index',
         ] as $permissionCode => $routeName) {
-            if ($user->hasPermissionCode($permissionCode)) {
+            if ($user->hasEffectivePermissionCode($permissionCode)) {
                 return $routeName;
             }
         }

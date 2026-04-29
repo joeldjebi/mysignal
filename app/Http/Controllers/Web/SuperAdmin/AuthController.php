@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web\SuperAdmin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Support\Audit\ActivityLogger;
+use App\Support\Auth\SuperAdminAccessResolver;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,14 +15,16 @@ class AuthController extends Controller
 {
     public function create(): View|RedirectResponse
     {
-        if (Auth::check() && Auth::user()?->is_super_admin) {
-            return redirect()->route($this->resolveRedirectRoute(Auth::user()));
+        $user = Auth::user();
+
+        if ($user instanceof User && app(SuperAdminAccessResolver::class)->resolve($user) !== null) {
+            return redirect()->route($this->resolveRedirectRoute($user));
         }
 
         return view('super-admin.auth.login');
     }
 
-    public function store(Request $request, ActivityLogger $activityLogger): RedirectResponse
+    public function store(Request $request, ActivityLogger $activityLogger, SuperAdminAccessResolver $superAdminAccessResolver): RedirectResponse
     {
         $credentials = $request->validate([
             'email' => ['required', 'email'],
@@ -39,8 +42,9 @@ class AuthController extends Controller
         $request->session()->regenerate();
 
         $user = $request->user();
+        $superAdminAccess = $user instanceof User ? $superAdminAccessResolver->resolve($user) : null;
 
-        if (! $user || ! $user->is_super_admin) {
+        if (! $user instanceof User || $user->status !== 'active' || $superAdminAccess === null) {
             Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
@@ -52,11 +56,16 @@ class AuthController extends Controller
                 ->onlyInput('email');
         }
 
+        $superAdminAccessResolver->apply($user, $superAdminAccess);
+
         $activityLogger->log(
             'super_admin.login',
             'Connexion au portail super admin.',
             $user,
-            [],
+            [
+                'access_id' => $superAdminAccess->exists ? $superAdminAccess->id : null,
+                'portal' => $superAdminAccess->portal,
+            ],
             $request,
             $user,
             'super_admin',
@@ -113,7 +122,7 @@ class AuthController extends Controller
             'SA_ROLES_MANAGE' => 'super-admin.roles.index',
             'SA_PERMISSIONS_MANAGE' => 'super-admin.permissions.index',
         ] as $permissionCode => $routeName) {
-            if ($user->hasPermissionCode($permissionCode)) {
+            if ($user->hasEffectivePermissionCode($permissionCode)) {
                 return $routeName;
             }
         }

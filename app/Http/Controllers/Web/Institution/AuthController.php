@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web\Institution;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Support\Audit\ActivityLogger;
+use App\Support\Auth\InstitutionAccessResolver;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,11 +16,13 @@ class AuthController extends Controller
     public function create(): View|RedirectResponse
     {
         if (Auth::check()) {
-            if (Auth::user()?->is_super_admin) {
+            $user = Auth::user();
+
+            if ($user?->is_super_admin) {
                 return redirect()->route('super-admin.dashboard');
             }
 
-            if (Auth::user()?->organization_id !== null) {
+            if ($user instanceof User && app(InstitutionAccessResolver::class)->resolve($user) !== null) {
                 return redirect()->route('institution.dashboard');
             }
         }
@@ -27,7 +30,7 @@ class AuthController extends Controller
         return view('institution.auth.login');
     }
 
-    public function store(Request $request, ActivityLogger $activityLogger): RedirectResponse
+    public function store(Request $request, ActivityLogger $activityLogger, InstitutionAccessResolver $institutionAccessResolver): RedirectResponse
     {
         $credentials = $request->validate([
             'email' => ['required', 'email'],
@@ -45,8 +48,9 @@ class AuthController extends Controller
         $request->session()->regenerate();
 
         $user = $request->user();
+        $institutionAccess = $user instanceof User ? $institutionAccessResolver->resolve($user) : null;
 
-        if ($user?->is_super_admin || $user?->organization_id === null) {
+        if (! $user instanceof User || $user->is_super_admin || $user->status !== 'active' || $institutionAccess === null) {
             Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
@@ -58,17 +62,20 @@ class AuthController extends Controller
                 ->onlyInput('email');
         }
 
-        if ($user instanceof User) {
-            $activityLogger->log(
-                'institution.login',
-                'Connexion au portail institutionnel.',
-                $user,
-                [],
-                $request,
-                $user,
-                'institution',
-            );
-        }
+        $institutionAccessResolver->apply($user, $institutionAccess);
+
+        $activityLogger->log(
+            'institution.login',
+            'Connexion au portail institutionnel.',
+            $user,
+            [
+                'organization_id' => $institutionAccess->organization_id,
+                'access_id' => $institutionAccess->exists ? $institutionAccess->id : null,
+            ],
+            $request,
+            $user,
+            'institution',
+        );
 
         return redirect()->intended(route('institution.dashboard'));
     }

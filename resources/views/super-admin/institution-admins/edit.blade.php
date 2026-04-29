@@ -42,7 +42,13 @@
         $selectedFeatureIds = old('feature_ids', $institutionAdmin->features->pluck('id')->all() ?: $allowedFeatureIds);
     @endphp
     <section class="panel-card">
-        <div class="fw-bold mb-3">Edition de {{ $institutionAdmin->name }}</div>
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 mb-3">
+            <div>
+                <div class="fw-bold">Edition de {{ $institutionAdmin->name }}</div>
+                <div class="small text-secondary">Le compte peut aussi recevoir d autres profils d acces selon les portails qu il doit utiliser.</div>
+            </div>
+            <a href="{{ route('super-admin.system-users.show', $institutionAdmin) }}" class="btn btn-outline-dark align-self-start">Gerer les profils d acces</a>
+        </div>
         <form method="POST" action="{{ route('super-admin.institution-admins.update', $institutionAdmin) }}" class="row g-3">
             @csrf
             @method('PUT')

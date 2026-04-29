@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\Auth\SuperAdminAccessResolver;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -12,18 +13,25 @@ class EnsureSuperAdminPermission
     {
         $user = $request->user()?->loadMissing(['permissions', 'roles.permissions']);
 
-        if (! $user || $user->organization_id !== null || $user->status !== 'active') {
+        if (! $user || $user->status !== 'active') {
             abort(Response::HTTP_FORBIDDEN);
         }
+
+        $resolver = app(SuperAdminAccessResolver::class);
+        $access = $request->attributes->get('super_admin_access') ?? $resolver->resolve($user);
+
+        if ($access === null) {
+            abort(Response::HTTP_FORBIDDEN);
+        }
+
+        $resolver->apply($user, $access);
+        $request->attributes->set('super_admin_access', $access);
 
         if ($user->is_super_admin) {
             return $next($request);
         }
 
-        $permissionCodes = $user->permissions
-            ->pluck('code')
-            ->merge($user->roles->flatMap(fn ($role) => $role->permissions->pluck('code')))
-            ->unique();
+        $permissionCodes = $user->effectivePermissionCodes();
 
         if (! $permissionCodes->contains($permissionCode)) {
             abort(Response::HTTP_FORBIDDEN);

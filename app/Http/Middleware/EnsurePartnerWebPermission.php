@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\Auth\PartnerAccessResolver;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -10,21 +11,28 @@ class EnsurePartnerWebPermission
 {
     public function handle(Request $request, Closure $next, string $permissionCode): Response
     {
-        $user = $request->user()?->loadMissing(['organization.organizationType', 'creator', 'permissions', 'roles.permissions']);
+        $user = $request->user()?->loadMissing(['creator', 'permissions', 'roles.permissions']);
 
-        if (! $user || $user->status !== 'active' || $user->is_super_admin || $user->organization_id === null) {
+        if (! $user || $user->status !== 'active' || $user->is_super_admin) {
             abort(Response::HTTP_FORBIDDEN);
         }
 
-        if ($user->organization?->organizationType?->code !== 'PARTNER_ESTABLISHMENT') {
+        $resolver = app(PartnerAccessResolver::class);
+        $access = $request->attributes->get('partner_access') ?? $resolver->resolve($user);
+
+        if ($access === null) {
             abort(Response::HTTP_FORBIDDEN);
         }
+
+        $resolver->apply($user, $access);
+        $request->attributes->set('partner_access', $access);
+        $request->attributes->set('partner_organization_id', $access->organization_id);
 
         if ($user->creator?->is_super_admin) {
             return $next($request);
         }
 
-        if (! $user->permissionCodes()->contains($permissionCode)) {
+        if (! $user->effectivePermissionCodes()->contains($permissionCode)) {
             abort(Response::HTTP_FORBIDDEN);
         }
 

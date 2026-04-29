@@ -609,7 +609,15 @@ class ReparationCaseController extends Controller
         if ($roles->isNotEmpty()) {
             return User::query()
                 ->where('status', 'active')
-                ->whereHas('roles', fn ($query) => $query->whereIn('roles.id', $roles))
+                ->where(function ($query) use ($roles, $codes): void {
+                    $query
+                        ->whereHas('roles', fn ($roleQuery) => $roleQuery->whereIn('roles.id', $roles))
+                        ->orWhereHas('accesses', function ($accessQuery) use ($codes): void {
+                            $accessQuery
+                                ->where('status', 'active')
+                                ->whereIn('portal', collect($codes)->map(fn ($code) => strtolower($code))->all());
+                        });
+                })
                 ->orderBy('name')
                 ->get(['id', 'name', 'email']);
         }

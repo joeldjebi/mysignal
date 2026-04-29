@@ -5,18 +5,28 @@ namespace App\Http\Controllers\Web\Partner\Concerns;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
+use App\Support\Auth\PartnerAccessResolver;
 use Illuminate\Support\Collection;
 
 trait InteractsWithPartnerContext
 {
     protected function partnerContext(): array
     {
-        $user = auth()->user()?->loadMissing(['organization.organizationType', 'creator', 'permissions', 'roles.permissions']);
+        $user = auth()->user()?->loadMissing(['creator', 'permissions', 'roles.permissions']);
+
+        if ($user instanceof User) {
+            $resolver = app(PartnerAccessResolver::class);
+            $access = request()->attributes->get('partner_access') ?? $resolver->resolve($user);
+
+            if ($access !== null) {
+                $resolver->apply($user, $access);
+                request()->attributes->set('partner_access', $access);
+                request()->attributes->set('partner_organization_id', $access->organization_id);
+            }
+        }
+
         $organization = $user?->organization;
-        $permissionCodes = collect($user?->permissions?->pluck('code')->all() ?? [])
-            ->merge(collect($user?->roles ?? [])->flatMap(fn ($role) => $role->permissions->pluck('code')))
-            ->unique()
-            ->values();
+        $permissionCodes = $user?->effectivePermissionCodes() ?? collect();
         $isPartnerRootAdmin = (bool) ($user?->creator?->is_super_admin);
 
         return [
@@ -75,10 +85,19 @@ trait InteractsWithPartnerContext
     private function partnerContextFor(?User $user = null): array
     {
         $user = ($user ?? auth()->user())?->loadMissing(['creator', 'permissions', 'roles.permissions']);
-        $permissionCodes = collect($user?->permissions?->pluck('code')->all() ?? [])
-            ->merge(collect($user?->roles ?? [])->flatMap(fn ($role) => $role->permissions->pluck('code')))
-            ->unique()
-            ->values();
+
+        if ($user instanceof User) {
+            $resolver = app(PartnerAccessResolver::class);
+            $access = request()->attributes->get('partner_access') ?? $resolver->resolve($user);
+
+            if ($access !== null) {
+                $resolver->apply($user, $access);
+                request()->attributes->set('partner_access', $access);
+                request()->attributes->set('partner_organization_id', $access->organization_id);
+            }
+        }
+
+        $permissionCodes = $user?->effectivePermissionCodes() ?? collect();
 
         return [
             'user' => $user,

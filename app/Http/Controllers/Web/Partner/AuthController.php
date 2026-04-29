@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web\Partner;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Support\Audit\ActivityLogger;
+use App\Support\Auth\PartnerAccessResolver;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,9 +16,9 @@ class AuthController extends Controller
     public function create(): View|RedirectResponse
     {
         if (Auth::check()) {
-            $user = Auth::user()?->loadMissing('organization.organizationType');
+            $user = Auth::user();
 
-            if ($user?->organization?->organizationType?->code === 'PARTNER_ESTABLISHMENT') {
+            if ($user instanceof User && app(PartnerAccessResolver::class)->resolve($user) !== null) {
                 return redirect()->route('partner.dashboard');
             }
         }
@@ -25,7 +26,7 @@ class AuthController extends Controller
         return view('partner.auth.login');
     }
 
-    public function store(Request $request, ActivityLogger $activityLogger): RedirectResponse
+    public function store(Request $request, ActivityLogger $activityLogger, PartnerAccessResolver $partnerAccessResolver): RedirectResponse
     {
         $credentials = $request->validate([
             'email' => ['required', 'email'],
@@ -39,16 +40,27 @@ class AuthController extends Controller
         }
 
         $request->session()->regenerate();
-        $user = $request->user()?->loadMissing(['organization.organizationType', 'permissions', 'roles.permissions']);
+        $user = $request->user()?->loadMissing(['creator', 'permissions', 'roles.permissions']);
+        $partnerAccess = $user instanceof User ? $partnerAccessResolver->resolve($user) : null;
 
         if (
             ! $user instanceof User ||
             $user->is_super_admin ||
             $user->status !== 'active' ||
-            $user->organization_id === null ||
-            $user->organization?->organizationType?->code !== 'PARTNER_ESTABLISHMENT' ||
-            ! $user->permissionCodes()->contains('PARTNER_ACCESS_PORTAL')
+            $partnerAccess === null
         ) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return back()->withErrors([
+                'email' => 'Ce compte n a pas acces au portail partenaire.',
+            ])->onlyInput('email');
+        }
+
+        $partnerAccessResolver->apply($user, $partnerAccess);
+
+        if (! $user->creator?->is_super_admin && ! $user->hasEffectivePermissionCode('PARTNER_ACCESS_PORTAL')) {
             Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
@@ -62,7 +74,10 @@ class AuthController extends Controller
             'partner.web.login',
             'Connexion au portail partenaire.',
             $user,
-            [],
+            [
+                'organization_id' => $partnerAccess->organization_id,
+                'access_id' => $partnerAccess->exists ? $partnerAccess->id : null,
+            ],
             $request,
             $user,
             'partner',

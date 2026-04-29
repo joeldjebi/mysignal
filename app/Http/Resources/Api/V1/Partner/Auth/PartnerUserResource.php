@@ -31,7 +31,7 @@ class PartnerUserResource extends JsonResource
                 'code' => $role->code,
                 'name' => $role->name,
             ])->values()->all()),
-            'permissions' => $this->permissionCodes()->values()->all(),
+            'permissions' => $this->effectivePermissionCodes()->values()->all(),
             'created_at' => $this->created_at?->toIso8601String(),
         ];
     }

@@ -10,6 +10,18 @@
 @endsection
 
 @section('content')
+    @php
+        $portalLabels = [
+            'backoffice' => 'Backoffice',
+            'super_admin' => 'Super admin',
+            'institution' => 'Institution',
+            'partner' => 'Partenaire',
+            'huissier' => 'Huissier',
+            'avocat' => 'Avocat',
+        ];
+        $portalOrganizationHelp = 'Institution et partenaire exigent une organisation. Backoffice, SA, huissier et avocat restent sans organisation.';
+    @endphp
+
     <section class="panel-card mb-4">
         <div class="d-flex flex-column flex-lg-row align-items-lg-start justify-content-between gap-3">
             <div>
@@ -18,13 +30,189 @@
                 <div class="text-secondary">{{ $systemUser->phone ?: 'Telephone non renseigne' }}</div>
             </div>
             <div class="d-flex gap-2 flex-wrap">
-                <a href="{{ route('super-admin.system-users.edit', $systemUser) }}" class="btn btn-dark">Modifier</a>
-                <a href="{{ route('super-admin.system-users.index') }}" class="btn btn-outline-secondary">Retour</a>
+                @if ($systemUser->organization_id === null)
+                    <a href="{{ route('super-admin.system-users.edit', $systemUser) }}" class="btn btn-dark">Modifier</a>
+                    <a href="{{ route('super-admin.system-users.index') }}" class="btn btn-outline-secondary">Retour</a>
+                @else
+                    <a href="{{ route('super-admin.institution-admins.edit', $systemUser) }}" class="btn btn-dark">Modifier le compte</a>
+                    <a href="{{ route('super-admin.institution-admins.index') }}" class="btn btn-outline-secondary">Retour</a>
+                @endif
             </div>
         </div>
     </section>
 
     <div class="row g-4">
+        <div class="col-lg-12">
+            <section class="panel-card">
+                <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 mb-4">
+                    <div>
+                        <div class="fw-bold">Profils d acces</div>
+                        <div class="small text-secondary">Chaque profil donne acces a un portail precis avec ses propres roles et permissions.</div>
+                    </div>
+                    <span class="badge-soft">{{ $systemUser->accesses->count() }} profil{{ $systemUser->accesses->count() > 1 ? 's' : '' }}</span>
+                </div>
+
+                <form method="POST" action="{{ route('super-admin.system-users.accesses.store', $systemUser) }}" class="border rounded-3 p-3 mb-4">
+                    @csrf
+                    <div class="fw-semibold mb-3">Ajouter un profil</div>
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Portail</label>
+                            <select name="portal" class="form-select" required>
+                                @foreach ($portalLabels as $portal => $label)
+                                    <option value="{{ $portal }}" @selected(old('portal') === $portal)>{{ $label }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Organisation</label>
+                            <select name="organization_id" class="form-select">
+                                <option value="">Aucune organisation</option>
+                                @foreach ($accessOrganizations as $organization)
+                                    <option value="{{ $organization->id }}" @selected((string) old('organization_id') === (string) $organization->id)>
+                                        {{ $organization->name }} - {{ $organization->organizationType?->name ?: 'Type non renseigne' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <div class="small text-secondary mt-1">{{ $portalOrganizationHelp }}</div>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Statut</label>
+                            <select name="status" class="form-select" required>
+                                <option value="active" @selected(old('status', 'active') === 'active')>Actif</option>
+                                <option value="inactive" @selected(old('status') === 'inactive')>Inactif</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button class="btn btn-dark w-100">Ajouter</button>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Roles du profil</label>
+                            <div class="border rounded-3 p-3" style="max-height: 220px; overflow:auto;">
+                                @foreach ($accessRoles as $role)
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" name="role_ids[]" value="{{ $role->id }}" id="new-access-role-{{ $role->id }}" @checked(in_array($role->id, old('role_ids', [])))>
+                                        <label class="form-check-label" for="new-access-role-{{ $role->id }}">
+                                            <span class="fw-semibold">{{ $role->name }}</span>
+                                            <span class="small text-secondary d-block">{{ $role->code }}</span>
+                                        </label>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Permissions directes du profil</label>
+                            <div class="border rounded-3 p-3" style="max-height: 220px; overflow:auto;">
+                                @foreach ($accessPermissions as $permission)
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" name="permission_ids[]" value="{{ $permission->id }}" id="new-access-permission-{{ $permission->id }}" @checked(in_array($permission->id, old('permission_ids', [])))>
+                                        <label class="form-check-label" for="new-access-permission-{{ $permission->id }}">
+                                            <span class="fw-semibold">{{ $permission->name }}</span>
+                                            <span class="small text-secondary d-block">{{ $permission->code }}</span>
+                                        </label>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                </form>
+
+                @forelse ($systemUser->accesses->sortBy('portal') as $access)
+                    @php
+                        $accessRoleIds = $access->roles->pluck('id')->all();
+                        $accessPermissionIds = $access->permissions->pluck('id')->all();
+                        $effectivePermissionCodes = $access->permissionCodes();
+                    @endphp
+                    <div class="border rounded-3 p-3 mb-3">
+                        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 mb-3">
+                            <div>
+                                <div class="fw-semibold">{{ $portalLabels[$access->portal] ?? $access->portal }}</div>
+                                <div class="small text-secondary">
+                                    {{ $access->organization?->name ?: 'Sans organisation' }}
+                                    @if ($access->organization?->organizationType)
+                                        - {{ $access->organization->organizationType->name }}
+                                    @endif
+                                </div>
+                                <div class="small text-secondary">{{ $effectivePermissionCodes->count() }} permission{{ $effectivePermissionCodes->count() > 1 ? 's' : '' }} effective{{ $effectivePermissionCodes->count() > 1 ? 's' : '' }}</div>
+                            </div>
+                            <div class="d-flex gap-2 align-items-start flex-wrap">
+                                <span class="status-chip">{{ $access->status }}</span>
+                                <form method="POST" action="{{ route('super-admin.system-users.accesses.destroy', [$systemUser, $access]) }}" onsubmit="return confirm('Supprimer ce profil d acces ?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="btn btn-sm btn-outline-danger">Supprimer</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <form method="POST" action="{{ route('super-admin.system-users.accesses.update', [$systemUser, $access]) }}" class="row g-3">
+                            @csrf
+                            @method('PUT')
+                            <div class="col-md-3">
+                                <label class="form-label">Portail</label>
+                                <select name="portal" class="form-select" required>
+                                    @foreach ($portalLabels as $portal => $label)
+                                        <option value="{{ $portal }}" @selected($access->portal === $portal)>{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Organisation</label>
+                                <select name="organization_id" class="form-select">
+                                    <option value="">Aucune organisation</option>
+                                    @foreach ($accessOrganizations as $organization)
+                                        <option value="{{ $organization->id }}" @selected((int) $access->organization_id === (int) $organization->id)>
+                                            {{ $organization->name }} - {{ $organization->organizationType?->name ?: 'Type non renseigne' }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Statut</label>
+                                <select name="status" class="form-select" required>
+                                    <option value="active" @selected($access->status === 'active')>Actif</option>
+                                    <option value="inactive" @selected($access->status === 'inactive')>Inactif</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 d-flex align-items-end">
+                                <button class="btn btn-outline-dark w-100">Enregistrer</button>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Roles du profil</label>
+                                <div class="border rounded-3 p-3" style="max-height: 220px; overflow:auto;">
+                                    @foreach ($accessRoles as $role)
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="checkbox" name="role_ids[]" value="{{ $role->id }}" id="access-{{ $access->id }}-role-{{ $role->id }}" @checked(in_array($role->id, $accessRoleIds))>
+                                            <label class="form-check-label" for="access-{{ $access->id }}-role-{{ $role->id }}">
+                                                <span class="fw-semibold">{{ $role->name }}</span>
+                                                <span class="small text-secondary d-block">{{ $role->code }}</span>
+                                            </label>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Permissions directes du profil</label>
+                                <div class="border rounded-3 p-3" style="max-height: 220px; overflow:auto;">
+                                    @foreach ($accessPermissions as $permission)
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="checkbox" name="permission_ids[]" value="{{ $permission->id }}" id="access-{{ $access->id }}-permission-{{ $permission->id }}" @checked(in_array($permission->id, $accessPermissionIds))>
+                                            <label class="form-check-label" for="access-{{ $access->id }}-permission-{{ $permission->id }}">
+                                                <span class="fw-semibold">{{ $permission->name }}</span>
+                                                <span class="small text-secondary d-block">{{ $permission->code }}</span>
+                                            </label>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                @empty
+                    <div class="text-secondary">Aucun profil d acces specifique n est encore configure pour cet utilisateur.</div>
+                @endforelse
+            </section>
+        </div>
+
         <div class="col-lg-4">
             <section class="panel-card h-100">
                 <div class="fw-bold mb-3">Informations du compte</div>

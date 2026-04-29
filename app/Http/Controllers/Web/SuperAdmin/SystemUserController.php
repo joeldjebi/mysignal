@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Web\SuperAdmin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Organization;
+use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use App\Support\Audit\ActivityLogger;
@@ -105,10 +107,20 @@ class SystemUserController extends Controller
 
     public function show(User $systemUser): View
     {
-        $this->abortIfNotManageable($systemUser);
+        $this->abortIfProfileAccessIsNotManageable($systemUser);
 
         return view('super-admin.system-users.show', [
-            'systemUser' => $systemUser->load(['roles.permissions', 'creator', 'activityLogVisibleUsers']),
+            'systemUser' => $systemUser->load([
+                'roles.permissions',
+                'creator',
+                'activityLogVisibleUsers',
+                'accesses.organization.organizationType',
+                'accesses.roles.permissions',
+                'accesses.permissions',
+            ]),
+            'accessRoles' => Role::query()->whereNull('organization_id')->where('status', 'active')->orderBy('name')->get(),
+            'accessPermissions' => Permission::query()->where('status', 'active')->orderBy('name')->get(),
+            'accessOrganizations' => Organization::query()->with('organizationType')->where('status', 'active')->orderBy('name')->get(),
         ]);
     }
 
@@ -223,5 +235,10 @@ class SystemUserController extends Controller
     private function abortIfNotManageable(User $user): void
     {
         abort_if($user->is_super_admin || $user->organization_id !== null, 404);
+    }
+
+    private function abortIfProfileAccessIsNotManageable(User $user): void
+    {
+        abort_if($user->is_super_admin, 404);
     }
 }
