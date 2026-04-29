@@ -4,6 +4,29 @@
 @section('page-title', 'Landing page')
 @section('page-description', 'Mettre a jour chaque section de la landing publique avec des champs simples.')
 
+@push('styles')
+    <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+    <style>
+        .rich-editor-wrap .ql-toolbar {
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            border-color: rgba(16,42,67,.12);
+            background: #fff;
+        }
+        .rich-editor-wrap .ql-container {
+            min-height: 260px;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+            border-color: rgba(16,42,67,.12);
+            font-size: .95rem;
+            background: #fff;
+        }
+        .rich-editor-wrap textarea.rich-editor-input {
+            display: none;
+        }
+    </style>
+@endpush
+
 @section('header-badges')
     <span class="badge-soft">Sections structurees</span>
 @endsection
@@ -14,7 +37,7 @@
         $inputType = fn (string $field): string => in_array($field, ['url'], true) ? 'text' : 'text';
     @endphp
 
-    <form method="POST" action="{{ route('super-admin.landing-page.update') }}" class="row g-4" enctype="multipart/form-data">
+    <form id="landingPageForm" method="POST" action="{{ route('super-admin.landing-page.update') }}" class="row g-4" enctype="multipart/form-data">
         @csrf
         @method('PUT')
 
@@ -27,7 +50,10 @@
                             Chaque rubrique est organisee en champs et tableaux. Les lignes vides ne sont pas enregistrees.
                         </div>
                     </div>
-                    <a href="{{ route('public.landing') }}" target="_blank" class="btn btn-outline-dark btn-sm">Previsualiser</a>
+                    <div class="d-flex gap-2">
+                        <a href="{{ route('super-admin.landing-page.contacts.index') }}" class="btn btn-outline-dark btn-sm">Messages contact</a>
+                        <a href="{{ route('public.landing') }}" target="_blank" class="btn btn-outline-dark btn-sm">Previsualiser</a>
+                    </div>
                 </div>
 
                 <div class="accordion" id="landingSectionsAccordion">
@@ -58,7 +84,17 @@
                                         </div>
                                         <div class="col-12">
                                             <label class="form-label">Texte principal</label>
-                                            <textarea class="form-control" name="sections[{{ $key }}][body]" rows="3">{{ $section['body_value'] }}</textarea>
+                                            @if (in_array($key, ['page_about', 'page_contact', 'page_tv', 'page_terms', 'page_privacy'], true))
+                                                <div class="rich-editor-wrap">
+                                                    <textarea class="rich-editor-input" name="sections[{{ $key }}][body]">{{ $section['body_value'] }}</textarea>
+                                                    <div class="rich-editor">{!! $section['body_value'] !!}</div>
+                                                </div>
+                                                <div class="small text-secondary mt-1">
+                                                    Utilisez la barre d'outils pour mettre en forme le contenu. Le HTML est enregistre automatiquement.
+                                                </div>
+                                            @else
+                                                <textarea class="form-control" name="sections[{{ $key }}][body]" rows="3">{{ $section['body_value'] }}</textarea>
+                                            @endif
                                         </div>
 
                                         @foreach ($section['meta_fields'] as $field => $definition)
@@ -99,6 +135,15 @@
                                                                         @endphp
                                                                         @if ($field === 'body')
                                                                             <textarea class="form-control" rows="2" name="items[{{ $key }}][{{ $groupKey }}][{{ $index }}][{{ $field }}]">{{ $value }}</textarea>
+                                                                        @elseif ($key === 'page_tv' && $groupKey === 'videos' && $field === 'url')
+                                                                            <div class="d-grid gap-2">
+                                                                                <input type="hidden" name="items[{{ $key }}][{{ $groupKey }}][{{ $index }}][existing_url]" value="{{ $value }}">
+                                                                                @if ($value)
+                                                                                    <div class="small text-secondary text-break">Fichier actuel: {{ $value }}</div>
+                                                                                @endif
+                                                                                <input type="file" class="form-control" name="items[{{ $key }}][{{ $groupKey }}][{{ $index }}][video_file]" accept=".mp4,.mov,.webm,.m4v,video/mp4,video/quicktime,video/webm">
+                                                                                <div class="small text-secondary">Charge une video. Elle sera stockee sur Wasabi.</div>
+                                                                            </div>
                                                                         @elseif ($key === 'partners' && $groupKey === 'items' && $field === 'url')
                                                                             @php
                                                                                 $previewUrl = $value;
@@ -176,3 +221,43 @@
         </div>
     </form>
 @endsection
+
+@push('scripts')
+    <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('landingPageForm');
+            const editors = [];
+
+            document.querySelectorAll('.rich-editor-wrap').forEach((wrap) => {
+                const editorNode = wrap.querySelector('.rich-editor');
+                const input = wrap.querySelector('.rich-editor-input');
+                const editor = new Quill(editorNode, {
+                    theme: 'snow',
+                    modules: {
+                        toolbar: [
+                            [{ header: [2, 3, false] }],
+                            ['bold', 'italic', 'underline'],
+                            [{ list: 'ordered' }, { list: 'bullet' }],
+                            ['link', 'blockquote'],
+                            ['clean']
+                        ]
+                    }
+                });
+
+                const syncEditor = () => {
+                    input.value = editor.root.innerHTML;
+                };
+
+                editor.on('text-change', syncEditor);
+                syncEditor();
+
+                editors.push({ editor, input, syncEditor });
+            });
+
+            form?.addEventListener('submit', () => {
+                editors.forEach(({ syncEditor }) => syncEditor());
+            }, true);
+        });
+    </script>
+@endpush

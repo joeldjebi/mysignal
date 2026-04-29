@@ -9,6 +9,7 @@ use App\Models\Commune;
 use App\Models\IncidentReport;
 use App\Models\Meter;
 use App\Support\Audit\ActivityLogger;
+use App\Services\Notifications\IncidentReportNotificationService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -118,7 +119,7 @@ class ReportController extends Controller
         ]);
     }
 
-    public function takeOver(Request $request, IncidentReport $report, ActivityLogger $activityLogger): RedirectResponse
+    public function takeOver(Request $request, IncidentReport $report, ActivityLogger $activityLogger, IncidentReportNotificationService $notificationService): RedirectResponse
     {
         abort_unless($this->canManageReport($request, $report), 403);
 
@@ -140,10 +141,17 @@ class ReportController extends Controller
             'institution',
         );
 
+        $notificationService->notifyPublicReportAction(
+            $report,
+            'report_taken_over',
+            'Signalement pris en charge',
+            'Votre signalement '.$report->reference.' est maintenant pris en charge.',
+        );
+
         return back()->with('success', 'Le signalement a ete pris en charge.');
     }
 
-    public function resolve(Request $request, IncidentReport $report, ActivityLogger $activityLogger): RedirectResponse
+    public function resolve(Request $request, IncidentReport $report, ActivityLogger $activityLogger, IncidentReportNotificationService $notificationService): RedirectResponse
     {
         abort_unless($this->canManageReport($request, $report), 403);
 
@@ -173,10 +181,17 @@ class ReportController extends Controller
             'institution',
         );
 
+        $notificationService->notifyPublicReportAction(
+            $report,
+            'report_resolved',
+            'Signalement resolu',
+            'Votre signalement '.$report->reference.' a ete marque comme resolu.',
+        );
+
         return back()->with('success', 'Le signalement a ete marque comme resolu.');
     }
 
-    public function reject(Request $request, IncidentReport $report, ActivityLogger $activityLogger): RedirectResponse
+    public function reject(Request $request, IncidentReport $report, ActivityLogger $activityLogger, IncidentReportNotificationService $notificationService): RedirectResponse
     {
         abort_unless($this->canManageReport($request, $report), 403);
 
@@ -206,10 +221,17 @@ class ReportController extends Controller
             'institution',
         );
 
+        $notificationService->notifyPublicReportAction(
+            $report,
+            'report_rejected',
+            'Signalement rejete',
+            'Votre signalement '.$report->reference.' a ete rejete.',
+        );
+
         return back()->with('success', 'Le signalement a ete rejete.');
     }
 
-    public function updateDamageResolution(Request $request, IncidentReport $report, ActivityLogger $activityLogger): RedirectResponse
+    public function updateDamageResolution(Request $request, IncidentReport $report, ActivityLogger $activityLogger, IncidentReportNotificationService $notificationService): RedirectResponse
     {
         abort_unless($this->canManageReport($request, $report), 403);
         abort_unless($report->damage_declared_at !== null, 422, 'Aucun dommage n a ete declare sur ce signalement.');
@@ -236,6 +258,13 @@ class ReportController extends Controller
             $request,
             $request->user(),
             'institution',
+        );
+
+        $notificationService->notifyPublicReportAction(
+            $report,
+            'damage_resolution_updated',
+            'Dommage mis a jour',
+            'Le statut du dommage lie au signalement '.$report->reference.' a ete mis a jour.',
         );
 
         return back()->with('success', 'Le statut de resolution du dommage a ete mis a jour.');

@@ -29,6 +29,16 @@ class PushNotificationDispatcher
         return $this->notify('partner', $user->id, $type, $title, $body, $data)['notification'];
     }
 
+    public function notifyInstitutionUser(User $user, string $type, string $title, ?string $body = null, array $data = []): UserNotification
+    {
+        return $this->notify('institution', $user->id, $type, $title, $body, $data)['notification'];
+    }
+
+    public function notifyBackofficeUser(User $user, string $type, string $title, ?string $body = null, array $data = []): UserNotification
+    {
+        return $this->notify('backoffice', $user->id, $type, $title, $body, $data)['notification'];
+    }
+
     private function notify(string $recipientType, int $recipientId, string $type, string $title, ?string $body, array $data): array
     {
         $notification = UserNotification::query()->create([

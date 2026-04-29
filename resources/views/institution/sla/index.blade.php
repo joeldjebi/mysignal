@@ -1,7 +1,7 @@
 @extends('institution.layouts.app')
 
 @section('title', config('app.name').' | TCM cibles')
-@section('page-title', 'SLA cibles')
+@section('page-title', 'TCM cibles')
 @section('page-description', 'Referentiel des TCM programmes pour votre type d organisation et votre reseau.')
 
 @section('content')

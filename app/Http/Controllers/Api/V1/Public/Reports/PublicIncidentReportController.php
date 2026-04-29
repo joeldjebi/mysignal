@@ -10,6 +10,7 @@ use App\Http\Requests\Api\V1\Public\Reports\StoreIncidentReportRequest;
 use App\Http\Resources\Api\V1\Public\Reports\IncidentReportResource;
 use App\Models\IncidentReport;
 use App\Services\WasabiService;
+use App\Services\Notifications\IncidentReportNotificationService;
 use App\Support\Api\ApiResponse;
 use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\Request;
@@ -30,7 +31,7 @@ class PublicIncidentReportController extends Controller
         ]);
     }
 
-    public function store(StoreIncidentReportRequest $request, CreateIncidentReportAction $action, ActivityLogger $activityLogger)
+    public function store(StoreIncidentReportRequest $request, CreateIncidentReportAction $action, ActivityLogger $activityLogger, IncidentReportNotificationService $notificationService)
     {
         $report = $action->handle($request->user('public_api'), $request->validated());
         $report->load(['application', 'organization', 'meter.organization', 'country', 'city', 'commune', 'payments.pricingRule']);
@@ -49,6 +50,8 @@ class PublicIncidentReportController extends Controller
             ],
             $request
         );
+
+        $notificationService->notifyInstitutionReportCreated($report);
 
         return ApiResponse::success([
             'report' => new IncidentReportResource($report),
@@ -95,7 +98,7 @@ class PublicIncidentReportController extends Controller
         ], 'La resolution du signalement a ete confirmee.');
     }
 
-    public function storeDamage(StoreIncidentReportDamageRequest $request, IncidentReport $report, WasabiService $wasabiService, ActivityLogger $activityLogger)
+    public function storeDamage(StoreIncidentReportDamageRequest $request, IncidentReport $report, WasabiService $wasabiService, ActivityLogger $activityLogger, IncidentReportNotificationService $notificationService)
     {
         abort_unless((int) $report->public_user_id === (int) $request->user('public_api')->id, 404);
         abort_unless($report->resolution_confirmation_status === 'confirmed', 422, 'Confirmez d abord la resolution du signalement avant d enregistrer un dommage.');
@@ -153,6 +156,8 @@ class PublicIncidentReportController extends Controller
             ],
             $request
         );
+
+        $notificationService->notifyInstitutionDamageDeclared($report);
 
         return ApiResponse::success([
             'report' => new IncidentReportResource($report),

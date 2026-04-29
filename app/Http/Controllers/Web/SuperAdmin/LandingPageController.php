@@ -53,6 +53,7 @@ class LandingPageController extends Controller
             'items.*.*.*.url' => ['nullable', 'string', 'max:2048'],
             'items.*.*.*.existing_url' => ['nullable', 'string', 'max:2048'],
             'items.*.*.*.url_file' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'items.*.*.*.video_file' => ['nullable', 'file', 'mimes:mp4,mov,webm,m4v', 'max:102400'],
             'items.*.*.*.value' => ['nullable', 'string', 'max:120'],
             'items.*.*.*.is_active' => ['nullable', 'boolean'],
         ]);
@@ -98,7 +99,7 @@ class LandingPageController extends Controller
                     'label' => $definition['label'],
                     'title' => trim((string) ($sectionInput['title'] ?? $definition['title'])),
                     'subtitle' => trim((string) ($sectionInput['subtitle'] ?? $definition['subtitle'])),
-                    'body' => trim((string) ($sectionInput['body'] ?? $definition['body'])),
+                    'body' => $this->normalizeSectionBody($key, (string) ($sectionInput['body'] ?? $definition['body'])),
                     'is_active' => ! empty($sectionInput['is_active']),
                     'sort_order' => $definition['sort_order'],
                     'meta' => $meta,
@@ -126,6 +127,23 @@ class LandingPageController extends Controller
                                 $request->file("items.$key.$groupKey.$index.url_file"),
                                 config('wasabi.landing_partner_logo_directory', 'landing/partners'),
                                 'landing-partner-logo'
+                            );
+                        }
+                    }
+
+                    if ($key === 'page_tv' && $groupKey === 'videos') {
+                        $existingUrl = trim((string) ($itemInput['existing_url'] ?? ''));
+                        $itemInput['url'] = $existingUrl !== '' ? $existingUrl : ($itemInput['url'] ?? null);
+
+                        if ($request->hasFile("items.$key.$groupKey.$index.video_file")) {
+                            if ($existingUrl !== '' && str_starts_with($existingUrl, 'landing/')) {
+                                $wasabiService->deleteFile($existingUrl);
+                            }
+
+                            $itemInput['url'] = $wasabiService->uploadFile(
+                                $request->file("items.$key.$groupKey.$index.video_file"),
+                                config('wasabi.landing_video_directory', 'landing/videos'),
+                                'landing-video'
                             );
                         }
                     }
@@ -181,7 +199,7 @@ class LandingPageController extends Controller
             'key' => $key,
             'title_value' => old("sections.$key.title", $storedSection->title ?? $definition['title']),
             'subtitle_value' => old("sections.$key.subtitle", $storedSection->subtitle ?? $definition['subtitle']),
-            'body_value' => old("sections.$key.body", $storedSection->body ?? $definition['body']),
+            'body_value' => $this->bodyForForm($key, old("sections.$key.body", $storedSection->body ?? $definition['body'])),
             'is_active_value' => old("sections.$key.is_active", $storedSection ? $storedSection->is_active : true),
             'meta_value' => array_merge($definition['meta_defaults'], $storedSection?->meta ?? []),
         ];
@@ -196,6 +214,28 @@ class LandingPageController extends Controller
         }
 
         return false;
+    }
+
+    private function normalizeSectionBody(string $key, string $body): string
+    {
+        $body = trim($body);
+
+        if (in_array($key, ['page_about', 'page_contact', 'page_tv', 'page_terms', 'page_privacy'], true)) {
+            return html_entity_decode($body, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        }
+
+        return $body;
+    }
+
+    private function bodyForForm(string $key, mixed $body): string
+    {
+        $body = (string) $body;
+
+        if (in_array($key, ['page_about', 'page_contact', 'page_tv', 'page_terms', 'page_privacy'], true)) {
+            return html_entity_decode($body, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        }
+
+        return $body;
     }
 
     private function emptyRows(int $count): array
@@ -236,14 +276,103 @@ class LandingPageController extends Controller
                         'label' => 'Liens du menu',
                         'columns' => ['title' => 'Libelle', 'url' => 'Lien'],
                         'items' => [
-                            ['title' => 'Fonctionnalites', 'url' => '#features', 'is_active' => true],
-                            ['title' => 'FAQ', 'url' => '#faq', 'is_active' => true],
-                            ['title' => 'Domaines', 'url' => '#domains', 'is_active' => true],
+                            ['title' => 'Accueil', 'url' => '/', 'is_active' => true],
+                            ['title' => 'Qui sommes-nous ?', 'url' => '/qui-sommes-nous', 'is_active' => true],
+                            ['title' => 'Nos domaines', 'url' => '/#domains', 'is_active' => true],
+                            ['title' => 'Fonctionnalites', 'url' => '/#features', 'is_active' => true],
+                            ['title' => 'My-Signal TV', 'url' => '/my-signal-tv', 'is_active' => true],
+                            ['title' => 'FAQ', 'url' => '/faq', 'is_active' => true],
+                            ['title' => 'Contactez-nous', 'url' => '/contactez-nous', 'is_active' => true],
                         ],
                         'empty_rows' => 2,
                     ],
                 ],
                 'sort_order' => 10,
+            ],
+            'page_about' => [
+                'label' => 'Page - Qui sommes-nous ?',
+                'title' => 'Qui sommes-nous ?',
+                'subtitle' => 'My-Signal',
+                'body' => "<p>My-Signal accompagne les consommateurs, les unites partenaires et les institutions dans le signalement, le suivi et la resolution des difficultes liees aux services du quotidien.</p>",
+                'meta_defaults' => ['icon' => 'bi-people-fill'],
+                'meta_fields' => ['icon' => ['label' => 'Icone Bootstrap', 'default' => 'bi-people-fill']],
+                'item_groups' => [],
+                'sort_order' => 11,
+            ],
+            'page_tv' => [
+                'label' => 'Page - My-Signal TV',
+                'title' => 'My-Signal TV',
+                'subtitle' => 'Videos et informations',
+                'body' => "Retrouvez ici les contenus videos, les campagnes d'information et les annonces importantes autour de My-Signal.",
+                'meta_defaults' => ['icon' => 'bi-play-btn-fill', 'video_url' => ''],
+                'meta_fields' => [
+                    'icon' => ['label' => 'Icone Bootstrap', 'default' => 'bi-play-btn-fill'],
+                ],
+                'item_groups' => [
+                    'videos' => [
+                        'label' => 'Videos par categorie',
+                        'columns' => ['title' => 'Titre', 'value' => 'Categorie', 'body' => 'Description', 'url' => 'Fichier video'],
+                        'items' => [
+                            ['title' => 'Presentation My-Signal', 'value' => 'Presentation', 'body' => 'Video de presentation de la plateforme.', 'url' => null, 'is_active' => true],
+                        ],
+                        'empty_rows' => 3,
+                    ],
+                ],
+                'sort_order' => 14,
+            ],
+            'page_faq' => [
+                'label' => 'Page - FAQ',
+                'title' => 'FAQ',
+                'subtitle' => 'Questions frequentes',
+                'body' => "Les reponses aux questions les plus courantes sur le compte UP, les signalements, les notifications, les reductions et les espaces partenaires.",
+                'meta_defaults' => ['icon' => 'bi-question-circle-fill'],
+                'meta_fields' => ['icon' => ['label' => 'Icone Bootstrap', 'default' => 'bi-question-circle-fill']],
+                'item_groups' => [
+                    'questions' => [
+                        'label' => 'Questions / reponses',
+                        'columns' => ['title' => 'Question', 'body' => 'Reponse'],
+                        'items' => [
+                            ['title' => 'Comment fonctionne My-Signal ?', 'body' => 'Le SA peut personnaliser cette reponse depuis le backoffice.', 'is_active' => true],
+                        ],
+                        'empty_rows' => 5,
+                    ],
+                ],
+                'sort_order' => 15,
+            ],
+            'page_contact' => [
+                'label' => 'Page - Contactez-nous',
+                'title' => 'Contactez-nous',
+                'subtitle' => 'Besoin d aide ?',
+                'body' => "L'equipe My-Signal reste disponible pour vous orienter, vous accompagner ou recevoir vos demandes d'information.",
+                'meta_defaults' => ['icon' => 'bi-envelope-paper-fill', 'email' => 'contact@my-signal.online', 'phone' => '', 'address' => ''],
+                'meta_fields' => [
+                    'icon' => ['label' => 'Icone Bootstrap', 'default' => 'bi-envelope-paper-fill'],
+                    'email' => ['label' => 'Email', 'default' => 'contact@my-signal.online'],
+                    'phone' => ['label' => 'Telephone', 'default' => ''],
+                    'address' => ['label' => 'Adresse', 'default' => ''],
+                ],
+                'item_groups' => [],
+                'sort_order' => 16,
+            ],
+            'page_terms' => [
+                'label' => 'Page - CGU',
+                'title' => 'Conditions generales d utilisation',
+                'subtitle' => 'Cadre d utilisation',
+                'body' => '<p>Renseignez ici les conditions generales d utilisation de My-Signal.</p>',
+                'meta_defaults' => ['icon' => 'bi-file-earmark-text-fill'],
+                'meta_fields' => ['icon' => ['label' => 'Icone Bootstrap', 'default' => 'bi-file-earmark-text-fill']],
+                'item_groups' => [],
+                'sort_order' => 17,
+            ],
+            'page_privacy' => [
+                'label' => 'Page - Politique de confidentialite',
+                'title' => 'Politique de confidentialite',
+                'subtitle' => 'Protection des donnees',
+                'body' => '<p>Renseignez ici la politique de confidentialite et de protection des donnees personnelles.</p>',
+                'meta_defaults' => ['icon' => 'bi-shield-lock-fill'],
+                'meta_fields' => ['icon' => ['label' => 'Icone Bootstrap', 'default' => 'bi-shield-lock-fill']],
+                'item_groups' => [],
+                'sort_order' => 18,
             ],
             'hero' => [
                 'label' => 'Hero',
@@ -583,10 +712,9 @@ class LandingPageController extends Controller
                         'label' => 'Liens colonne 3',
                         'columns' => ['title' => 'Libelle', 'url' => 'Lien'],
                         'items' => [
-                            ['title' => 'Confidentialite', 'url' => '#', 'is_active' => true],
-                            ['title' => "Conditions d'utilisation", 'url' => '#', 'is_active' => true],
-                            ['title' => 'Cookies', 'url' => '#', 'is_active' => true],
-                            ['title' => 'Donnees personnelles', 'url' => '#', 'is_active' => true],
+                            ['title' => 'Conditions generales d utilisation', 'url' => '/conditions-generales-utilisation', 'is_active' => true],
+                            ['title' => 'Politique de confidentialite', 'url' => '/politique-confidentialite', 'is_active' => true],
+                            ['title' => 'Contact', 'url' => '/contactez-nous', 'is_active' => true],
                         ],
                         'empty_rows' => 2,
                     ],

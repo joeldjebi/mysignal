@@ -9,6 +9,7 @@ use App\Models\ReparationCaseHistory;
 use App\Models\ReparationCaseStep;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\Notifications\IncidentReportNotificationService;
 use App\Support\Audit\ActivityLogger;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
@@ -84,7 +85,7 @@ class ReparationCaseController extends Controller
         ]);
     }
 
-    public function store(Request $request, ActivityLogger $activityLogger): RedirectResponse
+    public function store(Request $request, ActivityLogger $activityLogger, IncidentReportNotificationService $notificationService): RedirectResponse
     {
         $attributes = $request->validate([
             'incident_report_id' => ['required', 'integer', 'exists:incident_reports,id'],
@@ -167,6 +168,9 @@ class ReparationCaseController extends Controller
             $request
         );
 
+        $notificationService->notifyPublicReparationCaseOpened($case);
+        $notificationService->notifyInstitutionReparationCaseOpened($case);
+
         return redirect()->route('super-admin.reparation-cases.show', $case)
             ->with('success', 'Le dossier de réparation a été ouvert.');
     }
@@ -203,7 +207,7 @@ class ReparationCaseController extends Controller
         ]);
     }
 
-    public function update(Request $request, ReparationCase $reparationCase, ActivityLogger $activityLogger): RedirectResponse
+    public function update(Request $request, ReparationCase $reparationCase, ActivityLogger $activityLogger, IncidentReportNotificationService $notificationService): RedirectResponse
     {
         $attributes = $request->validate([
             'case_type' => ['required', 'in:precontentieux,judiciaire'],
@@ -227,6 +231,7 @@ class ReparationCaseController extends Controller
         $originalValidatedAmount = $reparationCase->damage_amount_validated;
         $originalResolutionNotes = $reparationCase->resolution_notes;
         $originalClosureReason = $reparationCase->closure_reason;
+        $publicUpdateSummaries = [];
 
         $reparationCase->update([
             'case_type' => $attributes['case_type'],
@@ -274,6 +279,8 @@ class ReparationCaseController extends Controller
                 $request->user()?->id,
                 ['status' => $reparationCase->status]
             );
+
+            $publicUpdateSummaries[] = 'Statut : '.$this->statusLabel($reparationCase->status);
         }
 
         if ((string) $originalAssignedToUserId !== (string) $reparationCase->assigned_to_user_id) {
@@ -289,6 +296,10 @@ class ReparationCaseController extends Controller
                 $request->user()?->id,
                 ['assigned_to_user_id' => $reparationCase->assigned_to_user_id]
             );
+
+            $notificationService->notifyBackofficeReparationCaseAssigned($reparationCase, $reparationCase->assigned_to_user_id, 'responsable');
+
+            $publicUpdateSummaries[] = $assignedLabel;
         }
 
         if ((string) $originalBailiffUserId !== (string) $reparationCase->bailiff_user_id) {
@@ -318,6 +329,10 @@ class ReparationCaseController extends Controller
                     $request->user()?->id
                 );
             }
+
+            $notificationService->notifyBackofficeReparationCaseAssigned($reparationCase, $reparationCase->bailiff_user_id, 'huissier');
+
+            $publicUpdateSummaries[] = $bailiffLabel;
         }
 
         if ((string) $originalLawyerUserId !== (string) $reparationCase->lawyer_user_id) {
@@ -347,6 +362,10 @@ class ReparationCaseController extends Controller
                     $request->user()?->id
                 );
             }
+
+            $notificationService->notifyBackofficeReparationCaseAssigned($reparationCase, $reparationCase->lawyer_user_id, 'avocat');
+
+            $publicUpdateSummaries[] = $lawyerLabel;
         }
 
         if ((string) $originalValidatedAmount !== (string) $reparationCase->damage_amount_validated && $reparationCase->damage_amount_validated !== null) {
@@ -358,6 +377,8 @@ class ReparationCaseController extends Controller
                 $request->user()?->id,
                 ['damage_amount_validated' => (float) $reparationCase->damage_amount_validated]
             );
+
+            $publicUpdateSummaries[] = 'Montant valide : '.number_format((float) $reparationCase->damage_amount_validated, 0, ',', ' ').' FCFA.';
         }
 
         if (($attributes['resolution_notes'] ?? null) && $originalResolutionNotes !== $reparationCase->resolution_notes) {
@@ -368,6 +389,8 @@ class ReparationCaseController extends Controller
                 $reparationCase->resolution_notes,
                 $request->user()?->id
             );
+
+            $publicUpdateSummaries[] = 'Une note de traitement a ete ajoutee.';
         }
 
         if (($attributes['closure_reason'] ?? null) && $originalClosureReason !== $reparationCase->closure_reason) {
@@ -378,6 +401,8 @@ class ReparationCaseController extends Controller
                 $reparationCase->closure_reason,
                 $request->user()?->id
             );
+
+            $publicUpdateSummaries[] = 'Un motif de cloture a ete renseigne.';
         }
 
         $activityLogger->log(
@@ -412,10 +437,29 @@ class ReparationCaseController extends Controller
             $request
         );
 
+        if ($publicUpdateSummaries !== []) {
+            $notificationService->notifyPublicReparationCaseUpdated(
+                $reparationCase,
+                'Dossier mis a jour',
+                implode(' ', array_slice($publicUpdateSummaries, 0, 3)),
+                [
+                    'changed_fields' => count($publicUpdateSummaries),
+                ],
+            );
+            $notificationService->notifyInstitutionReparationCaseUpdated(
+                $reparationCase,
+                'Dossier mis a jour',
+                implode(' ', array_slice($publicUpdateSummaries, 0, 3)),
+                [
+                    'changed_fields' => count($publicUpdateSummaries),
+                ],
+            );
+        }
+
         return back()->with('success', 'Le dossier de réparation a été mis à jour.');
     }
 
-    public function storeStep(Request $request, ReparationCase $reparationCase, ActivityLogger $activityLogger): RedirectResponse
+    public function storeStep(Request $request, ReparationCase $reparationCase, ActivityLogger $activityLogger, IncidentReportNotificationService $notificationService): RedirectResponse
     {
         $attributes = $request->validate([
             'step_type' => ['required', 'in:'.implode(',', array_keys(self::STEP_TYPES))],
@@ -466,6 +510,10 @@ class ReparationCaseController extends Controller
             ],
             $request
         );
+
+        $notificationService->notifyPublicReparationCaseStepAdded($reparationCase, $step);
+        $notificationService->notifyInstitutionReparationCaseStepAdded($reparationCase, $step);
+        $notificationService->notifyBackofficeReparationCaseStepAssigned($reparationCase, $step);
 
         return back()->with('success', 'L etape de procedure a ete enregistree.');
     }

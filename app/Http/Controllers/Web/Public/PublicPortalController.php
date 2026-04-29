@@ -6,11 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Models\Application;
 use App\Models\ApplicationContentBlock;
 use App\Models\BusinessSector;
+use App\Models\ContactSubmission;
 use App\Models\PublicUserType;
 use App\Models\Commune;
 use App\Models\LandingPageSection;
 use App\Support\ApplicationCatalog;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class PublicPortalController extends Controller
 {
@@ -47,6 +51,60 @@ class PublicPortalController extends Controller
                 ->toBase()
                 ->merge($this->landingSections()),
         ]);
+    }
+
+    public function landingPage(string $pageKey)
+    {
+        $definitions = $this->landingPageDefinitions();
+
+        if (! array_key_exists($pageKey, $definitions)) {
+            throw new NotFoundHttpException();
+        }
+
+        $landingBlocks = ApplicationContentBlock::query()
+            ->whereNull('application_id')
+            ->where('page_key', 'public_landing')
+            ->where('status', 'active')
+            ->orderBy('sort_order')
+            ->get()
+            ->keyBy('block_key')
+            ->toBase()
+            ->merge($this->landingSections());
+
+        $storedPage = $landingBlocks->get($pageKey);
+
+        if ($storedPage && $storedPage->status !== 'active') {
+            throw new NotFoundHttpException();
+        }
+
+        $defaultPage = (object) ($definitions[$pageKey] + [
+            'status' => 'active',
+            'meta' => [],
+        ]);
+
+        return view('public.landing-page', [
+            'landingBlocks' => $landingBlocks,
+            'pageKey' => $pageKey,
+            'page' => $storedPage ?: $defaultPage,
+        ]);
+    }
+
+    public function storeContact(Request $request): RedirectResponse
+    {
+        $attributes = $request->validate([
+            'name' => ['required', 'string', 'max:160'],
+            'email' => ['required', 'email', 'max:180'],
+            'phone' => ['nullable', 'string', 'max:60'],
+            'subject' => ['nullable', 'string', 'max:180'],
+            'message' => ['required', 'string', 'min:10', 'max:5000'],
+        ]);
+
+        ContactSubmission::query()->create($attributes + [
+            'ip_address' => $request->ip(),
+            'user_agent' => substr((string) $request->userAgent(), 0, 1000),
+        ]);
+
+        return back()->with('success', 'Votre message a bien ete envoye. Notre equipe vous repondra rapidement.');
     }
 
     public function auth()
@@ -135,11 +193,67 @@ class PublicPortalController extends Controller
                     $section->key => (object) [
                         'title' => $section->title,
                         'subtitle' => $section->subtitle,
-                        'body' => $section->landingBody(),
+                        'body' => $this->decodeRichBody($section->key, $section->landingBody()),
                         'status' => $section->is_active ? 'active' : 'inactive',
                         'meta' => $section->landingMeta(),
                     ],
                 ];
             });
+    }
+
+    private function landingPageDefinitions(): array
+    {
+        return [
+            'page_about' => [
+                'title' => 'Qui sommes-nous ?',
+                'subtitle' => 'My-Signal',
+                'body' => "<p>My-Signal accompagne les consommateurs, les unites partenaires et les institutions dans le signalement, le suivi et la resolution des difficultes liees aux services du quotidien.</p>",
+                'meta' => ['icon' => 'bi-people-fill'],
+            ],
+            'page_tv' => [
+                'title' => 'My-Signal TV',
+                'subtitle' => 'Videos et informations',
+                'body' => "Retrouvez ici les contenus videos, les campagnes d'information et les annonces importantes autour de My-Signal.",
+                'meta' => ['icon' => 'bi-play-btn-fill', 'video_url' => ''],
+            ],
+            'page_faq' => [
+                'title' => 'FAQ',
+                'subtitle' => 'Questions frequentes',
+                'body' => "Les reponses aux questions les plus courantes sur le compte UP, les signalements, les notifications, les reductions et les espaces partenaires.",
+                'meta' => ['icon' => 'bi-question-circle-fill'],
+            ],
+            'page_contact' => [
+                'title' => 'Contactez-nous',
+                'subtitle' => 'Besoin d’aide ?',
+                'body' => "L'equipe My-Signal reste disponible pour vous orienter, vous accompagner ou recevoir vos demandes d'information.",
+                'meta' => [
+                    'icon' => 'bi-envelope-paper-fill',
+                    'email' => 'contact@my-signal.online',
+                    'phone' => '',
+                    'address' => '',
+                ],
+            ],
+            'page_terms' => [
+                'title' => 'Conditions generales d utilisation',
+                'subtitle' => 'Cadre d utilisation',
+                'body' => '<p>Renseignez ici les conditions generales d utilisation de My-Signal.</p>',
+                'meta' => ['icon' => 'bi-file-earmark-text-fill'],
+            ],
+            'page_privacy' => [
+                'title' => 'Politique de confidentialite',
+                'subtitle' => 'Protection des donnees',
+                'body' => '<p>Renseignez ici la politique de confidentialite et de protection des donnees personnelles.</p>',
+                'meta' => ['icon' => 'bi-shield-lock-fill'],
+            ],
+        ];
+    }
+
+    private function decodeRichBody(string $key, ?string $body): ?string
+    {
+        if (! in_array($key, ['page_about', 'page_contact', 'page_tv', 'page_terms', 'page_privacy'], true)) {
+            return $body;
+        }
+
+        return html_entity_decode((string) $body, ENT_QUOTES | ENT_HTML5, 'UTF-8');
     }
 }

@@ -1,7 +1,7 @@
 @extends('super-admin.layouts.app')
 
 @section('title', config('app.name').' | TCM cibles')
-@section('page-title', 'SLA cibles')
+@section('page-title', 'TCM cibles')
 @section('page-description', 'Programmer les TCM cibles selon le type d organisation et le type de signal.')
 
 @section('header-badges')

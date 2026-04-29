@@ -82,18 +82,19 @@
     .nav-link {
       color: var(--text-dark) !important;
       font-weight: 500;
-      font-size: .88rem;
-      padding: 6px 14px !important;
+      font-size: .82rem;
+      padding: 6px 8px !important;
       transition: color .2s;
+      white-space: nowrap;
     }
     .nav-link:hover { color: var(--primary) !important; }
     .btn-nav {
       background: var(--action-color);
       color: #fff !important;
       border-radius: 30px;
-      padding: 8px 24px !important;
+      padding: 8px 16px !important;
       font-weight: 600;
-      font-size: .85rem;
+      font-size: .8rem;
     }
     .btn-nav:hover { opacity: .88; }
     .navbar-partner-logo {
@@ -1427,7 +1428,7 @@
 <body>
 
 <!-- ===== NAVBAR ===== -->
-<nav class="navbar navbar-expand-lg">
+<nav class="navbar navbar-expand-xl">
   <div class="container">
     <a class="navbar-brand" href="#">
       <img src="{{ asset('image/logo/logo-my-signal.png') }}" alt="My-Signal">
@@ -1437,11 +1438,10 @@
     </button>
     <div class="collapse navbar-collapse" id="navMenu">
       <ul class="navbar-nav ms-auto align-items-center gap-1">
-        @foreach ($lines($blockBody('navigation', "Fonctionnalités | #features\nFAQ | #faq\nDomaines | #domains")) as $navLine)
+        @foreach ($lines($blockBody('navigation', "Accueil | /\nQui sommes-nous ? | /qui-sommes-nous\nNos domaines | /#domains\nFonctionnalités | /#features\nMy-Signal TV | /my-signal-tv\nFAQ | /faq\nContactez-nous | /contactez-nous")) as $navLine)
           @php
             [$navLabel, $navUrl] = $parts($navLine, 2);
           @endphp
-          @continue(in_array($navUrl, ['#screenshots', '#news'], true))
           <li class="nav-item"><a class="nav-link" href="{{ $navUrl ?: '#' }}">{{ $navLabel }}</a></li>
         @endforeach
         <li class="nav-item ms-2"><a class="nav-link btn-nav" href="{{ route('public.auth') }}">{{ $blockMeta('navigation', 'cta_label', 'Se connecter et signaler maintenant') }}</a></li>
@@ -2086,7 +2086,7 @@
       <div class="col-6 col-lg-2">
         <h6>{{ $blockMeta('footer', 'column_3_title', 'Légal') }}</h6>
         <ul>
-          @foreach ($lines($blockMeta('footer', 'column_3_links', "Confidentialité | #\nConditions d'utilisation | #\nCookies | #\nDonnées personnelles | #")) as $footerLine)
+          @foreach ($lines($blockMeta('footer', 'column_3_links', "Conditions générales d'utilisation | /conditions-generales-utilisation\nPolitique de confidentialité | /politique-confidentialite\nContact | /contactez-nous")) as $footerLine)
             @php
               [$footerLabel, $footerUrl] = $parts($footerLine, 2);
             @endphp

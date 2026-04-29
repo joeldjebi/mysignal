@@ -63,6 +63,15 @@ class LandingPageSection extends Model
                 'legend' => $this->lineItems('legend', ['title']),
             ],
             'faq' => $meta + ['questions' => $this->lineItems('questions', ['title', 'body'])],
+            'page_faq' => $meta + ['questions' => $this->structuredItems('questions')->all()],
+            'page_tv' => $meta + [
+                'videos' => $this->structuredItems('videos')
+                    ->map(fn (array $item): array => $item + [
+                        'video_url' => $this->resolveAssetUrl($item['url'] ?? null),
+                        'category' => $item['value'] ?: 'General',
+                    ])
+                    ->all(),
+            ],
             'testimonials' => $meta + ['items' => $this->lineItems('items', ['body', 'title', 'subtitle', 'icon'])],
             'news' => $meta + ['items' => $this->lineItems('items', ['subtitle', 'title', 'body', 'icon', 'value'])],
             'clients' => $meta + ['items' => $this->lineItems('items', ['title', 'body', 'icon'])],

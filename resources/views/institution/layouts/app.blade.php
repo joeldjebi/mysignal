@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', config('app.name').' | Portail institutionnel')</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
@@ -360,6 +361,7 @@
         $canViewSla = in_array('INSTITUTION_SLA_ACCESS', $featureCodes, true);
         $canManageSignalTypes = in_array('INSTITUTION_SIGNAL_TYPES_ACCESS', $featureCodes, true);
         $canViewDamages = in_array('INSTITUTION_REPORT_DAMAGE_ACCESS', $featureCodes, true);
+        $canViewReparationCases = $canViewReports;
         $canManageInstitutionUsers = $isInstitutionRootAdmin || $userPermissionCodes->contains('INSTITUTION_MANAGE_USERS');
         $canManageInstitutionRoles = $isInstitutionRootAdmin || $userPermissionCodes->contains('INSTITUTION_MANAGE_ROLES');
         $canManageInstitutionPermissions = $isInstitutionRootAdmin || $userPermissionCodes->contains('INSTITUTION_MANAGE_PERMISSIONS');
@@ -404,6 +406,16 @@
                         <span>
                             <span class="d-block fw-semibold">Dommages</span>
                             <span class="small text-white-50">Declarations et traitement</span>
+                        </span>
+                    </a>
+                @endif
+
+                @if ($canViewReparationCases)
+                    <a href="{{ route('institution.reparation-cases.index') }}" class="nav-pill {{ $activeNav === 'reparation-cases' ? 'active' : '' }}">
+                        <span class="nav-icon">DS</span>
+                        <span>
+                            <span class="d-block fw-semibold">Dossiers</span>
+                            <span class="small text-white-50">Historique contentieux</span>
                         </span>
                     </a>
                 @endif
@@ -467,7 +479,7 @@
                     <a href="{{ route('institution.sla.index') }}" class="nav-pill {{ $activeNav === 'sla' ? 'active' : '' }}">
                         <span class="nav-icon">SL</span>
                         <span>
-                            <span class="d-block fw-semibold">SLA cibles</span>
+                            <span class="d-block fw-semibold">TCM cibles</span>
                             <span class="small text-white-50">Referentiel programme</span>
                         </span>
                     </a>
@@ -553,6 +565,11 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         (() => {
+            const firebaseWebConfig = @json(array_filter(config('services.firebase.web.config', []), fn ($value) => filled($value)));
+            const firebaseWebVapidKey = @json(config('services.firebase.web.vapid_key'));
+            const firebasePushEnabled = @json((bool) config('services.firebase.enabled'));
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
             document.querySelectorAll('form').forEach((form) => {
                 const phoneFields = form.querySelectorAll('[data-phone-field]');
 
@@ -579,6 +596,107 @@
                 syncPhoneFields();
                 form.addEventListener('submit', syncPhoneFields);
             });
+
+            function hasFirebaseWebConfig() {
+                return firebasePushEnabled
+                    && firebaseWebVapidKey
+                    && firebaseWebConfig.apiKey
+                    && firebaseWebConfig.messagingSenderId
+                    && firebaseWebConfig.appId;
+            }
+
+            function isPushSupportedInThisContext() {
+                return 'Notification' in window
+                    && 'serviceWorker' in navigator
+                    && window.isSecureContext;
+            }
+
+            function getWebPushDeviceName() {
+                const browserData = navigator.userAgentData?.brands
+                    ?.map((brand) => `${brand.brand} ${brand.version}`)
+                    .join(', ');
+                const browserName = browserData || navigator.userAgent || 'Navigateur';
+
+                return `${navigator.platform || 'Web'} - ${browserName}`.slice(0, 120);
+            }
+
+            async function registerInstitutionWebPushToken() {
+                if (!hasFirebaseWebConfig() || !isPushSupportedInThisContext()) {
+                    return;
+                }
+
+                try {
+                    const permission = await Notification.requestPermission();
+
+                    if (permission !== 'granted') {
+                        console.info('[MYSIGNAL_AI_PUSH] permission', permission);
+                        return;
+                    }
+
+                    const [{ initializeApp, getApp, getApps }, { getMessaging, getToken, isSupported, onMessage }] = await Promise.all([
+                        import('https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js'),
+                        import('https://www.gstatic.com/firebasejs/10.12.5/firebase-messaging.js'),
+                    ]);
+
+                    if (!(await isSupported())) {
+                        console.info('[MYSIGNAL_AI_PUSH] Firebase Messaging non supporte par ce navigateur.');
+                        return;
+                    }
+
+                    const firebaseApp = getApps().length ? getApp() : initializeApp(firebaseWebConfig);
+                    const messaging = getMessaging(firebaseApp);
+
+                    onMessage(messaging, (messagePayload) => {
+                        console.log('[MYSIGNAL_AI_PUSH] foreground payload', messagePayload);
+                        const notification = messagePayload.notification || {};
+                        const data = messagePayload.data || {};
+                        const title = notification.title || data.title || 'MYSIGNAL';
+                        const body = notification.body || data.body || '';
+
+                        if (Notification.permission === 'granted') {
+                            new Notification(title, {
+                                body,
+                                icon: '/favicon.ico',
+                                badge: '/favicon.ico',
+                                data,
+                            });
+                        }
+                    });
+
+                    const serviceWorkerRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+                    const token = await getToken(messaging, {
+                        vapidKey: firebaseWebVapidKey,
+                        serviceWorkerRegistration,
+                    });
+
+                    if (!token) {
+                        return;
+                    }
+
+                    const payload = {
+                        token,
+                        platform: 'web',
+                        device_name: getWebPushDeviceName(),
+                        app_version: 'institution-web',
+                    };
+
+                    const response = await fetch('{{ route('institution.push-tokens.store') }}', {
+                        method: 'POST',
+                        headers: {
+                            Accept: 'application/json',
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                        },
+                        body: JSON.stringify(payload),
+                    });
+
+                    console.log('[MYSIGNAL_AI_PUSH] token_save_response', await response.json().catch(() => ({})));
+                } catch (error) {
+                    console.error('[MYSIGNAL_AI_PUSH] configuration_error', error);
+                }
+            }
+
+            void registerInstitutionWebPushToken();
         })();
     </script>
     @yield('scripts')

@@ -4,10 +4,12 @@ use App\Http\Controllers\Web\Public\PublicPortalController;
 use App\Http\Controllers\Web\Institution\AuthController as InstitutionAuthController;
 use App\Http\Controllers\Web\Institution\ActivityLogController as InstitutionActivityLogController;
 use App\Http\Controllers\Web\Institution\DashboardController as InstitutionDashboardController;
+use App\Http\Controllers\Web\Institution\DeviceTokenController as InstitutionDeviceTokenController;
 use App\Http\Controllers\Web\Institution\DamageController as InstitutionDamageController;
 use App\Http\Controllers\Web\Institution\MeterController as InstitutionMeterController;
 use App\Http\Controllers\Web\Institution\PermissionController as InstitutionPermissionController;
 use App\Http\Controllers\Web\Institution\ProfileController as InstitutionProfileController;
+use App\Http\Controllers\Web\Institution\ReparationCaseController as InstitutionReparationCaseController;
 use App\Http\Controllers\Web\Institution\ReporterUserController as InstitutionReporterUserController;
 use App\Http\Controllers\Web\Institution\ReportController as InstitutionReportController;
 use App\Http\Controllers\Web\Institution\RoleController as InstitutionRoleController;
@@ -24,6 +26,7 @@ use App\Http\Controllers\Web\SuperAdmin\CityController;
 use App\Http\Controllers\Web\SuperAdmin\CommuneController;
 use App\Http\Controllers\Web\SuperAdmin\CountryController;
 use App\Http\Controllers\Web\SuperAdmin\BusinessSectorController;
+use App\Http\Controllers\Web\SuperAdmin\DeviceTokenController as SuperAdminDeviceTokenController;
 use App\Http\Controllers\Web\SuperAdmin\DiscountCardController;
 use App\Http\Controllers\Web\SuperAdmin\DiscountTransactionController;
 use App\Http\Controllers\Web\SuperAdmin\FeatureController;
@@ -32,6 +35,7 @@ use App\Http\Controllers\Web\SuperAdmin\InstitutionAdminController;
 use App\Http\Controllers\Web\SuperAdmin\InternalAccessController;
 use App\Http\Controllers\Web\SuperAdmin\InternalHomeController;
 use App\Http\Controllers\Web\SuperAdmin\LandingPageController;
+use App\Http\Controllers\Web\SuperAdmin\LandingPageContactController;
 use App\Http\Controllers\Web\SuperAdmin\ApplicationController;
 use App\Http\Controllers\Web\SuperAdmin\OrganizationController;
 use App\Http\Controllers\Web\SuperAdmin\OrganizationTypeSignalSlaController;
@@ -56,6 +60,13 @@ use App\Http\Controllers\Web\SuperAdmin\DashboardController as SuperAdminDashboa
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PublicPortalController::class, 'landing'])->name('public.landing');
+Route::get('/qui-sommes-nous', [PublicPortalController::class, 'landingPage'])->defaults('pageKey', 'page_about')->name('public.pages.about');
+Route::get('/my-signal-tv', [PublicPortalController::class, 'landingPage'])->defaults('pageKey', 'page_tv')->name('public.pages.tv');
+Route::get('/faq', [PublicPortalController::class, 'landingPage'])->defaults('pageKey', 'page_faq')->name('public.pages.faq');
+Route::get('/contactez-nous', [PublicPortalController::class, 'landingPage'])->defaults('pageKey', 'page_contact')->name('public.pages.contact');
+Route::post('/contactez-nous', [PublicPortalController::class, 'storeContact'])->name('public.pages.contact.store');
+Route::get('/conditions-generales-utilisation', [PublicPortalController::class, 'landingPage'])->defaults('pageKey', 'page_terms')->name('public.pages.terms');
+Route::get('/politique-confidentialite', [PublicPortalController::class, 'landingPage'])->defaults('pageKey', 'page_privacy')->name('public.pages.privacy');
 Route::get('/auth', [PublicPortalController::class, 'auth'])->name('public.auth');
 Route::get('/dashboard', [PublicPortalController::class, 'dashboard'])->name('public.dashboard');
 Route::get('/firebase-messaging-sw.js', function () {
@@ -114,6 +125,19 @@ self.addEventListener('notificationclick', (event) => {
     event.notification.close();
 
     const data = event.notification.data || {};
+    if (data.url) {
+        try {
+            const target = new URL(data.url, self.location.origin);
+
+            if (target.origin === self.location.origin) {
+                event.waitUntil(clients.openWindow(target.href));
+                return;
+            }
+        } catch (error) {
+            console.warn('[MYSIGNAL] URL notification invalide', error);
+        }
+    }
+
     const screen = data.screen === 'dashboard' ? 'notifications' : (data.screen || 'notifications');
     const targetUrl = new URL('/dashboard', self.location.origin);
 
@@ -162,6 +186,7 @@ Route::prefix('institution')->name('institution.')->group(function (): void {
 
     Route::middleware(['auth', 'institution_admin'])->group(function (): void {
         Route::get('dashboard', InstitutionDashboardController::class)->name('dashboard');
+        Route::post('push-tokens', [InstitutionDeviceTokenController::class, 'store'])->name('push-tokens.store');
         Route::get('profile', [InstitutionProfileController::class, 'edit'])->name('profile.edit');
         Route::put('profile', [InstitutionProfileController::class, 'update'])->name('profile.update');
         Route::get('meters', [InstitutionMeterController::class, 'index'])
@@ -176,6 +201,12 @@ Route::prefix('institution')->name('institution.')->group(function (): void {
         Route::get('damages', [InstitutionDamageController::class, 'index'])
             ->middleware('institution_feature:INSTITUTION_REPORT_DAMAGE_ACCESS')
             ->name('damages.index');
+        Route::get('reparation-cases', [InstitutionReparationCaseController::class, 'index'])
+            ->middleware('institution_feature:PUBLIC_REPORTS')
+            ->name('reparation-cases.index');
+        Route::get('reparation-cases/{reparationCase}', [InstitutionReparationCaseController::class, 'show'])
+            ->middleware('institution_feature:PUBLIC_REPORTS')
+            ->name('reparation-cases.show');
         Route::get('reports/{report}', [InstitutionReportController::class, 'show'])
             ->middleware('institution_feature:PUBLIC_REPORTS')
             ->name('reports.show');
@@ -258,10 +289,13 @@ Route::prefix('sa')->name('super-admin.')->group(function (): void {
         Route::get('dashboard', SuperAdminDashboardController::class)
             ->middleware('super_admin_permission:SA_DASHBOARD_VIEW')
             ->name('dashboard');
+        Route::post('push-tokens', [SuperAdminDeviceTokenController::class, 'store'])->name('push-tokens.store');
         Route::post('logout', [SuperAdminAuthController::class, 'destroy'])->name('logout');
 
         Route::get('landing-page', [LandingPageController::class, 'edit'])->middleware('super_admin_permission:SA_LANDING_PAGE_MANAGE')->name('landing-page.edit');
         Route::put('landing-page', [LandingPageController::class, 'update'])->middleware('super_admin_permission:SA_LANDING_PAGE_MANAGE')->name('landing-page.update');
+        Route::get('landing-page/contacts', [LandingPageContactController::class, 'index'])->middleware('super_admin_permission:SA_LANDING_PAGE_MANAGE')->name('landing-page.contacts.index');
+        Route::patch('landing-page/contacts/{contactSubmission}/read', [LandingPageContactController::class, 'markAsRead'])->middleware('super_admin_permission:SA_LANDING_PAGE_MANAGE')->name('landing-page.contacts.read');
 
         Route::resource('countries', CountryController::class)->except(['create', 'show'])->middleware('super_admin_permission:SA_COUNTRIES_MANAGE');
         Route::patch('countries/{country}/toggle-status', [CountryController::class, 'toggleStatus'])->middleware('super_admin_permission:SA_COUNTRIES_MANAGE')->name('countries.toggle-status');
