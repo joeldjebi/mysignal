@@ -123,6 +123,11 @@ class IncidentReport extends Model
         return $this->hasOne(ReparationCase::class);
     }
 
+    public function notificationContexts(): HasMany
+    {
+        return $this->hasMany(IncidentReportNotificationContext::class);
+    }
+
     public function resolvedSignalPayload(): array
     {
         return collect($this->signal_payload ?? [])

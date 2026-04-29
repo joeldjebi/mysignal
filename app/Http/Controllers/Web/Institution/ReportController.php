@@ -187,6 +187,7 @@ class ReportController extends Controller
             'Signalement resolu',
             'Votre signalement '.$report->reference.' a ete marque comme resolu.',
         );
+        $notificationService->notifyCommunityReportResolved($report);
 
         return back()->with('success', 'Le signalement a ete marque comme resolu.');
     }

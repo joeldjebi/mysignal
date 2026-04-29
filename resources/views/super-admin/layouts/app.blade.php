@@ -231,13 +231,27 @@
 </head>
 <body>
     @php
-        $authUser = auth()->user();
+        $authUser = request()->user();
+        $activeAccess = request()->attributes->get('super_admin_access') ?: $authUser?->getRelationValue('activeAccess');
+
+        if ($authUser && $activeAccess instanceof \App\Models\UserAccess) {
+            $authUser->setRelation('activeAccess', $activeAccess);
+        }
+
+        $activePortal = $activeAccess?->portal;
+        $internalPortalLabels = [
+            'backoffice' => 'Backoffice',
+            'huissier' => 'Huissier',
+            'avocat' => 'Avocat',
+        ];
         $isInternalPortalUser = $authUser && ! $authUser->is_super_admin;
-        $portalTitle = $isInternalPortalUser ? 'Backoffice' : 'Super Admin';
+        $portalTitle = $isInternalPortalUser ? ($internalPortalLabels[$activePortal] ?? 'Backoffice') : 'Super Admin';
         $portalDescription = $isInternalPortalUser
             ? 'Espace operationnel reserve aux utilisateurs internes autorises.'
             : 'Parametrage global, gouvernance et referentiels de la plateforme.';
         $logoutRoute = $isInternalPortalUser ? 'backoffice.logout' : 'super-admin.logout';
+        $layoutPermissionCodes = $authUser?->effectivePermissionCodes() ?? collect();
+        $canAccess = fn (string $permissionCode): bool => (bool) ($authUser?->is_super_admin || $layoutPermissionCodes->contains($permissionCode));
     @endphp
     <div class="dashboard-shell">
         <aside class="sidebar">
@@ -254,13 +268,13 @@
 
             <div class="sidebar-menu">
                 <div class="sidebar-label">Pilotage</div>
-                @if ($authUser?->hasPermissionCode('SA_DASHBOARD_VIEW'))
+                @if ($canAccess('SA_DASHBOARD_VIEW'))
                     <a href="{{ route('super-admin.dashboard') }}" class="nav-pill {{ request()->routeIs('super-admin.dashboard') ? 'active' : '' }}">
                         <span class="nav-icon">DB</span>
                         <span><span class="d-block fw-semibold">Dashboard</span><span class="small text-white-50">Vue d'ensemble</span></span>
                     </a>
                 @endif
-                @if ($authUser?->hasPermissionCode('SA_LANDING_PAGE_MANAGE'))
+                @if ($canAccess('SA_LANDING_PAGE_MANAGE'))
                     <a href="{{ route('super-admin.landing-page.edit') }}" class="nav-pill {{ request()->routeIs('super-admin.landing-page.*') ? 'active' : '' }}">
                         <span class="nav-icon">LP</span>
                         <span><span class="d-block fw-semibold">Landing page</span><span class="small text-white-50">Accueil public</span></span>
@@ -268,25 +282,25 @@
                 @endif
 
                 <div class="sidebar-label">Geographie</div>
-                @if ($authUser?->hasPermissionCode('SA_COUNTRIES_MANAGE'))
+                @if ($canAccess('SA_COUNTRIES_MANAGE'))
                     <a href="{{ route('super-admin.countries.index') }}" class="nav-pill {{ request()->routeIs('super-admin.countries.*') ? 'active' : '' }}">
                         <span class="nav-icon">PY</span>
                         <span><span class="d-block fw-semibold">Pays</span><span class="small text-white-50">Referentiel pays</span></span>
                     </a>
                 @endif
-                @if ($authUser?->hasPermissionCode('SA_CITIES_MANAGE'))
+                @if ($canAccess('SA_CITIES_MANAGE'))
                     <a href="{{ route('super-admin.cities.index') }}" class="nav-pill {{ request()->routeIs('super-admin.cities.*') ? 'active' : '' }}">
                         <span class="nav-icon">VL</span>
                         <span><span class="d-block fw-semibold">Villes</span><span class="small text-white-50">Referentiel villes</span></span>
                     </a>
                 @endif
-                @if ($authUser?->hasPermissionCode('SA_COMMUNES_MANAGE'))
+                @if ($canAccess('SA_COMMUNES_MANAGE'))
                     <a href="{{ route('super-admin.communes.index') }}" class="nav-pill {{ request()->routeIs('super-admin.communes.*') ? 'active' : '' }}">
                         <span class="nav-icon">CM</span>
                         <span><span class="d-block fw-semibold">Communes</span><span class="small text-white-50">Referentiel communes</span></span>
                     </a>
                 @endif
-                @if ($authUser?->hasPermissionCode('SA_BUSINESS_SECTORS_MANAGE'))
+                @if ($canAccess('SA_BUSINESS_SECTORS_MANAGE'))
                     <a href="{{ route('super-admin.business-sectors.index') }}" class="nav-pill {{ request()->routeIs('super-admin.business-sectors.*') ? 'active' : '' }}">
                         <span class="nav-icon">SC</span>
                         <span><span class="d-block fw-semibold">Secteurs</span><span class="small text-white-50">Secteurs d activite</span></span>
@@ -294,103 +308,103 @@
                 @endif
 
                 <div class="sidebar-label">Metier</div>
-                @if ($authUser?->hasPermissionCode('SA_ORGANIZATION_TYPES_MANAGE'))
+                @if ($canAccess('SA_ORGANIZATION_TYPES_MANAGE'))
                     <a href="{{ route('super-admin.client-types.index') }}" class="nav-pill {{ request()->routeIs('super-admin.client-types.*') ? 'active' : '' }}">
                         <span class="nav-icon">TC</span>
                         <span><span class="d-block fw-semibold">Types d'organisation</span><span class="small text-white-50">Classes d'institutions</span></span>
                     </a>
                 @endif
-                @if ($authUser?->hasPermissionCode('SA_FEATURES_MANAGE'))
+                @if ($canAccess('SA_FEATURES_MANAGE'))
                     <a href="{{ route('super-admin.features.index') }}" class="nav-pill {{ request()->routeIs('super-admin.features.*') ? 'active' : '' }}">
                         <span class="nav-icon">FN</span>
                         <span><span class="d-block fw-semibold">Fonctionnalites</span><span class="small text-white-50">Modules activables</span></span>
                     </a>
                 @endif
-                @if ($authUser?->hasPermissionCode('SA_APPLICATIONS_MANAGE'))
+                @if ($canAccess('SA_APPLICATIONS_MANAGE'))
                     <a href="{{ route('super-admin.applications.index') }}" class="nav-pill {{ request()->routeIs('super-admin.applications.*') ? 'active' : '' }}">
                         <span class="nav-icon">AP</span>
                         <span><span class="d-block fw-semibold">Applications</span><span class="small text-white-50">MON NRJ, MON EAU, etc.</span></span>
                     </a>
                 @endif
-                @if ($authUser?->hasPermissionCode('SA_SIGNAL_TYPES_MANAGE'))
+                @if ($canAccess('SA_SIGNAL_TYPES_MANAGE'))
                     <a href="{{ route('super-admin.signal-types.index') }}" class="nav-pill {{ request()->routeIs('super-admin.signal-types.*') ? 'active' : '' }}">
                         <span class="nav-icon">SG</span>
                         <span><span class="d-block fw-semibold">Types de signaux</span><span class="small text-white-50">Catalogue public editable</span></span>
                     </a>
                 @endif
-                @if ($authUser?->hasPermissionCode('SA_SLA_POLICIES_MANAGE'))
+                @if ($canAccess('SA_SLA_POLICIES_MANAGE'))
                     <a href="{{ route('super-admin.sla-policies.index') }}" class="nav-pill {{ request()->routeIs('super-admin.sla-policies.*') ? 'active' : '' }}">
                         <span class="nav-icon">SL</span>
                         <span><span class="d-block fw-semibold">TCM cibles</span><span class="small text-white-50">Par type d'organisation</span></span>
                     </a>
                 @endif
-                @if ($authUser?->hasPermissionCode('SA_PRICING_MANAGE'))
+                @if ($canAccess('SA_PRICING_MANAGE'))
                     <a href="{{ route('super-admin.pricing.edit') }}" class="nav-pill {{ request()->routeIs('super-admin.pricing.*') ? 'active' : '' }}">
                         <span class="nav-icon">TR</span>
                         <span><span class="d-block fw-semibold">Tarification</span><span class="small text-white-50">Montants et regles</span></span>
                     </a>
                 @endif
-                @if ($authUser?->hasPermissionCode('SA_SUBSCRIPTION_PLANS_MANAGE'))
+                @if ($canAccess('SA_SUBSCRIPTION_PLANS_MANAGE'))
                     <a href="{{ route('super-admin.subscription-plans.index') }}" class="nav-pill {{ request()->routeIs('super-admin.subscription-plans.*') ? 'active' : '' }}">
                         <span class="nav-icon">AB</span>
                         <span><span class="d-block fw-semibold">Plans abonnements</span><span class="small text-white-50">Abonnement annuel UP</span></span>
                     </a>
                 @endif
-                @if ($authUser?->hasPermissionCode('SA_UP_SUBSCRIPTIONS_VIEW'))
+                @if ($canAccess('SA_UP_SUBSCRIPTIONS_VIEW'))
                     <a href="{{ route('super-admin.up-subscriptions.index') }}" class="nav-pill {{ request()->routeIs('super-admin.up-subscriptions.*') ? 'active' : '' }}">
                         <span class="nav-icon">HU</span>
                         <span><span class="d-block fw-semibold">Abonnements UP</span><span class="small text-white-50">Historique et statuts</span></span>
                     </a>
                 @endif
-                @if ($authUser?->hasPermissionCode('SA_PUBLIC_USER_TYPES_MANAGE'))
+                @if ($canAccess('SA_PUBLIC_USER_TYPES_MANAGE'))
                     <a href="{{ route('super-admin.public-user-types.index') }}" class="nav-pill {{ request()->routeIs('super-admin.public-user-types.*') ? 'active' : '' }}">
                         <span class="nav-icon">UP</span>
                         <span><span class="d-block fw-semibold">Types usagers publics</span><span class="small text-white-50">UP, UPE et futurs profils</span></span>
                     </a>
                 @endif
-                @if ($authUser?->hasPermissionCode('SA_PUBLIC_USERS_MANAGE'))
+                @if ($canAccess('SA_PUBLIC_USERS_MANAGE'))
                     <a href="{{ route('super-admin.public-users.index') }}" class="nav-pill {{ request()->routeIs('super-admin.public-users.*') ? 'active' : '' }}">
                         <span class="nav-icon">PU</span>
                         <span><span class="d-block fw-semibold">Usagers publics</span><span class="small text-white-50">UP et UPE</span></span>
                     </a>
                 @endif
-                @if ($authUser?->hasPermissionCode('SA_PUBLIC_REPORTS_VIEW'))
+                @if ($canAccess('SA_PUBLIC_REPORTS_VIEW'))
                     <a href="{{ route('super-admin.public-reports.index') }}" class="nav-pill {{ request()->routeIs('super-admin.public-reports.*') ? 'active' : '' }}">
                         <span class="nav-icon">SR</span>
                         <span><span class="d-block fw-semibold">Signalements publics</span><span class="small text-white-50">Liste des signalements UP</span></span>
                     </a>
                 @endif
-                @if ($authUser?->hasPermissionCode('SA_PAYMENTS_VIEW'))
+                @if ($canAccess('SA_PAYMENTS_VIEW'))
                     <a href="{{ route('super-admin.payments.index') }}" class="nav-pill {{ request()->routeIs('super-admin.payments.*') ? 'active' : '' }}">
                         <span class="nav-icon">PY</span>
                         <span><span class="d-block fw-semibold">Paiements</span><span class="small text-white-50">Historique des transactions</span></span>
                     </a>
                 @endif
-                @if ($authUser?->hasPermissionCode('SA_DISCOUNT_CARDS_VIEW'))
+                @if ($canAccess('SA_DISCOUNT_CARDS_VIEW'))
                     <a href="{{ route('super-admin.discount-cards.index') }}" class="nav-pill {{ request()->routeIs('super-admin.discount-cards.*') ? 'active' : '' }}">
                         <span class="nav-icon">CR</span>
                         <span><span class="d-block fw-semibold">Cartes reduction</span><span class="small text-white-50">Cartes UP generees</span></span>
                     </a>
                 @endif
-                @if ($authUser?->hasPermissionCode('SA_DISCOUNT_TRANSACTIONS_VIEW'))
+                @if ($canAccess('SA_DISCOUNT_TRANSACTIONS_VIEW'))
                     <a href="{{ route('super-admin.discount-transactions.index') }}" class="nav-pill {{ request()->routeIs('super-admin.discount-transactions.*') ? 'active' : '' }}">
                         <span class="nav-icon">RD</span>
                         <span><span class="d-block fw-semibold">Reductions appliquees</span><span class="small text-white-50">Historique partenaire</span></span>
                     </a>
                 @endif
-                @if ($authUser?->is_super_admin || $authUser?->hasPermissionCode('SA_ACTIVITY_LOGS_VIEW_SELF') || $authUser?->hasPermissionCode('SA_ACTIVITY_LOGS_VIEW_INSTITUTION') || $authUser?->hasPermissionCode('SA_ACTIVITY_LOGS_VIEW_PUBLIC') || $authUser?->hasPermissionCode('SA_ACTIVITY_LOGS_VIEW_INTERNAL'))
+                @if ($authUser?->is_super_admin || $layoutPermissionCodes->contains('SA_ACTIVITY_LOGS_VIEW_SELF') || $layoutPermissionCodes->contains('SA_ACTIVITY_LOGS_VIEW_INSTITUTION') || $layoutPermissionCodes->contains('SA_ACTIVITY_LOGS_VIEW_PUBLIC') || $layoutPermissionCodes->contains('SA_ACTIVITY_LOGS_VIEW_INTERNAL'))
                     <a href="{{ route('super-admin.activity-logs.index') }}" class="nav-pill {{ request()->routeIs('super-admin.activity-logs.*') ? 'active' : '' }}">
                         <span class="nav-icon">LG</span>
                         <span><span class="d-block fw-semibold">Journaux d activite</span><span class="small text-white-50">Historique des actions</span></span>
                     </a>
                 @endif
-                @if ($authUser?->hasPermissionCode('SA_REX_FEEDBACKS_VIEW'))
+                @if ($canAccess('SA_REX_FEEDBACKS_VIEW'))
                     <a href="{{ route('super-admin.rex-feedbacks.index') }}" class="nav-pill {{ request()->routeIs('super-admin.rex-feedbacks.*') ? 'active' : '' }}">
                         <span class="nav-icon">RX</span>
                         <span><span class="d-block fw-semibold">REX UP</span><span class="small text-white-50">Retours d experience</span></span>
                     </a>
                 @endif
-                @if ($authUser?->hasPermissionCode('SA_REPARATION_CASES_MANAGE'))
+                @if ($canAccess('SA_REPARATION_CASES_MANAGE'))
                     <a href="{{ route('super-admin.reparation-cases.index') }}" class="nav-pill {{ request()->routeIs('super-admin.reparation-cases.*') ? 'active' : '' }}">
                         <span class="nav-icon">RP</span>
                         <span><span class="d-block fw-semibold">Reparations</span><span class="small text-white-50">Dossiers ouverts contre organisations</span></span>
@@ -398,13 +412,13 @@
                 @endif
 
                 <div class="sidebar-label">Portails</div>
-                @if ($authUser?->hasPermissionCode('SA_ORGANIZATIONS_MANAGE'))
+                @if ($canAccess('SA_ORGANIZATIONS_MANAGE'))
                     <a href="{{ route('super-admin.organizations.index') }}" class="nav-pill {{ request()->routeIs('super-admin.organizations.*') ? 'active' : '' }}">
                         <span class="nav-icon">OR</span>
                         <span><span class="d-block fw-semibold">Organisations</span><span class="small text-white-50">CIE, SODECI, autres</span></span>
                     </a>
                 @endif
-                @if ($authUser?->hasPermissionCode('SA_INSTITUTION_ADMINS_MANAGE'))
+                @if ($canAccess('SA_INSTITUTION_ADMINS_MANAGE'))
                     <a href="{{ route('super-admin.institution-admins.index') }}" class="nav-pill {{ request()->routeIs('super-admin.institution-admins.*') ? 'active' : '' }}">
                         <span class="nav-icon">AI</span>
                         <span><span class="d-block fw-semibold">Admins institutionnels</span><span class="small text-white-50">Admins racine des portails</span></span>
@@ -412,19 +426,19 @@
                 @endif
 
                 <div class="sidebar-label">Acces</div>
-                @if ($authUser?->hasPermissionCode('SA_SYSTEM_USERS_MANAGE'))
+                @if ($canAccess('SA_SYSTEM_USERS_MANAGE'))
                     <a href="{{ route('super-admin.system-users.index') }}" class="nav-pill {{ request()->routeIs('super-admin.system-users.*') ? 'active' : '' }}">
                         <span class="nav-icon">US</span>
                         <span><span class="d-block fw-semibold">Utilisateurs internes</span><span class="small text-white-50">Huissiers, avocats et autres profils</span></span>
                     </a>
                 @endif
-                @if ($authUser?->hasPermissionCode('SA_ROLES_MANAGE'))
+                @if ($canAccess('SA_ROLES_MANAGE'))
                     <a href="{{ route('super-admin.roles.index') }}" class="nav-pill {{ request()->routeIs('super-admin.roles.*') ? 'active' : '' }}">
                         <span class="nav-icon">RL</span>
                         <span><span class="d-block fw-semibold">Roles</span><span class="small text-white-50">Profils et droits groupés</span></span>
                     </a>
                 @endif
-                @if ($authUser?->hasPermissionCode('SA_PERMISSIONS_MANAGE'))
+                @if ($canAccess('SA_PERMISSIONS_MANAGE'))
                     <a href="{{ route('super-admin.permissions.index') }}" class="nav-pill {{ request()->routeIs('super-admin.permissions.*') ? 'active' : '' }}">
                         <span class="nav-icon">PM</span>
                         <span><span class="d-block fw-semibold">Permissions</span><span class="small text-white-50">Droits unitaires</span></span>

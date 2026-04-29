@@ -7,10 +7,12 @@ use App\Models\UserAccess;
 
 class SuperAdminAccessResolver
 {
+    public const INTERNAL_PORTALS = ['super_admin', 'backoffice', 'huissier', 'avocat'];
+
     public function resolve(User $user): ?UserAccess
     {
         $access = $user->accesses()
-            ->whereIn('portal', ['super_admin', 'backoffice'])
+            ->whereIn('portal', self::INTERNAL_PORTALS)
             ->where('status', 'active')
             ->whereNull('organization_id')
             ->latest('id')

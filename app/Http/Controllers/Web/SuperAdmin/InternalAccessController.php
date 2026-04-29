@@ -103,7 +103,7 @@ class InternalAccessController extends Controller
         }
 
         return $access !== null
-            && $access->portal === 'backoffice'
+            && in_array($access->portal, ['backoffice', 'huissier', 'avocat'], true)
             && $user->hasEffectivePermissionCode('SA_ACCESS_PORTAL');
     }
 

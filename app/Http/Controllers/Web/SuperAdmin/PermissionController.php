@@ -28,8 +28,18 @@ class PermissionController extends Controller
             $query->where('status', request('status'));
         }
 
+        if (filled(request('profile_scope'))) {
+            $query->whereIn('profile_scope', Permission::compatibleProfileScopes((string) request('profile_scope')));
+        }
+
+        if (filled(request('category'))) {
+            $query->where('category', request('category'));
+        }
+
         return view('super-admin.permissions.index', [
             'permissions' => $query->latest()->paginate(12)->withQueryString(),
+            'profileScopes' => Permission::PROFILE_SCOPES,
+            'categories' => Permission::CATEGORIES,
         ]);
     }
 
@@ -39,12 +49,16 @@ class PermissionController extends Controller
             'code' => ['required', 'string', 'max:60', 'unique:permissions,code'],
             'name' => ['required', 'string', 'max:180'],
             'description' => ['nullable', 'string'],
+            'profile_scope' => ['required', 'string', 'in:'.implode(',', array_keys(Permission::PROFILE_SCOPES))],
+            'category' => ['required', 'string', 'in:'.implode(',', array_keys(Permission::CATEGORIES))],
         ]);
 
         $permission = Permission::query()->create([
             'code' => strtoupper($attributes['code']),
             'name' => $attributes['name'],
             'description' => $attributes['description'] ?? null,
+            'profile_scope' => $attributes['profile_scope'],
+            'category' => $attributes['category'],
             'status' => 'active',
         ]);
 
@@ -68,6 +82,8 @@ class PermissionController extends Controller
     {
         return view('super-admin.permissions.edit', [
             'permission' => $permission,
+            'profileScopes' => Permission::PROFILE_SCOPES,
+            'categories' => Permission::CATEGORIES,
         ]);
     }
 
@@ -77,14 +93,18 @@ class PermissionController extends Controller
             'code' => ['required', 'string', 'max:60', 'unique:permissions,code,'.$permission->id],
             'name' => ['required', 'string', 'max:180'],
             'description' => ['nullable', 'string'],
+            'profile_scope' => ['required', 'string', 'in:'.implode(',', array_keys(Permission::PROFILE_SCOPES))],
+            'category' => ['required', 'string', 'in:'.implode(',', array_keys(Permission::CATEGORIES))],
         ]);
 
-        $before = $permission->only(['code', 'name', 'description', 'status']);
+        $before = $permission->only(['code', 'name', 'description', 'profile_scope', 'category', 'status']);
 
         $permission->update([
             'code' => strtoupper($attributes['code']),
             'name' => $attributes['name'],
             'description' => $attributes['description'] ?? null,
+            'profile_scope' => $attributes['profile_scope'],
+            'category' => $attributes['category'],
         ]);
 
         $activityLogger->log(
@@ -93,7 +113,7 @@ class PermissionController extends Controller
             $permission,
             [
                 'before' => $before,
-                'after' => $permission->only(['code', 'name', 'description', 'status']),
+                'after' => $permission->only(['code', 'name', 'description', 'profile_scope', 'category', 'status']),
             ],
             $request
         );

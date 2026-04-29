@@ -20,6 +20,7 @@
             'avocat' => 'Avocat',
         ];
         $portalOrganizationHelp = 'Institution et partenaire exigent une organisation. Backoffice, SA, huissier et avocat restent sans organisation.';
+        $filterableProfileScopes = collect($permissionProfileScopes)->only(['all', 'super_admin', 'backoffice', 'institution', 'partner', 'huissier', 'avocat']);
     @endphp
 
     <section class="panel-card mb-4">
@@ -102,16 +103,37 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Permissions directes du profil</label>
-                            <div class="border rounded-3 p-3" style="max-height: 220px; overflow:auto;">
+                            <div class="row g-2 mb-2" data-permission-filters>
+                                <div class="col-md-4">
+                                    <select class="form-select form-select-sm" data-permission-profile-filter>
+                                        @foreach ($filterableProfileScopes as $scope => $label)
+                                            <option value="{{ $scope }}">{{ $label }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <select class="form-select form-select-sm" data-permission-category-filter>
+                                        <option value="">Toutes les categories</option>
+                                        @foreach ($permissionCategories as $category => $label)
+                                            <option value="{{ $category }}">{{ $label }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="search" class="form-control form-control-sm" placeholder="Rechercher" data-permission-search-filter>
+                                </div>
+                            </div>
+                            <div class="border rounded-3 p-3" style="max-height: 220px; overflow:auto;" data-permission-list>
                                 @foreach ($accessPermissions as $permission)
-                                    <div class="form-check mb-2">
+                                    <div class="form-check mb-2" data-permission-row data-profile="{{ $permission->profile_scope ?: 'all' }}" data-category="{{ $permission->category ?: 'other' }}" data-search="{{ Str::lower($permission->name.' '.$permission->code.' '.$permission->description) }}">
                                         <input class="form-check-input" type="checkbox" name="permission_ids[]" value="{{ $permission->id }}" id="new-access-permission-{{ $permission->id }}" @checked(in_array($permission->id, old('permission_ids', [])))>
                                         <label class="form-check-label" for="new-access-permission-{{ $permission->id }}">
                                             <span class="fw-semibold">{{ $permission->name }}</span>
-                                            <span class="small text-secondary d-block">{{ $permission->code }}</span>
+                                            <span class="small text-secondary d-block">{{ $permission->code }} - {{ $permission->profileScopeLabel() }} - {{ $permission->categoryLabel() }}</span>
                                         </label>
                                     </div>
                                 @endforeach
+                                <div class="text-secondary small d-none" data-permission-empty>Aucune permission ne correspond aux filtres.</div>
                             </div>
                         </div>
                     </div>
@@ -193,16 +215,37 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Permissions directes du profil</label>
-                                <div class="border rounded-3 p-3" style="max-height: 220px; overflow:auto;">
+                                <div class="row g-2 mb-2" data-permission-filters>
+                                    <div class="col-md-4">
+                                        <select class="form-select form-select-sm" data-permission-profile-filter>
+                                            @foreach ($filterableProfileScopes as $scope => $label)
+                                                <option value="{{ $scope }}" @selected($access->portal === $scope)>{{ $label }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <select class="form-select form-select-sm" data-permission-category-filter>
+                                            <option value="">Toutes les categories</option>
+                                            @foreach ($permissionCategories as $category => $label)
+                                                <option value="{{ $category }}">{{ $label }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input type="search" class="form-control form-control-sm" placeholder="Rechercher" data-permission-search-filter>
+                                    </div>
+                                </div>
+                                <div class="border rounded-3 p-3" style="max-height: 220px; overflow:auto;" data-permission-list>
                                     @foreach ($accessPermissions as $permission)
-                                        <div class="form-check mb-2">
+                                        <div class="form-check mb-2" data-permission-row data-profile="{{ $permission->profile_scope ?: 'all' }}" data-category="{{ $permission->category ?: 'other' }}" data-search="{{ Str::lower($permission->name.' '.$permission->code.' '.$permission->description) }}">
                                             <input class="form-check-input" type="checkbox" name="permission_ids[]" value="{{ $permission->id }}" id="access-{{ $access->id }}-permission-{{ $permission->id }}" @checked(in_array($permission->id, $accessPermissionIds))>
                                             <label class="form-check-label" for="access-{{ $access->id }}-permission-{{ $permission->id }}">
                                                 <span class="fw-semibold">{{ $permission->name }}</span>
-                                                <span class="small text-secondary d-block">{{ $permission->code }}</span>
+                                                <span class="small text-secondary d-block">{{ $permission->code }} - {{ $permission->profileScopeLabel() }} - {{ $permission->categoryLabel() }}</span>
                                             </label>
                                         </div>
                                     @endforeach
+                                    <div class="text-secondary small d-none" data-permission-empty>Aucune permission ne correspond aux filtres.</div>
                                 </div>
                             </div>
                         </form>
@@ -293,4 +336,81 @@
             </section>
         </div>
     </div>
+@endsection
+
+@section('scripts')
+    <script>
+        (() => {
+            const compatibleProfiles = {
+                all: ['all'],
+                super_admin: ['all', 'super_admin', 'backoffice'],
+                backoffice: ['all', 'backoffice', 'huissier', 'avocat'],
+                institution: ['all', 'institution'],
+                partner: ['all', 'partner'],
+                huissier: ['all', 'huissier', 'backoffice'],
+                avocat: ['all', 'avocat', 'backoffice'],
+            };
+
+            function normalize(value) {
+                return String(value || '').trim().toLowerCase();
+            }
+
+            function syncPermissionFilters(form) {
+                const profileFilter = form.querySelector('[data-permission-profile-filter]');
+                const categoryFilter = form.querySelector('[data-permission-category-filter]');
+                const searchFilter = form.querySelector('[data-permission-search-filter]');
+                const portalSelect = form.querySelector('select[name="portal"]');
+                const rows = Array.from(form.querySelectorAll('[data-permission-row]'));
+                const emptyState = form.querySelector('[data-permission-empty]');
+
+                if (!profileFilter || !categoryFilter || !searchFilter || !rows.length) {
+                    return;
+                }
+
+                const syncProfileFromPortal = () => {
+                    const portal = normalize(portalSelect?.value);
+
+                    if (portal && Array.from(profileFilter.options).some((option) => option.value === portal)) {
+                        profileFilter.value = portal;
+                    }
+                };
+
+                const applyFilters = () => {
+                    const selectedProfile = normalize(profileFilter.value);
+                    const selectedCategory = normalize(categoryFilter.value);
+                    const search = normalize(searchFilter.value);
+                    const acceptedProfiles = compatibleProfiles[selectedProfile] || ['all', selectedProfile];
+                    let visibleCount = 0;
+
+                    rows.forEach((row) => {
+                        const rowProfile = normalize(row.dataset.profile);
+                        const rowCategory = normalize(row.dataset.category);
+                        const rowSearch = normalize(row.dataset.search);
+                        const isProfileMatch = acceptedProfiles.includes(rowProfile);
+                        const isCategoryMatch = !selectedCategory || rowCategory === selectedCategory;
+                        const isSearchMatch = !search || rowSearch.includes(search);
+                        const isVisible = isProfileMatch && isCategoryMatch && isSearchMatch;
+
+                        row.classList.toggle('d-none', !isVisible);
+                        visibleCount += isVisible ? 1 : 0;
+                    });
+
+                    emptyState?.classList.toggle('d-none', visibleCount > 0);
+                };
+
+                syncProfileFromPortal();
+                applyFilters();
+
+                portalSelect?.addEventListener('change', () => {
+                    syncProfileFromPortal();
+                    applyFilters();
+                });
+                profileFilter.addEventListener('change', applyFilters);
+                categoryFilter.addEventListener('change', applyFilters);
+                searchFilter.addEventListener('input', applyFilters);
+            }
+
+            document.querySelectorAll('form').forEach(syncPermissionFilters);
+        })();
+    </script>
 @endsection

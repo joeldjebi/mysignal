@@ -18,6 +18,22 @@
                 <label class="form-label">Nom</label>
                 <input type="text" name="name" value="{{ old('name', $permission->name) }}" class="form-control" required>
             </div>
+            <div class="col-md-4">
+                <label class="form-label">Profil concerne</label>
+                <select name="profile_scope" class="form-select" required>
+                    @foreach ($profileScopes as $scope => $label)
+                        <option value="{{ $scope }}" @selected(old('profile_scope', $permission->profile_scope ?: 'all') === $scope)>{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Categorie</label>
+                <select name="category" class="form-select" required>
+                    @foreach ($categories as $category => $label)
+                        <option value="{{ $category }}" @selected(old('category', $permission->category ?: 'other') === $category)>{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
             <div class="col-md-12">
                 <label class="form-label">Description</label>
                 <textarea name="description" class="form-control" rows="3">{{ old('description', $permission->description) }}</textarea>

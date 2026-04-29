@@ -16,16 +16,34 @@
         <div class="fw-bold mb-3">Liste des permissions</div>
         <form method="GET" class="filter-bar">
             <div class="row g-2 align-items-end">
-                <div class="col-md-7">
+                <div class="col-md-4">
                     <label class="form-label small text-secondary">Recherche</label>
                     <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Code, nom, description">
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label class="form-label small text-secondary">Statut</label>
                     <select name="status" class="form-select">
                         <option value="">Tous</option>
                         <option value="active" @selected(request('status') === 'active')>Actif</option>
                         <option value="inactive" @selected(request('status') === 'inactive')>Inactif</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small text-secondary">Profil</label>
+                    <select name="profile_scope" class="form-select">
+                        <option value="">Tous les profils</option>
+                        @foreach ($profileScopes as $scope => $label)
+                            <option value="{{ $scope }}" @selected(request('profile_scope') === $scope)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small text-secondary">Categorie</label>
+                    <select name="category" class="form-select">
+                        <option value="">Toutes les categories</option>
+                        @foreach ($categories as $category => $label)
+                            <option value="{{ $category }}" @selected(request('category') === $category)>{{ $label }}</option>
+                        @endforeach
                     </select>
                 </div>
                 <div class="col-md-2 d-flex gap-2">
@@ -43,6 +61,8 @@
                     <tr>
                         <th>Code</th>
                         <th>Nom</th>
+                        <th>Profil</th>
+                        <th>Categorie</th>
                         <th>Statut</th>
                         <th class="text-end">Actions</th>
                     </tr>
@@ -52,6 +72,8 @@
                         <tr>
                             <td>{{ $permission->code }}</td>
                             <td>{{ $permission->name }}</td>
+                            <td><span class="status-chip">{{ $permission->profileScopeLabel() }}</span></td>
+                            <td>{{ $permission->categoryLabel() }}</td>
                             <td><span class="status-chip">{{ $permission->status }}</span></td>
                             <td class="text-end">
                                 <div class="actions-wrap">
@@ -70,7 +92,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="4" class="text-center text-secondary">Aucune permission enregistree.</td></tr>
+                        <tr><td colspan="6" class="text-center text-secondary">Aucune permission enregistree.</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -102,6 +124,22 @@
                             <div>
                                 <label class="form-label">Nom</label>
                                 <input type="text" name="name" value="{{ old('name') }}" class="form-control" placeholder="Gerer la tarification" required>
+                            </div>
+                            <div>
+                                <label class="form-label">Profil concerne</label>
+                                <select name="profile_scope" class="form-select" required>
+                                    @foreach ($profileScopes as $scope => $label)
+                                        <option value="{{ $scope }}" @selected(old('profile_scope', 'backoffice') === $scope)>{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label">Categorie</label>
+                                <select name="category" class="form-select" required>
+                                    @foreach ($categories as $category => $label)
+                                        <option value="{{ $category }}" @selected(old('category', 'other') === $category)>{{ $label }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                             <div>
                                 <label class="form-label">Description</label>

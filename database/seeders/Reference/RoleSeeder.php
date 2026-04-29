@@ -15,13 +15,23 @@ class RoleSeeder extends Seeder
                 'code' => 'HUISSIER',
                 'name' => 'Huissier',
                 'description' => 'Role dedie au constat des faits et a la production du rapport de constat.',
-                'permission_codes' => [],
+                'permission_codes' => [
+                    'SA_ACCESS_PORTAL',
+                    'SA_DASHBOARD_VIEW',
+                    'SA_REPARATION_CASES_MANAGE',
+                    'SA_ACTIVITY_LOGS_VIEW_SELF',
+                ],
             ],
             [
                 'code' => 'AVOCAT',
                 'name' => 'Avocat',
                 'description' => 'Role dedie au suivi de la procedure judiciaire et des actes contentieux.',
-                'permission_codes' => [],
+                'permission_codes' => [
+                    'SA_ACCESS_PORTAL',
+                    'SA_DASHBOARD_VIEW',
+                    'SA_REPARATION_CASES_MANAGE',
+                    'SA_ACTIVITY_LOGS_VIEW_SELF',
+                ],
             ],
             [
                 'code' => 'PARTNER_ADMIN',

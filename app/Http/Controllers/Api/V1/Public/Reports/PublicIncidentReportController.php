@@ -52,6 +52,7 @@ class PublicIncidentReportController extends Controller
         );
 
         $notificationService->notifyInstitutionReportCreated($report);
+        $notificationService->notifyCommunityReportCreated($report);
 
         return ApiResponse::success([
             'report' => new IncidentReportResource($report),

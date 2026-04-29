@@ -2,13 +2,20 @@
 
 namespace App\Services\Notifications;
 
+use App\Domain\Reports\Enums\IncidentReportStatus;
 use App\Models\IncidentReport;
+use App\Models\IncidentReportNotificationContext;
+use App\Models\Meter;
+use App\Models\PublicUser;
 use App\Models\ReparationCase;
 use App\Models\ReparationCaseStep;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 
 class IncidentReportNotificationService
 {
+    private const NEARBY_RADIUS_METERS = 1000;
+
     public function __construct(private readonly PushNotificationDispatcher $dispatcher)
     {
     }
@@ -58,6 +65,54 @@ class IncidentReportNotificationService
                 'damage_resolution_status' => $report->damage_resolution_status,
             ],
         );
+    }
+
+    public function notifyCommunityReportCreated(IncidentReport $report): void
+    {
+        $report->loadMissing(['meter', 'publicUser']);
+
+        $this->notifyHouseholdReportCreated($report);
+        $this->notifyNearbyReportCreated($report);
+    }
+
+    public function notifyCommunityReportResolved(IncidentReport $report): void
+    {
+        $report->loadMissing(['meter', 'publicUser']);
+
+        $this->resolutionContextsForReport($report)
+            ->each(function (IncidentReportNotificationContext $context) use ($report): void {
+                $recipientIds = collect($context->recipient_public_user_ids ?? [])
+                    ->map(fn ($id) => (int) $id)
+                    ->filter(fn (int $id) => $id > 0 && $id !== (int) $report->public_user_id)
+                    ->unique()
+                    ->values();
+
+                if ($recipientIds->isEmpty()) {
+                    $context->update(['resolved_notified_at' => now()]);
+
+                    return;
+                }
+
+                PublicUser::query()
+                    ->whereIn('id', $recipientIds)
+                    ->where('status', 'active')
+                    ->get()
+                    ->each(function (PublicUser $publicUser) use ($report, $context): void {
+                        $this->dispatcher->notifyPublicUser(
+                            $publicUser,
+                            'community_report_resolved',
+                            'Probleme resolu',
+                            'Le probleme signale sur '.$this->reportSubjectLabel($report).' a ete marque comme resolu.',
+                            $this->communityReportPayload($report, [
+                                'event' => 'resolved',
+                                'context_type' => $context->context_type,
+                                'context_id' => $context->id,
+                            ]),
+                        );
+                    });
+
+                $context->update(['resolved_notified_at' => now()]);
+            });
     }
 
     public function notifyPublicReparationCaseOpened(ReparationCase $case): void
@@ -252,6 +307,335 @@ class IncidentReportNotificationService
                     ],
                 );
             });
+    }
+
+    private function notifyHouseholdReportCreated(IncidentReport $report): void
+    {
+        if ($report->meter_id === null) {
+            return;
+        }
+
+        $households = \App\Models\Household::query()
+            ->where('status', 'active')
+            ->whereHas('members', function (Builder $memberQuery) use ($report): void {
+                $memberQuery
+                    ->where('status', 'active')
+                    ->whereHas('publicUser.meters', fn (Builder $meterQuery) => $meterQuery->whereKey($report->meter_id));
+            })
+            ->with(['members' => fn ($query) => $query->where('status', 'active')])
+            ->get();
+
+        foreach ($households as $household) {
+            $recipientIds = $household->members
+                ->pluck('public_user_id')
+                ->map(fn ($id) => (int) $id)
+                ->filter(fn (int $id) => $id > 0 && $id !== (int) $report->public_user_id)
+                ->unique()
+                ->values()
+                ->all();
+
+            if ($recipientIds === []) {
+                continue;
+            }
+
+            $existingContext = $this->openHouseholdContext($report, (int) $household->id);
+
+            if ($existingContext) {
+                $this->mergeContextRecipients($existingContext, [$report->public_user_id, ...$recipientIds]);
+
+                continue;
+            }
+
+            $context = IncidentReportNotificationContext::query()->create([
+                'incident_report_id' => $report->id,
+                'context_type' => 'household',
+                'household_id' => $household->id,
+                'organization_id' => $report->organization_id,
+                'meter_id' => $report->meter_id,
+                'signal_code' => $report->signal_code,
+                'recipient_public_user_ids' => $recipientIds,
+                'notified_at' => now(),
+            ]);
+
+            $this->notifyCommunityRecipients(
+                $report,
+                $context,
+                $recipientIds,
+                'Signalement dans votre Gbonhi',
+                'Un probleme a ete signale sur '.$this->reportSubjectLabel($report).'.',
+                'household_report_created',
+            );
+        }
+    }
+
+    private function notifyNearbyReportCreated(IncidentReport $report): void
+    {
+        $coordinates = $this->reportCoordinates($report);
+
+        if ($coordinates === null || $report->organization_id === null) {
+            return;
+        }
+
+        $existingContext = $this->openNearbyContext($report, $coordinates['latitude'], $coordinates['longitude']);
+        $recipientIds = $this->nearbyPublicUserIds($report, $coordinates['latitude'], $coordinates['longitude']);
+
+        if ($recipientIds === []) {
+            return;
+        }
+
+        if ($existingContext) {
+            $this->mergeContextRecipients($existingContext, [$report->public_user_id, ...$recipientIds]);
+
+            return;
+        }
+
+        $context = IncidentReportNotificationContext::query()->create([
+            'incident_report_id' => $report->id,
+            'context_type' => 'nearby',
+            'organization_id' => $report->organization_id,
+            'meter_id' => $report->meter_id,
+            'signal_code' => $report->signal_code,
+            'latitude' => $coordinates['latitude'],
+            'longitude' => $coordinates['longitude'],
+            'radius_meters' => self::NEARBY_RADIUS_METERS,
+            'recipient_public_user_ids' => $recipientIds,
+            'notified_at' => now(),
+        ]);
+
+        $this->notifyCommunityRecipients(
+            $report,
+            $context,
+            $recipientIds,
+            'Probleme signale pres de vous',
+            'Un probleme '.$this->organizationLabel($report).' a ete signale dans un rayon de 1 km.',
+            'nearby_report_created',
+        );
+    }
+
+    private function resolutionContextsForReport(IncidentReport $report): \Illuminate\Support\Collection
+    {
+        $contexts = $report->notificationContexts()
+            ->whereNull('resolved_notified_at')
+            ->get();
+
+        if ($report->meter_id !== null) {
+            $householdIds = \App\Models\Household::query()
+                ->where('status', 'active')
+                ->whereHas('members', function (Builder $memberQuery) use ($report): void {
+                    $memberQuery
+                        ->where('status', 'active')
+                        ->whereHas('publicUser.meters', fn (Builder $meterQuery) => $meterQuery->whereKey($report->meter_id));
+                })
+                ->pluck('id')
+                ->all();
+
+            if ($householdIds !== []) {
+                $contexts = $contexts->merge(
+                    IncidentReportNotificationContext::query()
+                        ->where('context_type', 'household')
+                        ->whereIn('household_id', $householdIds)
+                        ->where('meter_id', $report->meter_id)
+                        ->where('signal_code', $report->signal_code)
+                        ->whereNull('resolved_notified_at')
+                        ->get()
+                );
+            }
+        }
+
+        $coordinates = $this->reportCoordinates($report);
+
+        if ($coordinates !== null && $report->organization_id !== null) {
+            $contexts = $contexts->merge(
+                IncidentReportNotificationContext::query()
+                    ->where('context_type', 'nearby')
+                    ->where('organization_id', $report->organization_id)
+                    ->where('signal_code', $report->signal_code)
+                    ->whereNull('resolved_notified_at')
+                    ->get()
+                    ->filter(function (IncidentReportNotificationContext $context) use ($coordinates): bool {
+                        if ($context->latitude === null || $context->longitude === null) {
+                            return false;
+                        }
+
+                        return $this->distanceInMeters(
+                            $coordinates['latitude'],
+                            $coordinates['longitude'],
+                            (float) $context->latitude,
+                            (float) $context->longitude
+                        ) <= self::NEARBY_RADIUS_METERS;
+                    })
+            );
+        }
+
+        return $contexts
+            ->unique('id')
+            ->values();
+    }
+
+    private function notifyCommunityRecipients(
+        IncidentReport $report,
+        IncidentReportNotificationContext $context,
+        array $recipientIds,
+        string $title,
+        string $body,
+        string $type
+    ): void {
+        PublicUser::query()
+            ->whereIn('id', $recipientIds)
+            ->where('status', 'active')
+            ->get()
+            ->each(function (PublicUser $publicUser) use ($report, $context, $title, $body, $type): void {
+                $this->dispatcher->notifyPublicUser(
+                    $publicUser,
+                    $type,
+                    $title,
+                    $body,
+                    $this->communityReportPayload($report, [
+                        'event' => 'created',
+                        'context_type' => $context->context_type,
+                        'context_id' => $context->id,
+                    ]),
+                );
+            });
+    }
+
+    private function openHouseholdContext(IncidentReport $report, int $householdId): ?IncidentReportNotificationContext
+    {
+        return IncidentReportNotificationContext::query()
+            ->where('context_type', 'household')
+            ->where('household_id', $householdId)
+            ->where('meter_id', $report->meter_id)
+            ->where('signal_code', $report->signal_code)
+            ->whereNull('resolved_notified_at')
+            ->whereHas('incidentReport', fn (Builder $query) => $this->openReportQuery($query))
+            ->latest('id')
+            ->first();
+    }
+
+    private function openNearbyContext(IncidentReport $report, float $latitude, float $longitude): ?IncidentReportNotificationContext
+    {
+        return IncidentReportNotificationContext::query()
+            ->where('context_type', 'nearby')
+            ->where('organization_id', $report->organization_id)
+            ->where('signal_code', $report->signal_code)
+            ->whereNull('resolved_notified_at')
+            ->whereHas('incidentReport', fn (Builder $query) => $this->openReportQuery($query))
+            ->get()
+            ->first(function (IncidentReportNotificationContext $context) use ($latitude, $longitude): bool {
+                if ($context->latitude === null || $context->longitude === null) {
+                    return false;
+                }
+
+                return $this->distanceInMeters($latitude, $longitude, (float) $context->latitude, (float) $context->longitude) <= self::NEARBY_RADIUS_METERS;
+            });
+    }
+
+    private function openReportQuery(Builder $query): void
+    {
+        $query->whereNotIn('status', [
+            IncidentReportStatus::Resolved->value,
+            IncidentReportStatus::Rejected->value,
+        ]);
+    }
+
+    private function mergeContextRecipients(IncidentReportNotificationContext $context, array $recipientIds): void
+    {
+        $mergedRecipientIds = collect($context->recipient_public_user_ids ?? [])
+            ->merge($recipientIds)
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn (int $id) => $id > 0)
+            ->unique()
+            ->values()
+            ->all();
+
+        $context->update([
+            'recipient_public_user_ids' => $mergedRecipientIds,
+        ]);
+    }
+
+    private function nearbyPublicUserIds(IncidentReport $report, float $latitude, float $longitude): array
+    {
+        $deltaLatitude = self::NEARBY_RADIUS_METERS / 111_320;
+        $deltaLongitude = self::NEARBY_RADIUS_METERS / max(1, (111_320 * cos(deg2rad($latitude))));
+
+        return Meter::query()
+            ->where('organization_id', $report->organization_id)
+            ->whereKeyNot($report->meter_id)
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->whereBetween('latitude', [$latitude - $deltaLatitude, $latitude + $deltaLatitude])
+            ->whereBetween('longitude', [$longitude - $deltaLongitude, $longitude + $deltaLongitude])
+            ->with(['publicUsers' => fn ($query) => $query->where('public_users.status', 'active')])
+            ->get()
+            ->filter(fn (Meter $meter): bool => $this->distanceInMeters($latitude, $longitude, (float) $meter->latitude, (float) $meter->longitude) <= self::NEARBY_RADIUS_METERS)
+            ->flatMap(fn (Meter $meter) => $meter->publicUsers->pluck('id'))
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn (int $id) => $id > 0 && $id !== (int) $report->public_user_id)
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function reportCoordinates(IncidentReport $report): ?array
+    {
+        $report->loadMissing('meter');
+
+        $latitude = $report->latitude ?? $report->meter?->latitude;
+        $longitude = $report->longitude ?? $report->meter?->longitude;
+
+        if ($latitude === null || $longitude === null) {
+            return null;
+        }
+
+        return [
+            'latitude' => (float) $latitude,
+            'longitude' => (float) $longitude,
+        ];
+    }
+
+    private function distanceInMeters(float $lat1, float $lng1, float $lat2, float $lng2): float
+    {
+        $earthRadius = 6_371_000;
+        $latDelta = deg2rad($lat2 - $lat1);
+        $lngDelta = deg2rad($lng2 - $lng1);
+        $a = sin($latDelta / 2) ** 2
+            + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($lngDelta / 2) ** 2;
+
+        return $earthRadius * 2 * atan2(sqrt($a), sqrt(1 - $a));
+    }
+
+    private function communityReportPayload(IncidentReport $report, array $extraData = []): array
+    {
+        return [
+            'category' => 'report',
+            'screen' => 'reports',
+            'source' => 'community',
+            'report_id' => $report->id,
+            'report_reference' => $report->reference,
+            'meter_id' => $report->meter_id,
+            'organization_id' => $report->organization_id,
+            'signal_code' => $report->signal_code,
+            'status' => $report->status,
+            ...$extraData,
+        ];
+    }
+
+    private function reportSubjectLabel(IncidentReport $report): string
+    {
+        $report->loadMissing('meter');
+
+        return $report->meter?->meter_number
+            ? 'l identifiant '.$report->meter->meter_number
+            : 'un identifiant de votre zone';
+    }
+
+    private function organizationLabel(IncidentReport $report): string
+    {
+        $report->loadMissing('organization');
+
+        return $report->organization?->name
+            ? 'chez '.$report->organization->name
+            : 'dans votre zone';
     }
 
     private function reparationCasePayload(ReparationCase $case, array $extraData = []): array

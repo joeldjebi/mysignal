@@ -120,6 +120,8 @@ class SystemUserController extends Controller
             ]),
             'accessRoles' => Role::query()->whereNull('organization_id')->where('status', 'active')->orderBy('name')->get(),
             'accessPermissions' => Permission::query()->where('status', 'active')->orderBy('name')->get(),
+            'permissionProfileScopes' => Permission::PROFILE_SCOPES,
+            'permissionCategories' => Permission::CATEGORIES,
             'accessOrganizations' => Organization::query()->with('organizationType')->where('status', 'active')->orderBy('name')->get(),
         ]);
     }
