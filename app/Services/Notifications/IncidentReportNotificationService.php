@@ -284,9 +284,19 @@ class IncidentReportNotificationService
         }
 
         User::query()
-            ->where('organization_id', $report->organization_id)
+            ->where(function (Builder $query) use ($report): void {
+                $query
+                    ->where('organization_id', $report->organization_id)
+                    ->orWhereHas('accesses', function (Builder $accessQuery) use ($report): void {
+                        $accessQuery
+                            ->where('portal', 'institution')
+                            ->where('status', 'active')
+                            ->where('organization_id', $report->organization_id);
+                    });
+            })
             ->where('status', 'active')
             ->get()
+            ->unique('id')
             ->each(function (User $user) use ($report, $type, $title, $body, $screen): void {
                 $this->dispatcher->notifyInstitutionUser(
                     $user,
@@ -661,9 +671,19 @@ class IncidentReportNotificationService
         }
 
         User::query()
-            ->where('organization_id', $case->organization_id)
+            ->where(function (Builder $query) use ($case): void {
+                $query
+                    ->where('organization_id', $case->organization_id)
+                    ->orWhereHas('accesses', function (Builder $accessQuery) use ($case): void {
+                        $accessQuery
+                            ->where('portal', 'institution')
+                            ->where('status', 'active')
+                            ->where('organization_id', $case->organization_id);
+                    });
+            })
             ->where('status', 'active')
             ->get()
+            ->unique('id')
             ->each(function (User $user) use ($case, $type, $title, $body, $extraData): void {
                 $this->dispatcher->notifyInstitutionUser(
                     $user,

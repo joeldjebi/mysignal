@@ -7,6 +7,7 @@ use App\Http\Controllers\Web\Institution\DashboardController as InstitutionDashb
 use App\Http\Controllers\Web\Institution\DeviceTokenController as InstitutionDeviceTokenController;
 use App\Http\Controllers\Web\Institution\DamageController as InstitutionDamageController;
 use App\Http\Controllers\Web\Institution\MeterController as InstitutionMeterController;
+use App\Http\Controllers\Web\Institution\NotificationController as InstitutionNotificationController;
 use App\Http\Controllers\Web\Institution\PermissionController as InstitutionPermissionController;
 use App\Http\Controllers\Web\Institution\ProfileController as InstitutionProfileController;
 use App\Http\Controllers\Web\Institution\ReparationCaseController as InstitutionReparationCaseController;
@@ -187,6 +188,9 @@ Route::prefix('institution')->name('institution.')->group(function (): void {
     Route::middleware(['auth', 'institution_admin'])->group(function (): void {
         Route::get('dashboard', InstitutionDashboardController::class)->name('dashboard');
         Route::post('push-tokens', [InstitutionDeviceTokenController::class, 'store'])->name('push-tokens.store');
+        Route::get('notifications', [InstitutionNotificationController::class, 'index'])->name('notifications.index');
+        Route::post('notifications/read-all', [InstitutionNotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
+        Route::post('notifications/{notification}/read', [InstitutionNotificationController::class, 'markAsRead'])->name('notifications.read');
         Route::get('profile', [InstitutionProfileController::class, 'edit'])->name('profile.edit');
         Route::put('profile', [InstitutionProfileController::class, 'update'])->name('profile.update');
         Route::get('meters', [InstitutionMeterController::class, 'index'])

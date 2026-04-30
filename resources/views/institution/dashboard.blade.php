@@ -32,8 +32,8 @@
         <span class="badge-soft">{{ number_format($stats['collected_amount'], 0, ',', ' ') }} FCFA collectes</span>
     @endif
     @if ($canViewStatistics)
-        <span class="badge-soft">{{ $stats['sla_breached'] }} TCM depasses</span>
-        <span class="badge-soft">{{ $stats['resolved_reports'] }} resolus</span>
+        <span class="badge-soft">{{ $stats['sla_breached'] }} TCM depassés</span>
+        <span class="badge-soft">{{ $stats['resolved_reports'] }} résolus</span>
     @endif
 @endsection
 
