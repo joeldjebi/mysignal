@@ -7,12 +7,15 @@ use App\Models\BusinessSector;
 use App\Models\Commune;
 use App\Models\PublicUser;
 use App\Models\PublicUserType;
+use App\Models\Role;
+use App\Models\User;
 use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class PublicUserController extends Controller
@@ -220,6 +223,8 @@ class PublicUserController extends Controller
             'subscriptions' => $subscriptions,
             'reports' => $paginatedReports,
             'reportStatuses' => ['submitted', 'in_progress', 'resolved', 'rejected', 'closed'],
+            'bailiffUsers' => $this->resolveAssignableUsersByRole(['HUISSIER', 'BAILIFF']),
+            'lawyerUsers' => $this->resolveAssignableUsersByRole(['AVOCAT', 'LAWYER']),
         ]);
     }
 
@@ -365,5 +370,39 @@ class PublicUserController extends Controller
         }
 
         return $attributes;
+    }
+
+    private function resolveAssignableUsersByRole(array $codes): \Illuminate\Support\Collection
+    {
+        $roles = Role::query()
+            ->whereIn('code', $codes)
+            ->orWhere(function ($query) use ($codes): void {
+                foreach ($codes as $code) {
+                    $query->orWhere('name', 'like', '%'.$code.'%');
+                }
+            })
+            ->pluck('id');
+
+        if ($roles->isNotEmpty()) {
+            return User::query()
+                ->where('status', 'active')
+                ->where(function ($query) use ($roles, $codes): void {
+                    $query
+                        ->whereHas('roles', fn ($roleQuery) => $roleQuery->whereIn('roles.id', $roles))
+                        ->orWhereHas('accesses', function ($accessQuery) use ($codes): void {
+                            $accessQuery
+                                ->where('status', 'active')
+                                ->whereIn('portal', collect($codes)->map(fn ($code) => strtolower($code))->all());
+                        });
+                })
+                ->orderBy('name')
+                ->get(['id', 'name', 'email']);
+        }
+
+        return User::query()
+            ->where('status', 'active')
+            ->where('is_super_admin', true)
+            ->orderBy('name')
+            ->get(['id', 'name', 'email']);
     }
 }

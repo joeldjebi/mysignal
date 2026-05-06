@@ -112,10 +112,10 @@
             </section>
 
             <section class="panel-card mb-4">
-                <div class="fw-bold mb-3">Contexte d ouverture</div>
-                <div class="mb-2"><strong>Notes d ouverture :</strong> {{ $reparationCase->opening_notes ?: 'Aucune note.' }}</div>
-                <div class="mb-2"><strong>Montant reclame :</strong> {{ $reparationCase->damage_amount_claimed !== null ? number_format((float) $reparationCase->damage_amount_claimed, 0, ',', ' ').' FCFA' : 'Non renseigne' }}</div>
-                <div><strong>Resume dommage :</strong> {{ $reparationCase->damage_summary ?: 'Non renseigne' }}</div>
+                <div class="fw-bold mb-3">Contexte d'ouverture</div>
+                <div class="mb-2"><strong>Notes d'ouverture :</strong> {{ $reparationCase->opening_notes ?: 'Aucune note.' }}</div>
+                <div class="mb-2"><strong>Montant réclamé :</strong> {{ $reparationCase->damage_amount_claimed !== null ? number_format((float) $reparationCase->damage_amount_claimed, 0, ',', ' ').' FCFA' : 'Non renseigné' }}</div>
+                <div><strong>Résumé des dommages :</strong> {{ $reparationCase->damage_summary ?: 'Non renseigné' }}</div>
             </section>
 
             <section class="panel-card mb-4">

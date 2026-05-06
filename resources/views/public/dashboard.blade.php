@@ -1970,7 +1970,7 @@
                             </div>
                             <div class="col-12">
                                 <label class="form-label fw-semibold">Resume du dommage</label>
-                                <input class="form-control" type="text" name="damage_summary" maxlength="255" placeholder="Ex: appareils endommagés, denrées perdues, installation interne touchée" required>
+                                <input class="form-control" type="text" name="damage_summary" maxlength="255" placeholder="Ex: appareils endommagés, denrées perdues, installation interne touchée">
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label fw-semibold">Montant estimé (FCFA)</label>
@@ -1978,8 +1978,8 @@
                             </div>
                             <div class="col-md-8">
                                 <label class="form-label fw-semibold">Justificatif</label>
-                                <input class="form-control" type="file" id="damageAttachmentInput" accept="image/*,application/pdf">
-                                <div class="geo-help mt-2">Photo ou PDF facultatif. Sur mobile, l’appareil peut proposer directement la caméra si disponible.</div>
+                                <input class="form-control" type="file" id="damageAttachmentInput" name="damage_attachment" accept="image/*,application/pdf" required>
+                                <div class="geo-help mt-2">Chargez une image ou un PDF. Sur mobile, l’appareil peut proposer directement la caméra si disponible.</div>
                             </div>
                             <div class="col-12 d-none" id="damageAttachmentPreviewWrap">
                                 <div class="soft-panel">
@@ -2856,9 +2856,10 @@
                 }
 
                 async function apiFetch(path, options = {}) {
+                    const hasFormDataBody = options.body instanceof FormData;
                     const headers = {
                         Accept: 'application/json',
-                        ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+                        ...(options.body && !hasFormDataBody ? { 'Content-Type': 'application/json' } : {}),
                         Authorization: `Bearer ${state.token}`,
                     };
                     const response = await fetch(`${apiBase}${path}`, { ...options, headers });
@@ -6328,22 +6329,13 @@
 
                     try {
                         const payload = Object.fromEntries(new FormData(form).entries());
-                        const attachment = document.getElementById('damageAttachmentInput').files?.[0];
-
-                        if (attachment) {
-                            payload.damage_attachment = {
-                                name: attachment.name,
-                                mime_type: attachment.type || 'application/octet-stream',
-                                data_url: await readFileAsDataUrl(attachment),
-                            };
-                        }
-
                         const reportId = payload.report_id;
-                        delete payload.report_id;
+                        const formData = new FormData(form);
+                        formData.delete('report_id');
 
                         const response = await apiFetch(`/reports/${reportId}/damages`, {
                             method: 'POST',
-                            body: JSON.stringify(payload),
+                            body: formData,
                         });
 
                         showToast(response.message);

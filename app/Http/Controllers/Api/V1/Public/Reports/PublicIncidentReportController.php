@@ -7,6 +7,7 @@ use App\Domain\Reports\Enums\IncidentReportStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Public\Reports\StoreIncidentReportDamageRequest;
 use App\Http\Requests\Api\V1\Public\Reports\StoreIncidentReportRequest;
+use App\Http\Resources\Api\V1\Public\Reports\IncidentReportDamageResource;
 use App\Http\Resources\Api\V1\Public\Reports\IncidentReportResource;
 use App\Models\IncidentReport;
 use App\Services\WasabiService;
@@ -69,6 +70,22 @@ class PublicIncidentReportController extends Controller
         ]);
     }
 
+    public function damages(Request $request)
+    {
+        $damages = IncidentReport::query()
+            ->with(['application', 'organization', 'reparationCase'])
+            ->where('public_user_id', $request->user('public_api')->id)
+            ->whereNotNull('damage_declared_at')
+            ->when($request->filled('resolution_status'), fn ($query) => $query->where('damage_resolution_status', (string) $request->string('resolution_status')))
+            ->latest('damage_declared_at')
+            ->latest('id')
+            ->get();
+
+        return ApiResponse::success([
+            'damages' => IncidentReportDamageResource::collection($damages),
+        ]);
+    }
+
     public function confirmResolution(Request $request, IncidentReport $report, ActivityLogger $activityLogger)
     {
         abort_unless((int) $report->public_user_id === (int) $request->user('public_api')->id, 404);
@@ -101,6 +118,26 @@ class PublicIncidentReportController extends Controller
 
     public function storeDamage(StoreIncidentReportDamageRequest $request, IncidentReport $report, WasabiService $wasabiService, ActivityLogger $activityLogger, IncidentReportNotificationService $notificationService)
     {
+        return $this->persistDamage($request, $report, $wasabiService, $activityLogger, $notificationService);
+    }
+
+    public function storeDamageFromBody(StoreIncidentReportDamageRequest $request, WasabiService $wasabiService, ActivityLogger $activityLogger, IncidentReportNotificationService $notificationService)
+    {
+        $reportId = $request->validated('report_id');
+
+        if (! $reportId) {
+            throw ValidationException::withMessages([
+                'report_id' => ['Le champ report_id est requis.'],
+            ]);
+        }
+
+        $report = IncidentReport::query()->findOrFail($reportId);
+
+        return $this->persistDamage($request, $report, $wasabiService, $activityLogger, $notificationService);
+    }
+
+    private function persistDamage(StoreIncidentReportDamageRequest $request, IncidentReport $report, WasabiService $wasabiService, ActivityLogger $activityLogger, IncidentReportNotificationService $notificationService)
+    {
         abort_unless((int) $report->public_user_id === (int) $request->user('public_api')->id, 404);
         abort_unless($report->resolution_confirmation_status === 'confirmed', 422, 'Confirmez d abord la resolution du signalement avant d enregistrer un dommage.');
         abort_unless($report->damage_declared_at === null, 422, 'Le dommage pour ce signalement a deja ete enregistre.');
@@ -109,31 +146,29 @@ class PublicIncidentReportController extends Controller
 
         $attributes = $request->validated();
 
-        $damageAttachment = $attributes['damage_attachment'] ?? null;
+        $damageAttachmentFile = $request->file('damage_attachment');
 
-        if (is_array($damageAttachment) && ! empty($damageAttachment['data_url'])) {
-            $path = $wasabiService->uploadDataUrl(
-                (string) $damageAttachment['data_url'],
-                config('wasabi.report_damage_directory', 'reports/damages').'/'.$report->reference,
-                'damage',
-                $damageAttachment['name'] ?? null,
-            );
-
-            if (! $path) {
-                throw ValidationException::withMessages([
-                    'damage_attachment' => ['Impossible de televerser le justificatif sur le stockage distant.'],
-                ]);
-            }
-
-            $damageAttachment = [
-                'name' => $damageAttachment['name'] ?? 'justificatif-dommage',
-                'mime_type' => $damageAttachment['mime_type'] ?? 'application/octet-stream',
-                'path' => $path,
-            ];
+        if (! $damageAttachmentFile) {
+            throw ValidationException::withMessages([
+                'damage_attachment' => ['Le justificatif du dommage est requis.'],
+            ]);
         }
 
+        $path = $wasabiService->uploadFile(
+            $damageAttachmentFile,
+            config('wasabi.report_damage_directory', 'reports/damages').'/'.$report->reference,
+            'damage'
+        );
+
+        $damageAttachment = [
+            'name' => $damageAttachmentFile->getClientOriginalName() ?: 'justificatif-dommage',
+            'mime_type' => $damageAttachmentFile->getMimeType() ?: 'application/octet-stream',
+            'size' => $damageAttachmentFile->getSize(),
+            'path' => $path,
+        ];
+
         $report->update([
-            'damage_summary' => $attributes['damage_summary'],
+            'damage_summary' => $attributes['damage_summary'] ?? null,
             'damage_amount_estimated' => $attributes['damage_amount_estimated'] ?? null,
             'damage_notes' => $attributes['damage_notes'] ?? null,
             'damage_attachment' => $damageAttachment,

@@ -381,7 +381,7 @@
 </head>
 <body>
     @php
-        $featureCodes = $features ?? [];
+        $featureCodes = $features ?? $feature_codes ?? [];
         $authUser = auth()->user()?->loadMissing(['creator', 'permissions', 'roles.permissions']);
         $application = $application ?? $organization?->application;
         $userPermissionCodes = collect($authUser?->permissions?->pluck('code')->all() ?? [])

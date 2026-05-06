@@ -205,6 +205,27 @@
                                             </div>
                                         </div>
                                     @endif
+                                    @if ($hasDamage)
+                                        <div class="border rounded-4 p-3">
+                                            <div class="small text-secondary fw-semibold mb-2">Dommage declare</div>
+                                            <div class="mb-2"><strong>Resume :</strong> {{ $report->damage_summary ?: 'Non renseigne' }}</div>
+                                            <div class="mb-2"><strong>Montant estime :</strong> {{ $report->damage_amount_estimated !== null ? number_format((float) $report->damage_amount_estimated, 0, ',', ' ').' FCFA' : 'Non renseigne' }}</div>
+                                            <div class="mb-3"><strong>Commentaires :</strong> {{ $report->damage_notes ?: 'Aucun detail complementaire fourni.' }}</div>
+                                            @if (!empty($damageAttachment) && filled($damageAttachment['temporary_url'] ?? null))
+                                                <div class="border rounded-4 p-3" style="background: #f8fbff;">
+                                                    <div class="fw-semibold small mb-1">{{ $damageAttachment['name'] ?? 'Justificatif dommage' }}</div>
+                                                    <div class="small text-secondary mb-2">{{ $damageAttachment['mime_type'] ?? 'Fichier' }}</div>
+                                                    @if (str_starts_with((string) ($damageAttachment['mime_type'] ?? ''), 'image/'))
+                                                        <img src="{{ $damageAttachment['temporary_url'] }}" alt="Justificatif dommage" class="img-fluid rounded-4 border" style="max-height: 300px; width: 100%; object-fit: contain; background: #fff;">
+                                                    @else
+                                                        <a href="{{ $damageAttachment['temporary_url'] }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-dark btn-sm">Ouvrir le justificatif</a>
+                                                    @endif
+                                                </div>
+                                            @else
+                                                <div class="text-secondary small">Aucun justificatif dommage disponible.</div>
+                                            @endif
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -283,6 +304,28 @@
                                             </select>
                                         </div>
                                     </div>
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Huissier</label>
+                                            <select class="form-select" name="bailiff_user_id">
+                                                <option value="">Aucun huissier à l'ouverture</option>
+                                                @foreach (($bailiffUsers ?? collect()) as $bailiffUser)
+                                                    <option value="{{ $bailiffUser->id }}">{{ $bailiffUser->name }}{{ $bailiffUser->email ? ' · '.$bailiffUser->email : '' }}</option>
+                                                @endforeach
+                                            </select>
+                                            <div class="form-text">Le huissier sélectionné recevra une notification dès l'ouverture.</div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Avocat</label>
+                                            <select class="form-select" name="lawyer_user_id">
+                                                <option value="">Aucun avocat à l'ouverture</option>
+                                                @foreach (($lawyerUsers ?? collect()) as $lawyerUser)
+                                                    <option value="{{ $lawyerUser->id }}">{{ $lawyerUser->name }}{{ $lawyerUser->email ? ' · '.$lawyerUser->email : '' }}</option>
+                                                @endforeach
+                                            </select>
+                                            <div class="form-text">L'avocat sélectionné recevra une notification dès l'ouverture.</div>
+                                        </div>
+                                    </div>
                                     <div class="small text-secondary mb-3">
                                         Motif d eligibilite :
                                         @if ($slaBreached && $hasDamage)
@@ -293,7 +336,7 @@
                                             Dommage declare
                                         @endif
                                     </div>
-                                    <label class="form-label">Notes d ouverture</label>
+                                    <label class="form-label">Notes d'ouverture</label>
                                     <textarea class="form-control" name="opening_notes" rows="4" placeholder="Resume du contexte, points a instruire, attentes vis-a-vis de l organisation..."></textarea>
                                 </div>
                                 <div class="modal-footer">

@@ -4,10 +4,14 @@ namespace App\Http\Controllers\Api\V1\Public\Profile;
 
 use App\Domain\PublicUsers\Actions\UpdatePublicProfileAction;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\V1\Public\Profile\UpdatePublicPasswordRequest;
 use App\Http\Requests\Api\V1\Public\Profile\UpdatePublicProfileRequest;
 use App\Http\Resources\Api\V1\Public\Auth\PublicUserResource;
 use App\Support\Api\ApiResponse;
+use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 class PublicProfileController extends Controller
 {
@@ -25,5 +29,35 @@ class PublicProfileController extends Controller
         return ApiResponse::success([
             'user' => new PublicUserResource($user->loadMissing('publicUserType.pricingRule')),
         ], 'Profil mis a jour avec succes.');
+    }
+
+    public function updatePassword(UpdatePublicPasswordRequest $request, ActivityLogger $activityLogger)
+    {
+        $user = $request->user('public_api');
+
+        if (! Hash::check($request->string('current_password')->value(), (string) $user->password)) {
+            throw ValidationException::withMessages([
+                'current_password' => ['Le mot de passe actuel est invalide.'],
+            ]);
+        }
+
+        $user->update([
+            'password' => $request->string('password')->value(),
+        ]);
+
+        $activityLogger->log(
+            'public.password.updated',
+            'Mise a jour du mot de passe UP.',
+            $user,
+            [
+                'public_user_type_id' => $user->public_user_type_id,
+                'phone' => $user->phone,
+            ],
+            $request,
+            $user,
+            'public',
+        );
+
+        return ApiResponse::success([], 'Mot de passe mis a jour avec succes.');
     }
 }

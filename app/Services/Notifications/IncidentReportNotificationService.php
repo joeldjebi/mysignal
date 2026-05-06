@@ -28,6 +28,7 @@ class IncidentReportNotificationService
             'Nouveau signalement',
             'Un nouveau signalement '.$report->reference.' a ete soumis.',
             'reports.show',
+            'report',
         );
     }
 
@@ -38,7 +39,8 @@ class IncidentReportNotificationService
             'institution_damage_declared',
             'Dommage declare',
             'Un dommage a ete declare sur le signalement '.$report->reference.'.',
-            'reports.show',
+            'damages',
+            'damage',
         );
     }
 
@@ -277,46 +279,62 @@ class IncidentReportNotificationService
         );
     }
 
-    private function notifyInstitutionUsers(IncidentReport $report, string $type, string $title, string $body, string $screen): void
+    private function notifyInstitutionUsers(IncidentReport $report, string $type, string $title, string $body, string $screen, string $category = 'report'): void
     {
-        if ($report->organization_id === null) {
+        $organizationId = $this->reportOrganizationId($report);
+
+        if ($organizationId === null) {
             return;
         }
 
         User::query()
-            ->where(function (Builder $query) use ($report): void {
+            ->where(function (Builder $query) use ($organizationId): void {
                 $query
-                    ->where('organization_id', $report->organization_id)
-                    ->orWhereHas('accesses', function (Builder $accessQuery) use ($report): void {
+                    ->where('organization_id', $organizationId)
+                    ->orWhereHas('accesses', function (Builder $accessQuery) use ($organizationId): void {
                         $accessQuery
                             ->where('portal', 'institution')
                             ->where('status', 'active')
-                            ->where('organization_id', $report->organization_id);
+                            ->where('organization_id', $organizationId);
                     });
             })
             ->where('status', 'active')
             ->get()
             ->unique('id')
-            ->each(function (User $user) use ($report, $type, $title, $body, $screen): void {
+            ->each(function (User $user) use ($report, $type, $title, $body, $screen, $category, $organizationId): void {
                 $this->dispatcher->notifyInstitutionUser(
                     $user,
                     $type,
                     $title,
                     $body,
                     [
-                        'category' => 'report',
+                        'category' => $category,
                         'screen' => $screen,
                         'source' => 'public_user',
                         'report_id' => $report->id,
                         'report_reference' => $report->reference,
                         'public_user_id' => $report->public_user_id,
                         'application_id' => $report->application_id,
-                        'organization_id' => $report->organization_id,
+                        'organization_id' => $organizationId,
                         'signal_code' => $report->signal_code,
                         'status' => $report->status,
+                        'damage_resolution_status' => $report->damage_resolution_status,
                     ],
                 );
             });
+    }
+
+    private function reportOrganizationId(IncidentReport $report): ?int
+    {
+        if ($report->organization_id !== null) {
+            return (int) $report->organization_id;
+        }
+
+        $report->loadMissing('meter');
+
+        return $report->meter?->organization_id !== null
+            ? (int) $report->meter->organization_id
+            : null;
     }
 
     private function notifyHouseholdReportCreated(IncidentReport $report): void

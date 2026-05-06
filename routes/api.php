@@ -68,6 +68,7 @@ Route::prefix('v1/public')->group(function (): void {
         Route::get('me', AuthenticatedPublicUserController::class);
         Route::get('profile', [PublicProfileController::class, 'show']);
         Route::put('profile', [PublicProfileController::class, 'update']);
+        Route::put('profile/password', [PublicProfileController::class, 'updatePassword']);
         Route::post('push-tokens', [DeviceTokenController::class, 'storePublic']);
         Route::delete('push-tokens', [DeviceTokenController::class, 'destroyPublic']);
         Route::get('notifications', [UserNotificationController::class, 'publicIndex']);
@@ -91,6 +92,8 @@ Route::prefix('v1/public')->group(function (): void {
         Route::get('reports/{report}', [PublicIncidentReportController::class, 'show']);
         Route::post('reports/{report}/confirm-resolution', [PublicIncidentReportController::class, 'confirmResolution']);
         Route::post('reports/{report}/damages', [PublicIncidentReportController::class, 'storeDamage']);
+        Route::get('damages', [PublicIncidentReportController::class, 'damages']);
+        Route::post('damages', [PublicIncidentReportController::class, 'storeDamageFromBody']);
         Route::get('reparation-cases', [PublicReparationCaseController::class, 'index']);
         Route::get('rex-feedbacks', [PublicRexFeedbackController::class, 'index']);
         Route::post('rex-feedbacks', [PublicRexFeedbackController::class, 'store']);

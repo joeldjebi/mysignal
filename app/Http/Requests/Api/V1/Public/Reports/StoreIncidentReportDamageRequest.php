@@ -14,13 +14,11 @@ class StoreIncidentReportDamageRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'damage_summary' => ['required', 'string', 'max:255'],
+            'report_id' => ['nullable', 'integer', 'exists:incident_reports,id'],
+            'damage_summary' => ['nullable', 'string', 'max:255'],
             'damage_amount_estimated' => ['nullable', 'numeric', 'min:0', 'max:999999999.99'],
             'damage_notes' => ['nullable', 'string', 'max:3000'],
-            'damage_attachment' => ['nullable', 'array'],
-            'damage_attachment.name' => ['nullable', 'string', 'max:255'],
-            'damage_attachment.mime_type' => ['nullable', 'string', 'max:100'],
-            'damage_attachment.data_url' => ['nullable', 'string', 'max:10000000'],
+            'damage_attachment' => ['required', 'file', 'max:10240', 'mimetypes:image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif,application/pdf'],
         ];
     }
 }

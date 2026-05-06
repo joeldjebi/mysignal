@@ -20,9 +20,16 @@
     { "key": "accessToken", "value": "" },
     { "key": "verificationToken", "value": "" },
     { "key": "phone", "value": "0700000000" },
+    { "key": "otpCode", "value": "2604" },
     { "key": "password", "value": "12345678" },
+    { "key": "email", "value": "jean.doe@example.com" },
     { "key": "publicUserTypeId", "value": "1" },
     { "key": "publicUserTypeCode", "value": "UP" },
+    { "key": "businessSector", "value": "Commerce et services" },
+    { "key": "companyName", "value": "Doe Services" },
+    { "key": "companyRegistrationNumber", "value": "CI-ABJ-2026-B-12345" },
+    { "key": "taxIdentifier", "value": "DF-1234567890" },
+    { "key": "companyAddress", "value": "Rue des Jardins, Cocody" },
     { "key": "applicationId", "value": "1" },
     { "key": "applicationCode", "value": "MON_NRJ" },
     { "key": "organizationId", "value": "1" },
@@ -31,13 +38,22 @@
     { "key": "cityId", "value": "1" },
     { "key": "communeId", "value": "1" },
     { "key": "communeName", "value": "Cocody" },
+    { "key": "neighborhoodName", "value": "Riviera" },
+    { "key": "subNeighborhoodName", "value": "Palmeraie" },
+    { "key": "address", "value": "Rue 12" },
+    { "key": "latitude", "value": "5.348" },
+    { "key": "longitude", "value": "-4.001" },
+    { "key": "locationAccuracy", "value": "20" },
     { "key": "serviceCategory", "value": "Internet" },
+    { "key": "meterNumber", "value": "AB12345678" },
+    { "key": "additionalMeterNumber", "value": "AB87654321" },
     { "key": "meterId", "value": "" },
     { "key": "reportId", "value": "" },
     { "key": "paymentId", "value": "" },
     { "key": "subscriptionPaymentId", "value": "" },
     { "key": "householdId", "value": "" },
     { "key": "invitationId", "value": "" },
+    { "key": "invitedPhone", "value": "0711111111" },
     { "key": "reparationCaseId", "value": "" },
     { "key": "rexFeedbackId", "value": "" },
     { "key": "fcmToken", "value": "FCM_TOKEN_MOBILE" },
@@ -340,7 +356,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phone\": \"{{phone}}\",\n  \"code\": \"1234\"\n}"
+              "raw": "{\n  \"phone\": \"{{phone}}\",\n  \"code\": \"{{otpCode}}\"\n}"
             },
             "url": "{{baseUrl}}/v1/public/auth/verify-otp",
             "description": "Verifie le code OTP et stocke verificationToken."
@@ -369,10 +385,10 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"public_user_type_id\": {{publicUserTypeId}},\n  \"first_name\": \"Jean\",\n  \"last_name\": \"Doe\",\n  \"phone\": \"{{phone}}\",\n  \"commune\": \"{{communeName}}\",\n  \"password\": \"{{password}}\",\n  \"password_confirmation\": \"{{password}}\",\n  \"verification_token\": \"{{verificationToken}}\"\n}"
+              "raw": "{\n  \"public_user_type_id\": {{publicUserTypeId}},\n  \"first_name\": \"Jean\",\n  \"last_name\": \"Doe\",\n  \"phone\": \"{{phone}}\",\n  \"is_whatsapp_number\": true,\n  \"email\": \"{{email}}\",\n  \"commune\": \"{{communeName}}\",\n  \"business_sector\": \"{{businessSector}}\",\n  \"company_name\": \"{{companyName}}\",\n  \"company_registration_number\": \"{{companyRegistrationNumber}}\",\n  \"tax_identifier\": \"{{taxIdentifier}}\",\n  \"company_address\": \"{{companyAddress}}\",\n  \"password\": \"{{password}}\",\n  \"password_confirmation\": \"{{password}}\",\n  \"verification_token\": \"{{verificationToken}}\"\n}"
             },
             "url": "{{baseUrl}}/v1/public/auth/register",
-            "description": "Cree un compte UP et retourne directement un access token."
+            "description": "Cree un compte UP et retourne directement un access token. Pour UPE et UPTI, business_sector est obligatoire; pour UPE, les champs company_* et tax_identifier sont obligatoires."
           }
         },
         {
@@ -402,6 +418,67 @@
             },
             "url": "{{baseUrl}}/v1/public/auth/login",
             "description": "Connexion classique UP."
+          }
+        },
+        {
+          "name": "Forgot Password - Request OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{phone}}\"\n}"
+            },
+            "url": "{{baseUrl}}/v1/public/auth/forgot-password/request-otp",
+            "description": "Demande un OTP de reinitialisation pour un compte UP actif."
+          }
+        },
+        {
+          "name": "Forgot Password - Verify OTP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "if (json?.data?.verification_token) pm.environment.set('verificationToken', json.data.verification_token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{phone}}\",\n  \"code\": \"{{otpCode}}\"\n}"
+            },
+            "url": "{{baseUrl}}/v1/public/auth/forgot-password/verify-otp",
+            "description": "Verifie l OTP de reinitialisation et stocke verificationToken."
+          }
+        },
+        {
+          "name": "Forgot Password - Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{phone}}\",\n  \"verification_token\": \"{{verificationToken}}\",\n  \"password\": \"{{password}}\",\n  \"password_confirmation\": \"{{password}}\"\n}"
+            },
+            "url": "{{baseUrl}}/v1/public/auth/forgot-password/reset-password",
+            "description": "Change le mot de passe avec le verification_token issu du flux forgot-password."
           }
         }
       ]
@@ -435,9 +512,25 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"jean@example.com\",\n  \"address\": \"Rue 12\",\n  \"latitude\": 5.348,\n  \"longitude\": -4.001,\n  \"location_source\": \"gps\"\n}"
+              "raw": "{\n  \"first_name\": \"Jean\",\n  \"last_name\": \"Doe\",\n  \"is_whatsapp_number\": true,\n  \"email\": \"{{email}}\",\n  \"commune\": \"{{communeName}}\",\n  \"business_sector\": \"{{businessSector}}\",\n  \"company_name\": \"{{companyName}}\",\n  \"company_registration_number\": \"{{companyRegistrationNumber}}\",\n  \"tax_identifier\": \"{{taxIdentifier}}\",\n  \"company_address\": \"{{companyAddress}}\",\n  \"address\": \"{{address}}\",\n  \"latitude\": {{latitude}},\n  \"longitude\": {{longitude}},\n  \"location_accuracy\": {{locationAccuracy}},\n  \"location_source\": \"gps\"\n}"
             },
             "url": "{{baseUrl}}/v1/public/profile"
+          }
+        },
+        {
+          "name": "Update Password",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"current_password\": \"{{password}}\",\n  \"password\": \"{{password}}\",\n  \"password_confirmation\": \"{{password}}\"\n}"
+            },
+            "url": "{{baseUrl}}/v1/public/profile/password",
+            "description": "Met a jour le mot de passe du UP connecte. Requiert le mot de passe actuel."
           }
         }
       ]
@@ -475,7 +568,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"application_id\": 1,\n  \"organization_id\": 1,\n  \"meter_number\": \"AB12345678\",\n  \"label\": \"Compteur principal\",\n  \"commune\": \"{{communeName}}\",\n  \"address\": \"Rue 12\",\n  \"is_primary\": true\n}"
+              "raw": "{\n  \"application_id\": {{applicationId}},\n  \"organization_id\": {{organizationId}},\n  \"network_type\": \"CIE\",\n  \"meter_number\": \"{{meterNumber}}\",\n  \"label\": \"Compteur principal\",\n  \"commune\": \"{{communeName}}\",\n  \"neighborhood\": \"{{neighborhoodName}}\",\n  \"sub_neighborhood\": \"{{subNeighborhoodName}}\",\n  \"address\": \"{{address}}\",\n  \"latitude\": {{latitude}},\n  \"longitude\": {{longitude}},\n  \"location_accuracy\": {{locationAccuracy}},\n  \"location_source\": \"gps\",\n  \"is_primary\": true\n}"
             },
             "url": "{{baseUrl}}/v1/public/meters"
           }
@@ -490,7 +583,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"application_id\": 1,\n  \"organization_id\": 1,\n  \"meter_number\": \"AB87654321\",\n  \"label\": \"Compteur secondaire\",\n  \"commune\": \"{{communeName}}\",\n  \"address\": \"Rue 24\",\n  \"is_primary\": false\n}"
+              "raw": "{\n  \"application_id\": {{applicationId}},\n  \"organization_id\": {{organizationId}},\n  \"network_type\": \"CIE\",\n  \"meter_number\": \"{{additionalMeterNumber}}\",\n  \"label\": \"Compteur secondaire\",\n  \"commune\": \"{{communeName}}\",\n  \"neighborhood\": \"{{neighborhoodName}}\",\n  \"sub_neighborhood\": \"{{subNeighborhoodName}}\",\n  \"address\": \"Rue 24\",\n  \"latitude\": {{latitude}},\n  \"longitude\": {{longitude}},\n  \"location_accuracy\": {{locationAccuracy}},\n  \"location_source\": \"gps\",\n  \"is_primary\": false\n}"
             },
             "url": "{{baseUrl}}/v1/public/meters"
           }
@@ -513,7 +606,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"label\": \"Compteur salon\",\n  \"address\": \"Rue 12 bis\",\n  \"is_primary\": true\n}"
+              "raw": "{\n  \"application_id\": {{applicationId}},\n  \"organization_id\": {{organizationId}},\n  \"label\": \"Compteur salon\",\n  \"commune\": \"{{communeName}}\",\n  \"neighborhood\": \"{{neighborhoodName}}\",\n  \"sub_neighborhood\": \"{{subNeighborhoodName}}\",\n  \"address\": \"Rue 12 bis\",\n  \"latitude\": {{latitude}},\n  \"longitude\": {{longitude}},\n  \"location_accuracy\": {{locationAccuracy}},\n  \"location_source\": \"gps\",\n  \"is_primary\": true\n}"
             },
             "url": "{{baseUrl}}/v1/public/meters/{{meterId}}"
           }
@@ -545,7 +638,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Famille Doe\",\n  \"commune\": \"{{communeName}}\",\n  \"address\": \"Rue 12\"\n}"
+              "raw": "{\n  \"name\": \"Famille Doe\",\n  \"commune\": \"{{communeName}}\",\n  \"address\": \"{{address}}\"\n}"
             },
             "url": "{{baseUrl}}/v1/public/households",
             "description": "Cree un Gonhi. Un compte UP peut creer plusieurs Gonhi."
@@ -579,7 +672,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phone\": \"0711111111\",\n  \"relationship\": \"conjoint\",\n  \"meter_id\": {{meterId}}\n}"
+              "raw": "{\n  \"phone\": \"{{invitedPhone}}\",\n  \"relationship\": \"conjoint\",\n  \"meter_id\": {{meterId}}\n}"
             },
             "url": "{{baseUrl}}/v1/public/households/{{householdId}}/invitations"
           }
@@ -650,7 +743,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"meter_id\": {{meterId}},\n  \"application_id\": {{applicationId}},\n  \"organization_id\": {{organizationId}},\n  \"country_id\": {{countryId}},\n  \"city_id\": {{cityId}},\n  \"commune_id\": {{communeId}},\n  \"signal_code\": \"NETWORK_OUTAGE\",\n  \"description\": \"Coupure depuis 2 heures\",\n  \"address\": \"Rue 12\",\n  \"occurred_at\": \"2026-04-10T12:00:00Z\",\n  \"latitude\": 5.348,\n  \"longitude\": -4.001,\n  \"location_source\": \"gps\",\n  \"signal_payload\": {\n    \"service_category\": \"{{serviceCategory}}\"\n  }\n}"
+              "raw": "{\n  \"meter_id\": {{meterId}},\n  \"application_id\": {{applicationId}},\n  \"organization_id\": {{organizationId}},\n  \"country_id\": {{countryId}},\n  \"city_id\": {{cityId}},\n  \"commune_id\": {{communeId}},\n  \"signal_code\": \"NETWORK_OUTAGE\",\n  \"description\": \"Coupure depuis 2 heures\",\n  \"address\": \"{{address}}\",\n  \"occurred_at\": \"2026-04-10T12:00:00Z\",\n  \"latitude\": {{latitude}},\n  \"longitude\": {{longitude}},\n  \"location_accuracy\": {{locationAccuracy}},\n  \"location_source\": \"gps\",\n  \"signal_payload\": {\n    \"service_category\": \"{{serviceCategory}}\"\n  }\n}"
             },
             "url": "{{baseUrl}}/v1/public/reports"
           }
@@ -665,7 +758,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"meter_id\": {{meterId}},\n  \"country_id\": {{countryId}},\n  \"city_id\": {{cityId}},\n  \"commune_id\": {{communeId}},\n  \"signal_code\": \"EL-04\",\n  \"description\": \"Compteur illisible\",\n  \"address\": \"Rue 12\",\n  \"latitude\": 5.348,\n  \"longitude\": -4.001,\n  \"location_source\": \"gps\",\n  \"signal_payload\": {\n    \"meter_photo_reference\": {\n      \"type\": \"image\",\n      \"name\": \"compteur.jpg\",\n      \"mime_type\": \"image/jpeg\",\n      \"data_url\": \"data:image/jpeg;base64,...\"\n    },\n    \"meter_serial_number\": \"CIE-12345\"\n  }\n}"
+              "raw": "{\n  \"meter_id\": {{meterId}},\n  \"application_id\": {{applicationId}},\n  \"organization_id\": {{organizationId}},\n  \"country_id\": {{countryId}},\n  \"city_id\": {{cityId}},\n  \"commune_id\": {{communeId}},\n  \"signal_code\": \"EL-04\",\n  \"description\": \"Compteur illisible\",\n  \"address\": \"{{address}}\",\n  \"occurred_at\": \"2026-04-10T12:00:00Z\",\n  \"latitude\": {{latitude}},\n  \"longitude\": {{longitude}},\n  \"location_accuracy\": {{locationAccuracy}},\n  \"location_source\": \"gps\",\n  \"signal_payload\": {\n    \"meter_photo_reference\": {\n      \"type\": \"image\",\n      \"name\": \"compteur.jpg\",\n      \"mime_type\": \"image/jpeg\",\n      \"data_url\": \"data:image/jpeg;base64,...\"\n    },\n    \"meter_serial_number\": \"{{meterNumber}}\",\n    \"precise_gps\": \"{{latitude}},{{longitude}}\"\n  }\n}"
             },
             "url": "{{baseUrl}}/v1/public/reports",
             "description": "Exemple de signalement avec champs dynamiques issus de GET /v1/public/signal-types. Remplacer signal_code et les cles signal_payload par les data_fields du type selectionne."
@@ -687,7 +780,12 @@
               { "key": "Accept", "value": "application/json" },
               { "key": "Content-Type", "value": "application/json" }
             ],
-            "url": "{{baseUrl}}/v1/public/reports/{{reportId}}/confirm-resolution"
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": "{{baseUrl}}/v1/public/reports/{{reportId}}/confirm-resolution",
+            "description": "Aucun champ requis; l ID du signalement est porte par l URL."
           }
         },
         {
@@ -695,14 +793,98 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Accept", "value": "application/json" },
-              { "key": "Content-Type", "value": "application/json" }
+              { "key": "Accept", "value": "application/json" }
             ],
             "body": {
-              "mode": "raw",
-              "raw": "{\n  \"damage_summary\": \"Materiel endommage\",\n  \"damage_amount_estimated\": 25000,\n  \"damage_notes\": \"Routeur grille\",\n  \"damage_attachment\": {\n    \"name\": \"preuve.jpg\",\n    \"mime_type\": \"image/jpeg\",\n    \"data_url\": \"data:image/jpeg;base64,...\"\n  }\n}"
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "damage_summary",
+                  "value": "Materiel endommage",
+                  "type": "text"
+                },
+                {
+                  "key": "damage_amount_estimated",
+                  "value": "25000",
+                  "type": "text"
+                },
+                {
+                  "key": "damage_notes",
+                  "value": "Routeur grille",
+                  "type": "text"
+                },
+                {
+                  "key": "damage_attachment",
+                  "type": "file",
+                  "src": []
+                }
+              ]
             },
-            "url": "{{baseUrl}}/v1/public/reports/{{reportId}}/damages"
+            "url": "{{baseUrl}}/v1/public/reports/{{reportId}}/damages",
+            "description": "Declaration par upload direct. Envoyer multipart/form-data avec les champs damage_summary, damage_amount_estimated, damage_notes et damage_attachment en image ou PDF."
+          }
+        },
+        {
+          "name": "List Damages",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "const firstDamage = json?.data?.damages?.[0];",
+                  "if (firstDamage?.report_id) pm.environment.set('reportId', firstDamage.report_id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/damages",
+            "description": "Liste les dommages declares par l UP connecte. Filtre optionnel: ?resolution_status=submitted|in_progress|resolved|rejected."
+          }
+        },
+        {
+          "name": "Declare Damage Mobile",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "report_id",
+                  "value": "{{reportId}}",
+                  "type": "text"
+                },
+                {
+                  "key": "damage_summary",
+                  "value": "Materiel endommage",
+                  "type": "text"
+                },
+                {
+                  "key": "damage_amount_estimated",
+                  "value": "25000",
+                  "type": "text"
+                },
+                {
+                  "key": "damage_notes",
+                  "value": "Routeur grille",
+                  "type": "text"
+                },
+                {
+                  "key": "damage_attachment",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/v1/public/damages",
+            "description": "Endpoint mobile direct. Envoyer multipart/form-data avec report_id, damage_summary, damage_amount_estimated, damage_notes et damage_attachment en image ou PDF."
           }
         }
       ]
@@ -739,7 +921,12 @@
               { "key": "Accept", "value": "application/json" },
               { "key": "Content-Type", "value": "application/json" }
             ],
-            "url": "{{baseUrl}}/v1/public/reports/{{reportId}}/payments"
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": "{{baseUrl}}/v1/public/reports/{{reportId}}/payments",
+            "description": "Aucun champ requis; initialise le paiement du signalement indique dans l URL."
           }
         },
         {
@@ -750,7 +937,12 @@
               { "key": "Accept", "value": "application/json" },
               { "key": "Content-Type", "value": "application/json" }
             ],
-            "url": "{{baseUrl}}/v1/public/payments/{{paymentId}}/confirm"
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": "{{baseUrl}}/v1/public/payments/{{paymentId}}/confirm",
+            "description": "Aucun champ requis; confirme le paiement simule indique dans l URL."
           }
         },
         {
@@ -821,6 +1013,10 @@
               { "key": "Accept", "value": "application/json" },
               { "key": "Content-Type", "value": "application/json" }
             ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
             "url": "{{baseUrl}}/v1/public/subscription",
             "description": "Initialise un abonnement UP pending a partir du plan actif. Si un abonnement pending existe deja, il est retourne."
           }
@@ -854,6 +1050,10 @@
               { "key": "Accept", "value": "application/json" },
               { "key": "Content-Type", "value": "application/json" }
             ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
             "url": "{{baseUrl}}/v1/public/subscription/payments",
             "description": "Initialise un paiement d abonnement. Le paiement reste pending jusqu a confirmation."
           }
@@ -866,6 +1066,10 @@
               { "key": "Accept", "value": "application/json" },
               { "key": "Content-Type", "value": "application/json" }
             ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
             "url": "{{baseUrl}}/v1/public/subscription/payments/{{subscriptionPaymentId}}/confirm",
             "description": "Confirme le paiement simule et active l abonnement UP."
           }
@@ -1029,18 +1233,32 @@
           "name": "Mark Notification As Read",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Accept", "value": "application/json" }],
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
             "url": "{{baseUrl}}/v1/public/notifications/{{notificationId}}/read",
-            "description": "Marque une notification comme lue."
+            "description": "Aucun champ requis; l ID de notification est porte par l URL."
           }
         },
         {
           "name": "Mark All Notifications As Read",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Accept", "value": "application/json" }],
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
             "url": "{{baseUrl}}/v1/public/notifications/read-all",
-            "description": "Marque toutes les notifications du UP comme lues."
+            "description": "Aucun champ requis; marque toutes les notifications du UP comme lues."
           }
         },
         {

@@ -29,7 +29,8 @@
             $category = data_get($notification->data, 'category');
 
             return match ($category ?: $notification->type) {
-                'report', 'institution_report_created', 'institution_damage_declared' => 'Signalement',
+                'report', 'institution_report_created' => 'Signalement',
+                'damage', 'institution_damage_declared' => 'Dommage',
                 'reparation_case', 'institution_reparation_case_opened', 'institution_reparation_case_updated', 'institution_reparation_case_step_added' => 'Dossier',
                 default => 'Général',
             };

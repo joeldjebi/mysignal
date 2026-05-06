@@ -290,19 +290,19 @@
                                         </select>
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label fw-semibold">Numero WhatsApp</label>
-                                        <select class="form-select" name="is_whatsapp_number">
-                                            <option value="1">Oui</option>
-                                            <option value="0">Non</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-12">
                                         <label class="form-label fw-semibold">Numero de telephone</label>
                                         <div class="input-group">
                                             <select class="form-select flex-grow-0" name="phone_dial_code" data-dial-code-select style="width: 140px"></select>
                                             <input class="form-control" name="phone_local" inputmode="numeric" required placeholder="0700000000">
                                         </div>
                                         <input type="hidden" name="phone">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Numero WhatsApp</label>
+                                        <select class="form-select" name="is_whatsapp_number" id="registerWhatsappNumber" disabled>
+                                            <option value="1">Oui</option>
+                                            <option value="0">Non</option>
+                                        </select>
                                     </div>
                                     <div class="col-md-6">
                                         <button class="btn btn-soft w-100" type="button" id="requestOtpButton">Recevoir le code OTP</button>
@@ -424,6 +424,14 @@
                     }
 
                     return phone?.value || '';
+                }
+
+                function syncRegisterWhatsappAvailability() {
+                    const form = document.getElementById('registerForm');
+                    const whatsappSelect = document.getElementById('registerWhatsappNumber');
+                    const localPhone = String(form.querySelector('[name="phone_local"]')?.value || '').replace(/\D+/g, '');
+
+                    whatsappSelect.disabled = localPhone.length === 0;
                 }
 
                 function setRegistrationVerified(phone = '') {
@@ -673,6 +681,7 @@
                             return;
                         }
 
+                        document.getElementById('registerWhatsappNumber').disabled = false;
                         payload.is_whatsapp_number = payload.is_whatsapp_number === '1';
                         delete payload.phone_dial_code;
                         delete payload.phone_local;
@@ -687,8 +696,14 @@
 
                 document.getElementById('registerPublicUserTypeId').addEventListener('change', syncUserTypeFields);
                 document.querySelectorAll('#registerForm [name="phone_dial_code"], #registerForm [name="phone_local"]').forEach((input) => {
-                    input.addEventListener('input', () => setRegistrationVerified(composePhoneNumber(document.getElementById('registerForm'))));
-                    input.addEventListener('change', () => setRegistrationVerified(composePhoneNumber(document.getElementById('registerForm'))));
+                    input.addEventListener('input', () => {
+                        setRegistrationVerified(composePhoneNumber(document.getElementById('registerForm')));
+                        syncRegisterWhatsappAvailability();
+                    });
+                    input.addEventListener('change', () => {
+                        setRegistrationVerified(composePhoneNumber(document.getElementById('registerForm')));
+                        syncRegisterWhatsappAvailability();
+                    });
                 });
                 document.querySelectorAll('#forgotPasswordForm [name="phone_dial_code"], #forgotPasswordForm [name="phone_local"]').forEach((input) => {
                     input.addEventListener('input', () => setPasswordResetVerified(composePhoneNumber(document.getElementById('forgotPasswordForm'))));
@@ -704,6 +719,7 @@
                 populateDialCodeSelects();
                 setRegistrationVerified();
                 setPasswordResetVerified();
+                syncRegisterWhatsappAvailability();
                 syncUserTypeFields();
             })();
         </script>

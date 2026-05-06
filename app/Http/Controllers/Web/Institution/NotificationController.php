@@ -48,6 +48,7 @@ class NotificationController extends Controller
 
         return view('institution.notifications.index', [
             ...$context,
+            'features' => $context['feature_codes'],
             'activeNav' => 'notifications',
             'notifications' => $notifications,
             'unreadCount' => (clone $baseQuery)->whereNull('read_at')->count(),
@@ -96,6 +97,7 @@ class NotificationController extends Controller
     {
         $mappedTypes = match ($category) {
             'report' => ['institution_report_created', 'institution_damage_declared'],
+            'damage' => ['institution_damage_declared'],
             'reparation_case' => [
                 'institution_reparation_case_opened',
                 'institution_reparation_case_updated',
@@ -132,7 +134,8 @@ class NotificationController extends Controller
     private function categoryKey(UserNotification $notification): string
     {
         return match ($notification->type) {
-            'institution_report_created', 'institution_damage_declared' => 'report',
+            'institution_report_created' => 'report',
+            'institution_damage_declared' => 'damage',
             'institution_reparation_case_opened',
             'institution_reparation_case_updated',
             'institution_reparation_case_step_added' => 'reparation_case',
@@ -144,6 +147,7 @@ class NotificationController extends Controller
     {
         return match ($this->categoryKey($notification)) {
             'report' => 'Signalements',
+            'damage' => 'Dommages',
             'reparation_case' => 'Dossiers',
             'public_user' => 'Usagers publics',
             'super_admin' => 'Backoffice',

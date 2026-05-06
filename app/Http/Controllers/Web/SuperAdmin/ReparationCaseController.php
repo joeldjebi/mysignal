@@ -92,7 +92,24 @@ class ReparationCaseController extends Controller
             'opening_notes' => ['nullable', 'string', 'max:3000'],
             'case_type' => ['nullable', 'in:precontentieux,judiciaire'],
             'priority' => ['nullable', 'in:low,normal,high,critical'],
+            'bailiff_user_id' => ['nullable', 'integer', 'exists:users,id'],
+            'lawyer_user_id' => ['nullable', 'integer', 'exists:users,id'],
         ]);
+
+        $bailiffUsers = $this->resolveAssignableUsersByRole(['HUISSIER', 'BAILIFF']);
+        $lawyerUsers = $this->resolveAssignableUsersByRole(['AVOCAT', 'LAWYER']);
+
+        if (filled($attributes['bailiff_user_id'] ?? null) && ! $bailiffUsers->contains('id', (int) $attributes['bailiff_user_id'])) {
+            throw ValidationException::withMessages([
+                'bailiff_user_id' => ['Le huissier selectionne n est pas eligible pour recevoir ce dossier.'],
+            ]);
+        }
+
+        if (filled($attributes['lawyer_user_id'] ?? null) && ! $lawyerUsers->contains('id', (int) $attributes['lawyer_user_id'])) {
+            throw ValidationException::withMessages([
+                'lawyer_user_id' => ['L avocat selectionne n est pas eligible pour recevoir ce dossier.'],
+            ]);
+        }
 
         $report = IncidentReport::query()
             ->with(['reparationCase', 'publicUser', 'organization', 'application'])
@@ -118,6 +135,8 @@ class ReparationCaseController extends Controller
             'application_id' => $report->application_id,
             'organization_id' => $report->organization_id,
             'opened_by_user_id' => $request->user()?->id,
+            'bailiff_user_id' => $attributes['bailiff_user_id'] ?? null,
+            'lawyer_user_id' => $attributes['lawyer_user_id'] ?? null,
             'reference' => $this->generateReference(),
             'case_type' => $attributes['case_type'] ?? 'precontentieux',
             'priority' => $attributes['priority'] ?? 'normal',
@@ -153,6 +172,62 @@ class ReparationCaseController extends Controller
             $request->user()?->id
         );
 
+        $case->loadMissing(['bailiff', 'lawyer']);
+
+        if ($case->bailiff_user_id) {
+            $bailiffLabel = 'Le dossier est attribue a l huissier '.$case->bailiff?->name.'.';
+
+            $this->recordHistory(
+                $case,
+                'bailiff_assigned_on_opening',
+                'Huissier attribue a l ouverture',
+                $bailiffLabel,
+                $request->user()?->id,
+                ['bailiff_user_id' => $case->bailiff_user_id]
+            );
+
+            $this->recordStep(
+                $case,
+                'attribue_huissier',
+                'Huissier attribue',
+                'completed',
+                $bailiffLabel,
+                $case->bailiff_user_id,
+                now(),
+                true,
+                $request->user()?->id
+            );
+
+            $notificationService->notifyBackofficeReparationCaseAssigned($case, $case->bailiff_user_id, 'huissier');
+        }
+
+        if ($case->lawyer_user_id) {
+            $lawyerLabel = 'Le dossier est attribue a l avocat '.$case->lawyer?->name.'.';
+
+            $this->recordHistory(
+                $case,
+                'lawyer_assigned_on_opening',
+                'Avocat attribue a l ouverture',
+                $lawyerLabel,
+                $request->user()?->id,
+                ['lawyer_user_id' => $case->lawyer_user_id]
+            );
+
+            $this->recordStep(
+                $case,
+                'attribue_avocat',
+                'Avocat attribue',
+                'completed',
+                $lawyerLabel,
+                $case->lawyer_user_id,
+                now(),
+                true,
+                $request->user()?->id
+            );
+
+            $notificationService->notifyBackofficeReparationCaseAssigned($case, $case->lawyer_user_id, 'avocat');
+        }
+
         $activityLogger->log(
             'reparation_case.opened',
             'Ouverture d un dossier contentieux.',
@@ -164,6 +239,8 @@ class ReparationCaseController extends Controller
                 'status' => $case->status,
                 'incident_report_id' => $case->incident_report_id,
                 'eligibility_reason' => $case->eligibility_reason,
+                'bailiff_user_id' => $case->bailiff_user_id,
+                'lawyer_user_id' => $case->lawyer_user_id,
             ],
             $request
         );
