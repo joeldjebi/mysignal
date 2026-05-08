@@ -13,9 +13,12 @@ trait InteractsWithScopedSaAdminManagement
 {
     protected function authorizeScopedManagement(User $user, string $permissionCode): void
     {
+        if ($user->status === 'active' && $user->is_super_admin) {
+            return;
+        }
+
         abort_unless(
             $user->status === 'active'
-                && ! $user->is_super_admin
                 && $user->hasEffectivePermissionCode($permissionCode),
             Response::HTTP_FORBIDDEN
         );
@@ -23,9 +26,15 @@ trait InteractsWithScopedSaAdminManagement
 
     protected function scopedRoleQuery(User $user): Builder
     {
-        return Role::query()
+        $query = Role::query()
             ->whereNull('organization_id')
-            ->where('created_by', $user->id);
+            ->whereNotNull('created_by');
+
+        if (! $user->is_super_admin) {
+            $query->where('created_by', $user->id);
+        }
+
+        return $query;
     }
 
     protected function assignablePermissions(User $user): Collection
@@ -38,9 +47,17 @@ trait InteractsWithScopedSaAdminManagement
             'SA_PERMISSIONS_MANAGE',
         ];
 
-        return Permission::query()
+        $query = Permission::query()
+            ->where('status', 'active');
+
+        if ($user->is_super_admin) {
+            return $query
+                ->orderBy('name')
+                ->get();
+        }
+
+        return $query
             ->whereIn('code', $user->effectivePermissionCodes()->diff($blockedCodes)->values()->all())
-            ->where('status', 'active')
             ->orderBy('name')
             ->get();
     }

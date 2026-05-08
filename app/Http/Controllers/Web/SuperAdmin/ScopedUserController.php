@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web\SuperAdmin;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Web\SuperAdmin\Concerns\InteractsWithScopedSaAdminManagement;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -22,11 +23,8 @@ class ScopedUserController extends Controller
         $this->authorizeScopedManagement($actor, 'SA_SCOPED_USERS_MANAGE');
 
         return view('super-admin.scoped-users.index', [
-            'users' => User::query()
+            'users' => $this->scopedUserQuery($actor)
                 ->with(['roles.permissions', 'permissions'])
-                ->whereNull('organization_id')
-                ->where('created_by', $actor->id)
-                ->where('is_super_admin', false)
                 ->latest()
                 ->paginate(12),
             'roles' => $this->scopedRoleQuery($actor)->where('status', 'active')->orderBy('name')->get(),
@@ -63,7 +61,7 @@ class ScopedUserController extends Controller
     {
         $actor = $request->user()->loadMissing(['roles.permissions', 'permissions']);
         $this->authorizeScopedManagement($actor, 'SA_SCOPED_USERS_MANAGE');
-        $this->abortIfUserIsNotOwnedBy($scopedUser, $actor->id);
+        $this->abortIfUserIsNotOwnedBy($scopedUser, $actor->id, $actor->is_super_admin);
 
         return view('super-admin.scoped-users.edit', [
             'managedUser' => $scopedUser->load(['roles', 'permissions']),
@@ -78,7 +76,7 @@ class ScopedUserController extends Controller
     {
         $actor = $request->user()->loadMissing(['roles.permissions', 'permissions']);
         $this->authorizeScopedManagement($actor, 'SA_SCOPED_USERS_MANAGE');
-        $this->abortIfUserIsNotOwnedBy($scopedUser, $actor->id);
+        $this->abortIfUserIsNotOwnedBy($scopedUser, $actor->id, $actor->is_super_admin);
         $attributes = $this->validatePayload($request, $scopedUser);
 
         DB::transaction(function () use ($attributes, $scopedUser, $actor): void {
@@ -104,7 +102,7 @@ class ScopedUserController extends Controller
     {
         $actor = $request->user()->loadMissing(['roles.permissions', 'permissions']);
         $this->authorizeScopedManagement($actor, 'SA_SCOPED_USERS_MANAGE');
-        $this->abortIfUserIsNotOwnedBy($scopedUser, $actor->id);
+        $this->abortIfUserIsNotOwnedBy($scopedUser, $actor->id, $actor->is_super_admin);
 
         $scopedUser->delete();
 
@@ -133,8 +131,28 @@ class ScopedUserController extends Controller
             ->all();
     }
 
-    private function abortIfUserIsNotOwnedBy(User $user, int $actorId): void
+    private function scopedUserQuery(User $actor): Builder
     {
-        abort_if($user->is_super_admin || $user->organization_id !== null || (int) $user->created_by !== $actorId, 404);
+        $query = User::query()
+            ->whereNull('organization_id')
+            ->where('is_super_admin', false)
+            ->whereNotNull('created_by');
+
+        if (! $actor->is_super_admin) {
+            $query->where('created_by', $actor->id);
+        }
+
+        return $query;
+    }
+
+    private function abortIfUserIsNotOwnedBy(User $user, int $actorId, bool $actorIsSuperAdmin = false): void
+    {
+        abort_if(
+            $user->is_super_admin
+                || $user->organization_id !== null
+                || $user->created_by === null
+                || (! $actorIsSuperAdmin && (int) $user->created_by !== $actorId),
+            404
+        );
     }
 }

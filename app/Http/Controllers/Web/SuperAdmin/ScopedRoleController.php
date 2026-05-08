@@ -52,7 +52,7 @@ class ScopedRoleController extends Controller
     {
         $user = $request->user()->loadMissing(['roles.permissions', 'permissions']);
         $this->authorizeScopedManagement($user, 'SA_SCOPED_ROLES_MANAGE');
-        $this->abortIfRoleIsNotOwnedBy($role, $user->id);
+        $this->abortIfRoleIsNotOwnedBy($role, $user->id, $user->is_super_admin);
 
         return view('super-admin.scoped-roles.edit', [
             'role' => $role->load('permissions'),
@@ -65,7 +65,7 @@ class ScopedRoleController extends Controller
     {
         $user = $request->user()->loadMissing(['roles.permissions', 'permissions']);
         $this->authorizeScopedManagement($user, 'SA_SCOPED_ROLES_MANAGE');
-        $this->abortIfRoleIsNotOwnedBy($role, $user->id);
+        $this->abortIfRoleIsNotOwnedBy($role, $user->id, $user->is_super_admin);
         $attributes = $this->validatePayload($request, $role);
 
         DB::transaction(function () use ($attributes, $role, $user): void {
@@ -85,7 +85,7 @@ class ScopedRoleController extends Controller
     {
         $user = $request->user()->loadMissing(['roles.permissions', 'permissions']);
         $this->authorizeScopedManagement($user, 'SA_SCOPED_ROLES_MANAGE');
-        $this->abortIfRoleIsNotOwnedBy($role, $user->id);
+        $this->abortIfRoleIsNotOwnedBy($role, $user->id, $user->is_super_admin);
 
         $role->delete();
 
@@ -103,8 +103,13 @@ class ScopedRoleController extends Controller
         ]);
     }
 
-    private function abortIfRoleIsNotOwnedBy(Role $role, int $userId): void
+    private function abortIfRoleIsNotOwnedBy(Role $role, int $userId, bool $userIsSuperAdmin = false): void
     {
-        abort_if($role->organization_id !== null || (int) $role->created_by !== $userId, 404);
+        abort_if(
+            $role->organization_id !== null
+                || $role->created_by === null
+                || (! $userIsSuperAdmin && (int) $role->created_by !== $userId),
+            404
+        );
     }
 }
