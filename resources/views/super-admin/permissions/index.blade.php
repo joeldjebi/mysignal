@@ -5,13 +5,18 @@
 @section('page-description', 'Gerer les permissions disponibles pour les futurs roles et profils.')
 
 @section('header-badges')
+    @php($canManagePermissions = auth()->user()?->hasEffectivePermissionCode('SA_PERMISSIONS_MANAGE') ?? false)
     <span class="badge-soft">{{ $permissions->total() }} permissions</span>
-    <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#createPermissionModal">
-        Nouvelle permission
-    </button>
+    @if ($canManagePermissions)
+        <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#createPermissionModal">
+            Nouvelle permission
+        </button>
+    @endif
 @endsection
 
 @section('content')
+    @php($canManagePermissions = auth()->user()?->hasEffectivePermissionCode('SA_PERMISSIONS_MANAGE') ?? false)
+
     <section class="panel-card">
         <div class="fw-bold mb-3">Liste des permissions</div>
         <form method="GET" class="filter-bar">
@@ -77,17 +82,19 @@
                             <td><span class="status-chip">{{ $permission->status }}</span></td>
                             <td class="text-end">
                                 <div class="actions-wrap">
-                                    <a href="{{ route('super-admin.permissions.edit', $permission) }}" class="btn btn-sm btn-outline-dark">Modifier</a>
-                                    <form method="POST" action="{{ route('super-admin.permissions.toggle-status', $permission) }}">
-                                        @csrf
-                                        @method('PATCH')
-                                        <button class="btn btn-sm btn-outline-warning">{{ $permission->status === 'active' ? 'Desactiver' : 'Activer' }}</button>
-                                    </form>
-                                    <form method="POST" action="{{ route('super-admin.permissions.destroy', $permission) }}">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button class="btn btn-sm btn-outline-danger">Supprimer</button>
-                                    </form>
+                                    @if ($canManagePermissions)
+                                        <a href="{{ route('super-admin.permissions.edit', $permission) }}" class="btn btn-sm btn-outline-dark">Modifier</a>
+                                        <form method="POST" action="{{ route('super-admin.permissions.toggle-status', $permission) }}">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button class="btn btn-sm btn-outline-warning">{{ $permission->status === 'active' ? 'Desactiver' : 'Activer' }}</button>
+                                        </form>
+                                        <form method="POST" action="{{ route('super-admin.permissions.destroy', $permission) }}">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button class="btn btn-sm btn-outline-danger">Supprimer</button>
+                                        </form>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -103,6 +110,7 @@
         </div>
     </section>
 
+    @if ($canManagePermissions)
     <div class="modal fade" id="createPermissionModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg">
@@ -155,6 +163,7 @@
             </div>
         </div>
     </div>
+    @endif
 @endsection
 
 @section('scripts')

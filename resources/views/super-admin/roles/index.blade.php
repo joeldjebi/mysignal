@@ -7,9 +7,11 @@
 @section('header-badges')
     <span class="badge-soft">{{ $roles->total() }} roles</span>
     <span class="badge-soft">{{ $permissions->count() }} permissions</span>
-    <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#createRoleModal">
-        Nouveau role
-    </button>
+    @if (auth()->user()?->hasEffectivePermissionCode('SA_ROLES_MANAGE'))
+        <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#createRoleModal">
+            Nouveau role
+        </button>
+    @endif
 @endsection
 
 @section('content')
@@ -91,17 +93,19 @@
                             <td class="text-end">
                                 <div class="actions-wrap">
                                     <a href="{{ route('super-admin.roles.show', $role) }}" class="btn btn-sm btn-outline-secondary">Details</a>
-                                    <a href="{{ route('super-admin.roles.edit', $role) }}" class="btn btn-sm btn-outline-dark">Modifier</a>
-                                    <form method="POST" action="{{ route('super-admin.roles.toggle-status', $role) }}">
-                                        @csrf
-                                        @method('PATCH')
-                                        <button class="btn btn-sm btn-outline-warning">{{ $role->status === 'active' ? 'Desactiver' : 'Activer' }}</button>
-                                    </form>
-                                    <form method="POST" action="{{ route('super-admin.roles.destroy', $role) }}">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button class="btn btn-sm btn-outline-danger">Supprimer</button>
-                                    </form>
+                                    @if (auth()->user()?->hasEffectivePermissionCode('SA_ROLES_MANAGE'))
+                                        <a href="{{ route('super-admin.roles.edit', $role) }}" class="btn btn-sm btn-outline-dark">Modifier</a>
+                                        <form method="POST" action="{{ route('super-admin.roles.toggle-status', $role) }}">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button class="btn btn-sm btn-outline-warning">{{ $role->status === 'active' ? 'Desactiver' : 'Activer' }}</button>
+                                        </form>
+                                        <form method="POST" action="{{ route('super-admin.roles.destroy', $role) }}">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button class="btn btn-sm btn-outline-danger">Supprimer</button>
+                                        </form>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -117,6 +121,7 @@
         </div>
     </section>
 
+    @if (auth()->user()?->hasEffectivePermissionCode('SA_ROLES_MANAGE'))
     <div class="modal fade" id="createRoleModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content border-0 shadow-lg">
@@ -189,6 +194,7 @@
             </div>
         </div>
     </div>
+    @endif
 @endsection
 
 @section('scripts')

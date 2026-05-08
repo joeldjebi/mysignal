@@ -12,6 +12,7 @@
     <div class="row g-4">
         <div class="col-xl-4">
             <section class="panel-card sticky-form-card">
+                @if (auth()->user()?->hasEffectivePermissionCode('SA_COUNTRIES_CREATE') || auth()->user()?->hasEffectivePermissionCode('SA_COUNTRIES_MANAGE'))
                 <div class="fw-bold mb-3">Nouveau pays</div>
                 <form method="POST" action="{{ route('super-admin.countries.store') }}" class="vstack gap-3">
                     @csrf
@@ -36,6 +37,10 @@
                     </div>
                     <button type="submit" class="btn btn-dark">Creer</button>
                 </form>
+                @else
+                    <div class="fw-bold mb-2">Nouveau pays</div>
+                    <div class="text-secondary small">Lecture seule pour ce module.</div>
+                @endif
             </section>
         </div>
         <div class="col-xl-8">
@@ -86,17 +91,26 @@
                                     <td><span class="status-chip">{{ $country->status }}</span></td>
                                     <td class="text-end">
                                         <div class="actions-wrap">
-                                            <a href="{{ route('super-admin.countries.edit', $country) }}" class="btn btn-sm btn-outline-dark">Modifier</a>
-                                            <form method="POST" action="{{ route('super-admin.countries.toggle-status', $country) }}">
+                                            @if (auth()->user()?->hasEffectivePermissionCode('SA_COUNTRIES_UPDATE') || auth()->user()?->hasEffectivePermissionCode('SA_COUNTRIES_MANAGE'))
+                                                <a href="{{ route('super-admin.countries.edit', $country) }}" class="btn btn-sm btn-outline-dark">Modifier</a>
+                                            @endif
+                                            
+                                            @if (auth()->user()?->hasEffectivePermissionCode('SA_COUNTRIES_TOGGLE_STATUS') || auth()->user()?->hasEffectivePermissionCode('SA_COUNTRIES_MANAGE'))
+                                                <form method="POST" action="{{ route('super-admin.countries.toggle-status', $country) }}">
                                                 @csrf
                                                 @method('PATCH')
                                                 <button class="btn btn-sm {{ $country->status === 'active' ? 'btn-outline-warning' : 'btn-outline-success' }}">{{ $country->status === 'active' ? 'Desactiver' : 'Activer' }}</button>
                                             </form>
-                                            <form method="POST" action="{{ route('super-admin.countries.destroy', $country) }}">
+                                            @endif
+                                                                                        
+                                            @if (auth()->user()?->hasEffectivePermissionCode('SA_COUNTRIES_DELETE') || auth()->user()?->hasEffectivePermissionCode('SA_COUNTRIES_MANAGE'))
+                                                <form method="POST" action="{{ route('super-admin.countries.destroy', $country) }}">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button class="btn btn-sm btn-outline-danger">Supprimer</button>
                                             </form>
+                                            @endif
+                                            
                                         </div>
                                     </td>
                                 </tr>

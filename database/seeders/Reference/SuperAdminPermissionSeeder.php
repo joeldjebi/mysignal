@@ -45,11 +45,19 @@ class SuperAdminPermissionSeeder extends Seeder
             ['code' => 'SA_REX_FEEDBACKS_VIEW', 'name' => 'Voir REX UP', 'description' => 'Permet de consulter les retours d experience des usagers publics.'],
             ['code' => 'SA_REX_FEEDBACKS_MANAGE', 'name' => 'Parametrer REX UP', 'description' => 'Permet de parametrer le module de retours d experience.'],
             ['code' => 'SA_REPARATION_CASES_MANAGE', 'name' => 'Gerer dossiers contentieux', 'description' => 'Permet de gerer les dossiers contentieux et de reparation.'],
+            ['code' => 'BO_REPARATION_CASES_HUISSIER', 'name' => 'Traiter dossiers huissier', 'description' => 'Permet a un huissier de traiter ses dossiers de constat.'],
+            ['code' => 'BO_REPARATION_CASES_AODA', 'name' => 'Gerer dossiers AODA', 'description' => 'Permet a l admin ordre des avocats de consulter et attribuer les dossiers termines par huissier.'],
+            ['code' => 'BO_REPARATION_CASES_AVOCAT', 'name' => 'Traiter dossiers avocat', 'description' => 'Permet a un avocat de traiter ses dossiers judiciaires.'],
+            ['code' => 'SA_ROLES_VIEW', 'name' => 'Voir roles SA', 'description' => 'Permet de consulter les roles SA sans pouvoir les creer, modifier ou supprimer.'],
             ['code' => 'SA_ROLES_MANAGE', 'name' => 'Gerer roles SA', 'description' => 'Permet de gerer les roles.'],
+            ['code' => 'SA_PERMISSIONS_VIEW', 'name' => 'Voir permissions SA', 'description' => 'Permet de consulter les permissions SA sans pouvoir les creer, modifier ou supprimer.'],
             ['code' => 'SA_PERMISSIONS_MANAGE', 'name' => 'Gerer permissions SA', 'description' => 'Permet de gerer les permissions.'],
+            ['code' => 'SA_SYSTEM_USERS_VIEW', 'name' => 'Voir utilisateurs internes', 'description' => 'Permet de consulter les utilisateurs internes du portail SA sans pouvoir les creer, modifier ou supprimer.'],
             ['code' => 'SA_SYSTEM_USERS_MANAGE', 'name' => 'Gerer utilisateurs internes', 'description' => 'Permet de gerer les utilisateurs internes du portail SA.'],
             ['code' => 'SA_SYSTEM_USERS_TOGGLE_STATUS', 'name' => 'Activer ou desactiver utilisateurs internes', 'description' => 'Permet d activer ou desactiver les utilisateurs internes du portail SA.'],
             ['code' => 'SA_INSTITUTION_ADMINS_TOGGLE_STATUS', 'name' => 'Activer ou desactiver admins institutionnels', 'description' => 'Permet d activer ou desactiver les comptes admins institutionnels.'],
+            ['code' => 'SA_SCOPED_ROLES_MANAGE', 'name' => 'Gerer ses roles SA', 'description' => 'Permet a un SA Admin de creer et gerer ses propres roles.'],
+            ['code' => 'SA_SCOPED_USERS_MANAGE', 'name' => 'Gerer ses utilisateurs SA', 'description' => 'Permet a un SA Admin de creer et gerer ses propres utilisateurs.'],
             ['code' => 'PARTNER_ACCESS_PORTAL', 'name' => 'Acceder au portail partenaire', 'description' => 'Permet a un utilisateur partenaire de se connecter aux APIs web et mobile du partenaire.'],
             ['code' => 'PARTNER_DASHBOARD_VIEW', 'name' => 'Voir dashboard partenaire', 'description' => 'Permet de consulter le dashboard web partenaire.'],
             ['code' => 'PARTNER_DISCOUNT_SCAN', 'name' => 'Scanner les cartes partenaire', 'description' => 'Permet de verifier une carte de reduction via l application mobile partenaire.'],
@@ -70,5 +78,61 @@ class SuperAdminPermissionSeeder extends Seeder
                 ]
             );
         }
+
+        foreach ($this->granularPermissions() as $permission) {
+            Permission::query()->updateOrCreate(
+                ['code' => $permission['code']],
+                [
+                    'name' => $permission['name'],
+                    'description' => $permission['description'],
+                    'profile_scope' => 'super_admin',
+                    'category' => $permission['category'],
+                    'status' => 'active',
+                ]
+            );
+        }
+    }
+
+    private function granularPermissions(): array
+    {
+        $modules = [
+            'SA_COUNTRIES' => ['Pays', 'catalog'],
+            'SA_CITIES' => ['Villes', 'catalog'],
+            'SA_COMMUNES' => ['Communes', 'catalog'],
+            'SA_BUSINESS_SECTORS' => ['Secteurs', 'catalog'],
+            'SA_ORGANIZATION_TYPES' => ['Types d organisation', 'catalog'],
+            'SA_FEATURES' => ['Fonctionnalites', 'catalog'],
+            'SA_APPLICATIONS' => ['Applications', 'catalog'],
+            'SA_SIGNAL_TYPES' => ['Types de signaux', 'reports'],
+            'SA_SLA_POLICIES' => ['TCM cibles', 'settings'],
+            'SA_SUBSCRIPTION_PLANS' => ['Plans abonnements UP', 'payments'],
+            'SA_PUBLIC_USER_TYPES' => ['Types d usagers publics', 'users'],
+            'SA_PUBLIC_USERS' => ['Usagers publics', 'users'],
+            'SA_ORGANIZATIONS' => ['Organisations', 'catalog'],
+            'SA_INSTITUTION_ADMINS' => ['Admins institutionnels', 'users'],
+        ];
+
+        $actions = [
+            'VIEW' => ['Voir', 'consulter'],
+            'CREATE' => ['Creer', 'creer'],
+            'UPDATE' => ['Modifier', 'modifier'],
+            'DELETE' => ['Supprimer', 'supprimer'],
+            'TOGGLE_STATUS' => ['Activer ou desactiver', 'activer ou desactiver'],
+        ];
+
+        $permissions = [];
+
+        foreach ($modules as $prefix => [$label, $category]) {
+            foreach ($actions as $action => [$nameAction, $descriptionAction]) {
+                $permissions[] = [
+                    'code' => $prefix.'_'.$action,
+                    'name' => $nameAction.' '.$label,
+                    'description' => 'Permet de '.$descriptionAction.' '.$label.'.',
+                    'category' => $category,
+                ];
+            }
+        }
+
+        return $permissions;
     }
 }

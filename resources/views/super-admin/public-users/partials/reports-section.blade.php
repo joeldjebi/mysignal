@@ -1,4 +1,11 @@
 <section class="panel-card mt-4">
+    @php
+        $activeLegalPortal = request()->attributes->get('super_admin_access')?->portal
+            ?: auth()->user()?->getRelationValue('activeAccess')?->portal;
+        $canOpenReparationCase = (auth()->user()?->hasEffectivePermissionCode('SA_REPARATION_CASES_MANAGE') ?? false)
+            && ! in_array($activeLegalPortal, ['huissier', 'aoda', 'avocat'], true);
+    @endphp
+
     <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
         <div>
             <div class="fw-bold mb-1">Signalements et pieces jointes</div>
@@ -118,7 +125,7 @@
                                     @endif
                                     @if ($report->reparationCase)
                                         <a href="{{ route('super-admin.reparation-cases.show', $report->reparationCase) }}" class="btn btn-sm btn-outline-dark">Voir le dossier</a>
-                                    @elseif ($isEligibleForReparationCase)
+                                    @elseif ($isEligibleForReparationCase && $canOpenReparationCase)
                                         <button class="btn btn-sm btn-dark" type="button" data-bs-toggle="modal" data-bs-target="#openReparationCaseModal-{{ $report->id }}">Ouvrir un dossier</button>
                                     @endif
                                 </div>
@@ -271,7 +278,7 @@
                 </div>
             @endif
 
-            @if (! $report->reparationCase && $isEligibleForReparationCase)
+            @if (! $report->reparationCase && $isEligibleForReparationCase && $canOpenReparationCase)
                 <div class="modal fade" id="openReparationCaseModal-{{ $report->id }}" tabindex="-1" aria-hidden="true">
                     <div class="modal-dialog modal-lg modal-dialog-centered">
                         <div class="modal-content border-0 shadow-lg">
@@ -314,16 +321,6 @@
                                                 @endforeach
                                             </select>
                                             <div class="form-text">Le huissier sélectionné recevra une notification dès l'ouverture.</div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label">Avocat</label>
-                                            <select class="form-select" name="lawyer_user_id">
-                                                <option value="">Aucun avocat à l'ouverture</option>
-                                                @foreach (($lawyerUsers ?? collect()) as $lawyerUser)
-                                                    <option value="{{ $lawyerUser->id }}">{{ $lawyerUser->name }}{{ $lawyerUser->email ? ' · '.$lawyerUser->email : '' }}</option>
-                                                @endforeach
-                                            </select>
-                                            <div class="form-text">L'avocat sélectionné recevra une notification dès l'ouverture.</div>
                                         </div>
                                     </div>
                                     <div class="small text-secondary mb-3">

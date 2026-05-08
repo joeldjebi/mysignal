@@ -5,12 +5,17 @@
 @section('page-description', 'Creer les comptes internes, puis leur attribuer des roles pour le pilotage des dossiers et operations.')
 
 @section('header-badges')
+    @php($canManageSystemUsers = auth()->user()?->hasEffectivePermissionCode('SA_SYSTEM_USERS_MANAGE') ?? false)
     <span class="badge-soft">{{ $systemUsers->total() }} utilisateurs</span>
     <span class="badge-soft">{{ $roles->count() }} roles actifs</span>
-    <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#createSystemUserModal">Nouvel utilisateur</button>
+    @if ($canManageSystemUsers)
+        <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#createSystemUserModal">Nouvel utilisateur</button>
+    @endif
 @endsection
 
 @section('content')
+    @php($canManageSystemUsers = auth()->user()?->hasEffectivePermissionCode('SA_SYSTEM_USERS_MANAGE') ?? false)
+
     <section class="panel-card">
         <div class="fw-bold mb-3">Liste des utilisateurs internes</div>
         <form method="GET" class="filter-bar">
@@ -69,19 +74,23 @@
                             <td class="text-end">
                                 <div class="actions-wrap">
                                     <a href="{{ route('super-admin.system-users.show', $systemUser) }}" class="btn btn-sm btn-outline-secondary">Details</a>
-                                    <a href="{{ route('super-admin.system-users.edit', $systemUser) }}" class="btn btn-sm btn-outline-dark">Modifier</a>
-                                    @if (auth()->user()?->hasPermissionCode('SA_SYSTEM_USERS_TOGGLE_STATUS'))
+                                    @if ($canManageSystemUsers)
+                                        <a href="{{ route('super-admin.system-users.edit', $systemUser) }}" class="btn btn-sm btn-outline-dark">Modifier</a>
+                                    @endif
+                                    @if ($canManageSystemUsers && auth()->user()?->hasEffectivePermissionCode('SA_SYSTEM_USERS_TOGGLE_STATUS'))
                                         <form method="POST" action="{{ route('super-admin.system-users.toggle-status', $systemUser) }}">
                                             @csrf
                                             @method('PATCH')
                                             <button class="btn btn-sm btn-outline-warning">{{ $systemUser->status === 'active' ? 'Desactiver' : 'Activer' }}</button>
                                         </form>
                                     @endif
-                                    <form method="POST" action="{{ route('super-admin.system-users.destroy', $systemUser) }}">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button class="btn btn-sm btn-outline-danger">Supprimer</button>
-                                    </form>
+                                    @if ($canManageSystemUsers)
+                                        <form method="POST" action="{{ route('super-admin.system-users.destroy', $systemUser) }}">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button class="btn btn-sm btn-outline-danger">Supprimer</button>
+                                        </form>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -97,6 +106,7 @@
         </div>
     </section>
 
+    @if ($canManageSystemUsers)
     <div class="modal fade" id="createSystemUserModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content border-0 shadow-lg">
@@ -181,6 +191,7 @@
             </div>
         </div>
     </div>
+    @endif
 @endsection
 
 @section('scripts')

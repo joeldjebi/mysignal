@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ config('app.name') }} | Page introuvable</title>
+    <title>{{ config('app.name') }} | Acces refuse</title>
     <style>
         :root {
             --ink: #0f172a;
             --muted: #64748b;
             --line: rgba(15, 23, 42, .1);
-            --panel: rgba(255, 255, 255, .88);
+            --panel: rgba(255, 255, 255, .9);
             --brand: #0f5b8d;
             --gold: #b88a2a;
-            --bg: #f6f8fb;
+            --bg: #f7f9fc;
         }
 
         * { box-sizing: border-box; }
@@ -23,8 +23,8 @@
             font-family: Inter, "Segoe UI", Arial, sans-serif;
             color: var(--ink);
             background:
-                linear-gradient(135deg, rgba(15, 91, 141, .12), transparent 34%),
-                linear-gradient(315deg, rgba(184, 138, 42, .14), transparent 30%),
+                linear-gradient(135deg, rgba(15, 91, 141, .14), transparent 34%),
+                linear-gradient(315deg, rgba(184, 138, 42, .16), transparent 30%),
                 var(--bg);
         }
 
@@ -51,9 +51,7 @@
             min-height: 420px;
             padding: 42px;
             color: white;
-            background:
-                linear-gradient(150deg, rgba(15, 23, 42, .96), rgba(15, 91, 141, .92)),
-                var(--brand);
+            background: linear-gradient(150deg, rgba(15, 23, 42, .96), rgba(15, 91, 141, .92));
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -153,14 +151,14 @@
             <div class="visual">
                 <div class="mark">MS</div>
                 <div>
-                    <div class="code">404</div>
-                    <div>Ressource indisponible</div>
+                    <div class="code">403</div>
+                    <div>Autorisation requise</div>
                 </div>
             </div>
             <div class="copy">
-                <div class="eyebrow">Page introuvable</div>
-                <h1>Cette page n est plus accessible.</h1>
-                <p>Le lien peut etre incorrect, la ressource peut avoir ete deplacee, ou votre session ne pointe plus vers un espace disponible.</p>
+                <div class="eyebrow">Acces refuse</div>
+                <h1>Vous n avez pas les droits pour cette action.</h1>
+                <p>Cette page ou cette operation est reservee a un profil disposant des permissions necessaires. Demandez au SA de mettre a jour le role si cet acces est attendu.</p>
                 <div class="actions">
                     <a class="btn btn-primary" href="{{ url()->previous() }}">Retour</a>
                     <a class="btn btn-secondary" href="{{ route('super-admin.dashboard') }}">Tableau de bord</a>

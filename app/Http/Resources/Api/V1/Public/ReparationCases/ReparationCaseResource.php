@@ -47,6 +47,15 @@ class ReparationCaseResource extends JsonResource
                     'status' => $step->status,
                     'summary' => $step->summary,
                     'assigned_to' => $step->assignedTo?->name,
+                    'attachments' => collect($step->meta['attachments'] ?? [])
+                        ->map(fn ($attachment) => [
+                            ...$attachment,
+                            'temporary_url' => filled($attachment['path'] ?? null)
+                                ? app(\App\Services\WasabiService::class)->temporaryUrl($attachment['path'])
+                                : null,
+                        ])
+                        ->values()
+                        ->all(),
                     'due_at' => $step->due_at?->toIso8601String(),
                     'completed_at' => $step->completed_at?->toIso8601String(),
                     'created_at' => $step->created_at?->toIso8601String(),

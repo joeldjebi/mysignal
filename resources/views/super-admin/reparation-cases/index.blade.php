@@ -1,8 +1,12 @@
 @extends('super-admin.layouts.app')
 
-@section('title', config('app.name').' | Dossiers contentieux')
-@section('page-title', 'Dossiers contentieux')
-@section('page-description', 'Suivi des dossiers ouverts manuellement contre les organisations pour constat, procedure et dedommagement.')
+@section('title', config('app.name').' | Dossiers contentieux ouverts')
+@section('page-title', 'Dossiers contentieux ouverts')
+@section('page-description', 'Suivi des dossiers ouverts contre les organisations pour constat, procedure et dedommagement.')
+
+@section('header-badges')
+    <span class="badge-soft">{{ $reparationCases->total() }} dossier{{ $reparationCases->total() > 1 ? 's' : '' }} ouvert{{ $reparationCases->total() > 1 ? 's' : '' }}</span>
+@endsection
 
 @section('content')
     <section class="panel-card">
@@ -16,7 +20,7 @@
                     <label class="form-label small text-secondary">Statut</label>
                     <select name="status" class="form-select">
                         <option value="">Tous</option>
-                        @foreach (['submitted' => 'Soumis', 'under_review' => 'En analyse', 'awaiting_documents' => 'Pieces requises', 'sent_to_organization' => 'Transmis', 'organization_responded' => 'Reponse recue', 'approved' => 'Valide', 'rejected' => 'Rejete', 'compensated' => 'Compense', 'closed' => 'Clos'] as $status => $label)
+                        @foreach (['submitted' => 'Soumis', 'under_review' => 'En analyse', 'awaiting_documents' => 'Pieces requises', 'sent_to_organization' => 'Transmis', 'organization_responded' => 'Reponse recue', 'awaiting_lawyer_assignment' => 'En attente AODA', 'lawyer_assigned' => 'Avocat attribue', 'judicial_in_progress' => 'Procedure judiciaire', 'approved' => 'Valide', 'rejected' => 'Rejete', 'compensated' => 'Compense', 'closed' => 'Clos'] as $status => $label)
                             <option value="{{ $status }}" @selected(request('status') === $status)>{{ $label }}</option>
                         @endforeach
                     </select>
@@ -27,6 +31,14 @@
                 </div>
             </div>
         </form>
+
+        <div class="table-toolbar">
+            <div>
+                <div class="fw-bold">Dossiers contentieux ouverts</div>
+                <div class="table-meta">Suivi, attribution huissier / avocat et etapes de procedure</div>
+            </div>
+            <div class="table-meta">{{ $reparationCases->total() }} resultat{{ $reparationCases->total() > 1 ? 's' : '' }}</div>
+        </div>
 
         <div class="table-responsive">
             <table class="table table-modern align-middle mb-0">

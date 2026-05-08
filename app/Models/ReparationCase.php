@@ -20,6 +20,7 @@ class ReparationCase extends Model
         'assigned_to_user_id',
         'bailiff_user_id',
         'lawyer_user_id',
+        'lawyer_assigned_by_user_id',
         'reference',
         'case_type',
         'priority',
@@ -31,6 +32,10 @@ class ReparationCase extends Model
         'damage_amount_validated',
         'resolution_notes',
         'opened_at',
+        'bailiff_started_at',
+        'bailiff_completed_at',
+        'lawyer_assigned_at',
+        'lawyer_completed_at',
         'closed_at',
         'closure_reason',
         'meta',
@@ -40,6 +45,10 @@ class ReparationCase extends Model
     {
         return [
             'opened_at' => 'datetime',
+            'bailiff_started_at' => 'datetime',
+            'bailiff_completed_at' => 'datetime',
+            'lawyer_assigned_at' => 'datetime',
+            'lawyer_completed_at' => 'datetime',
             'closed_at' => 'datetime',
             'meta' => 'array',
             'damage_amount_claimed' => 'decimal:2',
@@ -85,6 +94,11 @@ class ReparationCase extends Model
     public function lawyer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'lawyer_user_id');
+    }
+
+    public function lawyerAssignedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'lawyer_assigned_by_user_id');
     }
 
     public function histories(): HasMany

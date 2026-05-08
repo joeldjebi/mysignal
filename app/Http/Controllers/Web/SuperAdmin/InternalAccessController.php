@@ -103,7 +103,7 @@ class InternalAccessController extends Controller
         }
 
         return $access !== null
-            && in_array($access->portal, ['backoffice', 'huissier', 'avocat'], true)
+            && in_array($access->portal, ['backoffice', 'huissier', 'aoda', 'avocat'], true)
             && $user->hasEffectivePermissionCode('SA_ACCESS_PORTAL');
     }
 
@@ -114,6 +114,9 @@ class InternalAccessController extends Controller
         }
 
         foreach ([
+            'BO_REPARATION_CASES_HUISSIER' => 'backoffice.legal-cases.index',
+            'BO_REPARATION_CASES_AODA' => 'backoffice.legal-cases.index',
+            'BO_REPARATION_CASES_AVOCAT' => 'backoffice.legal-cases.index',
             'SA_DASHBOARD_VIEW' => 'super-admin.dashboard',
             'SA_LANDING_PAGE_MANAGE' => 'super-admin.landing-page.edit',
             'SA_SYSTEM_USERS_MANAGE' => 'super-admin.system-users.index',

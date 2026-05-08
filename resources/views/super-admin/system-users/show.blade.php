@@ -17,10 +17,12 @@
             'institution' => 'Institution',
             'partner' => 'Partenaire',
             'huissier' => 'Huissier',
+            'aoda' => 'Ordre des avocats',
             'avocat' => 'Avocat',
         ];
-        $portalOrganizationHelp = 'Institution et partenaire exigent une organisation. Backoffice, SA, huissier et avocat restent sans organisation.';
-        $filterableProfileScopes = collect($permissionProfileScopes)->only(['all', 'super_admin', 'backoffice', 'institution', 'partner', 'huissier', 'avocat']);
+        $portalOrganizationHelp = 'Institution et partenaire exigent une organisation. Backoffice, SA, huissier, AODA et avocat restent sans organisation.';
+        $filterableProfileScopes = collect($permissionProfileScopes)->only(['all', 'super_admin', 'backoffice', 'institution', 'partner', 'huissier', 'aoda', 'avocat']);
+        $canManageSystemUsers = auth()->user()?->hasEffectivePermissionCode('SA_SYSTEM_USERS_MANAGE') ?? false;
     @endphp
 
     <section class="panel-card mb-4">
@@ -32,10 +34,14 @@
             </div>
             <div class="d-flex gap-2 flex-wrap">
                 @if ($systemUser->organization_id === null)
-                    <a href="{{ route('super-admin.system-users.edit', $systemUser) }}" class="btn btn-dark">Modifier</a>
+                    @if ($canManageSystemUsers)
+                        <a href="{{ route('super-admin.system-users.edit', $systemUser) }}" class="btn btn-dark">Modifier</a>
+                    @endif
                     <a href="{{ route('super-admin.system-users.index') }}" class="btn btn-outline-secondary">Retour</a>
                 @else
-                    <a href="{{ route('super-admin.institution-admins.edit', $systemUser) }}" class="btn btn-dark">Modifier le compte</a>
+                    @if ($canManageSystemUsers)
+                        <a href="{{ route('super-admin.institution-admins.edit', $systemUser) }}" class="btn btn-dark">Modifier le compte</a>
+                    @endif
                     <a href="{{ route('super-admin.institution-admins.index') }}" class="btn btn-outline-secondary">Retour</a>
                 @endif
             </div>
@@ -344,10 +350,11 @@
             const compatibleProfiles = {
                 all: ['all'],
                 super_admin: ['all', 'super_admin', 'backoffice'],
-                backoffice: ['all', 'backoffice', 'huissier', 'avocat'],
+                backoffice: ['all', 'backoffice', 'huissier', 'aoda', 'avocat'],
                 institution: ['all', 'institution'],
                 partner: ['all', 'partner'],
                 huissier: ['all', 'huissier', 'backoffice'],
+                aoda: ['all', 'aoda', 'avocat', 'backoffice'],
                 avocat: ['all', 'avocat', 'backoffice'],
             };
 

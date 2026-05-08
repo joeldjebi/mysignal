@@ -103,6 +103,24 @@ class SubscriptionPlanController extends Controller
         return back()->with('success', 'Le statut du plan d abonnement a ete mis a jour.');
     }
 
+    public function destroy(Request $request, SubscriptionPlan $subscriptionPlan, ActivityLogger $activityLogger): RedirectResponse
+    {
+        $properties = $this->activityProperties($subscriptionPlan);
+
+        $subscriptionPlan->delete();
+
+        $activityLogger->log(
+            'subscription_plan.deleted',
+            'Suppression d un plan d abonnement UP.',
+            SubscriptionPlan::class,
+            $properties,
+            $request
+        );
+
+        return redirect()->route('super-admin.subscription-plans.index')
+            ->with('success', 'Le plan d abonnement a ete supprime.');
+    }
+
     private function validatedPayload(Request $request, ?SubscriptionPlan $subscriptionPlan = null): array
     {
         $attributes = $request->validate([

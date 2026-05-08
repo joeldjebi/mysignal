@@ -26,6 +26,7 @@ class Permission extends Model
         'institution' => 'Institution',
         'partner' => 'Partenaire / scanneur',
         'huissier' => 'Huissier',
+        'aoda' => 'Ordre des avocats',
         'avocat' => 'Avocat',
         'public' => 'UP',
     ];
@@ -53,6 +54,7 @@ class Permission extends Model
             str_starts_with($code, 'INSTITUTION_') => 'institution',
             str_starts_with($code, 'PARTNER_') => 'partner',
             str_contains($code, 'HUISSIER'), str_contains($code, 'BAILIFF') => 'huissier',
+            str_contains($code, 'AODA') => 'aoda',
             str_contains($code, 'AVOCAT'), str_contains($code, 'LAWYER') => 'avocat',
             str_starts_with($code, 'PUBLIC_'), str_starts_with($code, 'UP_') => 'public',
             default => 'backoffice',
@@ -83,8 +85,9 @@ class Permission extends Model
         return match ($profileScope) {
             'super_admin' => ['all', 'super_admin', 'backoffice'],
             'huissier' => ['all', 'huissier', 'backoffice'],
+            'aoda' => ['all', 'aoda', 'avocat', 'backoffice'],
             'avocat' => ['all', 'avocat', 'backoffice'],
-            'backoffice' => ['all', 'backoffice', 'huissier', 'avocat'],
+            'backoffice' => ['all', 'backoffice', 'huissier', 'aoda', 'avocat'],
             default => ['all', $profileScope],
         };
     }

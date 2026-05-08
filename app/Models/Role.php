@@ -17,6 +17,7 @@ class Role extends Model
         'name',
         'description',
         'status',
+        'created_by',
     ];
 
     public function organization(): BelongsTo

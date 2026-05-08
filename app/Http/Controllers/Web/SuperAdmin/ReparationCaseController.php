@@ -85,29 +85,63 @@ class ReparationCaseController extends Controller
         ]);
     }
 
+    public function pendingDamages(): View
+    {
+        $this->abortIfOperationalLegalPortal();
+
+        $query = IncidentReport::query()
+            ->with(['publicUser', 'organization', 'application', 'commune'])
+            ->whereNotNull('public_user_id')
+            ->whereDoesntHave('reparationCase')
+            ->where(function ($builder): void {
+                $builder->whereNotNull('damage_declared_at')
+                    ->orWhereNotNull('damage_summary')
+                    ->orWhereNotNull('damage_amount_estimated');
+            });
+
+        if (filled(request('search'))) {
+            $search = trim((string) request('search'));
+            $query->where(function ($builder) use ($search): void {
+                $builder->where('reference', 'like', '%'.$search.'%')
+                    ->orWhere('signal_label', 'like', '%'.$search.'%')
+                    ->orWhere('signal_code', 'like', '%'.$search.'%')
+                    ->orWhere('description', 'like', '%'.$search.'%')
+                    ->orWhereHas('publicUser', fn ($userQuery) => $userQuery
+                        ->where('first_name', 'like', '%'.$search.'%')
+                        ->orWhere('last_name', 'like', '%'.$search.'%')
+                        ->orWhere('phone', 'like', '%'.$search.'%'))
+                    ->orWhereHas('organization', fn ($organizationQuery) => $organizationQuery->where('name', 'like', '%'.$search.'%'));
+            });
+        }
+
+        if (filled(request('organization_id'))) {
+            $query->where('organization_id', request('organization_id'));
+        }
+
+        return view('super-admin.reparation-cases.pending-damages', [
+            'pendingDamageReports' => $query->latest()->paginate(15)->withQueryString(),
+            'bailiffUsers' => $this->resolveAssignableUsersByRole(['HUISSIER', 'BAILIFF']),
+            'lawyerUsers' => $this->resolveAssignableUsersByRole(['AVOCAT', 'LAWYER']),
+        ]);
+    }
+
     public function store(Request $request, ActivityLogger $activityLogger, IncidentReportNotificationService $notificationService): RedirectResponse
     {
+        $this->abortIfOperationalLegalPortal();
+
         $attributes = $request->validate([
             'incident_report_id' => ['required', 'integer', 'exists:incident_reports,id'],
             'opening_notes' => ['nullable', 'string', 'max:3000'],
             'case_type' => ['nullable', 'in:precontentieux,judiciaire'],
             'priority' => ['nullable', 'in:low,normal,high,critical'],
             'bailiff_user_id' => ['nullable', 'integer', 'exists:users,id'],
-            'lawyer_user_id' => ['nullable', 'integer', 'exists:users,id'],
         ]);
 
         $bailiffUsers = $this->resolveAssignableUsersByRole(['HUISSIER', 'BAILIFF']);
-        $lawyerUsers = $this->resolveAssignableUsersByRole(['AVOCAT', 'LAWYER']);
 
         if (filled($attributes['bailiff_user_id'] ?? null) && ! $bailiffUsers->contains('id', (int) $attributes['bailiff_user_id'])) {
             throw ValidationException::withMessages([
                 'bailiff_user_id' => ['Le huissier selectionne n est pas eligible pour recevoir ce dossier.'],
-            ]);
-        }
-
-        if (filled($attributes['lawyer_user_id'] ?? null) && ! $lawyerUsers->contains('id', (int) $attributes['lawyer_user_id'])) {
-            throw ValidationException::withMessages([
-                'lawyer_user_id' => ['L avocat selectionne n est pas eligible pour recevoir ce dossier.'],
             ]);
         }
 
@@ -136,7 +170,6 @@ class ReparationCaseController extends Controller
             'organization_id' => $report->organization_id,
             'opened_by_user_id' => $request->user()?->id,
             'bailiff_user_id' => $attributes['bailiff_user_id'] ?? null,
-            'lawyer_user_id' => $attributes['lawyer_user_id'] ?? null,
             'reference' => $this->generateReference(),
             'case_type' => $attributes['case_type'] ?? 'precontentieux',
             'priority' => $attributes['priority'] ?? 'normal',
@@ -199,33 +232,7 @@ class ReparationCaseController extends Controller
             );
 
             $notificationService->notifyBackofficeReparationCaseAssigned($case, $case->bailiff_user_id, 'huissier');
-        }
-
-        if ($case->lawyer_user_id) {
-            $lawyerLabel = 'Le dossier est attribue a l avocat '.$case->lawyer?->name.'.';
-
-            $this->recordHistory(
-                $case,
-                'lawyer_assigned_on_opening',
-                'Avocat attribue a l ouverture',
-                $lawyerLabel,
-                $request->user()?->id,
-                ['lawyer_user_id' => $case->lawyer_user_id]
-            );
-
-            $this->recordStep(
-                $case,
-                'attribue_avocat',
-                'Avocat attribue',
-                'completed',
-                $lawyerLabel,
-                $case->lawyer_user_id,
-                now(),
-                true,
-                $request->user()?->id
-            );
-
-            $notificationService->notifyBackofficeReparationCaseAssigned($case, $case->lawyer_user_id, 'avocat');
+            $notificationService->notifyPublicReparationCaseUpdated($case, 'Huissier attribue', $bailiffLabel, ['event' => 'bailiff_assigned']);
         }
 
         $activityLogger->log(
@@ -240,7 +247,6 @@ class ReparationCaseController extends Controller
                 'incident_report_id' => $case->incident_report_id,
                 'eligibility_reason' => $case->eligibility_reason,
                 'bailiff_user_id' => $case->bailiff_user_id,
-                'lawyer_user_id' => $case->lawyer_user_id,
             ],
             $request
         );
@@ -289,10 +295,9 @@ class ReparationCaseController extends Controller
         $attributes = $request->validate([
             'case_type' => ['required', 'in:precontentieux,judiciaire'],
             'priority' => ['required', 'in:low,normal,high,critical'],
-            'status' => ['required', 'in:submitted,under_review,awaiting_documents,sent_to_organization,organization_responded,approved,rejected,compensated,closed'],
+            'status' => ['required', 'in:submitted,under_review,awaiting_documents,sent_to_organization,organization_responded,awaiting_lawyer_assignment,lawyer_assigned,judicial_in_progress,approved,rejected,compensated,closed'],
             'assigned_to_user_id' => ['nullable', 'integer', 'exists:users,id'],
             'bailiff_user_id' => ['nullable', 'integer', 'exists:users,id'],
-            'lawyer_user_id' => ['nullable', 'integer', 'exists:users,id'],
             'damage_amount_validated' => ['nullable', 'numeric', 'min:0'],
             'resolution_notes' => ['nullable', 'string', 'max:5000'],
             'closure_reason' => ['nullable', 'string', 'max:3000'],
@@ -304,7 +309,6 @@ class ReparationCaseController extends Controller
         $originalStatus = $reparationCase->status;
         $originalAssignedToUserId = $reparationCase->assigned_to_user_id;
         $originalBailiffUserId = $reparationCase->bailiff_user_id;
-        $originalLawyerUserId = $reparationCase->lawyer_user_id;
         $originalValidatedAmount = $reparationCase->damage_amount_validated;
         $originalResolutionNotes = $reparationCase->resolution_notes;
         $originalClosureReason = $reparationCase->closure_reason;
@@ -316,7 +320,6 @@ class ReparationCaseController extends Controller
             'status' => $attributes['status'],
             'assigned_to_user_id' => $attributes['assigned_to_user_id'] ?? null,
             'bailiff_user_id' => $attributes['bailiff_user_id'] ?? null,
-            'lawyer_user_id' => $attributes['lawyer_user_id'] ?? null,
             'damage_amount_validated' => $attributes['damage_amount_validated'] ?? null,
             'resolution_notes' => $attributes['resolution_notes'] ?? null,
             'closure_reason' => $attributes['closure_reason'] ?? null,
@@ -412,39 +415,6 @@ class ReparationCaseController extends Controller
             $publicUpdateSummaries[] = $bailiffLabel;
         }
 
-        if ((string) $originalLawyerUserId !== (string) $reparationCase->lawyer_user_id) {
-            $lawyerLabel = $reparationCase->lawyer?->name
-                ? 'Le dossier est maintenant suivi par l avocat '.$reparationCase->lawyer->name.'.'
-                : 'Aucun avocat n est actuellement attribue au dossier.';
-
-            $this->recordHistory(
-                $reparationCase,
-                'lawyer_updated',
-                'Avocat mis a jour',
-                $lawyerLabel,
-                $request->user()?->id,
-                ['lawyer_user_id' => $reparationCase->lawyer_user_id]
-            );
-
-            if ($reparationCase->lawyer_user_id) {
-                $this->recordStep(
-                    $reparationCase,
-                    'attribue_avocat',
-                    'Avocat attribue',
-                    'completed',
-                    $lawyerLabel,
-                    $reparationCase->lawyer_user_id,
-                    now(),
-                    true,
-                    $request->user()?->id
-                );
-            }
-
-            $notificationService->notifyBackofficeReparationCaseAssigned($reparationCase, $reparationCase->lawyer_user_id, 'avocat');
-
-            $publicUpdateSummaries[] = $lawyerLabel;
-        }
-
         if ((string) $originalValidatedAmount !== (string) $reparationCase->damage_amount_validated && $reparationCase->damage_amount_validated !== null) {
             $this->recordHistory(
                 $reparationCase,
@@ -494,7 +464,6 @@ class ReparationCaseController extends Controller
                     'status' => $originalStatus,
                     'assigned_to_user_id' => $originalAssignedToUserId,
                     'bailiff_user_id' => $originalBailiffUserId,
-                    'lawyer_user_id' => $originalLawyerUserId,
                     'damage_amount_validated' => $originalValidatedAmount,
                     'resolution_notes' => $originalResolutionNotes,
                     'closure_reason' => $originalClosureReason,
@@ -505,7 +474,6 @@ class ReparationCaseController extends Controller
                     'status' => $reparationCase->status,
                     'assigned_to_user_id' => $reparationCase->assigned_to_user_id,
                     'bailiff_user_id' => $reparationCase->bailiff_user_id,
-                    'lawyer_user_id' => $reparationCase->lawyer_user_id,
                     'damage_amount_validated' => $reparationCase->damage_amount_validated,
                     'resolution_notes' => $reparationCase->resolution_notes,
                     'closure_reason' => $reparationCase->closure_reason,
@@ -698,6 +666,9 @@ class ReparationCaseController extends Controller
             'awaiting_documents' => 'Pieces requises',
             'sent_to_organization' => 'Transmis a l organisation',
             'organization_responded' => 'Reponse organisation',
+            'awaiting_lawyer_assignment' => 'En attente AODA',
+            'lawyer_assigned' => 'Avocat attribue',
+            'judicial_in_progress' => 'Procedure judiciaire',
             'approved' => 'Valide',
             'rejected' => 'Rejete',
             'compensated' => 'Compense',
@@ -752,5 +723,13 @@ class ReparationCaseController extends Controller
             ->where('is_super_admin', true)
             ->orderBy('name')
             ->get(['id', 'name', 'email']);
+    }
+
+    private function abortIfOperationalLegalPortal(): void
+    {
+        $portal = request()->attributes->get('super_admin_access')?->portal
+            ?: request()->user()?->getRelationValue('activeAccess')?->portal;
+
+        abort_if(in_array($portal, ['huissier', 'aoda', 'avocat'], true), 403);
     }
 }

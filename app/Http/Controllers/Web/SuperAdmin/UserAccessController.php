@@ -21,6 +21,7 @@ class UserAccessController extends Controller
         'institution',
         'partner',
         'huissier',
+        'aoda',
         'avocat',
     ];
 
@@ -164,7 +165,7 @@ class UserAccessController extends Controller
         $portal = (string) $attributes['portal'];
         $organizationId = $attributes['organization_id'] ?? null;
 
-        if (in_array($portal, ['backoffice', 'super_admin', 'huissier', 'avocat'], true) && filled($organizationId)) {
+        if (in_array($portal, ['backoffice', 'super_admin', 'huissier', 'aoda', 'avocat'], true) && filled($organizationId)) {
             throw ValidationException::withMessages([
                 'organization_id' => ['Ce profil ne doit pas etre rattache a une organisation.'],
             ]);

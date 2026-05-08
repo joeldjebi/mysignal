@@ -7,7 +7,7 @@ use App\Models\UserAccess;
 
 class SuperAdminAccessResolver
 {
-    public const INTERNAL_PORTALS = ['super_admin', 'backoffice', 'huissier', 'avocat'];
+    public const INTERNAL_PORTALS = ['super_admin', 'backoffice', 'huissier', 'aoda', 'avocat'];
 
     public function resolve(User $user): ?UserAccess
     {

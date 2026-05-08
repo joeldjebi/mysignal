@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class EnsureSuperAdminPermission
 {
-    public function handle(Request $request, Closure $next, string $permissionCode): Response
+    public function handle(Request $request, Closure $next, string $permissionCode, string ...$alternatePermissionCodes): Response
     {
         $user = $request->user()?->loadMissing(['permissions', 'roles.permissions']);
 
@@ -33,7 +33,9 @@ class EnsureSuperAdminPermission
 
         $permissionCodes = $user->effectivePermissionCodes();
 
-        if (! $permissionCodes->contains($permissionCode)) {
+        $allowedPermissionCodes = collect([$permissionCode, ...$alternatePermissionCodes]);
+
+        if ($allowedPermissionCodes->intersect($permissionCodes)->isEmpty()) {
             abort(Response::HTTP_FORBIDDEN);
         }
 

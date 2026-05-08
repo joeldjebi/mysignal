@@ -242,7 +242,7 @@ class IncidentReportNotificationService
                 'event' => 'assigned',
                 'assignment_role' => $assignmentLabel,
                 'assigned_user_id' => $user->id,
-                'url' => route('super-admin.reparation-cases.show', $case),
+                'url' => route('backoffice.legal-cases.show', $case),
             ]),
         );
     }
@@ -274,7 +274,7 @@ class IncidentReportNotificationService
                 'step_type' => $step->step_type,
                 'step_status' => $step->status,
                 'assigned_user_id' => $user->id,
-                'url' => route('super-admin.reparation-cases.show', $case),
+                'url' => route('backoffice.legal-cases.show', $case),
             ]),
         );
     }

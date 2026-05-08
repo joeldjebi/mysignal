@@ -242,6 +242,7 @@
         $internalPortalLabels = [
             'backoffice' => 'Backoffice',
             'huissier' => 'Huissier',
+            'aoda' => 'Ordre des avocats',
             'avocat' => 'Avocat',
         ];
         $isInternalPortalUser = $authUser && ! $authUser->is_super_admin;
@@ -268,6 +269,12 @@
 
             <div class="sidebar-menu">
                 <div class="sidebar-label">Pilotage</div>
+                @if ($layoutPermissionCodes->contains('BO_REPARATION_CASES_HUISSIER') || $layoutPermissionCodes->contains('BO_REPARATION_CASES_AODA') || $layoutPermissionCodes->contains('BO_REPARATION_CASES_AVOCAT'))
+                    <a href="{{ route('backoffice.legal-cases.index') }}" class="nav-pill {{ request()->routeIs('backoffice.legal-cases.*') ? 'active' : '' }}">
+                        <span class="nav-icon">CT</span>
+                        <span><span class="d-block fw-semibold">Dossiers contentieux</span><span class="small text-white-50">Traitement operationnel</span></span>
+                    </a>
+                @endif
                 @if ($canAccess('SA_DASHBOARD_VIEW'))
                     <a href="{{ route('super-admin.dashboard') }}" class="nav-pill {{ request()->routeIs('super-admin.dashboard') ? 'active' : '' }}">
                         <span class="nav-icon">DB</span>
@@ -282,25 +289,25 @@
                 @endif
 
                 <div class="sidebar-label">Geographie</div>
-                @if ($canAccess('SA_COUNTRIES_MANAGE'))
+                @if ($canAccess('SA_COUNTRIES_VIEW') || $canAccess('SA_COUNTRIES_MANAGE'))
                     <a href="{{ route('super-admin.countries.index') }}" class="nav-pill {{ request()->routeIs('super-admin.countries.*') ? 'active' : '' }}">
                         <span class="nav-icon">PY</span>
                         <span><span class="d-block fw-semibold">Pays</span><span class="small text-white-50">Referentiel pays</span></span>
                     </a>
                 @endif
-                @if ($canAccess('SA_CITIES_MANAGE'))
+                @if ($canAccess('SA_CITIES_VIEW') || $canAccess('SA_CITIES_MANAGE'))
                     <a href="{{ route('super-admin.cities.index') }}" class="nav-pill {{ request()->routeIs('super-admin.cities.*') ? 'active' : '' }}">
                         <span class="nav-icon">VL</span>
                         <span><span class="d-block fw-semibold">Villes</span><span class="small text-white-50">Referentiel villes</span></span>
                     </a>
                 @endif
-                @if ($canAccess('SA_COMMUNES_MANAGE'))
+                @if ($canAccess('SA_COMMUNES_VIEW') || $canAccess('SA_COMMUNES_MANAGE'))
                     <a href="{{ route('super-admin.communes.index') }}" class="nav-pill {{ request()->routeIs('super-admin.communes.*') ? 'active' : '' }}">
                         <span class="nav-icon">CM</span>
                         <span><span class="d-block fw-semibold">Communes</span><span class="small text-white-50">Referentiel communes</span></span>
                     </a>
                 @endif
-                @if ($canAccess('SA_BUSINESS_SECTORS_MANAGE'))
+                @if ($canAccess('SA_BUSINESS_SECTORS_VIEW') || $canAccess('SA_BUSINESS_SECTORS_MANAGE'))
                     <a href="{{ route('super-admin.business-sectors.index') }}" class="nav-pill {{ request()->routeIs('super-admin.business-sectors.*') ? 'active' : '' }}">
                         <span class="nav-icon">SC</span>
                         <span><span class="d-block fw-semibold">Secteurs</span><span class="small text-white-50">Secteurs d activite</span></span>
@@ -308,31 +315,31 @@
                 @endif
 
                 <div class="sidebar-label">Metier</div>
-                @if ($canAccess('SA_ORGANIZATION_TYPES_MANAGE'))
+                @if ($canAccess('SA_ORGANIZATION_TYPES_VIEW') || $canAccess('SA_ORGANIZATION_TYPES_MANAGE'))
                     <a href="{{ route('super-admin.client-types.index') }}" class="nav-pill {{ request()->routeIs('super-admin.client-types.*') ? 'active' : '' }}">
                         <span class="nav-icon">TC</span>
                         <span><span class="d-block fw-semibold">Types d'organisation</span><span class="small text-white-50">Classes d'institutions</span></span>
                     </a>
                 @endif
-                @if ($canAccess('SA_FEATURES_MANAGE'))
+                @if ($canAccess('SA_FEATURES_VIEW') || $canAccess('SA_FEATURES_MANAGE'))
                     <a href="{{ route('super-admin.features.index') }}" class="nav-pill {{ request()->routeIs('super-admin.features.*') ? 'active' : '' }}">
                         <span class="nav-icon">FN</span>
                         <span><span class="d-block fw-semibold">Fonctionnalites</span><span class="small text-white-50">Modules activables</span></span>
                     </a>
                 @endif
-                @if ($canAccess('SA_APPLICATIONS_MANAGE'))
+                @if ($canAccess('SA_APPLICATIONS_VIEW') || $canAccess('SA_APPLICATIONS_MANAGE'))
                     <a href="{{ route('super-admin.applications.index') }}" class="nav-pill {{ request()->routeIs('super-admin.applications.*') ? 'active' : '' }}">
                         <span class="nav-icon">AP</span>
                         <span><span class="d-block fw-semibold">Applications</span><span class="small text-white-50">MON NRJ, MON EAU, etc.</span></span>
                     </a>
                 @endif
-                @if ($canAccess('SA_SIGNAL_TYPES_MANAGE'))
+                @if ($canAccess('SA_SIGNAL_TYPES_VIEW') || $canAccess('SA_SIGNAL_TYPES_MANAGE'))
                     <a href="{{ route('super-admin.signal-types.index') }}" class="nav-pill {{ request()->routeIs('super-admin.signal-types.*') ? 'active' : '' }}">
                         <span class="nav-icon">SG</span>
                         <span><span class="d-block fw-semibold">Types de signaux</span><span class="small text-white-50">Catalogue public editable</span></span>
                     </a>
                 @endif
-                @if ($canAccess('SA_SLA_POLICIES_MANAGE'))
+                @if ($canAccess('SA_SLA_POLICIES_VIEW') || $canAccess('SA_SLA_POLICIES_MANAGE'))
                     <a href="{{ route('super-admin.sla-policies.index') }}" class="nav-pill {{ request()->routeIs('super-admin.sla-policies.*') ? 'active' : '' }}">
                         <span class="nav-icon">SL</span>
                         <span><span class="d-block fw-semibold">TCM cibles</span><span class="small text-white-50">Par type d'organisation</span></span>
@@ -344,7 +351,7 @@
                         <span><span class="d-block fw-semibold">Tarification</span><span class="small text-white-50">Montants et regles</span></span>
                     </a>
                 @endif
-                @if ($canAccess('SA_SUBSCRIPTION_PLANS_MANAGE'))
+                @if ($canAccess('SA_SUBSCRIPTION_PLANS_VIEW') || $canAccess('SA_SUBSCRIPTION_PLANS_MANAGE'))
                     <a href="{{ route('super-admin.subscription-plans.index') }}" class="nav-pill {{ request()->routeIs('super-admin.subscription-plans.*') ? 'active' : '' }}">
                         <span class="nav-icon">AB</span>
                         <span><span class="d-block fw-semibold">Plans abonnements</span><span class="small text-white-50">Abonnement annuel UP</span></span>
@@ -356,13 +363,13 @@
                         <span><span class="d-block fw-semibold">Abonnements UP</span><span class="small text-white-50">Historique et statuts</span></span>
                     </a>
                 @endif
-                @if ($canAccess('SA_PUBLIC_USER_TYPES_MANAGE'))
+                @if ($canAccess('SA_PUBLIC_USER_TYPES_VIEW') || $canAccess('SA_PUBLIC_USER_TYPES_MANAGE'))
                     <a href="{{ route('super-admin.public-user-types.index') }}" class="nav-pill {{ request()->routeIs('super-admin.public-user-types.*') ? 'active' : '' }}">
                         <span class="nav-icon">UP</span>
                         <span><span class="d-block fw-semibold">Types usagers publics</span><span class="small text-white-50">UP, UPE et futurs profils</span></span>
                     </a>
                 @endif
-                @if ($canAccess('SA_PUBLIC_USERS_MANAGE'))
+                @if ($canAccess('SA_PUBLIC_USERS_VIEW') || $canAccess('SA_PUBLIC_USERS_MANAGE'))
                     <a href="{{ route('super-admin.public-users.index') }}" class="nav-pill {{ request()->routeIs('super-admin.public-users.*') ? 'active' : '' }}">
                         <span class="nav-icon">PU</span>
                         <span><span class="d-block fw-semibold">Usagers publics</span><span class="small text-white-50">UP et UPE</span></span>
@@ -405,20 +412,24 @@
                     </a>
                 @endif
                 @if ($canAccess('SA_REPARATION_CASES_MANAGE'))
+                    <a href="{{ route('super-admin.reparation-damages.index') }}" class="nav-pill {{ request()->routeIs('super-admin.reparation-damages.*') ? 'active' : '' }}">
+                        <span class="nav-icon">DM</span>
+                        <span><span class="d-block fw-semibold">Dommages a ouvrir</span><span class="small text-white-50">Signalements a passer en contentieux</span></span>
+                    </a>
                     <a href="{{ route('super-admin.reparation-cases.index') }}" class="nav-pill {{ request()->routeIs('super-admin.reparation-cases.*') ? 'active' : '' }}">
-                        <span class="nav-icon">RP</span>
-                        <span><span class="d-block fw-semibold">Reparations</span><span class="small text-white-50">Dossiers ouverts contre organisations</span></span>
+                        <span class="nav-icon">DC</span>
+                        <span><span class="d-block fw-semibold">Dossiers contentieux</span><span class="small text-white-50">Dossiers ouverts contre organisations</span></span>
                     </a>
                 @endif
 
                 <div class="sidebar-label">Portails</div>
-                @if ($canAccess('SA_ORGANIZATIONS_MANAGE'))
+                @if ($canAccess('SA_ORGANIZATIONS_VIEW') || $canAccess('SA_ORGANIZATIONS_MANAGE'))
                     <a href="{{ route('super-admin.organizations.index') }}" class="nav-pill {{ request()->routeIs('super-admin.organizations.*') ? 'active' : '' }}">
                         <span class="nav-icon">OR</span>
                         <span><span class="d-block fw-semibold">Organisations</span><span class="small text-white-50">CIE, SODECI, autres</span></span>
                     </a>
                 @endif
-                @if ($canAccess('SA_INSTITUTION_ADMINS_MANAGE'))
+                @if ($canAccess('SA_INSTITUTION_ADMINS_VIEW') || $canAccess('SA_INSTITUTION_ADMINS_MANAGE'))
                     <a href="{{ route('super-admin.institution-admins.index') }}" class="nav-pill {{ request()->routeIs('super-admin.institution-admins.*') ? 'active' : '' }}">
                         <span class="nav-icon">AI</span>
                         <span><span class="d-block fw-semibold">Admins institutionnels</span><span class="small text-white-50">Admins racine des portails</span></span>
@@ -426,19 +437,31 @@
                 @endif
 
                 <div class="sidebar-label">Acces</div>
-                @if ($canAccess('SA_SYSTEM_USERS_MANAGE'))
+                @if ($canAccess('SA_SCOPED_USERS_MANAGE'))
+                    <a href="{{ route('super-admin.scoped-users.index') }}" class="nav-pill {{ request()->routeIs('super-admin.scoped-users.*') ? 'active' : '' }}">
+                        <span class="nav-icon">MU</span>
+                        <span><span class="d-block fw-semibold">Mes utilisateurs</span><span class="small text-white-50">Comptes crees par vous</span></span>
+                    </a>
+                @endif
+                @if ($canAccess('SA_SCOPED_ROLES_MANAGE'))
+                    <a href="{{ route('super-admin.scoped-roles.index') }}" class="nav-pill {{ request()->routeIs('super-admin.scoped-roles.*') ? 'active' : '' }}">
+                        <span class="nav-icon">MR</span>
+                        <span><span class="d-block fw-semibold">Mes roles</span><span class="small text-white-50">Roles et droits delegues</span></span>
+                    </a>
+                @endif
+                @if ($canAccess('SA_SYSTEM_USERS_VIEW') || $canAccess('SA_SYSTEM_USERS_MANAGE'))
                     <a href="{{ route('super-admin.system-users.index') }}" class="nav-pill {{ request()->routeIs('super-admin.system-users.*') ? 'active' : '' }}">
                         <span class="nav-icon">US</span>
                         <span><span class="d-block fw-semibold">Utilisateurs internes</span><span class="small text-white-50">Huissiers, avocats et autres profils</span></span>
                     </a>
                 @endif
-                @if ($canAccess('SA_ROLES_MANAGE'))
+                @if ($canAccess('SA_ROLES_VIEW') || $canAccess('SA_ROLES_MANAGE'))
                     <a href="{{ route('super-admin.roles.index') }}" class="nav-pill {{ request()->routeIs('super-admin.roles.*') ? 'active' : '' }}">
                         <span class="nav-icon">RL</span>
                         <span><span class="d-block fw-semibold">Roles</span><span class="small text-white-50">Profils et droits groupés</span></span>
                     </a>
                 @endif
-                @if ($canAccess('SA_PERMISSIONS_MANAGE'))
+                @if ($canAccess('SA_PERMISSIONS_VIEW') || $canAccess('SA_PERMISSIONS_MANAGE'))
                     <a href="{{ route('super-admin.permissions.index') }}" class="nav-pill {{ request()->routeIs('super-admin.permissions.*') ? 'active' : '' }}">
                         <span class="nav-icon">PM</span>
                         <span><span class="d-block fw-semibold">Permissions</span><span class="small text-white-50">Droits unitaires</span></span>
@@ -630,6 +653,119 @@
             }
 
             void registerBackofficeWebPushToken();
+        })();
+    </script>
+    <script>
+        (() => {
+            const permissionCodes = new Set(@json($layoutPermissionCodes->values()));
+            const isSuperAdmin = @json((bool) ($authUser?->is_super_admin));
+
+            if (isSuperAdmin) {
+                return;
+            }
+
+            const modules = [
+                ['/sa/countries', 'SA_COUNTRIES'],
+                ['/sa/cities', 'SA_CITIES'],
+                ['/sa/communes', 'SA_COMMUNES'],
+                ['/sa/business-sectors', 'SA_BUSINESS_SECTORS'],
+                ['/sa/client-types', 'SA_ORGANIZATION_TYPES'],
+                ['/sa/features', 'SA_FEATURES'],
+                ['/sa/applications', 'SA_APPLICATIONS'],
+                ['/sa/signal-types', 'SA_SIGNAL_TYPES'],
+                ['/sa/sla-policies', 'SA_SLA_POLICIES'],
+                ['/sa/subscription-plans', 'SA_SUBSCRIPTION_PLANS'],
+                ['/sa/public-user-types', 'SA_PUBLIC_USER_TYPES'],
+                ['/sa/organizations', 'SA_ORGANIZATIONS'],
+                ['/sa/institution-admins', 'SA_INSTITUTION_ADMINS'],
+            ];
+
+            const hasAny = (...codes) => codes.some((code) => permissionCodes.has(code));
+            const normalizePath = (value) => {
+                try {
+                    return new URL(value, window.location.origin).pathname.replace(/\/+$/, '');
+                } catch (error) {
+                    return '';
+                }
+            };
+            const moduleForPath = (path) => modules.find(([prefix]) => path === prefix || path.startsWith(`${prefix}/`));
+            const removeModalAndTriggers = (modal) => {
+                if (!modal?.id) {
+                    return;
+                }
+
+                document.querySelectorAll(`[data-bs-target="#${modal.id}"], [href="#${modal.id}"]`).forEach((trigger) => trigger.remove());
+                modal.remove();
+            };
+            const removeElement = (element) => {
+                const modal = element.closest('.modal');
+
+                if (modal) {
+                    removeModalAndTriggers(modal);
+                    return;
+                }
+
+                const formCard = element.closest('.sticky-form-card');
+
+                if (formCard && element.tagName === 'FORM') {
+                    formCard.innerHTML = '<div class="fw-bold mb-2">Creation</div><div class="text-secondary small">Lecture seule pour ce module.</div>';
+                    return;
+                }
+
+                element.remove();
+            };
+            const methodOf = (form) => (form.querySelector('input[name="_method"]')?.value || form.method || 'GET').toUpperCase();
+            const actionForForm = (path, method) => {
+                if (path.endsWith('/toggle-status')) {
+                    return 'TOGGLE_STATUS';
+                }
+
+                if (method === 'DELETE') {
+                    return 'DELETE';
+                }
+
+                if (method === 'PUT' || method === 'PATCH') {
+                    return 'UPDATE';
+                }
+
+                if (method === 'POST') {
+                    return 'CREATE';
+                }
+
+                return null;
+            };
+
+            document.querySelectorAll('a[href]').forEach((link) => {
+                const path = normalizePath(link.href);
+                const moduleEntry = moduleForPath(path);
+
+                if (!moduleEntry) {
+                    return;
+                }
+
+                const [, prefix] = moduleEntry;
+                const action = path.endsWith('/edit') ? 'UPDATE' : (path.endsWith('/create') ? 'CREATE' : null);
+
+                if (action && !hasAny(`${prefix}_${action}`, `${prefix}_MANAGE`)) {
+                    link.remove();
+                }
+            });
+
+            document.querySelectorAll('form[action]').forEach((form) => {
+                const path = normalizePath(form.action);
+                const moduleEntry = moduleForPath(path);
+
+                if (!moduleEntry) {
+                    return;
+                }
+
+                const [, prefix] = moduleEntry;
+                const action = actionForForm(path, methodOf(form));
+
+                if (action && !hasAny(`${prefix}_${action}`, `${prefix}_MANAGE`)) {
+                    removeElement(form);
+                }
+            });
         })();
     </script>
     @yield('scripts')

@@ -102,6 +102,22 @@
                                     <div class="meta-title">{{ $step->title }}</div>
                                     <div class="meta-subtitle">{{ $step->summary ?: '-' }}</div>
                                     <div class="meta-subtitle mt-1">Responsable: {{ $step->assignedTo?->name ?: '-' }}</div>
+                                    @if (! empty($step->meta['attachments'] ?? []))
+                                        <div class="d-flex flex-wrap gap-2 mt-3">
+                                            @foreach ($step->meta['attachments'] as $attachment)
+                                                @php
+                                                    $attachmentUrl = app(\App\Services\WasabiService::class)->temporaryUrl($attachment['path'] ?? null);
+                                                @endphp
+                                                @if ($attachmentUrl)
+                                                    <a href="{{ $attachmentUrl }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-dark">
+                                                        {{ $attachment['name'] ?? 'Piece jointe' }}
+                                                    </a>
+                                                @else
+                                                    <span class="badge text-bg-light border">{{ $attachment['name'] ?? 'Piece jointe' }}</span>
+                                                @endif
+                                            @endforeach
+                                        </div>
+                                    @endif
                                 </div>
                                 <div class="text-end">
                                     <span class="status-chip">{{ $stepStatusLabel($step->status) }}</span>

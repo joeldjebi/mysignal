@@ -10,6 +10,7 @@
 @endsection
 
 @section('content')
+    @php($canManageRoles = auth()->user()?->hasEffectivePermissionCode('SA_ROLES_MANAGE') ?? false)
     <div class="row g-4">
         <div class="col-lg-4">
             <section class="panel-card h-100">
@@ -33,7 +34,9 @@
                     </div>
                 </div>
                 <div class="d-flex gap-2 mt-4">
-                    <a href="{{ route('super-admin.roles.edit', $role) }}" class="btn btn-dark">Modifier</a>
+                    @if ($canManageRoles)
+                        <a href="{{ route('super-admin.roles.edit', $role) }}" class="btn btn-dark">Modifier</a>
+                    @endif
                     <a href="{{ route('super-admin.roles.index') }}" class="btn btn-outline-secondary">Retour</a>
                 </div>
             </section>

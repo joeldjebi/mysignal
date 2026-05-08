@@ -45,7 +45,12 @@ class SuperAdminRoleUsersSeeder extends Seeder
 
                 $user->roles()->sync([$role->id]);
 
-                if ($portalAccessPermission !== null) {
+                $roleAlreadyGrantsPortalAccess = $portalAccessPermission !== null
+                    && $role->permissions()
+                        ->where('permissions.id', $portalAccessPermission->id)
+                        ->exists();
+
+                if ($portalAccessPermission !== null && ! $roleAlreadyGrantsPortalAccess) {
                     $user->permissions()->syncWithoutDetaching([$portalAccessPermission->id]);
                 }
             });

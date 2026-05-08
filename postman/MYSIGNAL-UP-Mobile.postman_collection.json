@@ -960,7 +960,7 @@
       "name": "08 - Dossiers contentieux",
       "item": [
         {
-          "name": "List Reparation Cases",
+          "name": "List Reparation Cases / Mes dossiers",
           "event": [
             {
               "listen": "test",
@@ -969,7 +969,16 @@
                 "exec": [
                   "const json = pm.response.json();",
                   "const firstCase = json?.data?.reparation_cases?.[0] || json?.data?.cases?.[0];",
-                  "if (firstCase?.id) pm.environment.set('reparationCaseId', firstCase.id);"
+                  "if (firstCase?.id) pm.environment.set('reparationCaseId', firstCase.id);",
+                  "pm.test('La reponse contient les dossiers contentieux du UP', function () {",
+                  "  pm.expect(json?.data?.reparation_cases || []).to.be.an('array');",
+                  "});",
+                  "pm.test('Les pieces jointes des etapes exposent une temporary_url quand disponible', function () {",
+                  "  const cases = json?.data?.reparation_cases || [];",
+                  "  cases.flatMap((item) => item.steps || []).flatMap((step) => step.attachments || []).forEach((attachment) => {",
+                  "    if (attachment.path) pm.expect(attachment).to.have.property('temporary_url');",
+                  "  });",
+                  "});"
                 ]
               }
             }
@@ -978,7 +987,7 @@
             "method": "GET",
             "header": [{ "key": "Accept", "value": "application/json" }],
             "url": "{{baseUrl}}/v1/public/reparation-cases",
-            "description": "Liste les dossiers ouverts par le SA et visibles pour l usager public."
+            "description": "Liste les dossiers ouverts par le SA/SA_ADMIN et visibles pour l usager public. Cette route alimente le menu mobile Mes dossiers: afficher d abord la liste, puis ouvrir un ecran detail localement avec l objet reparation_case selectionne. Chaque dossier inclut: id, reference, status, case_type, priority, damage_summary, damage_amount_claimed, damage_amount_validated, opened_at, closed_at, bailiff, lawyer, incident_report, histories visibles par le UP, steps visibles par le UP. Les fichiers ajoutes par huissier/avocat sont dans steps[].attachments[] avec name, mime_type, size, path et temporary_url pour consultation Wasabi. Statuts possibles supplementaires: awaiting_lawyer_assignment, lawyer_assigned, judicial_in_progress. Il n existe pas encore de GET /v1/public/reparation-cases/{id}; le detail mobile doit utiliser l element selectionne dans cette liste."
           }
         }
       ]

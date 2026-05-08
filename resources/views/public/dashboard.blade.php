@@ -1949,6 +1949,23 @@
             </div>
         </div>
 
+        <div class="modal fade" id="reparationCaseDetailModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable modal-dialog-centered">
+                <div class="modal-content border-0" style="border-radius: 28px; overflow: hidden;">
+                    <div class="modal-header px-4 py-3 border-0" style="background: var(--acepen-navy); color: white;">
+                        <div>
+                            <div class="small text-white-50 fw-semibold mb-1">Détail du dossier</div>
+                            <div class="h5 fw-bold mb-0" id="reparationCaseDetailTitle">Dossier</div>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <div id="reparationCaseDetailContent"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="modal fade" id="damageDeclarationModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
                 <div class="modal-content border-0" style="border-radius: 28px; overflow: hidden;">
@@ -2279,6 +2296,7 @@
                 const meterFormWrapElement = document.getElementById('meterFormWrap');
                 const reportFormModal = reportFormModalElement ? bootstrap.Modal.getOrCreateInstance(reportFormModalElement) : null;
                 const reportDetailModal = document.getElementById('reportDetailModal') ? bootstrap.Modal.getOrCreateInstance(document.getElementById('reportDetailModal')) : null;
+                const reparationCaseDetailModal = document.getElementById('reparationCaseDetailModal') ? bootstrap.Modal.getOrCreateInstance(document.getElementById('reparationCaseDetailModal')) : null;
                 const damageDeclarationModalElement = document.getElementById('damageDeclarationModal');
                 const damageDeclarationModal = damageDeclarationModalElement ? bootstrap.Modal.getOrCreateInstance(damageDeclarationModalElement) : null;
                 const paymentReceiptPreviewModalElement = document.getElementById('paymentReceiptPreviewModal');
@@ -4315,6 +4333,9 @@
                         awaiting_documents: 'Pieces requises',
                         sent_to_organization: 'Transmis à l’organisation',
                         organization_responded: 'Réponse organisation',
+                        awaiting_lawyer_assignment: 'En attente avocat',
+                        lawyer_assigned: 'Avocat attribué',
+                        judicial_in_progress: 'Procédure judiciaire',
                         approved: 'Valide',
                         rejected: 'Rejeté',
                         compensated: 'Compensé',
@@ -4331,6 +4352,9 @@
                         awaiting_documents: 'status-resolution-waiting',
                         sent_to_organization: 'status-report-in-progress',
                         organization_responded: 'status-report-in-progress',
+                        awaiting_lawyer_assignment: 'status-resolution-waiting',
+                        lawyer_assigned: 'status-report-in-progress',
+                        judicial_in_progress: 'status-report-in-progress',
                         approved: 'status-report-resolved',
                         compensated: 'status-report-resolved',
                         closed: 'status-report-resolved',
@@ -4350,39 +4374,144 @@
                     }
 
                     list.innerHTML = `
-                        <div class="vstack gap-3">
+                        <div class="table-responsive">
+                            <table class="table align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Dossier</th>
+                                        <th>Signalement</th>
+                                        <th>Organisation</th>
+                                        <th>Statut</th>
+                                        <th>Intervenants</th>
+                                        <th class="text-end">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
                             ${cases.map((repairCase) => `
-                                <div class="mini-card">
-                                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
-                                        <div>
+                                    <tr>
+                                        <td>
                                             <div class="fw-bold">${repairCase.reference}</div>
-                                            <div class="muted-label">${repairCase.incident_report?.reference || '-'} · ${repairCase.incident_report?.signal_label || repairCase.incident_report?.signal_code || 'Signalement'}</div>
-                                            <div class="muted-label">${repairCase.incident_report?.organization_name || 'Organisation non définie'} · ${repairCase.incident_report?.application_name || 'Application non définie'}</div>
-                                        </div>
-                                        <div class="text-end">
+                                            <div class="muted-label">${repairCase.opened_at ? `Ouvert le ${formatDateTime(repairCase.opened_at)}` : 'Date indisponible'}</div>
+                                        </td>
+                                        <td>
+                                            <div class="fw-semibold">${repairCase.incident_report?.reference || '-'}</div>
+                                            <div class="muted-label">${repairCase.incident_report?.signal_label || repairCase.incident_report?.signal_code || 'Signalement'}</div>
+                                        </td>
+                                        <td>
+                                            <div>${repairCase.incident_report?.organization_name || 'Organisation non définie'}</div>
+                                            <div class="muted-label">${repairCase.incident_report?.application_name || 'Application non définie'}</div>
+                                        </td>
+                                        <td>
                                             <span class="status-pill ${getReparationCaseStatusClass(repairCase.status)}">${getReparationCaseStatusLabel(repairCase.status)}</span>
-                                            <div class="muted-label mt-2">${repairCase.opened_at ? `Ouvert le ${formatDateTime(repairCase.opened_at)}` : 'Date indisponible'}</div>
-                                            ${renderRexActionButton('reparation_case', repairCase.id, repairCase.reference, 'Donner mon REX', canSubmitCaseRex(repairCase), 'mt-2')}
-                                        </div>
+                                        </td>
+                                        <td>
+                                            <div class="small"><strong>Huissier:</strong> ${repairCase.bailiff || '-'}</div>
+                                            <div class="small"><strong>Avocat:</strong> ${repairCase.lawyer || '-'}</div>
+                                        </td>
+                                        <td class="text-end">
+                                            <div class="d-flex justify-content-end gap-2 flex-wrap">
+                                                <button class="btn btn-ghost-premium btn-sm px-3" type="button" onclick="window.AcepenPortal.showReparationCaseDetails(${repairCase.id})">Détails</button>
+                                                ${renderRexActionButton('reparation_case', repairCase.id, repairCase.reference, 'REX', canSubmitCaseRex(repairCase), '')}
+                                            </div>
+                                        </td>
+                                    </tr>
+                            `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                }
+
+                function renderReparationCaseAttachments(attachments = []) {
+                    if (!attachments.length) {
+                        return '';
+                    }
+
+                    return `
+                        <div class="d-flex flex-wrap gap-2 mt-3">
+                            ${attachments.map((attachment) => `
+                                ${attachment.temporary_url
+                                    ? `<a href="${attachment.temporary_url}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost-premium btn-sm">${attachment.name || 'Pièce jointe'}</a>`
+                                    : `<span class="badge rounded-pill text-bg-light border">${attachment.name || 'Pièce jointe'}</span>`
+                                }
+                            `).join('')}
+                        </div>
+                    `;
+                }
+
+                function renderReparationCaseDetails(repairCase) {
+                    document.getElementById('reparationCaseDetailTitle').textContent = repairCase.reference || 'Dossier';
+
+                    const steps = repairCase.steps || [];
+                    const histories = repairCase.histories || [];
+
+                    document.getElementById('reparationCaseDetailContent').innerHTML = `
+                        <div class="row g-4">
+                            <div class="col-lg-4">
+                                <div class="mini-card h-100">
+                                    <div class="small text-secondary fw-semibold mb-2">Synthèse</div>
+                                    <div class="fw-bold fs-5 mb-2">${repairCase.reference}</div>
+                                    <div class="mb-3">
+                                        <span class="status-pill ${getReparationCaseStatusClass(repairCase.status)}">${getReparationCaseStatusLabel(repairCase.status)}</span>
                                     </div>
                                     <div class="soft-panel mb-3">
-                                        <div class="small text-secondary fw-semibold mb-1">Objet du dossier</div>
-                                        <div class="fw-bold mb-1">${repairCase.damage_summary || 'Aucun résumé de dommage renseigné.'}</div>
-                                        <div class="muted-label">
-                                            Montant réclamé: ${repairCase.damage_amount_claimed !== null ? formatMoney(repairCase.damage_amount_claimed) : 'Non renseigné'}
-                                            ${repairCase.damage_amount_validated !== null ? ` · Montant valide: ${formatMoney(repairCase.damage_amount_validated)}` : ''}
+                                        <div class="small text-secondary fw-semibold mb-1">Signalement source</div>
+                                        <div class="fw-semibold">${repairCase.incident_report?.reference || '-'}</div>
+                                        <div class="muted-label">${repairCase.incident_report?.signal_label || repairCase.incident_report?.signal_code || 'Signalement'}</div>
+                                    </div>
+                                    <div class="soft-panel mb-3">
+                                        <div class="small text-secondary fw-semibold mb-1">Organisation</div>
+                                        <div class="fw-semibold">${repairCase.incident_report?.organization_name || 'Organisation non définie'}</div>
+                                        <div class="muted-label">${repairCase.incident_report?.application_name || 'Application non définie'}</div>
+                                    </div>
+                                    <div class="soft-panel mb-3">
+                                        <div class="small text-secondary fw-semibold mb-1">Intervenants</div>
+                                        <div class="fw-semibold">Huissier: ${repairCase.bailiff || '-'}</div>
+                                        <div class="fw-semibold">Avocat: ${repairCase.lawyer || '-'}</div>
+                                    </div>
+                                    <div class="soft-panel">
+                                        <div class="small text-secondary fw-semibold mb-1">Dates</div>
+                                        <div class="fw-semibold">${repairCase.opened_at ? `Ouvert le ${formatDateTime(repairCase.opened_at)}` : 'Ouverture non renseignée'}</div>
+                                        <div class="muted-label">${repairCase.closed_at ? `Clos le ${formatDateTime(repairCase.closed_at)}` : 'Dossier non clos'}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-8">
+                                <div class="mini-card mb-4">
+                                    <div class="section-title mb-3" style="font-size: 1rem;">Objet du dossier</div>
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <div class="soft-panel h-100">
+                                                <div class="small text-secondary fw-semibold mb-1">Résumé du dommage</div>
+                                                <div class="fw-semibold">${repairCase.damage_summary || 'Aucun résumé de dommage renseigné.'}</div>
+                                            </div>
                                         </div>
-                                        <div class="muted-label mt-2">
-                                            Type: ${repairCase.case_type || '-'} · Priorité: ${repairCase.priority || '-'}
-                                            ${repairCase.bailiff ? ` · Huissier: ${repairCase.bailiff}` : ''}
-                                            ${repairCase.lawyer ? ` · Avocat: ${repairCase.lawyer}` : ''}
+                                        <div class="col-md-3">
+                                            <div class="soft-panel h-100">
+                                                <div class="small text-secondary fw-semibold mb-1">Montant réclamé</div>
+                                                <div class="fw-semibold">${repairCase.damage_amount_claimed !== null ? formatMoney(repairCase.damage_amount_claimed) : 'Non renseigné'}</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="soft-panel h-100">
+                                                <div class="small text-secondary fw-semibold mb-1">Montant validé</div>
+                                                <div class="fw-semibold">${repairCase.damage_amount_validated !== null ? formatMoney(repairCase.damage_amount_validated) : 'Non renseigné'}</div>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div>
-                                        <div class="section-title mb-3" style="font-size: 0.95rem;">Historique du dossier</div>
-                                        <div class="vstack gap-2">
-                                            ${(repairCase.steps || []).length
-                                                ? repairCase.steps.map((step) => `
+                                </div>
+
+                                <div class="row g-4">
+                                    <div class="col-xl-7">
+                                        <div class="mini-card h-100">
+                                            <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                                                <div>
+                                                    <div class="section-title" style="font-size: 1rem;">Étapes du dossier</div>
+                                                    <div class="muted-label">${steps.length} étape${steps.length > 1 ? 's' : ''}</div>
+                                                </div>
+                                            </div>
+                                            <div class="vstack gap-2" style="max-height: 520px; overflow:auto; padding-right:.25rem;">
+                                                ${steps.length ? steps.map((step) => `
                                                     <div class="soft-panel">
                                                         <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
                                                             <div>
@@ -4393,32 +4522,35 @@
                                                             <div class="text-end">
                                                                 <div class="small fw-semibold">${step.completed_at ? formatDateTime(step.completed_at) : (step.created_at ? formatDateTime(step.created_at) : '-')}</div>
                                                                 <div class="muted-label">${step.status || '-'}</div>
-                                                                <div class="muted-label">${step.due_at ? `Echeance ${formatDateTime(step.due_at)}` : ''}</div>
                                                             </div>
                                                         </div>
+                                                        ${renderReparationCaseAttachments(step.attachments || [])}
                                                     </div>
-                                                `).join('')
-                                                : (repairCase.histories || []).length
-                                                    ? repairCase.histories.map((history) => `
-                                                        <div class="soft-panel">
-                                                            <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
-                                                                <div>
-                                                                    <div class="fw-bold mb-1">${history.title}</div>
-                                                                    <div class="muted-label">${history.description || 'Aucun détail complémentaire fourni.'}</div>
-                                                                </div>
-                                                                <div class="text-end">
-                                                                    <div class="small fw-semibold">${history.created_at ? formatDateTime(history.created_at) : '-'}</div>
-                                                                    <div class="muted-label">${history.created_by || 'Systeme'}</div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    `).join('')
-                                                : '<div class="soft-panel"><div class="fw-bold mb-1">Aucun historique visible</div><div class="muted-label">Les prochaines étapes enregistrées apparaîtront ici.</div></div>'
-                                            }
+                                                `).join('') : '<div class="soft-panel"><div class="fw-bold mb-1">Aucune étape visible</div><div class="muted-label">Les prochaines étapes enregistrées apparaîtront ici.</div></div>'}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-xl-5">
+                                        <div class="mini-card h-100">
+                                            <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                                                <div>
+                                                    <div class="section-title" style="font-size: 1rem;">Historique</div>
+                                                    <div class="muted-label">${histories.length} entrée${histories.length > 1 ? 's' : ''}</div>
+                                                </div>
+                                            </div>
+                                            <div class="vstack gap-2" style="max-height: 520px; overflow:auto; padding-right:.25rem;">
+                                                ${histories.length ? histories.map((history) => `
+                                                    <div class="soft-panel">
+                                                        <div class="fw-bold mb-1">${history.title}</div>
+                                                        <div class="muted-label">${history.description || 'Aucun détail complémentaire fourni.'}</div>
+                                                        <div class="muted-label mt-2">${history.created_at ? formatDateTime(history.created_at) : '-'} · ${history.created_by || 'Système'}</div>
+                                                    </div>
+                                                `).join('') : '<div class="soft-panel"><div class="fw-bold mb-1">Aucun historique visible</div><div class="muted-label">Les mises à jour du dossier apparaîtront ici.</div></div>'}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            `).join('')}
+                            </div>
                         </div>
                     `;
                 }
@@ -5838,6 +5970,15 @@
 
                         renderReportDetails(report);
                         reportDetailModal?.show();
+                    },
+                    showReparationCaseDetails(caseId) {
+                        const repairCase = state.reparationCases.find((item) => item.id === caseId);
+                        if (!repairCase) {
+                            return;
+                        }
+
+                        renderReparationCaseDetails(repairCase);
+                        reparationCaseDetailModal?.show();
                     },
                     openRexForm(contextType, contextId, title) {
                         if (hasRexFeedback(contextType, contextId)) {
