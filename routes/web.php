@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Web\Public\PublicPortalController;
+use App\Http\Controllers\Web\Backoffice\DashboardController as BackofficeDashboardController;
 use App\Http\Controllers\Web\Backoffice\LegalCaseController as BackofficeLegalCaseController;
 use App\Http\Controllers\Web\Institution\AuthController as InstitutionAuthController;
 use App\Http\Controllers\Web\Institution\ActivityLogController as InstitutionActivityLogController;
@@ -521,11 +522,13 @@ Route::prefix('backoffice')->name('backoffice.')->group(function (): void {
 
     Route::middleware(['auth', 'super_admin_access'])->group(function (): void {
         Route::get('home', InternalHomeController::class)->name('home');
+        Route::get('dashboard', BackofficeDashboardController::class)->name('dashboard');
         Route::get('legal-cases', [BackofficeLegalCaseController::class, 'index'])->name('legal-cases.index');
         Route::get('legal-cases/{reparationCase}', [BackofficeLegalCaseController::class, 'show'])->name('legal-cases.show');
         Route::post('legal-cases/{reparationCase}/bailiff-steps', [BackofficeLegalCaseController::class, 'storeBailiffStep'])->name('legal-cases.bailiff-steps.store');
         Route::patch('legal-cases/{reparationCase}/complete-bailiff', [BackofficeLegalCaseController::class, 'completeBailiff'])->name('legal-cases.complete-bailiff');
         Route::patch('legal-cases/{reparationCase}/assign-lawyer', [BackofficeLegalCaseController::class, 'assignLawyer'])->name('legal-cases.assign-lawyer');
+        Route::patch('legal-cases/{reparationCase}/conclude-aoda', [BackofficeLegalCaseController::class, 'concludeByAoda'])->name('legal-cases.conclude-aoda');
         Route::post('legal-cases/{reparationCase}/lawyer-steps', [BackofficeLegalCaseController::class, 'storeLawyerStep'])->name('legal-cases.lawyer-steps.store');
         Route::post('logout', [InternalAccessController::class, 'destroy'])->name('logout');
     });

@@ -114,9 +114,9 @@ class InternalAccessController extends Controller
         }
 
         foreach ([
-            'BO_REPARATION_CASES_HUISSIER' => 'backoffice.legal-cases.index',
-            'BO_REPARATION_CASES_AODA' => 'backoffice.legal-cases.index',
-            'BO_REPARATION_CASES_AVOCAT' => 'backoffice.legal-cases.index',
+            'BO_REPARATION_CASES_HUISSIER' => 'backoffice.dashboard',
+            'BO_REPARATION_CASES_AODA' => 'backoffice.dashboard',
+            'BO_REPARATION_CASES_AVOCAT' => 'backoffice.dashboard',
             'SA_DASHBOARD_VIEW' => 'super-admin.dashboard',
             'SA_LANDING_PAGE_MANAGE' => 'super-admin.landing-page.edit',
             'SA_SYSTEM_USERS_MANAGE' => 'super-admin.system-users.index',

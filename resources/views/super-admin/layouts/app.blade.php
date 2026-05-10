@@ -270,6 +270,10 @@
             <div class="sidebar-menu">
                 <div class="sidebar-label">Pilotage</div>
                 @if ($layoutPermissionCodes->contains('BO_REPARATION_CASES_HUISSIER') || $layoutPermissionCodes->contains('BO_REPARATION_CASES_AODA') || $layoutPermissionCodes->contains('BO_REPARATION_CASES_AVOCAT'))
+                    <a href="{{ route('backoffice.dashboard') }}" class="nav-pill {{ request()->routeIs('backoffice.dashboard') ? 'active' : '' }}">
+                        <span class="nav-icon">TB</span>
+                        <span><span class="d-block fw-semibold">Tableau de bord</span><span class="small text-white-50">Stats et rapports</span></span>
+                    </a>
                     <a href="{{ route('backoffice.legal-cases.index') }}" class="nav-pill {{ request()->routeIs('backoffice.legal-cases.*') ? 'active' : '' }}">
                         <span class="nav-icon">CT</span>
                         <span><span class="d-block fw-semibold">Dossiers contentieux</span><span class="small text-white-50">Traitement operationnel</span></span>

@@ -12,6 +12,9 @@
     @if ($case->lawyer_assigned_at)
         <span class="badge-soft">Avocat attribue</span>
     @endif
+    @if ($case->lawyer_completed_at)
+        <span class="badge-soft">Procedure avocat terminee</span>
+    @endif
 @endsection
 
 @push('styles')
@@ -74,7 +77,15 @@
                     <div class="case-kv-item">
                         <div class="small text-secondary">Avocat</div>
                         <div class="fw-semibold">{{ $case->lawyer?->name ?: 'Non attribue' }}</div>
-                        <div class="small text-secondary">{{ $case->lawyer_assigned_at ? 'Attribue le '.$case->lawyer_assigned_at?->format('d/m/Y H:i') : 'En attente AODA' }}</div>
+                        <div class="small text-secondary">
+                            @if ($case->lawyer_completed_at)
+                                Termine le {{ $case->lawyer_completed_at?->format('d/m/Y H:i') }}
+                            @elseif ($case->lawyer_assigned_at)
+                                Attribue le {{ $case->lawyer_assigned_at?->format('d/m/Y H:i') }}
+                            @else
+                                En attente AODA
+                            @endif
+                        </div>
                     </div>
                 </div>
             </section>
@@ -126,6 +137,7 @@
                 @endif
 
                 @if ($portal === 'aoda')
+                    @if (! $case->closed_at)
                 <section class="panel-card mb-4">
                     <div class="fw-bold mb-3">Attribution avocat</div>
                     <form method="POST" action="{{ route('backoffice.legal-cases.assign-lawyer', $case) }}" class="row g-3">
@@ -149,9 +161,36 @@
                         </div>
                     </form>
                 </section>
+                    @endif
+
+                    @if ($case->lawyer_completed_at && ! $case->closed_at)
+                    <section class="panel-card mb-4">
+                        <div class="fw-bold mb-3">Conclusion du dossier</div>
+                        <form method="POST" action="{{ route('backoffice.legal-cases.conclude-aoda', $case) }}" class="row g-3">
+                            @csrf
+                            @method('PATCH')
+                            <div class="col-md-5">
+                                <label class="form-label">Conclusion</label>
+                                <select class="form-select" name="status" required>
+                                    <option value="approved">Valide</option>
+                                    <option value="rejected">Rejete</option>
+                                    <option value="compensated">Compense</option>
+                                    <option value="closed">Clos</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Motif / synthese finale</label>
+                                <textarea class="form-control" name="closure_reason" rows="4" required></textarea>
+                            </div>
+                            <div class="col-12">
+                                <button class="btn btn-dark">Conclure et notifier la victime</button>
+                            </div>
+                        </form>
+                    </section>
+                    @endif
                 @endif
 
-                @if ($portal === 'avocat')
+                @if ($portal === 'avocat' && ! $case->lawyer_completed_at)
                 <section class="panel-card mb-4">
                     <div class="fw-bold mb-3">Ajouter une etape judiciaire</div>
                     <form method="POST" action="{{ route('backoffice.legal-cases.lawyer-steps.store', $case) }}" enctype="multipart/form-data" class="row g-3">
@@ -179,13 +218,18 @@
                         <div class="col-12">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" value="1" id="markCompleted" name="mark_completed">
-                                <label class="form-check-label" for="markCompleted">Cette etape cloture la procedure judiciaire</label>
+                                <label class="form-check-label" for="markCompleted">Cette etape termine ma procedure avocat</label>
                             </div>
                         </div>
                         <div class="col-12">
                             <button class="btn btn-dark">Enregistrer l etape</button>
                         </div>
                     </form>
+                </section>
+                @elseif ($portal === 'avocat')
+                <section class="panel-card mb-4">
+                    <div class="fw-bold mb-1">Procedure avocat terminee</div>
+                    <div class="text-secondary">Le dossier est en attente de conclusion par AODA.</div>
                 </section>
                 @endif
             </div>

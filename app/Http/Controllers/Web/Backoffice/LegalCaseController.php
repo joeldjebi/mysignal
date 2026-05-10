@@ -171,6 +171,12 @@ class LegalCaseController extends Controller
         $this->authorizePortal($request, 'aoda', 'BO_REPARATION_CASES_AODA');
         $this->authorizeCase($request, $reparationCase);
 
+        if ($reparationCase->closed_at !== null) {
+            throw ValidationException::withMessages([
+                'lawyer_user_id' => ['Ce dossier est deja conclu.'],
+            ]);
+        }
+
         if ($reparationCase->bailiff_completed_at === null) {
             throw ValidationException::withMessages([
                 'lawyer_user_id' => ['Le dossier doit etre termine par l huissier avant attribution a un avocat.'],
@@ -222,6 +228,12 @@ class LegalCaseController extends Controller
         $this->authorizePortal($request, 'avocat', 'BO_REPARATION_CASES_AVOCAT');
         $this->authorizeCase($request, $reparationCase);
 
+        if ($reparationCase->lawyer_completed_at !== null) {
+            throw ValidationException::withMessages([
+                'step_type' => ['La procedure avocat est deja terminee pour ce dossier.'],
+            ]);
+        }
+
         $attributes = $request->validate([
             'step_type' => ['required', 'in:'.implode(',', array_keys(self::LAWYER_STEP_TYPES))],
             'title' => ['required', 'string', 'max:180'],
@@ -237,9 +249,8 @@ class LegalCaseController extends Controller
         $payload = ['status' => 'judicial_in_progress'];
 
         if ($request->boolean('mark_completed')) {
-            $payload['status'] = 'closed';
+            $payload['status'] = 'judicial_in_progress';
             $payload['lawyer_completed_at'] = now();
-            $payload['closed_at'] = now();
         }
 
         $reparationCase->update($payload);
@@ -248,12 +259,62 @@ class LegalCaseController extends Controller
         $notificationService->notifyInstitutionReparationCaseStepAdded($reparationCase, $step);
 
         if ($request->boolean('mark_completed')) {
+            $this->recordHistory($reparationCase, 'lawyer_completed', 'Procedure avocat terminee', $attributes['summary'], $request->user()?->id, ['step_id' => $step->id]);
             $notificationService->notifyPublicReparationCaseUpdated($reparationCase, 'Procedure judiciaire terminee', 'La procedure judiciaire du dossier est terminee.', ['event' => 'lawyer_completed']);
         }
 
         $activityLogger->log('legal_case.lawyer_step_added', 'Ajout d une etape avocat.', $reparationCase, ['step_id' => $step->id], $request);
 
         return back()->with('success', 'L etape judiciaire a ete enregistree.');
+    }
+
+    public function concludeByAoda(
+        Request $request,
+        ReparationCase $reparationCase,
+        IncidentReportNotificationService $notificationService,
+        ActivityLogger $activityLogger
+    ): RedirectResponse {
+        $this->authorizePortal($request, 'aoda', 'BO_REPARATION_CASES_AODA');
+        $this->authorizeCase($request, $reparationCase);
+
+        if ($reparationCase->lawyer_completed_at === null) {
+            throw ValidationException::withMessages([
+                'status' => ['La procedure avocat doit etre terminee avant conclusion du dossier.'],
+            ]);
+        }
+
+        if ($reparationCase->closed_at !== null) {
+            throw ValidationException::withMessages([
+                'status' => ['Ce dossier est deja conclu.'],
+            ]);
+        }
+
+        $attributes = $request->validate([
+            'status' => ['required', 'in:approved,rejected,compensated,closed'],
+            'closure_reason' => ['required', 'string', 'max:3000'],
+        ]);
+
+        $reparationCase->update([
+            'status' => $attributes['status'],
+            'closure_reason' => $attributes['closure_reason'],
+            'closed_at' => now(),
+        ]);
+
+        $statusLabel = $this->conclusionStatusLabel($attributes['status']);
+        $summary = 'Conclusion AODA : '.$statusLabel.'. '.$attributes['closure_reason'];
+
+        $step = $this->recordStep($reparationCase, 'dossier_clos', 'Conclusion AODA', $summary, $request->user()?->id);
+        $this->recordHistory($reparationCase, 'aoda_concluded', 'Dossier conclu par AODA', $summary, $request->user()?->id, [
+            'status' => $attributes['status'],
+            'step_id' => $step->id,
+        ]);
+
+        $notificationService->notifyPublicReparationCaseUpdated($reparationCase, 'Dossier conclu', $summary, ['event' => 'aoda_concluded']);
+        $notificationService->notifyInstitutionReparationCaseUpdated($reparationCase, 'Dossier conclu', $summary, ['event' => 'aoda_concluded']);
+
+        $activityLogger->log('legal_case.aoda_concluded', 'Conclusion d un dossier par AODA.', $reparationCase, ['status' => $attributes['status']], $request);
+
+        return back()->with('success', 'Le dossier a ete conclu et la victime a ete notifiee.');
     }
 
     private function caseQueryForPortal(Request $request)
@@ -366,5 +427,16 @@ class LegalCaseController extends Controller
             'is_visible_to_public' => true,
             'meta' => $meta ?: null,
         ]);
+    }
+
+    private function conclusionStatusLabel(string $status): string
+    {
+        return match ($status) {
+            'approved' => 'valide',
+            'rejected' => 'rejete',
+            'compensated' => 'compense',
+            'closed' => 'clos',
+            default => $status,
+        };
     }
 }

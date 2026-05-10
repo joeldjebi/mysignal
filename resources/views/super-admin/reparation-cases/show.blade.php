@@ -116,13 +116,11 @@
                         </select>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">Assigner a</label>
-                        <select class="form-select" name="assigned_to_user_id">
-                            <option value="">Non assigne</option>
-                            @foreach ($assignableUsers as $assignableUser)
-                                <option value="{{ $assignableUser->id }}" @selected((string) old('assigned_to_user_id', $reparationCase->assigned_to_user_id) === (string) $assignableUser->id)>{{ $assignableUser->name }}{{ $assignableUser->email ? ' · '.$assignableUser->email : '' }}</option>
-                            @endforeach
-                        </select>
+                        @php
+                            $caseResponsible = $reparationCase->assignedTo ?? $reparationCase->openedBy ?? auth()->user();
+                        @endphp
+                        <label class="form-label">Responsable interne</label>
+                        <input type="text" class="form-control bg-light" value="{{ $caseResponsible?->name ? $caseResponsible->name.($caseResponsible->email ? ' · '.$caseResponsible->email : '') : 'Non assigne' }}" disabled>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Huissier</label>
