@@ -67,6 +67,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [PublicPortalController::class, 'landing'])->name('public.landing');
 Route::get('/qui-sommes-nous', [PublicPortalController::class, 'landingPage'])->defaults('pageKey', 'page_about')->name('public.pages.about');
 Route::get('/my-signal-tv', [PublicPortalController::class, 'landingPage'])->defaults('pageKey', 'page_tv')->name('public.pages.tv');
+Route::get('/signalements', [PublicPortalController::class, 'reports'])->name('public.reports');
 Route::get('/faq', [PublicPortalController::class, 'landingPage'])->defaults('pageKey', 'page_faq')->name('public.pages.faq');
 Route::get('/contactez-nous', [PublicPortalController::class, 'landingPage'])->defaults('pageKey', 'page_contact')->name('public.pages.contact');
 Route::post('/contactez-nous', [PublicPortalController::class, 'storeContact'])->name('public.pages.contact.store');

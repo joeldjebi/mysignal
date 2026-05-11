@@ -7,6 +7,7 @@ use App\Models\Application;
 use App\Models\ApplicationContentBlock;
 use App\Models\BusinessSector;
 use App\Models\ContactSubmission;
+use App\Models\IncidentReport;
 use App\Models\PublicUserType;
 use App\Models\Commune;
 use App\Models\LandingPageSection;
@@ -86,6 +87,42 @@ class PublicPortalController extends Controller
             'landingBlocks' => $landingBlocks,
             'pageKey' => $pageKey,
             'page' => $storedPage ?: $defaultPage,
+        ]);
+    }
+
+    public function reports()
+    {
+        $query = IncidentReport::query()
+            ->with(['application', 'organization', 'commune']);
+
+        if (filled(request('search'))) {
+            $search = trim((string) request('search'));
+
+            $query->where(function ($builder) use ($search): void {
+                $builder->where('reference', 'like', '%'.$search.'%')
+                    ->orWhere('signal_label', 'like', '%'.$search.'%')
+                    ->orWhere('signal_code', 'like', '%'.$search.'%')
+                    ->orWhere('incident_type', 'like', '%'.$search.'%')
+                    ->orWhere('status', 'like', '%'.$search.'%')
+                    ->orWhereHas('application', fn ($applicationQuery) => $applicationQuery->where('name', 'like', '%'.$search.'%'))
+                    ->orWhereHas('organization', fn ($organizationQuery) => $organizationQuery->where('name', 'like', '%'.$search.'%'))
+                    ->orWhereHas('commune', fn ($communeQuery) => $communeQuery->where('name', 'like', '%'.$search.'%'));
+            });
+        }
+
+        return view('public.reports', [
+            'reports' => $query->latest()
+                ->limit(30)
+                ->get(),
+            'landingBlocks' => ApplicationContentBlock::query()
+                ->whereNull('application_id')
+                ->where('page_key', 'public_landing')
+                ->where('status', 'active')
+                ->orderBy('sort_order')
+                ->get()
+                ->keyBy('block_key')
+                ->toBase()
+                ->merge($this->landingSections()),
         ]);
     }
 
