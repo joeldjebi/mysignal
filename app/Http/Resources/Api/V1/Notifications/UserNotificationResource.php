@@ -35,7 +35,7 @@ class UserNotificationResource extends JsonResource
     private function categoryLabel(): string
     {
         return match ($this->categoryKey()) {
-            'mysignal', 'super_admin' => 'Information MYSIGNAL',
+            'mysignal', 'super_admin' => 'Information My-Signal',
             'gbonhi', 'household' => 'Gbonhi',
             'report', 'reports' => 'Signalement',
             'payment', 'payments' => 'Paiement',

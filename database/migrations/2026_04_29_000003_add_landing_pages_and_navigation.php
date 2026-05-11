@@ -84,7 +84,7 @@ return new class extends Migration
             $navigationId = DB::table('landing_page_sections')->insertGetId([
                 'key' => 'navigation',
                 'label' => 'Menu principal',
-                'title' => 'MySignal',
+                'title' => 'My-Signal',
                 'subtitle' => 'Liens affiches dans le menu',
                 'body' => null,
                 'meta' => json_encode(['cta_label' => 'Se connecter et signaler maintenant']),

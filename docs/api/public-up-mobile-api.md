@@ -559,7 +559,7 @@ Reponse :
         "title": "Test",
         "body": "Message de notification",
         "category": "mysignal",
-        "category_label": "Information MYSIGNAL",
+        "category_label": "Information My-Signal",
         "data": {
           "screen": "dashboard",
           "source": "super_admin"
@@ -577,7 +577,7 @@ Reponse :
       },
       {
         "key": "mysignal",
-        "label": "Information MYSIGNAL"
+        "label": "Information My-Signal"
       }
     ],
     "filters": {

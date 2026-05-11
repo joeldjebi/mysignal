@@ -169,8 +169,8 @@
                         <section class="hero-panel">
                             <div class="position-relative" style="z-index:1">
                                 <a href="{{ route('public.landing') }}" class="d-inline-flex align-items-center gap-3 text-white text-decoration-none mb-5">
-                                    <img class="brand-logo" src="{{ asset('image/logo/logo-my-signal.png') }}" alt="MySignal">
-                                    <span class="fw-bold fs-4">MySignal</span>
+                                    <img class="brand-logo" src="{{ asset('image/logo/logo-my-signal.png') }}" alt="My-Signal">
+                                    <span class="fw-bold fs-4">My-Signal</span>
                                 </a>
                                 <div class="small text-white-50 fw-bold text-uppercase mb-3">Signalement consommateur</div>
                                 <h1 class="display-6 fw-bold mb-3">Connectez-vous pour signaler maintenant.</h1>

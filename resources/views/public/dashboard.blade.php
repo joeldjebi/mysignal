@@ -1274,7 +1274,7 @@
                             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
                                 <div>
                                     <div class="section-title">Mes notifications</div>
-                                    <div class="muted-label">Retrouvez les messages envoyés par MYSIGNAL et les alertes liées à votre compte.</div>
+                                    <div class="muted-label">Retrouvez les messages envoyés par My-Signal et les alertes liées à votre compte.</div>
                                 </div>
                                 <button class="btn btn-premium px-4" type="button" id="markAllNotificationsReadButton">Tout marquer comme lu</button>
                             </div>
@@ -3788,7 +3788,7 @@
                         <div class="member-wallet-card">
                             <div class="member-wallet-content">
                                 <div class="d-flex justify-content-between align-items-start gap-3">
-                                    <div class="member-wallet-brand">MySignal Wallet</div>
+                                    <div class="member-wallet-brand">My-Signal Wallet</div>
                                     <div class="member-wallet-brand">Reduction</div>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center gap-3">
@@ -4082,9 +4082,9 @@
                 function getNotificationCategoryLabel(notification) {
                     const category = getNotificationCategoryKey(notification);
                     const labels = {
-                        mysignal: 'Information MYSIGNAL',
-                        super_admin: 'Information MYSIGNAL',
-                        super_admin_broadcast: 'Information MYSIGNAL',
+                        mysignal: 'Information My-Signal',
+                        super_admin: 'Information My-Signal',
+                        super_admin_broadcast: 'Information My-Signal',
                         gbonhi: 'Gbonhi',
                         household: 'Gbonhi',
                         household_invitation_created: 'Gbonhi',
