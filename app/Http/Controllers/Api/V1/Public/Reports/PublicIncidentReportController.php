@@ -10,8 +10,8 @@ use App\Http\Requests\Api\V1\Public\Reports\StoreIncidentReportRequest;
 use App\Http\Resources\Api\V1\Public\Reports\IncidentReportDamageResource;
 use App\Http\Resources\Api\V1\Public\Reports\IncidentReportResource;
 use App\Models\IncidentReport;
-use App\Services\WasabiService;
 use App\Services\Notifications\IncidentReportNotificationService;
+use App\Services\WasabiService;
 use App\Support\Api\ApiResponse;
 use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\Request;
@@ -34,7 +34,11 @@ class PublicIncidentReportController extends Controller
 
     public function store(StoreIncidentReportRequest $request, CreateIncidentReportAction $action, ActivityLogger $activityLogger, IncidentReportNotificationService $notificationService)
     {
-        $report = $action->handle($request->user('public_api'), $request->validated());
+        $report = $action->handle(
+            $request->user('public_api'),
+            $request->validated(),
+            $request->file('signal_attachment')
+        );
         $report->load(['application', 'organization', 'meter.organization', 'country', 'city', 'commune', 'payments.pricingRule']);
 
         $activityLogger->log(

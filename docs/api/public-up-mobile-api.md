@@ -337,6 +337,15 @@ Creation d un foyer.
 
 Un UP peut creer plusieurs Gonhi. Chaque Gonhi cree rattache automatiquement son createur comme proprietaire de ce Gonhi.
 
+Body :
+```json
+{
+  "name": "Famille Doe"
+}
+```
+
+`commune` et `address` ne sont plus demandes a la creation d un Gonhi. La localisation utile est recuperee plus tard depuis l identifiant partage au moment de l invitation.
+
 #### GET `/v1/public/households/me`
 Retourne les Gonhi rattaches au compte courant.
 
@@ -359,10 +368,11 @@ Body :
 ```json
 {
   "phone": "0711111111",
-  "relationship": "conjoint",
   "meter_id": 1
 }
 ```
+
+`relationship` est optionnel. Si l app mobile ne l envoie pas, l API enregistre automatiquement `membre`.
 
 #### POST `/v1/public/households/invitations/accept`
 Accepte une invitation. Un compte UP peut etre rattache a plusieurs Gonhi.
@@ -380,23 +390,21 @@ Cree un signalement.
 
 Avant de creer un signalement, l app mobile doit appeler `GET /v1/public/signal-types`, filtrer les types de signaux compatibles avec le compteur selectionne, puis construire `signal_payload` a partir des `data_fields` du `signal_code` choisi.
 
+L app mobile ne doit plus envoyer `country_id`, `city_id`, `commune_id` ni `address` lors de la creation d un signalement. Le backend recupere automatiquement le pays, la ville, la commune et l adresse depuis l identifiant selectionne (`meter_id`). Si l identifiant ne contient pas de commune exploitable, l API retourne `422` sur `meter_id`.
+
 Compatibilite d un type de signal avec un compteur :
 - `application_id` du type de signal doit correspondre a l `application_id` du compteur
 - si le type de signal a un `organization_id`, il doit correspondre a l `organization_id` du compteur
 - si le type de signal a `organization_id: null`, il sert de type generique pour l application
 
-Body d exemple :
+Body JSON sans fichier :
 ```json
 {
   "meter_id": 1,
   "application_id": 1,
   "organization_id": 1,
-  "country_id": 1,
-  "city_id": 1,
-  "commune_id": 1,
   "signal_code": "NETWORK_OUTAGE",
   "description": "Coupure depuis 2 heures",
-  "address": "Rue 12",
   "occurred_at": "2026-04-10T12:00:00Z",
   "latitude": 5.348,
   "longitude": -4.001,
@@ -407,13 +415,31 @@ Body d exemple :
 }
 ```
 
+Body multipart avec photo ou video optionnelle :
+```text
+POST /api/v1/public/reports
+Accept: application/json
+Content-Type: multipart/form-data
+
+meter_id=1
+application_id=1
+organization_id=1
+signal_code=NETWORK_OUTAGE
+description=Coupure depuis 2 heures
+occurred_at=2026-04-10T12:00:00Z
+latitude=5.348
+longitude=-4.001
+location_source=gps
+signal_payload[service_category]=Internet
+signal_attachment=@preuve.jpg
+```
+
+`signal_attachment` est optionnel. Formats acceptes : images `jpeg`, `png`, `webp`, `gif`, `heic`, `heif` et videos `mp4`, `mov/quicktime`, `avi`, `mpeg`. Taille max : 50 Mo.
+
 Exemple avec champs dynamiques requis :
 ```json
 {
   "meter_id": 1,
-  "country_id": 1,
-  "city_id": 1,
-  "commune_id": 1,
   "signal_code": "EL-04",
   "description": "Compteur illisible",
   "signal_payload": {
@@ -432,6 +458,8 @@ Si un champ requis est absent, l API retourne une erreur `422` sur `signal_paylo
 
 Pour les images, `data_url` doit contenir une vraie chaine base64 complete, par exemple `data:image/jpeg;base64,/9j/...`. La valeur `data:image/jpeg;base64,...` dans les exemples est seulement un placeholder.
 
+La reponse `report` contient maintenant `signal_attachment` avec `name`, `mime_type`, `size`, `path` et `temporary_url` quand un fichier a ete envoye.
+
 #### GET `/v1/public/reports/{report}`
 Retourne le detail d un signalement.
 
@@ -441,19 +469,19 @@ Confirme la resolution d un signalement resolu.
 #### POST `/v1/public/reports/{report}/damages`
 Declare un dommage.
 
-Body d exemple :
-```json
-{
-  "damage_summary": "Materiel endommage",
-  "damage_amount_estimated": 25000,
-  "damage_notes": "Routeur grille",
-  "damage_attachment": {
-    "name": "preuve.jpg",
-    "mime_type": "image/jpeg",
-    "data_url": "data:image/jpeg;base64,..."
-  }
-}
+Body multipart :
+```text
+POST /api/v1/public/reports/{report}/damages
+Accept: application/json
+Content-Type: multipart/form-data
+
+damage_summary=Materiel endommage
+damage_amount_estimated=25000
+damage_notes=Routeur grille
+damage_attachment=@preuve.jpg
 ```
+
+`damage_attachment` est obligatoire. Formats acceptes : image `jpeg`, `png`, `webp`, `gif`, `heic`, `heif` ou PDF. Taille max : 10 Mo.
 
 ### Paiements
 

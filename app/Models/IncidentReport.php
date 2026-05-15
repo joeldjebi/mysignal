@@ -34,6 +34,7 @@ class IncidentReport extends Model
         'reference',
         'description',
         'signal_payload',
+        'signal_attachment',
         'target_sla_hours',
         'occurred_at',
         'status',
@@ -65,6 +66,7 @@ class IncidentReport extends Model
             'damage_declared_at' => 'datetime',
             'damage_resolved_at' => 'datetime',
             'signal_payload' => 'array',
+            'signal_attachment' => 'array',
             'damage_attachment' => 'array',
             'latitude' => 'decimal:7',
             'longitude' => 'decimal:7',
@@ -138,6 +140,11 @@ class IncidentReport extends Model
     public function resolvedDamageAttachment(): mixed
     {
         return $this->resolveStoredFilePayload($this->damage_attachment);
+    }
+
+    public function resolvedSignalAttachment(): mixed
+    {
+        return $this->resolveStoredFilePayload($this->signal_attachment);
     }
 
     private function resolveStoredFilePayload(mixed $value): mixed
