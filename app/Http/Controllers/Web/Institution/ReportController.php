@@ -8,9 +8,8 @@ use App\Http\Controllers\Web\Institution\Concerns\InteractsWithInstitutionContex
 use App\Models\Commune;
 use App\Models\IncidentReport;
 use App\Models\Meter;
-use App\Support\Audit\ActivityLogger;
 use App\Services\Notifications\IncidentReportNotificationService;
-use Carbon\Carbon;
+use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -114,6 +113,7 @@ class ReportController extends Controller
             'activeNav' => 'reports',
             'report' => $report,
             'resolvedSignalPayload' => $report->resolvedSignalPayload(),
+            'resolvedSignalAttachment' => $report->resolvedSignalAttachment(),
             'resolvedDamageAttachment' => $report->resolvedDamageAttachment(),
             'slaState' => $this->resolveSlaState($report),
         ]);

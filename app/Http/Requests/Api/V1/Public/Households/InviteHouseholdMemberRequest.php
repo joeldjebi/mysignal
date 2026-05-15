@@ -22,7 +22,7 @@ class InviteHouseholdMemberRequest extends FormRequest
                 Rule::exists('public_users', 'phone'),
                 'different:actor_phone',
             ],
-            'relationship' => ['required', 'string', 'max:50'],
+            'relationship' => ['nullable', 'string', 'max:50'],
             'meter_id' => ['nullable', 'integer', 'exists:meters,id'],
             'actor_phone' => ['nullable', 'string'],
         ];
@@ -32,6 +32,7 @@ class InviteHouseholdMemberRequest extends FormRequest
     {
         $this->merge([
             'actor_phone' => $this->user('public_api')?->phone,
+            'relationship' => filled($this->input('relationship')) ? $this->input('relationship') : 'membre',
         ]);
     }
 

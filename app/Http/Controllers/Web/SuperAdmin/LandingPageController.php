@@ -266,7 +266,7 @@ class LandingPageController extends Controller
             ],
             'navigation' => [
                 'label' => 'Menu principal',
-                'title' => 'MySignal',
+                'title' => 'My-Signal',
                 'subtitle' => 'Liens affiches dans le menu',
                 'body' => null,
                 'meta_defaults' => ['cta_label' => 'Se connecter et signaler maintenant'],
@@ -378,7 +378,7 @@ class LandingPageController extends Controller
                 'label' => 'Hero',
                 'title' => 'Signalez, suivez et faites valoir vos droits',
                 'subtitle' => 'Plateforme de protection consommateur',
-                'body' => 'MySignal accompagne les consommateurs et les Unites Partenaires dans le suivi des signalements, des abonnements, des REX et des dossiers traites.',
+                'body' => 'My-Signal accompagne les consommateurs et les Unites Partenaires dans le suivi des signalements, des abonnements, des REX et des dossiers traites.',
                 'meta_defaults' => ['primary_button' => 'Signalement maintenant', 'secondary_button' => 'Voir le parcours'],
                 'meta_fields' => [
                     'primary_button' => ['label' => 'Bouton principal', 'default' => 'Signalement maintenant'],
@@ -421,10 +421,10 @@ class LandingPageController extends Controller
                 'sort_order' => 30,
             ],
             'manage' => [
-                'label' => 'Pourquoi MySignal',
+                'label' => 'Pourquoi My-Signal',
                 'title' => 'Un parcours clair pour signaler et suivre un probleme',
-                'subtitle' => 'Pourquoi MySignal ?',
-                'body' => "MySignal transforme chaque signalement en dossier lisible: les faits sont collectes, transmis au bon interlocuteur, suivis jusqu'au traitement, puis enrichis par un retour d'experience.",
+                'subtitle' => 'Pourquoi My-Signal ?',
+                'body' => "My-Signal transforme chaque signalement en dossier lisible: les faits sont collectes, transmis au bon interlocuteur, suivis jusqu'au traitement, puis enrichis par un retour d'experience.",
                 'meta_defaults' => ['button' => 'Signaler maintenant'],
                 'meta_fields' => ['button' => ['label' => 'Bouton', 'default' => 'Signaler maintenant']],
                 'item_groups' => [
@@ -433,7 +433,7 @@ class LandingPageController extends Controller
                         'columns' => ['title' => 'Etape', 'body' => 'Description', 'icon' => 'Icone'],
                         'items' => [
                             ['title' => 'Decrire le probleme', 'body' => 'Le consommateur renseigne les faits, le lieu, les preuves et les informations utiles.', 'icon' => 'bi-pencil-square', 'is_active' => true],
-                            ['title' => 'Transmettre le signalement', 'body' => "MySignal structure la demande et l'oriente vers le bon circuit de traitement.", 'icon' => 'bi-send-check', 'is_active' => true],
+                            ['title' => 'Transmettre le signalement', 'body' => "My-Signal structure la demande et l'oriente vers le bon circuit de traitement.", 'icon' => 'bi-send-check', 'is_active' => true],
                             ['title' => "Suivre l'avancement", 'body' => 'Chaque changement de statut reste visible dans un espace clair et securise.', 'icon' => 'bi-activity', 'is_active' => true],
                             ['title' => 'Cloturer avec retour', 'body' => "Une fois le dossier traite, le consommateur peut partager son retour d'experience.", 'icon' => 'bi-chat-square-heart', 'is_active' => true],
                         ],
@@ -464,7 +464,7 @@ class LandingPageController extends Controller
             ],
             'access_banner' => [
                 'label' => 'Banniere acces',
-                'title' => 'Accedez a votre espace MySignal',
+                'title' => 'Accedez a votre espace My-Signal',
                 'subtitle' => 'Disponible en ligne',
                 'body' => 'Activez votre abonnement, suivez vos signalements et retrouvez votre carte membre depuis votre profil.',
                 'meta_defaults' => [],
@@ -485,8 +485,8 @@ class LandingPageController extends Controller
             ],
             'app_features' => [
                 'label' => 'Fonctionnalites',
-                'title' => 'Fonctionnalites MySignal',
-                'subtitle' => 'Ce que MySignal couvre',
+                'title' => 'Fonctionnalites My-Signal',
+                'subtitle' => 'Ce que My-Signal couvre',
                 'body' => 'Un parcours pense pour signaler, suivre, renouveler son abonnement et donner un retour apres resolution.',
                 'meta_defaults' => [],
                 'meta_fields' => [],
@@ -563,7 +563,7 @@ class LandingPageController extends Controller
             ],
             'faq' => [
                 'label' => 'FAQ',
-                'title' => 'Comprendre MySignal',
+                'title' => 'Comprendre My-Signal',
                 'subtitle' => 'Questions frequentes',
                 'body' => 'Les points essentiels sur l abonnement, le signalement, la carte membre et les REX.',
                 'meta_defaults' => [],
@@ -573,7 +573,7 @@ class LandingPageController extends Controller
                         'label' => 'Questions / reponses',
                         'columns' => ['title' => 'Question', 'body' => 'Reponse'],
                         'items' => [
-                            ['title' => 'Comment activer mon espace MySignal ?', 'body' => "Creez votre compte, connectez-vous, puis suivez l'invitation d'abonnement. L'activation vous donne acces aux fonctions liees a votre profil.", 'is_active' => true],
+                            ['title' => 'Comment activer mon espace My-Signal ?', 'body' => "Creez votre compte, connectez-vous, puis suivez l'invitation d'abonnement. L'activation vous donne acces aux fonctions liees a votre profil.", 'is_active' => true],
                             ['title' => 'Le renouvellement est-il automatique ?', 'body' => "Non. Le renouvellement est manuel. Une notification est envoyee avant l'expiration, avec une periode de grace d'un jour.", 'is_active' => true],
                             ['title' => "Quand puis-je faire un retour d'experience ?", 'body' => 'Le REX est propose apres la resolution d un dommage ou apres le traitement d un dossier ouvert, si le module est autorise.', 'is_active' => true],
                             ['title' => 'Qui peut obtenir la carte membre ?', 'body' => "Les membres eligibles avec un abonnement actif disposent d'une carte virtuelle visible dans leur profil, avec QR code.", 'is_active' => true],
@@ -608,7 +608,7 @@ class LandingPageController extends Controller
                 'label' => 'Appel a action',
                 'title' => 'Pret a suivre vos signalements autrement ?',
                 'subtitle' => null,
-                'body' => 'MySignal rassemble le signalement, le suivi, l abonnement annuel, la carte membre et les retours d experience dans un meme parcours.',
+                'body' => 'My-Signal rassemble le signalement, le suivi, l abonnement annuel, la carte membre et les retours d experience dans un meme parcours.',
                 'meta_defaults' => ['button' => 'Activer mon espace'],
                 'meta_fields' => ['button' => ['label' => 'Bouton', 'default' => 'Activer mon espace']],
                 'item_groups' => [],
@@ -618,7 +618,7 @@ class LandingPageController extends Controller
                 'label' => 'Domaines couverts',
                 'title' => 'Domaines couverts',
                 'subtitle' => null,
-                'body' => 'MySignal accompagne plusieurs univers de consommation et de services avec un parcours de signalement adapte a chaque situation.',
+                'body' => 'My-Signal accompagne plusieurs univers de consommation et de services avec un parcours de signalement adapte a chaque situation.',
                 'meta_defaults' => [],
                 'meta_fields' => [],
                 'item_groups' => [
@@ -642,7 +642,7 @@ class LandingPageController extends Controller
                 'label' => 'Partenaires',
                 'title' => 'Ils nous font confiance',
                 'subtitle' => 'Partenaires',
-                'body' => 'Des acteurs publics, prives et communautaires s appuient sur MySignal pour rendre le traitement des signalements plus lisible.',
+                'body' => 'Des acteurs publics, prives et communautaires s appuient sur My-Signal pour rendre le traitement des signalements plus lisible.',
                 'meta_defaults' => [],
                 'meta_fields' => [],
                 'item_groups' => [
@@ -668,22 +668,22 @@ class LandingPageController extends Controller
             ],
             'footer' => [
                 'label' => 'Footer',
-                'title' => 'MySignal',
+                'title' => 'My-Signal',
                 'subtitle' => 'Plateforme de protection consommateur',
                 'body' => "La plateforme qui facilite le signalement, le suivi des dossiers, l'abonnement annuel des UP et les retours d'experience.",
                 'meta_defaults' => [
-                    'column_1_title' => 'MySignal',
+                    'column_1_title' => 'My-Signal',
                     'column_2_title' => 'Modules',
                     'column_3_title' => 'Legal',
                     'newsletter_title' => 'Alertes',
-                    'newsletter_text' => 'Recevez les informations importantes sur les modules MySignal.',
+                    'newsletter_text' => 'Recevez les informations importantes sur les modules My-Signal.',
                 ],
                 'meta_fields' => [
-                    'column_1_title' => ['label' => 'Titre colonne 1', 'default' => 'MySignal'],
+                    'column_1_title' => ['label' => 'Titre colonne 1', 'default' => 'My-Signal'],
                     'column_2_title' => ['label' => 'Titre colonne 2', 'default' => 'Modules'],
                     'column_3_title' => ['label' => 'Titre colonne 3', 'default' => 'Legal'],
                     'newsletter_title' => ['label' => 'Titre newsletter', 'default' => 'Alertes'],
-                    'newsletter_text' => ['label' => 'Texte newsletter', 'default' => 'Recevez les informations importantes sur les modules MySignal.'],
+                    'newsletter_text' => ['label' => 'Texte newsletter', 'default' => 'Recevez les informations importantes sur les modules My-Signal.'],
                 ],
                 'item_groups' => [
                     'column_1_links' => [

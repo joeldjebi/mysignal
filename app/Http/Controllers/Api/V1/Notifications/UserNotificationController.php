@@ -165,7 +165,7 @@ class UserNotificationController extends Controller
     private function categoryLabel(UserNotification $notification): string
     {
         return match ($this->categoryKey($notification)) {
-            'mysignal', 'super_admin' => 'Information MYSIGNAL',
+            'mysignal', 'super_admin' => 'Information My-Signal',
             'gbonhi', 'household' => 'Gbonhi',
             'report', 'reports' => 'Signalement',
             'payment', 'payments' => 'Paiement',

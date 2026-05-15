@@ -1438,7 +1438,14 @@
     </button>
     <div class="collapse navbar-collapse" id="navMenu">
       <ul class="navbar-nav ms-auto align-items-center gap-1">
-        @foreach ($lines($blockBody('navigation', "Accueil | /\nQui sommes-nous ? | /qui-sommes-nous\nNos domaines | /#domains\nFonctionnalités | /#features\nMy-Signal TV | /my-signal-tv\nFAQ | /faq\nContactez-nous | /contactez-nous")) as $navLine)
+        @php
+          $navigationLines = $lines($blockBody('navigation', "Accueil | /\nQui sommes-nous ? | /qui-sommes-nous\nNos domaines | /#domains\nFonctionnalités | /#features\nMy-Signal TV | /my-signal-tv\nSignalements | /signalements\nFAQ | /faq\nContactez-nous | /contactez-nous"));
+
+          if (! collect($navigationLines)->contains(fn ($line) => str_contains(strtolower($line), '/signalements'))) {
+            $navigationLines[] = 'Signalements | /signalements';
+          }
+        @endphp
+        @foreach ($navigationLines as $navLine)
           @php
             [$navLabel, $navUrl] = $parts($navLine, 2);
           @endphp

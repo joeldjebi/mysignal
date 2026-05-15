@@ -18,7 +18,7 @@ class CreateHouseholdAction
             $household = Household::query()->create([
                 'owner_public_user_id' => $user->id,
                 'name' => $payload['name'] ?? null,
-                'commune' => $payload['commune'] ?? $user->commune,
+                'commune' => $payload['commune'] ?? null,
                 'address' => $payload['address'] ?? null,
                 'status' => HouseholdStatus::Active->value,
             ]);
