@@ -6,15 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Models\Application;
 use App\Models\ApplicationContentBlock;
 use App\Models\BusinessSector;
+use App\Models\Commune;
 use App\Models\ContactSubmission;
 use App\Models\IncidentReport;
-use App\Models\PublicUserType;
-use App\Models\Commune;
 use App\Models\LandingPageSection;
+use App\Models\Organization;
+use App\Models\PublicUserType;
 use App\Support\ApplicationCatalog;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class PublicPortalController extends Controller
@@ -59,7 +60,7 @@ class PublicPortalController extends Controller
         $definitions = $this->landingPageDefinitions();
 
         if (! array_key_exists($pageKey, $definitions)) {
-            throw new NotFoundHttpException();
+            throw new NotFoundHttpException;
         }
 
         $landingBlocks = ApplicationContentBlock::query()
@@ -75,7 +76,7 @@ class PublicPortalController extends Controller
         $storedPage = $landingBlocks->get($pageKey);
 
         if ($storedPage && $storedPage->status !== 'active') {
-            throw new NotFoundHttpException();
+            throw new NotFoundHttpException;
         }
 
         $defaultPage = (object) ($definitions[$pageKey] + [
@@ -92,8 +93,12 @@ class PublicPortalController extends Controller
 
     public function reports()
     {
-        $query = IncidentReport::query()
-            ->with(['application', 'organization', 'commune']);
+        $periodStart = now()->subDays(30);
+        $baseQuery = IncidentReport::query()
+            ->with(['application', 'organization', 'commune'])
+            ->where('created_at', '>=', $periodStart);
+
+        $query = clone $baseQuery;
 
         if (filled(request('search'))) {
             $search = trim((string) request('search'));
@@ -110,10 +115,55 @@ class PublicPortalController extends Controller
             });
         }
 
+        if (filled(request('status'))) {
+            $query->where('status', request('status'));
+        }
+
+        if (filled(request('application_id'))) {
+            $query->where('application_id', request('application_id'));
+        }
+
+        if (filled(request('organization_id'))) {
+            $query->where('organization_id', request('organization_id'));
+        }
+
+        if (filled(request('commune_id'))) {
+            $query->where('commune_id', request('commune_id'));
+        }
+
+        if (request('damage') === 'with') {
+            $query->whereNotNull('damage_declared_at');
+        }
+
+        if (request('damage') === 'without') {
+            $query->whereNull('damage_declared_at');
+        }
+
+        $filteredQuery = clone $query;
+        $stats = [
+            'total' => (clone $filteredQuery)->count(),
+            'resolved' => (clone $filteredQuery)->where('status', 'resolved')->count(),
+            'in_progress' => (clone $filteredQuery)->where('status', 'in_progress')->count(),
+            'damages' => (clone $filteredQuery)->whereNotNull('damage_declared_at')->count(),
+            'communes' => (clone $filteredQuery)->whereNotNull('commune_id')->distinct('commune_id')->count('commune_id'),
+            'period_start' => $periodStart,
+        ];
+
         return view('public.reports', [
-            'reports' => $query->latest()
-                ->limit(30)
-                ->get(),
+            'reports' => $query->latest()->paginate(15)->withQueryString(),
+            'stats' => $stats,
+            'applications' => Application::query()
+                ->whereIn('id', (clone $baseQuery)->whereNotNull('application_id')->distinct()->select('application_id'))
+                ->orderBy('name')
+                ->get(['id', 'name']),
+            'organizations' => Organization::query()
+                ->whereIn('id', (clone $baseQuery)->whereNotNull('organization_id')->distinct()->select('organization_id'))
+                ->orderBy('name')
+                ->get(['id', 'name']),
+            'communes' => Commune::query()
+                ->whereIn('id', (clone $baseQuery)->whereNotNull('commune_id')->distinct()->select('commune_id'))
+                ->orderBy('name')
+                ->get(['id', 'name']),
             'landingBlocks' => ApplicationContentBlock::query()
                 ->whereNull('application_id')
                 ->where('page_key', 'public_landing')
@@ -244,7 +294,7 @@ class PublicPortalController extends Controller
             'page_about' => [
                 'title' => 'Qui sommes-nous ?',
                 'subtitle' => 'My-Signal',
-                'body' => "<p>My-Signal accompagne les consommateurs, les unites partenaires et les institutions dans le signalement, le suivi et la resolution des difficultes liees aux services du quotidien.</p>",
+                'body' => '<p>My-Signal accompagne les consommateurs, les unites partenaires et les institutions dans le signalement, le suivi et la resolution des difficultes liees aux services du quotidien.</p>',
                 'meta' => ['icon' => 'bi-people-fill'],
             ],
             'page_tv' => [
@@ -256,7 +306,7 @@ class PublicPortalController extends Controller
             'page_faq' => [
                 'title' => 'FAQ',
                 'subtitle' => 'Questions frequentes',
-                'body' => "Les reponses aux questions les plus courantes sur le compte UP, les signalements, les notifications, les reductions et les espaces partenaires.",
+                'body' => 'Les reponses aux questions les plus courantes sur le compte UP, les signalements, les notifications, les reductions et les espaces partenaires.',
                 'meta' => ['icon' => 'bi-question-circle-fill'],
             ],
             'page_contact' => [
