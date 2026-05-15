@@ -8,11 +8,13 @@ use App\Models\Commune;
 use App\Models\Country;
 use App\Models\IncidentReport;
 use App\Models\PublicUser;
+use App\Services\WasabiService;
 use Database\Seeders\Reference\LocationReferenceSeeder;
 use Database\Seeders\Reference\PricingRuleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class PublicIncidentReportTest extends TestCase
 {
@@ -41,18 +43,13 @@ class PublicIncidentReportTest extends TestCase
             'network_type' => 'CIE',
             'meter_number' => 'CIE-40000',
             'label' => 'Appartement',
+            'commune' => 'Cocody',
+            'address' => 'Angre 8e tranche',
             'is_primary' => true,
         ])->json('data.meter.id');
 
-        $country = Country::query()->where('code', 'CI')->firstOrFail();
-        $city = City::query()->where('code', 'ABJ')->firstOrFail();
-        $commune = Commune::query()->where('code', 'ABJ-COCODY')->firstOrFail();
-
         $createResponse = $this->withToken($token)->postJson('/api/v1/public/reports', [
             'meter_id' => $meterId,
-            'country_id' => $country->id,
-            'city_id' => $city->id,
-            'commune_id' => $commune->id,
             'signal_code' => 'EL-01',
             'description' => 'Coupure constatee depuis 18h00.',
             'signal_payload' => [],
@@ -61,6 +58,7 @@ class PublicIncidentReportTest extends TestCase
         $createResponse->assertCreated()
             ->assertJsonPath('data.report.network_type', 'CIE')
             ->assertJsonPath('data.report.location.commune', 'Cocody')
+            ->assertJsonPath('data.report.location.address', 'Angre 8e tranche')
             ->assertJsonPath('data.report.signal_code', 'EL-01');
 
         $this->withToken($token)->getJson('/api/v1/public/reports')
@@ -68,7 +66,7 @@ class PublicIncidentReportTest extends TestCase
             ->assertJsonCount(1, 'data.reports');
     }
 
-    public function test_public_user_gets_validation_error_when_country_is_invalid(): void
+    public function test_public_user_gets_validation_error_when_meter_has_no_location(): void
     {
         $this->seed(LocationReferenceSeeder::class);
 
@@ -76,7 +74,6 @@ class PublicIncidentReportTest extends TestCase
             'first_name' => 'Awa',
             'last_name' => 'Kone',
             'phone' => '0700000409',
-            'commune' => 'Cocody',
             'password' => 'secret123',
             'status' => 'active',
             'phone_verified_at' => now(),
@@ -91,20 +88,68 @@ class PublicIncidentReportTest extends TestCase
             'is_primary' => true,
         ])->json('data.meter.id');
 
-        $city = City::query()->where('code', 'ABJ')->firstOrFail();
-        $commune = Commune::query()->where('code', 'ABJ-COCODY')->firstOrFail();
-
         $this->withToken($token)->postJson('/api/v1/public/reports', [
             'meter_id' => $meterId,
-            'country_id' => 999999,
-            'city_id' => $city->id,
-            'commune_id' => $commune->id,
             'signal_code' => 'EL-01',
             'description' => 'Coupure constatee depuis 18h00.',
             'signal_payload' => [],
         ])
             ->assertStatus(422)
-            ->assertJsonValidationErrors(['country_id']);
+            ->assertJsonValidationErrors(['meter_id']);
+    }
+
+    public function test_public_user_can_attach_optional_photo_to_incident_report(): void
+    {
+        $this->seed([
+            LocationReferenceSeeder::class,
+            PricingRuleSeeder::class,
+        ]);
+
+        $this->mock(WasabiService::class, function ($mock): void {
+            $mock->shouldReceive('uploadFile')
+                ->once()
+                ->andReturn('reports/signals/SIG-TEST/attachment.jpg');
+
+            $mock->shouldReceive('temporaryUrl')
+                ->andReturn('https://example.test/attachment.jpg');
+        });
+
+        $user = PublicUser::query()->create([
+            'first_name' => 'Awa',
+            'last_name' => 'Kone',
+            'phone' => '0700000410',
+            'commune' => 'Cocody',
+            'password' => 'secret123',
+            'status' => 'active',
+            'phone_verified_at' => now(),
+        ]);
+
+        $token = JWTAuth::fromUser($user);
+
+        $meterId = $this->withToken($token)->postJson('/api/v1/public/meters', [
+            'network_type' => 'CIE',
+            'meter_number' => 'CIE-40010',
+            'label' => 'Appartement',
+            'commune' => 'Cocody',
+            'is_primary' => true,
+        ])->json('data.meter.id');
+
+        $response = $this->withToken($token)->post('/api/v1/public/reports', [
+            'meter_id' => $meterId,
+            'signal_code' => 'EL-01',
+            'signal_attachment' => UploadedFile::fake()->image('preuve.jpg'),
+            'signal_payload' => [],
+        ], ['Accept' => 'application/json']);
+
+        $response->assertCreated()
+            ->assertJsonPath('data.report.signal_attachment.name', 'preuve.jpg')
+            ->assertJsonPath('data.report.signal_attachment.path', 'reports/signals/SIG-TEST/attachment.jpg')
+            ->assertJsonPath('data.report.signal_attachment.temporary_url', 'https://example.test/attachment.jpg');
+
+        $this->assertDatabaseHas('incident_reports', [
+            'public_user_id' => $user->id,
+            'meter_id' => $meterId,
+        ]);
     }
 
     public function test_public_user_can_confirm_resolution_of_resolved_report(): void

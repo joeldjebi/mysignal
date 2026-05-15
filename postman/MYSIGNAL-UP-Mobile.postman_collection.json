@@ -638,10 +638,10 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Famille Doe\",\n  \"commune\": \"{{communeName}}\",\n  \"address\": \"{{address}}\"\n}"
+              "raw": "{\n  \"name\": \"Famille Doe\"\n}"
             },
             "url": "{{baseUrl}}/v1/public/households",
-            "description": "Cree un Gonhi. Un compte UP peut creer plusieurs Gonhi."
+            "description": "Cree un Gonhi. commune et address ne sont plus demandes; la localisation utile vient de l identifiant partage lors des invitations."
           }
         },
         {
@@ -672,9 +672,10 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phone\": \"{{invitedPhone}}\",\n  \"relationship\": \"conjoint\",\n  \"meter_id\": {{meterId}}\n}"
+              "raw": "{\n  \"phone\": \"{{invitedPhone}}\",\n  \"meter_id\": {{meterId}}\n}"
             },
-            "url": "{{baseUrl}}/v1/public/households/{{householdId}}/invitations"
+            "url": "{{baseUrl}}/v1/public/households/{{householdId}}/invitations",
+            "description": "relationship est optionnel. Si absent, l API enregistre automatiquement membre."
           }
         },
         {
@@ -738,14 +739,27 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Accept", "value": "application/json" },
-              { "key": "Content-Type", "value": "application/json" }
+              { "key": "Accept", "value": "application/json" }
             ],
             "body": {
-              "mode": "raw",
-              "raw": "{\n  \"meter_id\": {{meterId}},\n  \"application_id\": {{applicationId}},\n  \"organization_id\": {{organizationId}},\n  \"country_id\": {{countryId}},\n  \"city_id\": {{cityId}},\n  \"commune_id\": {{communeId}},\n  \"signal_code\": \"NETWORK_OUTAGE\",\n  \"description\": \"Coupure depuis 2 heures\",\n  \"address\": \"{{address}}\",\n  \"occurred_at\": \"2026-04-10T12:00:00Z\",\n  \"latitude\": {{latitude}},\n  \"longitude\": {{longitude}},\n  \"location_accuracy\": {{locationAccuracy}},\n  \"location_source\": \"gps\",\n  \"signal_payload\": {\n    \"service_category\": \"{{serviceCategory}}\"\n  }\n}"
+              "mode": "formdata",
+              "formdata": [
+                { "key": "meter_id", "value": "{{meterId}}", "type": "text" },
+                { "key": "application_id", "value": "{{applicationId}}", "type": "text" },
+                { "key": "organization_id", "value": "{{organizationId}}", "type": "text" },
+                { "key": "signal_code", "value": "NETWORK_OUTAGE", "type": "text" },
+                { "key": "description", "value": "Coupure depuis 2 heures", "type": "text" },
+                { "key": "occurred_at", "value": "2026-04-10T12:00:00Z", "type": "text" },
+                { "key": "latitude", "value": "{{latitude}}", "type": "text" },
+                { "key": "longitude", "value": "{{longitude}}", "type": "text" },
+                { "key": "location_accuracy", "value": "{{locationAccuracy}}", "type": "text" },
+                { "key": "location_source", "value": "gps", "type": "text" },
+                { "key": "signal_payload[service_category]", "value": "{{serviceCategory}}", "type": "text" },
+                { "key": "signal_attachment", "type": "file", "src": [], "disabled": true }
+              ]
             },
-            "url": "{{baseUrl}}/v1/public/reports"
+            "url": "{{baseUrl}}/v1/public/reports",
+            "description": "Le backend deduit pays, ville, commune et adresse depuis meter_id. signal_attachment est optionnel; activer le champ fichier pour envoyer une photo ou une video."
           }
         },
         {
@@ -753,15 +767,32 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Accept", "value": "application/json" },
-              { "key": "Content-Type", "value": "application/json" }
+              { "key": "Accept", "value": "application/json" }
             ],
             "body": {
-              "mode": "raw",
-              "raw": "{\n  \"meter_id\": {{meterId}},\n  \"application_id\": {{applicationId}},\n  \"organization_id\": {{organizationId}},\n  \"country_id\": {{countryId}},\n  \"city_id\": {{cityId}},\n  \"commune_id\": {{communeId}},\n  \"signal_code\": \"EL-04\",\n  \"description\": \"Compteur illisible\",\n  \"address\": \"{{address}}\",\n  \"occurred_at\": \"2026-04-10T12:00:00Z\",\n  \"latitude\": {{latitude}},\n  \"longitude\": {{longitude}},\n  \"location_accuracy\": {{locationAccuracy}},\n  \"location_source\": \"gps\",\n  \"signal_payload\": {\n    \"meter_photo_reference\": {\n      \"type\": \"image\",\n      \"name\": \"compteur.jpg\",\n      \"mime_type\": \"image/jpeg\",\n      \"data_url\": \"data:image/jpeg;base64,...\"\n    },\n    \"meter_serial_number\": \"{{meterNumber}}\",\n    \"precise_gps\": \"{{latitude}},{{longitude}}\"\n  }\n}"
+              "mode": "formdata",
+              "formdata": [
+                { "key": "meter_id", "value": "{{meterId}}", "type": "text" },
+                { "key": "application_id", "value": "{{applicationId}}", "type": "text" },
+                { "key": "organization_id", "value": "{{organizationId}}", "type": "text" },
+                { "key": "signal_code", "value": "EL-04", "type": "text" },
+                { "key": "description", "value": "Compteur illisible", "type": "text" },
+                { "key": "occurred_at", "value": "2026-04-10T12:00:00Z", "type": "text" },
+                { "key": "latitude", "value": "{{latitude}}", "type": "text" },
+                { "key": "longitude", "value": "{{longitude}}", "type": "text" },
+                { "key": "location_accuracy", "value": "{{locationAccuracy}}", "type": "text" },
+                { "key": "location_source", "value": "gps", "type": "text" },
+                { "key": "signal_payload[meter_photo_reference][type]", "value": "image", "type": "text" },
+                { "key": "signal_payload[meter_photo_reference][name]", "value": "compteur.jpg", "type": "text" },
+                { "key": "signal_payload[meter_photo_reference][mime_type]", "value": "image/jpeg", "type": "text" },
+                { "key": "signal_payload[meter_photo_reference][data_url]", "value": "data:image/jpeg;base64,...", "type": "text" },
+                { "key": "signal_payload[meter_serial_number]", "value": "{{meterNumber}}", "type": "text" },
+                { "key": "signal_payload[precise_gps]", "value": "{{latitude}},{{longitude}}", "type": "text" },
+                { "key": "signal_attachment", "type": "file", "src": [], "disabled": true }
+              ]
             },
             "url": "{{baseUrl}}/v1/public/reports",
-            "description": "Exemple de signalement avec champs dynamiques issus de GET /v1/public/signal-types. Remplacer signal_code et les cles signal_payload par les data_fields du type selectionne."
+            "description": "Exemple de signalement avec champs dynamiques issus de GET /v1/public/signal-types. Remplacer signal_code et les cles signal_payload par les data_fields du type selectionne. Le backend deduit pays, ville, commune et adresse depuis meter_id. signal_attachment est optionnel."
           }
         },
         {
