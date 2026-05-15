@@ -116,6 +116,32 @@
     }
     .lead { color: rgba(255,255,255,.82); max-width: 760px; }
     .reports-shell { padding: 58px 0 72px; }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .stat-tile {
+      border: 1px solid rgba(24,52,71,.08);
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 18px 45px rgba(24,52,71,.07);
+      padding: 16px;
+    }
+    .stat-label {
+      color: var(--muted);
+      font-size: .72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .stat-value {
+      color: var(--text);
+      font-size: 1.55rem;
+      font-weight: 800;
+      line-height: 1;
+    }
     .search-panel {
       border: 1px solid rgba(24,52,71,.08);
       border-radius: 8px;
@@ -126,7 +152,7 @@
     }
     .search-form {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto auto;
+      grid-template-columns: 1.4fr repeat(5, minmax(140px, 1fr)) auto auto;
       gap: 10px;
       align-items: end;
     }
@@ -137,7 +163,8 @@
       font-weight: 700;
       margin-bottom: 6px;
     }
-    .search-form .form-control {
+    .search-form .form-control,
+    .search-form .form-select {
       min-height: 44px;
       border-color: rgba(24,52,71,.14);
       font-size: .9rem;
@@ -245,6 +272,26 @@
       text-align: center;
       color: var(--muted);
     }
+    .pagination-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 20px;
+      border-top: 1px solid rgba(24,52,71,.08);
+    }
+    .pagination { margin: 0; }
+    .page-link {
+      color: var(--primary);
+      border-color: rgba(24,52,71,.12);
+      font-size: .82rem;
+      font-weight: 700;
+    }
+    .active > .page-link,
+    .page-link.active {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
     footer {
       background: #102736;
       color: rgba(255,255,255,.74);
@@ -256,11 +303,15 @@
       .navbar-collapse { padding-top: 16px; }
       .navbar-nav { align-items: stretch !important; gap: 8px !important; }
       .btn-nav { text-align: center; }
+      .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .search-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
     @media (max-width: 767.98px) {
+      .stats-grid,
       .search-form { grid-template-columns: 1fr; }
       .reports-shell { padding: 38px 0 54px; }
       .reports-panel-header { align-items: flex-start; flex-direction: column; }
+      .pagination-wrap { align-items: flex-start; flex-direction: column; }
     }
   </style>
 </head>
@@ -294,20 +345,87 @@
       <div class="container position-relative">
         <div class="page-badge"><i class="bi bi-broadcast-pin"></i>Transparence</div>
         <h1>Derniers signalements</h1>
-        <p class="lead">Consultez les 30 derniers signalements enregistres sur My-Signal, sans donnees personnelles des usagers.</p>
+        <p class="lead">Consultez tous les signalements enregistres sur My-Signal durant les 30 derniers jours, sans donnees personnelles des usagers.</p>
       </div>
     </section>
 
     <section class="reports-shell">
       <div class="container">
+        <div class="stats-grid">
+          <div class="stat-tile">
+            <div class="stat-label">Signalements</div>
+            <div class="stat-value">{{ $stats['total'] }}</div>
+          </div>
+          <div class="stat-tile">
+            <div class="stat-label">En cours</div>
+            <div class="stat-value">{{ $stats['in_progress'] }}</div>
+          </div>
+          <div class="stat-tile">
+            <div class="stat-label">Resolus</div>
+            <div class="stat-value">{{ $stats['resolved'] }}</div>
+          </div>
+          <div class="stat-tile">
+            <div class="stat-label">Avec dommage</div>
+            <div class="stat-value">{{ $stats['damages'] }}</div>
+          </div>
+          <div class="stat-tile">
+            <div class="stat-label">Communes</div>
+            <div class="stat-value">{{ $stats['communes'] }}</div>
+          </div>
+        </div>
+
         <div class="search-panel">
           <form method="GET" action="{{ route('public.reports') }}" class="search-form">
             <div>
               <label for="search">Recherche</label>
               <input id="search" type="search" name="search" value="{{ request('search') }}" class="form-control" placeholder="Reference, type, statut, application, organisation, commune...">
             </div>
-            <button type="submit" class="btn btn-search"><i class="bi bi-search me-1"></i> Rechercher</button>
-            @if (filled(request('search')))
+            <div>
+              <label for="status">Statut</label>
+              <select id="status" name="status" class="form-select">
+                <option value="">Tous</option>
+                @foreach ($statusLabels as $status => $label)
+                  <option value="{{ $status }}" @selected(request('status') === $status)>{{ $label }}</option>
+                @endforeach
+              </select>
+            </div>
+            <div>
+              <label for="application_id">Application</label>
+              <select id="application_id" name="application_id" class="form-select">
+                <option value="">Toutes</option>
+                @foreach ($applications as $application)
+                  <option value="{{ $application->id }}" @selected((string) request('application_id') === (string) $application->id)>{{ $application->name }}</option>
+                @endforeach
+              </select>
+            </div>
+            <div>
+              <label for="organization_id">Organisation</label>
+              <select id="organization_id" name="organization_id" class="form-select">
+                <option value="">Toutes</option>
+                @foreach ($organizations as $organization)
+                  <option value="{{ $organization->id }}" @selected((string) request('organization_id') === (string) $organization->id)>{{ $organization->name }}</option>
+                @endforeach
+              </select>
+            </div>
+            <div>
+              <label for="commune_id">Commune</label>
+              <select id="commune_id" name="commune_id" class="form-select">
+                <option value="">Toutes</option>
+                @foreach ($communes as $commune)
+                  <option value="{{ $commune->id }}" @selected((string) request('commune_id') === (string) $commune->id)>{{ $commune->name }}</option>
+                @endforeach
+              </select>
+            </div>
+            <div>
+              <label for="damage">Dommage</label>
+              <select id="damage" name="damage" class="form-select">
+                <option value="">Tous</option>
+                <option value="with" @selected(request('damage') === 'with')>Avec</option>
+                <option value="without" @selected(request('damage') === 'without')>Sans</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-search"><i class="bi bi-funnel-fill me-1"></i> Filtrer</button>
+            @if (filled(request()->query()))
               <a href="{{ route('public.reports') }}" class="btn btn-outline-secondary">RAZ</a>
             @endif
           </form>
@@ -316,7 +434,9 @@
         <div class="reports-panel">
           <div class="reports-panel-header">
             <div class="reports-panel-title">Liste des signalements</div>
-            <div class="reports-panel-count">{{ $reports->count() }} resultat{{ $reports->count() > 1 ? 's' : '' }} affiche{{ $reports->count() > 1 ? 's' : '' }}</div>
+            <div class="reports-panel-count">
+              {{ $reports->total() }} resultat{{ $reports->total() > 1 ? 's' : '' }} depuis le {{ $stats['period_start']->format('d/m/Y') }}
+            </div>
           </div>
           <div class="table-responsive">
             <table class="table reports-table align-middle">
@@ -358,6 +478,12 @@
               </tbody>
             </table>
           </div>
+          @if ($reports->hasPages())
+            <div class="pagination-wrap">
+              <div class="reports-panel-count">Page {{ $reports->currentPage() }} sur {{ $reports->lastPage() }}</div>
+              {{ $reports->onEachSide(1)->links('pagination::bootstrap-5') }}
+            </div>
+          @endif
         </div>
       </div>
     </section>
