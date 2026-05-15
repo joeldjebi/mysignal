@@ -3,16 +3,16 @@
 namespace App\Domain\Reports\Actions;
 
 use App\Domain\Reports\Enums\IncidentReportStatus;
-use App\Models\City;
 use App\Models\Commune;
-use App\Models\Country;
 use App\Models\IncidentReport;
+use App\Models\Meter;
 use App\Models\Organization;
 use App\Models\OrganizationTypeSignalSla;
 use App\Models\PublicUser;
 use App\Models\SignalType;
 use App\Services\WasabiService;
 use Carbon\CarbonImmutable;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -22,7 +22,7 @@ class CreateIncidentReportAction
         private readonly WasabiService $wasabiService,
     ) {}
 
-    public function handle(PublicUser $user, array $payload): IncidentReport
+    public function handle(PublicUser $user, array $payload, ?UploadedFile $signalAttachmentFile = null): IncidentReport
     {
         $meter = $user->meters()->whereKey($payload['meter_id'])->first();
 
@@ -32,28 +32,7 @@ class CreateIncidentReportAction
             ]);
         }
 
-        $country = Country::query()->whereKey($payload['country_id'])->where('status', 'active')->first();
-
-        if ($country === null) {
-            throw ValidationException::withMessages([
-                'country_id' => ['Le pays selectionne est invalide.'],
-            ]);
-        }
-
-        $city = City::query()->whereKey($payload['city_id'])->where('country_id', $country->id)->where('status', 'active')->first();
-        $commune = Commune::query()->whereKey($payload['commune_id'])->where('city_id', $payload['city_id'])->where('status', 'active')->first();
-
-        if ($city === null) {
-            throw ValidationException::withMessages([
-                'city_id' => ['La ville selectionnee n appartient pas au pays choisi.'],
-            ]);
-        }
-
-        if ($commune === null) {
-            throw ValidationException::withMessages([
-                'commune_id' => ['La commune selectionnee n appartient pas a la ville choisie.'],
-            ]);
-        }
+        [$country, $city, $commune] = $this->resolveLocationFromMeter($user, $meter);
 
         $signalType = SignalType::query()
             ->where('status', 'active')
@@ -139,9 +118,12 @@ class CreateIncidentReportAction
             }
         }
 
-        return DB::transaction(function () use ($user, $meter, $country, $city, $commune, $payload, $signalType, $signalPayload, $organizationTypeId, $programmedSla): IncidentReport {
+        return DB::transaction(function () use ($user, $meter, $country, $city, $commune, $payload, $signalType, $signalPayload, $programmedSla, $signalAttachmentFile): IncidentReport {
             $reference = $this->generateReference();
             $storedSignalPayload = $this->storeSignalPayloadFiles($signalPayload, $reference);
+            $signalAttachment = $signalAttachmentFile
+                ? $this->storeSignalAttachmentFile($signalAttachmentFile, $reference)
+                : null;
 
             return IncidentReport::query()->create([
                 'public_user_id' => $user->id,
@@ -151,11 +133,11 @@ class CreateIncidentReportAction
                 'country_id' => $country->id,
                 'city_id' => $city->id,
                 'commune_id' => $commune->id,
-                'address' => $payload['address'] ?? null,
-                'latitude' => $payload['latitude'] ?? null,
-                'longitude' => $payload['longitude'] ?? null,
-                'location_accuracy' => $payload['location_accuracy'] ?? null,
-                'location_source' => $payload['location_source'] ?? null,
+                'address' => $meter->address ?: ($user->address ?? null),
+                'latitude' => $meter->latitude ?? ($payload['latitude'] ?? null),
+                'longitude' => $meter->longitude ?? ($payload['longitude'] ?? null),
+                'location_accuracy' => $meter->location_accuracy ?? ($payload['location_accuracy'] ?? null),
+                'location_source' => $meter->location_source ?? ($payload['location_source'] ?? null),
                 'network_type' => $meter->network_type,
                 'signal_code' => $signalType->code,
                 'signal_label' => $signalType->label,
@@ -163,11 +145,41 @@ class CreateIncidentReportAction
                 'reference' => $reference,
                 'description' => $payload['description'] ?? null,
                 'signal_payload' => $storedSignalPayload,
+                'signal_attachment' => $signalAttachment,
                 'target_sla_hours' => $programmedSla ?? $signalType->default_sla_hours,
                 'occurred_at' => $payload['occurred_at'] ?? CarbonImmutable::now(),
                 'status' => IncidentReportStatus::Submitted->value,
             ]);
         });
+    }
+
+    private function resolveLocationFromMeter(PublicUser $user, Meter $meter): array
+    {
+        $communeName = trim((string) ($meter->commune ?: $user->commune));
+
+        if ($communeName === '') {
+            throw ValidationException::withMessages([
+                'meter_id' => ['La commune enregistree sur cet identifiant est introuvable. Mettez a jour l identifiant avant de signaler.'],
+            ]);
+        }
+
+        $commune = Commune::query()
+            ->with('city.country')
+            ->where('name', $communeName)
+            ->where('status', 'active')
+            ->whereHas('city', function ($query): void {
+                $query->where('status', 'active')
+                    ->whereHas('country', fn ($countryQuery) => $countryQuery->where('status', 'active'));
+            })
+            ->first();
+
+        if ($commune === null || $commune->city === null || $commune->city->country === null) {
+            throw ValidationException::withMessages([
+                'meter_id' => ['La commune enregistree sur cet identifiant ne correspond a aucune commune active. Mettez a jour l identifiant avant de signaler.'],
+            ]);
+        }
+
+        return [$commune->city->country, $commune->city, $commune];
     }
 
     private function storeSignalPayloadFiles(array $signalPayload, string $reference): array
@@ -199,6 +211,31 @@ class CreateIncidentReportAction
                 ];
             })
             ->all();
+    }
+
+    private function storeSignalAttachmentFile(UploadedFile $file, string $reference): array
+    {
+        $path = $this->wasabiService->uploadFile(
+            $file,
+            config('wasabi.report_signal_directory', 'reports/signals').'/'.$reference,
+            'attachment'
+        );
+
+        if (! $path) {
+            throw ValidationException::withMessages([
+                'signal_attachment' => ['Impossible de televerser le fichier sur le stockage distant.'],
+            ]);
+        }
+
+        $mimeType = $file->getMimeType() ?: 'application/octet-stream';
+
+        return [
+            'type' => str_starts_with($mimeType, 'video/') ? 'video' : 'image',
+            'name' => $file->getClientOriginalName() ?: 'piece-jointe-signalement',
+            'mime_type' => $mimeType,
+            'size' => $file->getSize(),
+            'path' => $path,
+        ];
     }
 
     private function generateReference(): string

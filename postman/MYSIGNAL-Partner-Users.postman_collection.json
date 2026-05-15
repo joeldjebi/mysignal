@@ -1,7 +1,7 @@
 {
   "info": {
     "_postman_id": "7df00dd4-58ae-4e10-a4ec-c18c113ed6f2",
-    "name": "MYSIGNAL Partner Mobile API",
+    "name": "My-Signal Partner Mobile API",
     "description": "Collection Postman pour les APIs mobile partenaire. Elle couvre l authentification `phone + password`, le scan des cartes de reduction, l historique personnel, les stats, la mise a jour du profil et les parcours mot de passe.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },

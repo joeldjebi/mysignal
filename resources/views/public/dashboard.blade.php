@@ -1274,7 +1274,7 @@
                             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
                                 <div>
                                     <div class="section-title">Mes notifications</div>
-                                    <div class="muted-label">Retrouvez les messages envoyés par MYSIGNAL et les alertes liées à votre compte.</div>
+                                    <div class="muted-label">Retrouvez les messages envoyés par My-Signal et les alertes liées à votre compte.</div>
                                 </div>
                                 <button class="btn btn-premium px-4" type="button" id="markAllNotificationsReadButton">Tout marquer comme lu</button>
                             </div>
@@ -1483,9 +1483,7 @@
                                 <div class="fw-bold mb-2">Aucun Gbonhi enregistré</div>
                                 <p class="muted-label mb-3">Créez votre Gbonhi principal pour inviter vos proches et partager un identifiant commun.</p>
                                 <form id="householdForm" class="row g-3">
-                                    <div class="col-md-4"><label class="form-label fw-semibold">Nom du Gbonhi</label><input class="form-control" name="name"></div>
-                                    <div class="col-md-4"><label class="form-label fw-semibold">Commune</label><select class="form-select" name="commune" id="householdCommuneSelect"></select></div>
-                                    <div class="col-md-4"><label class="form-label fw-semibold">Adresse</label><input class="form-control" name="address"></div>
+                                    <div class="col-12"><label class="form-label fw-semibold">Nom du Gbonhi</label><input class="form-control" name="name"></div>
                                     <div class="col-12 d-flex gap-2 flex-wrap">
                                         <button class="btn btn-premium" type="submit">Créer le Gbonhi</button>
                                         <button class="btn btn-ghost-premium d-none" type="button" id="cancelHouseholdFormButton">Annuler</button>
@@ -1524,17 +1522,6 @@
                                                 <div class="col-12">
                                                     <label class="form-label fw-semibold">identifiant commun du Gbonhi</label>
                                                     <select class="form-select" name="meter_id" id="householdSharedMeterId" required></select>
-                                                </div>
-                                                <div class="col-12"><label class="form-label fw-semibold">Lien</label>
-                                                    <select class="form-select" name="relationship" required>
-                                                        <option value="spouse">Conjoint(e)</option>
-                                                        <option value="child">Enfant</option>
-                                                        <option value="parent">Parent</option>
-                                                        <option value="sibling">Frere / soeur</option>
-                                                        <option value="other">Collègue</option>
-                                                        <option value="other">Collaborateur</option>
-                                                        <option value="other">Voisin</option>
-                                                    </select>
                                                 </div>
                                                 <div class="col-12"><button class="btn btn-premium w-100" type="submit">Envoyer l invitation</button></div>
                                             </form>
@@ -1866,45 +1853,10 @@
                                 <input class="form-control" type="datetime-local" name="occurred_at" id="reportOccurredAt" readonly>
                                 <div class="location-search-hint">La date et l’heure actuelles sont appliquées automatiquement au signalement.</div>
                             </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-semibold">Pays<span class="required-star">*</span></label>
-                                <div class="select-search-shell">
-                                    <input class="form-control select-search-input" style="display:block;width:100%;" type="search" data-search-select-target="reportCountryId" autocomplete="off" placeholder="Rechercher un pays">
-                                    <button class="select-search-toggle" type="button" data-search-toggle-target="reportCountryId" aria-label="Afficher les options"></button>
-                                </div>
-                                <div class="select-search-help">Champ de sélection avec recherche.</div>
-                                <select class="form-select d-none" name="country_id" id="reportCountryId" required></select>
-                                <div class="select-search-results" id="reportCountryIdResults"></div>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-semibold">Ville<span class="required-star">*</span></label>
-                                <div class="select-search-shell">
-                                    <input class="form-control select-search-input" style="display:block;width:100%;" type="search" data-search-select-target="reportCityId" autocomplete="off" placeholder="Rechercher une ville">
-                                    <button class="select-search-toggle" type="button" data-search-toggle-target="reportCityId" aria-label="Afficher les options"></button>
-                                </div>
-                                <div class="select-search-help">Champ de sélection avec recherche.</div>
-                                <select class="form-select d-none" name="city_id" id="reportCityId" required></select>
-                                <div class="select-search-results" id="reportCityIdResults"></div>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-semibold">Commune<span class="required-star">*</span></label>
-                                <div class="select-search-shell">
-                                    <input class="form-control select-search-input" style="display:block;width:100%;" type="search" data-search-select-target="reportCommuneId" autocomplete="off" placeholder="Rechercher une commune">
-                                    <button class="select-search-toggle" type="button" data-search-toggle-target="reportCommuneId" aria-label="Afficher les options"></button>
-                                </div>
-                                <div class="select-search-help">Champ de sélection avec recherche.</div>
-                                <select class="form-select d-none" name="commune_id" id="reportCommuneId" required></select>
-                                <div class="select-search-results" id="reportCommuneIdResults"></div>
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label fw-semibold">Adresse du lieu</label>
-                                <input class="form-control" name="address" id="reportAddressSearch" placeholder="Rechercher une adresse ou utiliser la position automatique">
-                                <div class="location-search-hint">Ce champ peut récupérer automatiquement la localisation du signalement à partir de Google Places.</div>
-                            </div>
                             <div class="col-12">
                                 <div class="soft-panel">
-                                    <div class="fw-bold mb-1">Position du signalement</div>
-                                    <div class="muted-label">La position du signalement est récupérée automatiquement en arrière-plan. Si elle n’est pas disponible, la position de l’identifiant ou l’adresse choisie est utilisée automatiquement.</div>
+                                    <div class="fw-bold mb-1">Localisation automatique</div>
+                                    <div class="muted-label">Le pays, la ville, la commune et l’adresse sont récupérés automatiquement à partir de l’identifiant sélectionné.</div>
                                 </div>
                                 <input type="hidden" name="latitude" id="reportLatitude">
                                 <input type="hidden" name="longitude" id="reportLongitude">
@@ -1925,6 +1877,11 @@
                                 </div>
                             </div>
                             <div class="col-12"><label class="form-label fw-semibold">Description</label><textarea class="form-control" name="description" rows="4"></textarea></div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Fichier photo ou vidéo</label>
+                                <input class="form-control" type="file" name="signal_attachment" accept="image/*,video/*">
+                                <div class="location-search-hint">Optionnel.</div>
+                            </div>
                             <div class="col-12"><button class="btn btn-premium" type="submit">Enregistrer le signalement</button></div>
                         </form>
                     </div>
@@ -3061,7 +3018,7 @@
                     const options = state.communes.length
                         ? state.communes.map((commune) => `<option value="${commune.name}">${commune.name}</option>`).join('')
                         : '<option value="">Aucune commune disponible</option>';
-                    ['profileCommuneSelect', 'meterCommuneSelect', 'householdCommuneSelect'].forEach((id) => {
+                    ['profileCommuneSelect', 'meterCommuneSelect'].forEach((id) => {
                         const select = document.getElementById(id);
                         select.innerHTML = options;
                         if (selectedName && state.communes.some((commune) => commune.name === selectedName)) {
@@ -3129,41 +3086,7 @@
                 }
 
                 function syncReportLocationFromPlace(place) {
-                    const countryCandidate = [
-                        findAddressComponent(place, ['country'])?.long_name,
-                        findAddressComponent(place, ['country'])?.short_name,
-                    ].find(Boolean);
-                    const cityCandidate = [
-                        findAddressComponent(place, ['locality'])?.long_name,
-                        findAddressComponent(place, ['administrative_area_level_2'])?.long_name,
-                    ].find(Boolean);
-                    const communeCandidate = [
-                        findAddressComponent(place, ['sublocality_level_1'])?.long_name,
-                        findAddressComponent(place, ['sublocality'])?.long_name,
-                        cityCandidate,
-                    ].find(Boolean);
-
-                    const country = state.countries.find((item) => normalizeText(item.name) === normalizeText(countryCandidate) || normalizeText(item.code) === normalizeText(countryCandidate));
-
-                    if (country) {
-                        document.getElementById('reportCountryId').value = String(country.id);
-                        document.getElementById('reportCityId').innerHTML = buildOptions(country.cities || [], 'Aucune ville');
-                    }
-
-                    const selectedCountry = country || state.countries.find((item) => String(item.id) === String(document.getElementById('reportCountryId').value));
-                    const city = (selectedCountry?.cities || []).find((item) => normalizeText(item.name) === normalizeText(cityCandidate));
-
-                    if (city) {
-                        document.getElementById('reportCityId').value = String(city.id);
-                        document.getElementById('reportCommuneId').innerHTML = buildOptions(city.communes || [], 'Aucune commune');
-                    }
-
-                    const selectedCity = city || (selectedCountry?.cities || []).find((item) => String(item.id) === String(document.getElementById('reportCityId').value));
-                    const commune = (selectedCity?.communes || []).find((item) => normalizeText(item.name) === normalizeText(communeCandidate));
-
-                    if (commune) {
-                        document.getElementById('reportCommuneId').value = String(commune.id);
-                    }
+                    return place;
                 }
 
                 function attachAddressAutocomplete(inputId, prefix) {
@@ -3218,33 +3141,10 @@
 
                     attachAddressAutocomplete('profileAddressSearch', 'profile');
                     attachAddressAutocomplete('meterAddressSearch', 'meter');
-                    attachAddressAutocomplete('reportAddressSearch', 'report');
                 }
 
                 function populateReportLocationSelects() {
-                    const countrySelect = document.getElementById('reportCountryId');
-                    const citySelect = document.getElementById('reportCityId');
-                    const communeSelect = document.getElementById('reportCommuneId');
-                    countrySelect.innerHTML = buildOptions(state.countries, 'Aucun pays');
-                    const country = state.countries.find((item) => String(item.id) === String(countrySelect.value)) || state.countries[0];
-                    if (!country) {
-                        citySelect.innerHTML = '<option value="">Aucune ville</option>';
-                        communeSelect.innerHTML = '<option value="">Aucune commune</option>';
-                        return;
-                    }
-                    countrySelect.value = country.id;
-                    citySelect.innerHTML = buildOptions(country.cities || [], 'Aucune ville');
-                    const city = (country.cities || []).find((item) => String(item.id) === String(citySelect.value)) || (country.cities || [])[0];
-                    if (!city) {
-                        communeSelect.innerHTML = '<option value="">Aucune commune</option>';
-                        return;
-                    }
-                    citySelect.value = city.id;
-                    communeSelect.innerHTML = buildOptions(city.communes || [], 'Aucune commune');
-                    communeSelect.value = city.communes?.[0]?.id || '';
-                    refreshSearchableSelect('reportCountryId');
-                    refreshSearchableSelect('reportCityId');
-                    refreshSearchableSelect('reportCommuneId');
+                    return true;
                 }
 
                 function getAvailableReportOrganizations() {
@@ -3788,7 +3688,7 @@
                         <div class="member-wallet-card">
                             <div class="member-wallet-content">
                                 <div class="d-flex justify-content-between align-items-start gap-3">
-                                    <div class="member-wallet-brand">MySignal Wallet</div>
+                                    <div class="member-wallet-brand">My-Signal Wallet</div>
                                     <div class="member-wallet-brand">Reduction</div>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center gap-3">
@@ -4082,9 +3982,9 @@
                 function getNotificationCategoryLabel(notification) {
                     const category = getNotificationCategoryKey(notification);
                     const labels = {
-                        mysignal: 'Information MYSIGNAL',
-                        super_admin: 'Information MYSIGNAL',
-                        super_admin_broadcast: 'Information MYSIGNAL',
+                        mysignal: 'Information My-Signal',
+                        super_admin: 'Information My-Signal',
+                        super_admin_broadcast: 'Information My-Signal',
                         gbonhi: 'Gbonhi',
                         household: 'Gbonhi',
                         household_invitation_created: 'Gbonhi',
@@ -6383,31 +6283,31 @@
                     }
                 });
 
-                document.getElementById('reportCountryId').addEventListener('change', () => {
-                    const country = state.countries.find((item) => String(item.id) === String(document.getElementById('reportCountryId').value));
-                    document.getElementById('reportCityId').innerHTML = buildOptions(country?.cities || [], 'Aucune ville');
-                    const firstCity = (country?.cities || [])[0];
-                    document.getElementById('reportCityId').value = firstCity?.id || '';
-                    document.getElementById('reportCommuneId').innerHTML = buildOptions(firstCity?.communes || [], 'Aucune commune');
-                    document.getElementById('reportCommuneId').value = firstCity?.communes?.[0]?.id || '';
-                });
-
-                document.getElementById('reportCityId').addEventListener('change', () => {
-                    const country = state.countries.find((item) => String(item.id) === String(document.getElementById('reportCountryId').value));
-                    const city = (country?.cities || []).find((item) => String(item.id) === String(document.getElementById('reportCityId').value));
-                    document.getElementById('reportCommuneId').innerHTML = buildOptions(city?.communes || [], 'Aucune commune');
-                    document.getElementById('reportCommuneId').value = city?.communes?.[0]?.id || '';
-                });
-
                 document.getElementById('reportForm').addEventListener('submit', async (event) => {
                     event.preventDefault();
                     const form = event.currentTarget;
                     setLoading(form, true);
                     try {
-                        const payload = Object.fromEntries(new FormData(form).entries());
-                        payload.application_id = document.getElementById('reportApplicationId').value;
-                        payload.organization_id = document.getElementById('reportOrganizationType').value;
-                        payload.signal_payload = {};
+                        const payload = new FormData();
+                        const rawFormData = new FormData(form);
+
+                        ['meter_id', 'signal_code', 'occurred_at', 'description', 'latitude', 'longitude', 'location_accuracy', 'location_source'].forEach((key) => {
+                            const value = rawFormData.get(key);
+
+                            if (value !== null && value !== '') {
+                                payload.append(key, value);
+                            }
+                        });
+
+                        payload.append('application_id', document.getElementById('reportApplicationId').value);
+                        payload.append('organization_id', document.getElementById('reportOrganizationType').value);
+
+                        const signalAttachment = rawFormData.get('signal_attachment');
+
+                        if (signalAttachment instanceof File && signalAttachment.size > 0) {
+                            payload.append('signal_attachment', signalAttachment);
+                        }
+
                         const signalFields = Array.from(form.querySelectorAll('[data-signal-key]'));
                         const processedPhotoKeys = new Set();
 
@@ -6423,22 +6323,21 @@
                                 const file = selectedInput?.files?.[0];
 
                                 if (file) {
-                                    payload.signal_payload[field.dataset.signalKey] = {
-                                        type: 'image',
-                                        name: file.name,
-                                        mime_type: file.type || 'image/jpeg',
-                                        data_url: await readFileAsDataUrl(file),
-                                    };
+                                    payload.append(`signal_payload[${field.dataset.signalKey}][type]`, 'image');
+                                    payload.append(`signal_payload[${field.dataset.signalKey}][name]`, file.name);
+                                    payload.append(`signal_payload[${field.dataset.signalKey}][mime_type]`, file.type || 'image/jpeg');
+                                    payload.append(`signal_payload[${field.dataset.signalKey}][data_url]`, await readFileAsDataUrl(file));
                                 }
 
                                 continue;
                             }
 
                             if (field.value !== '') {
-                                payload.signal_payload[field.dataset.signalKey] = field.value;
+                                payload.append(`signal_payload[${field.dataset.signalKey}]`, field.value);
                             }
                         }
-                        const response = await apiFetch('/reports', { method: 'POST', body: JSON.stringify(payload) });
+
+                        const response = await apiFetch('/reports', { method: 'POST', body: payload });
                         showToast(response.message);
                         form.reset();
                         clearReportGeoFields();

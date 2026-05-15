@@ -147,6 +147,27 @@
                     <div>{{ $report->description ?: 'Aucune description fournie.' }}</div>
                 </div>
 
+                @if (!empty($resolvedSignalAttachment))
+                    <div class="surface-soft mb-3">
+                        <div class="meta-subtitle mb-2">Fichier joint</div>
+                        @if (($resolvedSignalAttachment['type'] ?? null) === 'image' && filled($resolvedSignalAttachment['temporary_url'] ?? null))
+                            <div class="vstack gap-2">
+                                <div class="small text-secondary">{{ $resolvedSignalAttachment['name'] ?? 'Photo jointe' }}</div>
+                                <img src="{{ $resolvedSignalAttachment['temporary_url'] }}" alt="Fichier joint au signalement" style="max-width: 320px; max-height: 320px; object-fit: cover; border-radius: 16px; border: 1px solid rgba(24, 52, 71, 0.12);">
+                            </div>
+                        @elseif (($resolvedSignalAttachment['type'] ?? null) === 'video' && filled($resolvedSignalAttachment['temporary_url'] ?? null))
+                            <div class="vstack gap-2">
+                                <div class="small text-secondary">{{ $resolvedSignalAttachment['name'] ?? 'Video jointe' }}</div>
+                                <video src="{{ $resolvedSignalAttachment['temporary_url'] }}" controls style="max-width: 100%; max-height: 360px; border-radius: 16px; border: 1px solid rgba(24, 52, 71, 0.12);"></video>
+                            </div>
+                        @elseif (filled($resolvedSignalAttachment['temporary_url'] ?? null))
+                            <a href="{{ $resolvedSignalAttachment['temporary_url'] }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-dark">Ouvrir le fichier joint</a>
+                        @else
+                            <div class="text-secondary">{{ $resolvedSignalAttachment['name'] ?? 'Fichier joint disponible' }}</div>
+                        @endif
+                    </div>
+                @endif
+
                 <div class="surface-soft">
                     <div class="meta-subtitle mb-2">Donnees complementaires</div>
                     @if (!empty($resolvedSignalPayload))

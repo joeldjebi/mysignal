@@ -212,7 +212,7 @@
 
                 <div class="fw-bold mb-2 mt-4">Logo</div>
                 <div class="d-flex align-items-center gap-3">
-                    <img src="{{ $defaultLogoUrl }}" alt="MySignal" style="width:64px;height:64px;object-fit:contain;border-radius:16px;background:white;padding:.35rem;border:1px solid rgba(16,42,67,.08)">
+                    <img src="{{ $defaultLogoUrl }}" alt="My-Signal" style="width:64px;height:64px;object-fit:contain;border-radius:16px;background:white;padding:.35rem;border:1px solid rgba(16,42,67,.08)">
                     <div class="small text-secondary">
                         Le logo officiel reste affiche automatiquement sur la landing.
                     </div>

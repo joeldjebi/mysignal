@@ -66,7 +66,7 @@ class InviteHouseholdMemberAction
                 'household_id' => $household->id,
                 'meter_id' => $payload['meter_id'] ?? null,
                 'phone' => $payload['phone'],
-                'relationship' => $payload['relationship'],
+                'relationship' => $payload['relationship'] ?? 'membre',
                 'code' => $code,
                 'expires_at' => null,
                 'invited_by' => $actor->id,
