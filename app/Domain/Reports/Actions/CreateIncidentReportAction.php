@@ -22,7 +22,56 @@ class CreateIncidentReportAction
         private readonly WasabiService $wasabiService,
     ) {}
 
-    public function handle(PublicUser $user, array $payload, ?UploadedFile $signalAttachmentFile = null): IncidentReport
+    public function handle(
+        PublicUser $user,
+        array $payload,
+        ?UploadedFile $signalAttachmentFile = null,
+        ?array $storedSignalAttachment = null,
+        bool $skipDuplicateValidation = false
+    ): IncidentReport {
+        $prepared = $this->prepare($user, $payload, $skipDuplicateValidation);
+
+        return DB::transaction(function () use ($user, $prepared, $payload, $signalAttachmentFile, $storedSignalAttachment): IncidentReport {
+            $reference = $this->generateReference();
+            $storedSignalPayload = $this->storeSignalPayloadFiles($prepared['signal_payload'], $reference);
+            $signalAttachment = $signalAttachmentFile
+                ? $this->storeSignalAttachmentFile($signalAttachmentFile, $reference)
+                : $storedSignalAttachment;
+
+            return IncidentReport::query()->create([
+                'public_user_id' => $user->id,
+                'application_id' => $prepared['meter']->application_id ?: $prepared['signal_type']->application_id,
+                'organization_id' => $prepared['meter']->organization_id,
+                'meter_id' => $prepared['meter']->id,
+                'country_id' => $prepared['country']->id,
+                'city_id' => $prepared['city']->id,
+                'commune_id' => $prepared['commune']->id,
+                'address' => $prepared['meter']->address ?: ($user->address ?? null),
+                'latitude' => $prepared['meter']->latitude ?? ($payload['latitude'] ?? null),
+                'longitude' => $prepared['meter']->longitude ?? ($payload['longitude'] ?? null),
+                'location_accuracy' => $prepared['meter']->location_accuracy ?? ($payload['location_accuracy'] ?? null),
+                'location_source' => $prepared['meter']->location_source ?? ($payload['location_source'] ?? null),
+                'network_type' => $prepared['meter']->network_type,
+                'signal_code' => $prepared['signal_type']->code,
+                'signal_label' => $prepared['signal_type']->label,
+                'incident_type' => $prepared['signal_type']->code,
+                'reference' => $reference,
+                'description' => $payload['description'] ?? null,
+                'signal_payload' => $storedSignalPayload,
+                'signal_attachment' => $signalAttachment,
+                'target_sla_hours' => $prepared['programmed_sla'] ?? $prepared['signal_type']->default_sla_hours,
+                'occurred_at' => $payload['occurred_at'] ?? CarbonImmutable::now(),
+                'status' => IncidentReportStatus::Submitted->value,
+            ]);
+        });
+    }
+
+    public function validateForPayment(PublicUser $user, array $payload): array
+    {
+        return $this->prepare($user, $payload);
+    }
+
+    private function prepare(PublicUser $user, array $payload, bool $skipDuplicateValidation = false): array
     {
         $meter = $user->meters()->whereKey($payload['meter_id'])->first();
 
@@ -95,62 +144,43 @@ class CreateIncidentReportAction
 
         $effectiveSlaHours = (int) ($programmedSla ?? $signalType->default_sla_hours ?? 0);
 
-        $latestSimilarReport = IncidentReport::query()
-            ->where('meter_id', $meter->id)
-            ->where('signal_code', $signalType->code)
-            ->where('status', '!=', IncidentReportStatus::Rejected->value)
-            ->latest('created_at')
-            ->first(['id', 'reference', 'created_at', 'target_sla_hours', 'status']);
+        if (! $skipDuplicateValidation) {
+            $latestSimilarReport = IncidentReport::query()
+                ->where('meter_id', $meter->id)
+                ->where('signal_code', $signalType->code)
+                ->whereIn('status', [
+                    IncidentReportStatus::Submitted->value,
+                    IncidentReportStatus::InProgress->value,
+                ])
+                ->latest('created_at')
+                ->first(['id', 'reference', 'created_at', 'target_sla_hours', 'status']);
 
-        if ($latestSimilarReport !== null) {
-            $blockingSlaHours = (int) ($latestSimilarReport->target_sla_hours ?? $effectiveSlaHours);
+            if ($latestSimilarReport !== null) {
+                $blockingSlaHours = (int) ($latestSimilarReport->target_sla_hours ?? $effectiveSlaHours);
 
-            if ($blockingSlaHours > 0 && $latestSimilarReport->created_at !== null) {
-                $availableAt = CarbonImmutable::instance($latestSimilarReport->created_at)->addHours($blockingSlaHours);
+                if ($blockingSlaHours > 0 && $latestSimilarReport->created_at !== null) {
+                    $availableAt = CarbonImmutable::instance($latestSimilarReport->created_at)->addHours($blockingSlaHours);
 
-                if (now()->lt($availableAt)) {
-                    throw ValidationException::withMessages([
-                        'signal_code' => [
-                            'Un signalement identique existe deja pour ce compteur. Vous pourrez en soumettre un nouveau a partir du '.$availableAt->translatedFormat('d/m/Y \a H:i').'.',
-                        ],
-                    ]);
+                    if (now()->lt($availableAt)) {
+                        throw ValidationException::withMessages([
+                            'signal_code' => [
+                                'Un signalement identique existe deja pour ce compteur. Vous pourrez en soumettre un nouveau a partir du '.$availableAt->translatedFormat('d/m/Y \a H:i').'.',
+                            ],
+                        ]);
+                    }
                 }
             }
         }
 
-        return DB::transaction(function () use ($user, $meter, $country, $city, $commune, $payload, $signalType, $signalPayload, $programmedSla, $signalAttachmentFile): IncidentReport {
-            $reference = $this->generateReference();
-            $storedSignalPayload = $this->storeSignalPayloadFiles($signalPayload, $reference);
-            $signalAttachment = $signalAttachmentFile
-                ? $this->storeSignalAttachmentFile($signalAttachmentFile, $reference)
-                : null;
-
-            return IncidentReport::query()->create([
-                'public_user_id' => $user->id,
-                'application_id' => $meter->application_id ?: $signalType->application_id,
-                'organization_id' => $meter->organization_id,
-                'meter_id' => $meter->id,
-                'country_id' => $country->id,
-                'city_id' => $city->id,
-                'commune_id' => $commune->id,
-                'address' => $meter->address ?: ($user->address ?? null),
-                'latitude' => $meter->latitude ?? ($payload['latitude'] ?? null),
-                'longitude' => $meter->longitude ?? ($payload['longitude'] ?? null),
-                'location_accuracy' => $meter->location_accuracy ?? ($payload['location_accuracy'] ?? null),
-                'location_source' => $meter->location_source ?? ($payload['location_source'] ?? null),
-                'network_type' => $meter->network_type,
-                'signal_code' => $signalType->code,
-                'signal_label' => $signalType->label,
-                'incident_type' => $signalType->code,
-                'reference' => $reference,
-                'description' => $payload['description'] ?? null,
-                'signal_payload' => $storedSignalPayload,
-                'signal_attachment' => $signalAttachment,
-                'target_sla_hours' => $programmedSla ?? $signalType->default_sla_hours,
-                'occurred_at' => $payload['occurred_at'] ?? CarbonImmutable::now(),
-                'status' => IncidentReportStatus::Submitted->value,
-            ]);
-        });
+        return [
+            'meter' => $meter,
+            'country' => $country,
+            'city' => $city,
+            'commune' => $commune,
+            'signal_type' => $signalType,
+            'signal_payload' => $signalPayload,
+            'programmed_sla' => $programmedSla,
+        ];
     }
 
     private function resolveLocationFromMeter(PublicUser $user, Meter $meter): array

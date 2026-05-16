@@ -49,6 +49,7 @@
     { "key": "additionalMeterNumber", "value": "AB87654321" },
     { "key": "meterId", "value": "" },
     { "key": "reportId", "value": "" },
+    { "key": "paymentSessionSyncRef", "value": "" },
     { "key": "paymentId", "value": "" },
     { "key": "subscriptionPaymentId", "value": "" },
     { "key": "householdId", "value": "" },
@@ -731,7 +732,8 @@
                 "type": "text/javascript",
                 "exec": [
                   "const json = pm.response.json();",
-                  "if (json?.data?.report?.id) pm.environment.set('reportId', json.data.report.id);"
+                  "if (json?.data?.report?.id) pm.environment.set('reportId', json.data.report.id);",
+                  "if (json?.data?.payment_session?.sync_ref) pm.environment.set('paymentSessionSyncRef', json.data.payment_session.sync_ref);"
                 ]
               }
             }
@@ -759,7 +761,16 @@
               ]
             },
             "url": "{{baseUrl}}/v1/public/reports",
-            "description": "Le backend deduit pays, ville, commune et adresse depuis meter_id. signal_attachment est optionnel; activer le champ fichier pour envoyer une photo ou une video."
+            "description": "Nouveau flux: initialise une session FineoPay et retourne data.checkout_link. Le signalement est cree uniquement apres callback FineoPay success. Le backend deduit pays, ville, commune et adresse depuis meter_id. signal_attachment est optionnel; activer le champ fichier pour envoyer une photo ou une video."
+          }
+        },
+        {
+          "name": "Show Report Payment Session",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/payment-sessions/{{paymentSessionSyncRef}}",
+            "description": "Permet au mobile de verifier le statut FineoPay apres retour manuel depuis le navigateur. Retourne status pending, paid, failed ou expired; quand paid, incident_report_id et report sont renseignes."
           }
         },
         {
@@ -792,7 +803,7 @@
               ]
             },
             "url": "{{baseUrl}}/v1/public/reports",
-            "description": "Exemple de signalement avec champs dynamiques issus de GET /v1/public/signal-types. Remplacer signal_code et les cles signal_payload par les data_fields du type selectionne. Le backend deduit pays, ville, commune et adresse depuis meter_id. signal_attachment est optionnel."
+            "description": "Exemple de session FineoPay pour un signalement avec champs dynamiques issus de GET /v1/public/signal-types. Remplacer signal_code et les cles signal_payload par les data_fields du type selectionne. Le signalement est cree uniquement apres callback FineoPay success."
           }
         },
         {

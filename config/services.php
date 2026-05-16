@@ -56,6 +56,14 @@ return [
         ],
     ],
 
+    'fineopay' => [
+        'base_url' => env('FINEOPAY_BASE_URL', 'https://api.fineopay.com'),
+        'checkout_path' => env('FINEOPAY_CHECKOUT_PATH', '/api/v1/business/dev/checkout-link'),
+        'business_code' => env('FINEOPAY_BUSINESS_CODE'),
+        'api_key' => env('FINEOPAY_API_KEY'),
+        'callback_token' => env('FINEOPAY_CALLBACK_TOKEN'),
+    ],
+
     'public_auth' => [
         'otp_digits' => (int) env('PUBLIC_AUTH_OTP_DIGITS', 4),
         'default_otp' => env('PUBLIC_AUTH_DEFAULT_OTP', '2604'),
