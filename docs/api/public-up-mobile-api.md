@@ -386,7 +386,7 @@ Refuse une invitation.
 Liste les signalements du compte.
 
 #### POST `/v1/public/reports`
-Cree un signalement.
+Initialise le paiement FineoPay d un signalement. Le signalement n est cree en base qu apres callback FineoPay avec `status: success`.
 
 Avant de creer un signalement, l app mobile doit appeler `GET /v1/public/signal-types`, filtrer les types de signaux compatibles avec le compteur selectionne, puis construire `signal_payload` a partir des `data_fields` du `signal_code` choisi.
 
@@ -435,6 +435,83 @@ signal_attachment=@preuve.jpg
 ```
 
 `signal_attachment` est optionnel. Formats acceptes : images `jpeg`, `png`, `webp`, `gif`, `heic`, `heif` et videos `mp4`, `mov/quicktime`, `avi`, `mpeg`. Taille max : 50 Mo.
+
+Reponse `201` :
+```json
+{
+  "success": true,
+  "message": "Lien de paiement genere avec succes. Le signalement sera enregistre apres paiement.",
+  "data": {
+    "checkout_link": "https://dev.fineopay.com/pay/business123/abc123/checkout",
+    "payment_session": {
+      "id": 12,
+      "sync_ref": "RPT-20260515150000-A1B2C3",
+      "amount": 5000,
+      "currency": "FCFA",
+      "status": "pending",
+      "provider": "fineopay",
+      "checkout_link": "https://dev.fineopay.com/pay/business123/abc123/checkout",
+      "incident_report_id": null
+    }
+  }
+}
+```
+
+L app mobile doit ouvrir `checkout_link`. Apres paiement reussi, FineoPay appelle le callback backend, puis le signalement apparait dans `GET /v1/public/reports`.
+
+Comme FineoPay ne redirige pas encore vers l app mobile, l app doit conserver `payment_session.sync_ref`, puis verifier le statut lorsque l utilisateur revient dans l app.
+
+#### GET `/v1/public/payment-sessions/{syncRef}`
+Verifie le statut serveur d une session de paiement de signalement.
+
+Exemple si paiement encore en attente :
+```json
+{
+  "success": true,
+  "data": {
+    "payment_session": {
+      "sync_ref": "RPT-20260516103000-A1B2C3",
+      "amount": 100,
+      "currency": "FCFA",
+      "status": "pending",
+      "provider": "fineopay",
+      "incident_report_id": null,
+      "report": null
+    }
+  }
+}
+```
+
+Exemple si paiement confirme :
+```json
+{
+  "success": true,
+  "data": {
+    "payment_session": {
+      "sync_ref": "RPT-20260516103000-A1B2C3",
+      "amount": 100,
+      "currency": "FCFA",
+      "status": "paid",
+      "provider": "fineopay",
+      "incident_report_id": 45,
+      "report": {
+        "id": 45,
+        "reference": "SIG-20260516103100-A1B2C3",
+        "status": "submitted",
+        "payment_status": "paid"
+      }
+    }
+  }
+}
+```
+
+Flux mobile recommande :
+- ouvrir `checkout_link` dans le navigateur
+- au retour dans l app, afficher "Verification du paiement"
+- appeler `GET /v1/public/payment-sessions/{syncRef}` toutes les 3 a 5 secondes
+- si `status = paid`, afficher le succes et ouvrir le detail du signalement
+- si `status = pending`, continuer ou proposer "Actualiser"
+- si `status = failed`, proposer de relancer le paiement
 
 Exemple avec champs dynamiques requis :
 ```json
@@ -489,10 +566,10 @@ damage_attachment=@preuve.jpg
 Liste l historique des paiements du compte.
 
 #### POST `/v1/public/reports/{report}/payments`
-Initialise un paiement pour un signalement.
+Ancien flux de paiement pour signalements deja crees. Le nouveau flux recommande est `POST /v1/public/reports`, qui retourne directement un `checkout_link` FineoPay avant creation du signalement.
 
 #### POST `/v1/public/payments/{payment}/confirm`
-Confirme un paiement simule.
+Ancien flux de confirmation simulee.
 
 #### GET `/v1/public/payments/{payment}/receipt`
 Telecharge le recu PDF si le paiement est `paid`.

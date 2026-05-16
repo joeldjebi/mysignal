@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers\Api\V1\Public\Reports;
 
-use App\Domain\Reports\Actions\CreateIncidentReportAction;
+use App\Domain\Payments\Actions\InitiateIncidentReportFineoPaymentAction;
 use App\Domain\Reports\Enums\IncidentReportStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Public\Reports\StoreIncidentReportDamageRequest;
 use App\Http\Requests\Api\V1\Public\Reports\StoreIncidentReportRequest;
+use App\Http\Resources\Api\V1\Public\Payments\IncidentReportPaymentSessionResource;
 use App\Http\Resources\Api\V1\Public\Reports\IncidentReportDamageResource;
 use App\Http\Resources\Api\V1\Public\Reports\IncidentReportResource;
 use App\Models\IncidentReport;
@@ -32,36 +33,35 @@ class PublicIncidentReportController extends Controller
         ]);
     }
 
-    public function store(StoreIncidentReportRequest $request, CreateIncidentReportAction $action, ActivityLogger $activityLogger, IncidentReportNotificationService $notificationService)
+    public function store(StoreIncidentReportRequest $request, InitiateIncidentReportFineoPaymentAction $action, ActivityLogger $activityLogger)
     {
-        $report = $action->handle(
+        $attributes = $request->validated();
+        unset($attributes['signal_attachment']);
+
+        $paymentSession = $action->handle(
             $request->user('public_api'),
-            $request->validated(),
+            $attributes,
             $request->file('signal_attachment')
         );
-        $report->load(['application', 'organization', 'meter.organization', 'country', 'city', 'commune', 'payments.pricingRule']);
 
         $activityLogger->log(
-            'public.report.created',
-            'Creation d un signalement public.',
-            $report,
+            'public.report.payment_session_created',
+            'Initialisation du paiement FineoPay pour un signalement public.',
+            $paymentSession,
             [
-                'reference' => $report->reference,
-                'status' => $report->status,
-                'application_id' => $report->application_id,
-                'organization_id' => $report->organization_id,
-                'signal_code' => $report->signal_code,
-                'signal_label' => $report->signal_label,
+                'sync_ref' => $paymentSession->sync_ref,
+                'status' => $paymentSession->status,
+                'amount' => $paymentSession->amount,
+                'currency' => $paymentSession->currency,
+                'provider' => $paymentSession->provider,
             ],
             $request
         );
 
-        $notificationService->notifyInstitutionReportCreated($report);
-        $notificationService->notifyCommunityReportCreated($report);
-
         return ApiResponse::success([
-            'report' => new IncidentReportResource($report),
-        ], 'Signalement enregistre avec succes.', 201);
+            'payment_session' => new IncidentReportPaymentSessionResource($paymentSession),
+            'checkout_link' => $paymentSession->checkout_link,
+        ], 'Lien de paiement genere avec succes. Le signalement sera enregistre apres paiement.', 201);
     }
 
     public function show(Request $request, IncidentReport $report)

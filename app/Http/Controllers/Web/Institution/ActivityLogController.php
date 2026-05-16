@@ -3,13 +3,17 @@
 namespace App\Http\Controllers\Web\Institution;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Web\Institution\Concerns\InteractsWithInstitutionContext;
 use App\Models\ActivityLog;
 use Illuminate\Contracts\View\View;
 
 class ActivityLogController extends Controller
 {
+    use InteractsWithInstitutionContext;
+
     public function index(): View
     {
+        $context = $this->institutionContext();
         $user = auth()->user();
         abort_unless($user !== null && $user->organization_id !== null, 403);
 
@@ -27,6 +31,8 @@ class ActivityLogController extends Controller
         }
 
         return view('institution.activity-logs.index', [
+            ...$context,
+            'features' => $context['feature_codes'],
             'activeNav' => 'activity-logs',
             'logs' => $query->paginate(20)->withQueryString(),
         ]);
