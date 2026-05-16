@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Api\V1\Notifications\DeviceTokenController;
+use App\Http\Controllers\Api\V1\Notifications\UserNotificationController;
 use App\Http\Controllers\Api\V1\Partner\Auth\AuthenticatedPartnerUserController;
 use App\Http\Controllers\Api\V1\Partner\Auth\PartnerAuthController;
 use App\Http\Controllers\Api\V1\Partner\Auth\PartnerPasswordResetController;
@@ -15,6 +17,8 @@ use App\Http\Controllers\Api\V1\Public\Discounts\PublicDiscountCardController;
 use App\Http\Controllers\Api\V1\Public\Households\PublicHouseholdController;
 use App\Http\Controllers\Api\V1\Public\Locations\PublicLocationController;
 use App\Http\Controllers\Api\V1\Public\Meters\PublicMeterController;
+use App\Http\Controllers\Api\V1\Public\Payments\FineoPayCallbackController;
+use App\Http\Controllers\Api\V1\Public\Payments\PublicIncidentReportPaymentSessionController;
 use App\Http\Controllers\Api\V1\Public\Payments\PublicReportPaymentController;
 use App\Http\Controllers\Api\V1\Public\Profile\PublicProfileController;
 use App\Http\Controllers\Api\V1\Public\ReparationCases\PublicReparationCaseController;
@@ -24,11 +28,12 @@ use App\Http\Controllers\Api\V1\Public\Signals\PublicSignalTypeController;
 use App\Http\Controllers\Api\V1\Public\Subscriptions\PublicUpSubscriptionController;
 use App\Http\Controllers\Api\V1\Public\Subscriptions\PublicUpSubscriptionPaymentController;
 use App\Http\Controllers\Api\V1\Public\UserTypes\PublicUserTypeController;
-use App\Http\Controllers\Api\V1\Notifications\DeviceTokenController;
-use App\Http\Controllers\Api\V1\Notifications\UserNotificationController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1/public')->group(function (): void {
+    Route::post('payments/fineopay/callback', FineoPayCallbackController::class)
+        ->name('api.public.payments.fineopay.callback');
+
     Route::get('applications', [PublicCatalogController::class, 'applications']);
     Route::get('application-types', [PublicCatalogController::class, 'applicationTypes']);
     Route::get('organization-types', [PublicCatalogController::class, 'organizationTypes']);
@@ -98,6 +103,7 @@ Route::prefix('v1/public')->group(function (): void {
         Route::get('rex-feedbacks', [PublicRexFeedbackController::class, 'index']);
         Route::post('rex-feedbacks', [PublicRexFeedbackController::class, 'store']);
         Route::get('payments', [PublicReportPaymentController::class, 'index']);
+        Route::get('payment-sessions/{syncRef}', [PublicIncidentReportPaymentSessionController::class, 'show']);
         Route::post('reports/{report}/payments', [PublicReportPaymentController::class, 'store']);
         Route::post('payments/{payment}/confirm', [PublicReportPaymentController::class, 'confirm']);
         Route::get('payments/{payment}/receipt', [PublicReportPaymentController::class, 'receipt']);

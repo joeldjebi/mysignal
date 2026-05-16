@@ -12,11 +12,14 @@ use App\Services\Notifications\IncidentReportNotificationService;
 use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 class ReportController extends Controller
 {
     use InteractsWithInstitutionContext;
+
+    private const AUTOMATIC_RESOLUTION_RADIUS_METERS = 1000;
 
     public function index(): View
     {
@@ -189,7 +192,21 @@ class ReportController extends Controller
         );
         $notificationService->notifyCommunityReportResolved($report);
 
-        return back()->with('success', 'Le signalement a ete marque comme resolu.');
+        $nearbyResolvedCount = $this->resolveNearbySimilarReports(
+            $report,
+            $attributes['official_response'],
+            $request,
+            $activityLogger,
+            $notificationService,
+        );
+
+        $message = 'Le signalement a ete marque comme resolu.';
+
+        if ($nearbyResolvedCount > 0) {
+            $message .= ' '.$nearbyResolvedCount.' signalement(s) similaire(s) dans un rayon de 1 km ont aussi ete resolu(s).';
+        }
+
+        return back()->with('success', $message);
     }
 
     public function reject(Request $request, IncidentReport $report, ActivityLogger $activityLogger, IncidentReportNotificationService $notificationService): RedirectResponse
@@ -286,6 +303,151 @@ class ReportController extends Controller
         }
 
         return true;
+    }
+
+    private function resolveNearbySimilarReports(
+        IncidentReport $sourceReport,
+        string $officialResponse,
+        Request $request,
+        ActivityLogger $activityLogger,
+        IncidentReportNotificationService $notificationService,
+    ): int {
+        $nearbyReports = $this->nearbySimilarOpenReports($sourceReport);
+
+        if ($nearbyReports->isEmpty()) {
+            return 0;
+        }
+
+        $resolvedAt = now();
+
+        $nearbyReports->each(function (IncidentReport $nearbyReport) use ($officialResponse, $request, $notificationService, $resolvedAt): void {
+            $nearbyReport->update([
+                'status' => IncidentReportStatus::Resolved->value,
+                'assigned_to_user_id' => $request->user()->id,
+                'taken_in_charge_at' => $nearbyReport->taken_in_charge_at ?? $resolvedAt,
+                'resolved_at' => $resolvedAt,
+                'official_response' => $officialResponse,
+                'resolution_confirmation_status' => 'pending',
+                'resolution_confirmed_at' => null,
+            ]);
+
+            $notificationService->notifyPublicReportAction(
+                $nearbyReport,
+                'report_resolved_nearby',
+                'Signalement resolu',
+                'Votre signalement '.$nearbyReport->reference.' a ete marque comme resolu car un probleme similaire a ete resolu dans votre zone.',
+            );
+        });
+
+        $activityLogger->log(
+            'institution.report.nearby_auto_resolved',
+            'Resolution automatique des signalements similaires dans un rayon de 1 km.',
+            $sourceReport,
+            [
+                'source_report_reference' => $sourceReport->reference,
+                'radius_meters' => self::AUTOMATIC_RESOLUTION_RADIUS_METERS,
+                'resolved_report_count' => $nearbyReports->count(),
+                'resolved_report_ids' => $nearbyReports->pluck('id')->values()->all(),
+                'signal_code' => $sourceReport->signal_code,
+            ],
+            $request,
+            $request->user(),
+            'institution',
+        );
+
+        return $nearbyReports->count();
+    }
+
+    /**
+     * @return Collection<int, IncidentReport>
+     */
+    private function nearbySimilarOpenReports(IncidentReport $sourceReport): Collection
+    {
+        $coordinates = $this->reportCoordinates($sourceReport);
+
+        if (
+            $coordinates === null
+            || blank($sourceReport->signal_code)
+            || $sourceReport->application_id === null
+            || $sourceReport->organization_id === null
+        ) {
+            return collect();
+        }
+
+        $latitude = $coordinates['latitude'];
+        $longitude = $coordinates['longitude'];
+        $deltaLatitude = self::AUTOMATIC_RESOLUTION_RADIUS_METERS / 111_320;
+        $deltaLongitude = self::AUTOMATIC_RESOLUTION_RADIUS_METERS / max(1, abs(111_320 * cos(deg2rad($latitude))));
+
+        return IncidentReport::query()
+            ->whereKeyNot($sourceReport->id)
+            ->where('application_id', $sourceReport->application_id)
+            ->where('organization_id', $sourceReport->organization_id)
+            ->where('signal_code', $sourceReport->signal_code)
+            ->whereIn('status', [
+                IncidentReportStatus::Submitted->value,
+                IncidentReportStatus::InProgress->value,
+            ])
+            ->where(function ($query) use ($latitude, $longitude, $deltaLatitude, $deltaLongitude): void {
+                $query
+                    ->where(function ($reportQuery) use ($latitude, $longitude, $deltaLatitude, $deltaLongitude): void {
+                        $reportQuery
+                            ->whereNotNull('latitude')
+                            ->whereNotNull('longitude')
+                            ->whereBetween('latitude', [$latitude - $deltaLatitude, $latitude + $deltaLatitude])
+                            ->whereBetween('longitude', [$longitude - $deltaLongitude, $longitude + $deltaLongitude]);
+                    })
+                    ->orWhereHas('meter', function ($meterQuery) use ($latitude, $longitude, $deltaLatitude, $deltaLongitude): void {
+                        $meterQuery
+                            ->whereNotNull('latitude')
+                            ->whereNotNull('longitude')
+                            ->whereBetween('latitude', [$latitude - $deltaLatitude, $latitude + $deltaLatitude])
+                            ->whereBetween('longitude', [$longitude - $deltaLongitude, $longitude + $deltaLongitude]);
+                    });
+            })
+            ->when($sourceReport->network_type !== null, fn ($query) => $query->where('network_type', $sourceReport->network_type))
+            ->with(['publicUser', 'meter'])
+            ->get()
+            ->filter(function (IncidentReport $report) use ($latitude, $longitude): bool {
+                $reportCoordinates = $this->reportCoordinates($report);
+
+                return $reportCoordinates !== null
+                    && $this->distanceInMeters(
+                        $latitude,
+                        $longitude,
+                        $reportCoordinates['latitude'],
+                        $reportCoordinates['longitude'],
+                    ) <= self::AUTOMATIC_RESOLUTION_RADIUS_METERS;
+            })
+            ->values();
+    }
+
+    private function reportCoordinates(IncidentReport $report): ?array
+    {
+        $report->loadMissing('meter');
+
+        $latitude = $report->latitude ?? $report->meter?->latitude;
+        $longitude = $report->longitude ?? $report->meter?->longitude;
+
+        if ($latitude === null || $longitude === null) {
+            return null;
+        }
+
+        return [
+            'latitude' => (float) $latitude,
+            'longitude' => (float) $longitude,
+        ];
+    }
+
+    private function distanceInMeters(float $lat1, float $lng1, float $lat2, float $lng2): float
+    {
+        $earthRadius = 6_371_000;
+        $latDelta = deg2rad($lat2 - $lat1);
+        $lngDelta = deg2rad($lng2 - $lng1);
+        $a = sin($latDelta / 2) ** 2
+            + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($lngDelta / 2) ** 2;
+
+        return $earthRadius * 2 * atan2(sqrt($a), sqrt(1 - $a));
     }
 
     private function resolveSlaState(IncidentReport $report): array

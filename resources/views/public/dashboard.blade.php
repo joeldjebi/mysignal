@@ -1601,6 +1601,51 @@
                         </div>
                     </section>
 
+                    <section class="public-panel" data-panel="report-payment">
+                        <div class="dashboard-card">
+                            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+                                <div>
+                                    <div class="section-title">Paiement du signalement</div>
+                                    <div class="muted-label" id="reportPaymentWaitingSubtitle">Gardez cette page ouverte pendant que vous terminez le paiement dans l’autre onglet.</div>
+                                </div>
+                                <span class="status-pill" id="reportPaymentWaitingStatus">En attente</span>
+                            </div>
+
+                            <div class="mini-card mb-4">
+                                <div class="row g-4 align-items-center">
+                                    <div class="col-lg-7">
+                                        <div class="small text-secondary fw-semibold mb-1">Référence de suivi</div>
+                                        <div class="fw-bold fs-4 mb-2" id="reportPaymentWaitingReference">-</div>
+                                        <div class="muted-label" id="reportPaymentWaitingMessage">Nous vérifions automatiquement la confirmation FineoPay.</div>
+                                    </div>
+                                    <div class="col-lg-5">
+                                        <div class="soft-panel">
+                                            <div class="small text-secondary fw-semibold mb-1">Montant</div>
+                                            <div class="fw-bold fs-4" id="reportPaymentWaitingAmount">-</div>
+                                            <div class="muted-label" id="reportPaymentWaitingProvider">FineoPay</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mini-card mb-4" id="reportPaymentWaitingLoader">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="spinner-border text-primary" role="status" aria-hidden="true"></div>
+                                    <div>
+                                        <div class="fw-bold" id="reportPaymentWaitingLoaderTitle">Vérification du paiement en cours</div>
+                                        <div class="muted-label" id="reportPaymentWaitingLoaderText">Le signalement sera créé automatiquement dès que FineoPay confirme le paiement.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex flex-wrap gap-2" id="reportPaymentWaitingActions">
+                                <button class="btn btn-premium px-4" type="button" id="refreshReportPaymentStatusButton">J’ai terminé le paiement</button>
+                                <button class="btn btn-ghost-premium px-4" type="button" id="reopenReportPaymentButton">Rouvrir le paiement</button>
+                                <button class="btn btn-ghost-premium px-4" type="button" id="cancelReportPaymentWaitingButton">Annuler</button>
+                            </div>
+                        </div>
+                    </section>
+
                     <section class="public-panel" data-panel="payments">
                         <div class="dashboard-card">
                             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
@@ -2166,6 +2211,7 @@
                 const googleMapsApiKey = @json(config('services.google_maps.key'));
                 const tokenKey = 'acepen_public_token';
                 const dashboardPanelStorageKey = 'acepen_public_dashboard_panel';
+                const pendingReportPaymentStorageKey = 'acepen_public_pending_report_payment';
                 const dialCodeOptions = @json($dialCodeOptions);
                 const publicUserTypes = @json($publicUserTypesPayload);
                 const serviceApplications = @json($serviceApplicationsPayload);
@@ -2179,6 +2225,9 @@
                     pendingHouseholdInvitations: [],
                     meters: [],
                     payments: [],
+                    pendingReportPayment: null,
+                    pendingReportPaymentPoller: null,
+                    pendingReportPaymentAttempts: 0,
                     subscription: null,
                     discountCard: null,
                     subscriptionHistory: [],
@@ -2851,6 +2900,20 @@
                         throw error;
                     }
                     return data;
+                }
+
+                function debugFormDataPayload(formData) {
+                    return Array.from(formData.entries()).reduce((payload, [key, value]) => {
+                        payload[key] = value instanceof File
+                            ? {
+                                name: value.name,
+                                size: value.size,
+                                type: value.type,
+                            }
+                            : value;
+
+                        return payload;
+                    }, {});
                 }
 
                 function hasFirebaseWebConfig() {
@@ -4967,6 +5030,178 @@
                     return `${Number(value).toLocaleString()} ${currency}`;
                 }
 
+                function persistPendingReportPayment(session) {
+                    state.pendingReportPayment = session || null;
+
+                    if (session) {
+                        sessionStorage.setItem(pendingReportPaymentStorageKey, JSON.stringify(session));
+                        return;
+                    }
+
+                    sessionStorage.removeItem(pendingReportPaymentStorageKey);
+                }
+
+                function restorePendingReportPayment() {
+                    const storedSession = sessionStorage.getItem(pendingReportPaymentStorageKey);
+
+                    if (!storedSession) {
+                        return;
+                    }
+
+                    try {
+                        const session = JSON.parse(storedSession);
+                        if (session?.sync_ref) {
+                            showReportPaymentWaiting(session, { openCheckout: false });
+                        }
+                    } catch (error) {
+                        sessionStorage.removeItem(pendingReportPaymentStorageKey);
+                    }
+                }
+
+                function stopReportPaymentPolling() {
+                    if (state.pendingReportPaymentPoller) {
+                        window.clearInterval(state.pendingReportPaymentPoller);
+                        state.pendingReportPaymentPoller = null;
+                    }
+                }
+
+                function reportPaymentStatusLabel(status) {
+                    const labels = {
+                        pending: 'En attente',
+                        paid: 'Payé',
+                        failed: 'Échec',
+                        expired: 'Expiré',
+                    };
+
+                    return labels[status] || status || 'En attente';
+                }
+
+                function renderReportPaymentWaiting(session, mode = 'pending') {
+                    document.getElementById('reportPaymentWaitingReference').textContent = session?.sync_ref || '-';
+                    document.getElementById('reportPaymentWaitingAmount').textContent = formatAmount(session?.amount, session?.currency || 'FCFA');
+                    document.getElementById('reportPaymentWaitingProvider').textContent = session?.provider || 'FineoPay';
+                    document.getElementById('reportPaymentWaitingStatus').textContent = reportPaymentStatusLabel(session?.status || 'pending');
+
+                    const loader = document.getElementById('reportPaymentWaitingLoader');
+                    const refreshButton = document.getElementById('refreshReportPaymentStatusButton');
+                    const reopenButton = document.getElementById('reopenReportPaymentButton');
+                    const cancelButton = document.getElementById('cancelReportPaymentWaitingButton');
+
+                    if (mode === 'paid') {
+                        document.getElementById('reportPaymentWaitingSubtitle').textContent = 'Paiement confirmé. Nous mettons à jour votre espace.';
+                        document.getElementById('reportPaymentWaitingMessage').textContent = 'Le paiement est confirmé et le signalement a été enregistré.';
+                        document.getElementById('reportPaymentWaitingLoaderTitle').textContent = 'Mise à jour des éléments du signalement';
+                        document.getElementById('reportPaymentWaitingLoaderText').textContent = 'Chargement du nouveau signalement, du paiement et des notifications.';
+                        loader.classList.remove('d-none');
+                        refreshButton.disabled = true;
+                        reopenButton.classList.add('d-none');
+                        cancelButton.classList.add('d-none');
+                        return;
+                    }
+
+                    if (mode === 'failed') {
+                        document.getElementById('reportPaymentWaitingSubtitle').textContent = 'Le paiement n’a pas été confirmé.';
+                        document.getElementById('reportPaymentWaitingMessage').textContent = 'Vous pouvez rouvrir le lien de paiement ou annuler cette attente.';
+                        document.getElementById('reportPaymentWaitingLoaderTitle').textContent = 'Paiement échoué ou interrompu';
+                        document.getElementById('reportPaymentWaitingLoaderText').textContent = 'Aucun signalement n’a été enregistré pour cette session.';
+                        loader.classList.add('d-none');
+                        refreshButton.disabled = false;
+                        reopenButton.classList.remove('d-none');
+                        cancelButton.classList.remove('d-none');
+                        return;
+                    }
+
+                    document.getElementById('reportPaymentWaitingSubtitle').textContent = 'Gardez cette page ouverte pendant que vous terminez le paiement dans l’autre onglet.';
+                    document.getElementById('reportPaymentWaitingMessage').textContent = 'Nous vérifions automatiquement la confirmation FineoPay.';
+                    document.getElementById('reportPaymentWaitingLoaderTitle').textContent = 'Vérification du paiement en cours';
+                    document.getElementById('reportPaymentWaitingLoaderText').textContent = 'Le signalement sera créé automatiquement dès que FineoPay confirme le paiement.';
+                    loader.classList.remove('d-none');
+                    refreshButton.disabled = false;
+                    reopenButton.classList.remove('d-none');
+                    cancelButton.classList.remove('d-none');
+                }
+
+                async function pollReportPaymentSession(syncRef, { manual = false } = {}) {
+                    if (!syncRef) {
+                        return null;
+                    }
+
+                    const response = await apiFetch(`/payment-sessions/${encodeURIComponent(syncRef)}`);
+                    const session = response.data.payment_session;
+                    persistPendingReportPayment(session);
+
+                    if (session.status === 'paid') {
+                        stopReportPaymentPolling();
+                        renderReportPaymentWaiting(session, 'paid');
+                        showToast('Paiement confirmé. Mise à jour du signalement...');
+                        persistPendingReportPayment(null);
+                        await refreshDashboard();
+                        activatePanel('reports');
+
+                        if (session.incident_report_id) {
+                            window.AcepenPortal.showReportDetails(Number(session.incident_report_id));
+                        }
+
+                        return session;
+                    }
+
+                    if (['failed', 'expired'].includes(session.status)) {
+                        stopReportPaymentPolling();
+                        renderReportPaymentWaiting(session, 'failed');
+                        if (manual) {
+                            showToast('Paiement non confirmé. Vous pouvez relancer ou annuler.', true);
+                        }
+                        return session;
+                    }
+
+                    renderReportPaymentWaiting(session, 'pending');
+
+                    if (manual) {
+                        showToast('Paiement toujours en attente de confirmation.');
+                    }
+
+                    return session;
+                }
+
+                function startReportPaymentPolling(syncRef) {
+                    stopReportPaymentPolling();
+                    state.pendingReportPaymentAttempts = 0;
+                    state.pendingReportPaymentPoller = window.setInterval(async () => {
+                        state.pendingReportPaymentAttempts += 1;
+
+                        try {
+                            await pollReportPaymentSession(syncRef);
+                        } catch (error) {
+                            console.error('Impossible de vérifier le paiement du signalement.', error);
+                        }
+
+                        if (state.pendingReportPaymentAttempts >= 40) {
+                            stopReportPaymentPolling();
+                            showToast('Paiement en attente. Vous pouvez actualiser manuellement.', true);
+                        }
+                    }, 4000);
+                }
+
+                function showReportPaymentWaiting(session, options = {}) {
+                    const { openCheckout = true, paymentWindow = null } = options;
+                    persistPendingReportPayment(session);
+                    renderReportPaymentWaiting(session, session?.status === 'failed' ? 'failed' : 'pending');
+                    activatePanel('report-payment');
+                    startReportPaymentPolling(session.sync_ref);
+
+                    if (openCheckout && session.checkout_link) {
+                        if (paymentWindow && !paymentWindow.closed) {
+                            paymentWindow.location.href = session.checkout_link;
+                            return;
+                        }
+
+                        const openedWindow = window.open(session.checkout_link, '_blank', 'noopener,noreferrer');
+                        if (!openedWindow) {
+                            showToast('Le navigateur a bloqué l’ouverture du paiement. Utilisez le bouton Rouvrir le paiement.', true);
+                        }
+                    }
+                }
+
                 function getSubscriptionStatusLabel(status) {
                     const labels = {
                         pending: 'Paiement en attente',
@@ -5705,6 +5940,7 @@
                     renderIncomingHouseholdInvitations(invitations.data.invitations);
                     renderReparationCases(reparationCases.data.reparation_cases);
                     openSubscriptionPrompt();
+                    restorePendingReportPayment();
                 }
 
                 window.AcepenPortal = {
@@ -5746,6 +5982,44 @@
                         } catch (error) {
                             showToast(error.message, true);
                         }
+                    },
+                    async refreshReportPaymentStatus() {
+                        const session = state.pendingReportPayment;
+
+                        if (!session?.sync_ref) {
+                            showToast('Aucun paiement de signalement en attente.', true);
+                            return;
+                        }
+
+                        const button = document.getElementById('refreshReportPaymentStatusButton');
+                        button.disabled = true;
+                        button.dataset.originalText = button.dataset.originalText || button.textContent;
+                        button.textContent = 'Vérification...';
+
+                        try {
+                            await pollReportPaymentSession(session.sync_ref, { manual: true });
+                        } catch (error) {
+                            showToast(error.message || 'Impossible de vérifier le paiement.', true);
+                        } finally {
+                            button.disabled = false;
+                            button.textContent = button.dataset.originalText || 'J’ai terminé le paiement';
+                        }
+                    },
+                    reopenReportPayment() {
+                        const session = state.pendingReportPayment;
+
+                        if (!session?.checkout_link) {
+                            showToast('Lien de paiement indisponible.', true);
+                            return;
+                        }
+
+                        window.open(session.checkout_link, '_blank', 'noopener,noreferrer');
+                    },
+                    cancelReportPaymentWaiting() {
+                        stopReportPaymentPolling();
+                        persistPendingReportPayment(null);
+                        activatePanel('reports');
+                        showToast('Attente de paiement annulée.');
                     },
                     async confirmResolution(reportId) {
                         try {
@@ -5976,6 +6250,9 @@
                     document.getElementById('reportResolutionFilter').value = '';
                     renderReports(state.reports);
                 });
+                document.getElementById('refreshReportPaymentStatusButton')?.addEventListener('click', () => window.AcepenPortal.refreshReportPaymentStatus());
+                document.getElementById('reopenReportPaymentButton')?.addEventListener('click', () => window.AcepenPortal.reopenReportPayment());
+                document.getElementById('cancelReportPaymentWaitingButton')?.addEventListener('click', () => window.AcepenPortal.cancelReportPaymentWaiting());
                 document.getElementById('damageSearchFilter').addEventListener('input', (event) => {
                     state.damageFilters.search = event.currentTarget.value || '';
                     state.damagesPage = 1;
@@ -6286,6 +6563,7 @@
                 document.getElementById('reportForm').addEventListener('submit', async (event) => {
                     event.preventDefault();
                     const form = event.currentTarget;
+                    let paymentWindow = null;
                     setLoading(form, true);
                     try {
                         const payload = new FormData();
@@ -6337,8 +6615,17 @@
                             }
                         }
 
+                        console.group('[MYSIGNAL] Soumission signalement UP');
+                        console.log('Payload soumis a /api/v1/public/reports', debugFormDataPayload(payload));
+
+                        paymentWindow = window.open('', '_blank', 'noopener,noreferrer');
                         const response = await apiFetch('/reports', { method: 'POST', body: payload });
-                        showToast(response.message);
+                        console.log('Reponse /api/v1/public/reports', response);
+                        console.log('Checkout link FineoPay', response.data?.checkout_link || response.data?.payment_session?.checkout_link || null);
+                        console.groupEnd();
+
+                        const checkoutLink = response.data?.checkout_link || response.data?.payment_session?.checkout_link;
+                        showToast(response.message || 'Lien de paiement genere.');
                         form.reset();
                         clearReportGeoFields();
                         setGeoManualMode('report', false);
@@ -6348,10 +6635,37 @@
                         renderReportMeterOptions();
                         renderSignalOptions();
                         state.autoGeoAttempts.report = false;
-                        await refreshDashboard();
-                        activatePanel('reports');
                         reportFormModal?.hide();
+                        if (response.data?.payment_session) {
+                            showReportPaymentWaiting({
+                                ...response.data.payment_session,
+                                checkout_link: checkoutLink,
+                            }, {
+                                paymentWindow,
+                            });
+                            return;
+                        }
+                        paymentWindow?.close();
+                        await refreshDashboard();
+                        activatePanel('payments');
                     } catch (error) {
+                        paymentWindow?.close();
+                        console.error('Erreur /api/v1/public/reports', {
+                            message: error.message,
+                            status: error.status,
+                            payload: error.payload,
+                        });
+                        const fineoPayDebug = error.payload?.errors?.fineopay_debug?.[0];
+                        if (fineoPayDebug) {
+                            try {
+                                const parsedFineoPayDebug = JSON.parse(fineoPayDebug);
+                                console.log('FineoPay debug', parsedFineoPayDebug);
+                                console.log('FineoPay curl', parsedFineoPayDebug.request?.curl || null);
+                            } catch (parseError) {
+                                console.log('FineoPay debug', fineoPayDebug);
+                            }
+                        }
+                        console.groupEnd();
                         showToast(error.message, true);
                     } finally {
                         setLoading(form, false);
