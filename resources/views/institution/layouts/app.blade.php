@@ -62,6 +62,15 @@
             font-weight: 800;
             box-shadow: 0 16px 32px rgba(196,155,72,.28);
         }
+        .brand-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 14px;
+            object-fit: contain;
+            background: rgba(255,255,255,.94);
+            padding: .28rem;
+            box-shadow: 0 16px 32px rgba(196,155,72,.18);
+        }
         .sidebar-menu {
             flex: 1 1 auto;
             min-height: 0;
@@ -404,6 +413,19 @@
             ? \App\Models\UserNotification::query()
                 ->where('recipient_type', 'institution')
                 ->where('recipient_id', $authUser->id)
+                ->where(function ($query) use ($organization): void {
+                    $query
+                        ->where(function ($scopedQuery) use ($organization): void {
+                            $scopedQuery
+                                ->where('data->application_id', $organization?->application_id)
+                                ->where('data->organization_id', $organization?->id);
+                        })
+                        ->orWhere(function ($legacyQuery): void {
+                            $legacyQuery
+                                ->whereNull('data->application_id')
+                                ->whereNull('data->organization_id');
+                        });
+                })
                 ->whereNull('read_at')
                 ->count()
             : 0;
@@ -413,7 +435,11 @@
         <aside class="sidebar">
             <div class="sidebar-brand">
                 <div class="d-flex align-items-center gap-3 mb-3">
-                    <div class="brand-mark">{{ strtoupper(substr((string) ($organization?->code ?? 'IN'), 0, 2)) }}</div>
+                    @if ($organization?->logoUrl())
+                        <img src="{{ $organization->logoUrl() }}" alt="{{ $organization->name }} logo" class="brand-logo">
+                    @else
+                        <div class="brand-mark">{{ strtoupper(substr((string) ($organization?->code ?? 'IN'), 0, 2)) }}</div>
+                    @endif
                     <div>
                         <div class="small text-white-50 fw-semibold">{{ $application?->name ?? 'SIGNAL ALERTE' }}</div>
                         <div class="fw-bold fs-5">Portail institutionnel</div>
@@ -474,12 +500,12 @@
                 @endif
 
                 @if ($canViewMeters)
-                    <div class="sidebar-label">Compteurs</div>
+                    <div class="sidebar-label">Identifiants</div>
                     <a href="{{ route('institution.meters.index') }}" class="nav-pill {{ $activeNav === 'meters' ? 'active' : '' }}">
-                        <span class="nav-icon">CP</span>
+                        <span class="nav-icon">ID</span>
                         <span>
-                            <span class="d-block fw-semibold">Compteurs</span>
-                            <span class="small text-white-50">Suivi des compteurs publics</span>
+                            <span class="d-block fw-semibold">Identifiants</span>
+                            <span class="small text-white-50">Suivi des identifiants publics</span>
                         </span>
                     </a>
                 @endif
@@ -644,6 +670,18 @@
                 syncPhoneFields();
                 form.addEventListener('submit', syncPhoneFields);
             });
+
+            const sidebarMenu = document.querySelector('.sidebar-menu');
+            const activeSidebarItem = sidebarMenu?.querySelector('.nav-pill.active');
+
+            if (sidebarMenu && activeSidebarItem) {
+                const offset = activeSidebarItem.offsetTop - (sidebarMenu.clientHeight / 2) + (activeSidebarItem.clientHeight / 2);
+
+                sidebarMenu.scrollTo({
+                    top: Math.max(0, offset),
+                    behavior: 'instant',
+                });
+            }
 
             function hasFirebaseWebConfig() {
                 return firebasePushEnabled

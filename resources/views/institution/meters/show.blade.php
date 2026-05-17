@@ -1,8 +1,8 @@
 @extends('institution.layouts.app')
 
-@section('title', config('app.name').' | Detail compteur')
-@section('page-title', 'Detail compteur')
-@section('page-description', 'Vue detaillee du compteur et de son historique recent.')
+@section('title', config('app.name').' | Detail identifiant')
+@section('page-title', 'Detail identifiant')
+@section('page-description', 'Vue detaillee de l identifiant et de son historique recent.')
 
 @section('content')
     @php
@@ -17,6 +17,7 @@
                     <div>
                         <div class="fw-bold fs-5">{{ $meter->label ?: $meter->meter_number }}</div>
                         <div class="text-secondary small">{{ $meter->network_type }} · {{ $meter->meter_number }}</div>
+                        <div class="text-secondary small">{{ $meter->application?->name ?: '-' }} / {{ $meter->organization?->name ?: '-' }}</div>
                     </div>
                     <span class="status-chip">{{ $meter->status }}</span>
                 </div>
@@ -80,7 +81,7 @@
             </section>
 
             <section class="panel-card">
-                <div class="fw-bold mb-3">Derniers signalements sur ce compteur</div>
+                <div class="fw-bold mb-3">Derniers signalements sur cet identifiant</div>
                 <div class="table-responsive">
                     <table class="table table-modern align-middle mb-0">
                         <thead>
@@ -100,7 +101,7 @@
                                     <td><span class="status-chip">{{ $report->status }}</span></td>
                                 </tr>
                             @empty
-                                <tr><td colspan="4" class="text-center text-secondary">Aucun signalement lie a ce compteur.</td></tr>
+                                <tr><td colspan="4" class="text-center text-secondary">Aucun signalement lie a cet identifiant.</td></tr>
                             @endforelse
                         </tbody>
                     </table>

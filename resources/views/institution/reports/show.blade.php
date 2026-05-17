@@ -107,16 +107,16 @@
             </section>
 
             <section class="panel-card mb-4">
-                <div class="fw-bold mb-3">Compteur et localisation</div>
+                <div class="fw-bold mb-3">Identifiant et localisation</div>
                 <div class="row g-3">
                     <div class="col-md-6">
                         <div class="surface-soft">
                             <div class="meta-title">{{ $report->meter?->meter_number ?: '-' }}</div>
                             <div class="meta-subtitle">{{ $report->meter?->network_type ?: '-' }} · {{ $report->meter?->label ?: 'Sans libelle' }}</div>
-                            <div class="meta-subtitle mt-2">Commune compteur: {{ $report->meter?->commune ?: '-' }}</div>
+                            <div class="meta-subtitle mt-2">Commune identifiant: {{ $report->meter?->commune ?: '-' }}</div>
                             <div class="meta-subtitle">Adresse: {{ $report->meter?->address ?: '-' }}</div>
                             @if ($meterGoogleMapsUrl)
-                                <a href="{{ $meterGoogleMapsUrl }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-dark mt-3">Ouvrir le compteur dans Google Maps</a>
+                                <a href="{{ $meterGoogleMapsUrl }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-dark mt-3">Ouvrir l identifiant dans Google Maps</a>
                             @endif
                         </div>
                     </div>

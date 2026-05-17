@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Web\Institution;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Web\Institution\Concerns\InteractsWithInstitutionContext;
 use App\Models\Meter;
-use Illuminate\Support\Facades\Abort;
 use Illuminate\View\View;
 
 class MeterController extends Controller
@@ -16,11 +15,9 @@ class MeterController extends Controller
     {
         $context = $this->institutionContext();
 
-        $query = Meter::query();
+        $query = $this->institutionMetersQuery($context['application_id'], $context['organization_id'], $context['network_type']);
 
-        if ($context['network_type'] !== null) {
-            $query->where('network_type', $context['network_type']);
-        }
+        $query->with(['application', 'organization']);
 
         if (filled(request('search'))) {
             $search = trim((string) request('search'));
@@ -48,13 +45,18 @@ class MeterController extends Controller
     {
         $context = $this->institutionContext();
 
-        if ($context['network_type'] !== null && $meter->network_type !== $context['network_type']) {
-            abort(403);
-        }
+        abort_unless($this->canAccessMeter($meter, $context['application_id'], $context['organization_id'], $context['network_type']), 403);
 
         $meter->load([
+            'application',
+            'organization',
             'publicUsers',
-            'incidentReports' => fn ($query) => $query->with('commune')->latest()->limit(10),
+            'incidentReports' => fn ($query) => $query
+                ->with('commune')
+                ->when($context['application_id'] !== null, fn ($builder) => $builder->where('application_id', $context['application_id']))
+                ->when($context['organization_id'] !== null, fn ($builder) => $builder->where('organization_id', $context['organization_id']))
+                ->latest()
+                ->limit(10),
         ]);
 
         return view('institution.meters.show', [
@@ -63,5 +65,30 @@ class MeterController extends Controller
             'activeNav' => 'meters',
             'meter' => $meter,
         ]);
+    }
+
+    private function institutionMetersQuery(?int $applicationId, ?int $organizationId, ?string $networkType)
+    {
+        return Meter::query()
+            ->where('application_id', $applicationId)
+            ->where('organization_id', $organizationId)
+            ->when($networkType !== null, fn ($query) => $query->where('network_type', $networkType));
+    }
+
+    private function canAccessMeter(Meter $meter, ?int $applicationId, ?int $organizationId, ?string $networkType): bool
+    {
+        if ($applicationId === null || (int) $meter->application_id !== (int) $applicationId) {
+            return false;
+        }
+
+        if ($organizationId === null || (int) $meter->organization_id !== (int) $organizationId) {
+            return false;
+        }
+
+        if ($networkType !== null && $meter->network_type !== $networkType) {
+            return false;
+        }
+
+        return true;
     }
 }
