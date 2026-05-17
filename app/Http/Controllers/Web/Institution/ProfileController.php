@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\Web\Institution\Concerns\InteractsWithInstitutionContext;
 use App\Models\Feature;
 use App\Models\Permission;
+use App\Services\WasabiService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -44,14 +45,16 @@ class ProfileController extends Controller
         ]);
     }
 
-    public function update(Request $request): RedirectResponse
+    public function update(Request $request, WasabiService $wasabiService): RedirectResponse
     {
         $user = $request->user();
+        $organization = $user->organization;
 
         $attributes = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'phone' => ['nullable', 'string', 'max:30'],
+            'organization_logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ]);
 
@@ -66,6 +69,23 @@ class ProfileController extends Controller
         }
 
         $user->update($payload);
+
+        if ($request->hasFile('organization_logo') && $organization !== null) {
+            $previousLogoPath = $organization->logo_path;
+            $logoPath = $wasabiService->uploadFile(
+                $request->file('organization_logo'),
+                config('wasabi.organization_logo_directory', 'organizations/logos'),
+                'organization-'.$organization->id
+            );
+
+            $organization->update([
+                'logo_path' => $logoPath,
+            ]);
+
+            if (filled($previousLogoPath) && str_starts_with((string) $previousLogoPath, 'organizations/')) {
+                $wasabiService->deleteFile($previousLogoPath);
+            }
+        }
 
         return redirect()->route('institution.profile.edit')
             ->with('success', 'Votre profil a ete mis a jour.');

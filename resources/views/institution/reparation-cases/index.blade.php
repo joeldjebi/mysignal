@@ -29,7 +29,7 @@
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
             <div>
                 <div class="fw-bold">Dossiers</div>
-                <div class="text-secondary small">Seuls les dossiers rattachés à votre organisation sont visibles ici.</div>
+                <div class="text-secondary small">Seuls les dossiers rattachés à votre application et à votre organisation sont visibles ici.</div>
             </div>
             <span class="status-chip">{{ $reparationCases->total() }} dossier(s)</span>
         </div>
@@ -70,6 +70,7 @@
                     <thead>
                         <tr>
                             <th>Dossier</th>
+                            <th>Perimetre</th>
                             <th>Signalement</th>
                             <th>Usager</th>
                             <th>Statut</th>
@@ -84,6 +85,12 @@
                                     <div class="meta-stack">
                                         <span class="meta-title">{{ $case->reference }}</span>
                                         <span class="meta-subtitle">{{ $case->opened_at?->format('d/m/Y H:i') ?: $case->created_at?->format('d/m/Y H:i') }}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="meta-stack">
+                                        <span class="meta-title">{{ $case->application?->name ?: '-' }}</span>
+                                        <span class="meta-subtitle">{{ $case->organization?->name ?: '-' }}</span>
                                     </div>
                                 </td>
                                 <td>
@@ -114,7 +121,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center text-secondary py-4">Aucun dossier disponible.</td>
+                                <td colspan="7" class="text-center text-secondary py-4">Aucun dossier disponible.</td>
                             </tr>
                         @endforelse
                     </tbody>

@@ -48,7 +48,7 @@
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label small text-secondary">Compteur</label>
+                    <label class="form-label small text-secondary">Identifiant</label>
                     <select name="meter_id" class="form-select">
                         <option value="">Tous</option>
                         @foreach ($meters as $meter)
@@ -96,7 +96,7 @@
                         <tr>
                             <th>Reference</th>
                             <th>Signal</th>
-                            <th>Compteur</th>
+                            <th>Identifiant</th>
                             <th>Traitement</th>
                             @if ($canViewPaymentInfo)
                                 <th>Paiement</th>

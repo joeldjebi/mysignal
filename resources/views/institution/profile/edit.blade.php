@@ -32,6 +32,15 @@
             box-shadow: 0 14px 28px rgba(196,155,72,.24);
             flex-shrink: 0;
         }
+        .profile-logo-preview {
+            width: 72px;
+            height: 72px;
+            border-radius: 18px;
+            border: 1px solid rgba(16,42,67,.08);
+            background: rgba(255,255,255,.78);
+            object-fit: contain;
+            padding: .45rem;
+        }
         .summary-strip {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
@@ -134,7 +143,11 @@
         <section class="profile-hero">
             <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-4">
                 <div class="d-flex align-items-center gap-3">
-                    <div class="profile-avatar">{{ strtoupper(substr((string) $profileUser->name, 0, 2)) }}</div>
+                    @if ($organization?->logoUrl())
+                        <img src="{{ $organization->logoUrl() }}" alt="{{ $organization->name }} logo" class="profile-logo-preview">
+                    @else
+                        <div class="profile-avatar">{{ strtoupper(substr((string) $profileUser->name, 0, 2)) }}</div>
+                    @endif
                     <div>
                         <div class="small text-white-50 fw-semibold mb-1">{{ $application?->name ?? 'Portail institutionnel' }}</div>
                         <div class="h4 fw-bold mb-1">{{ $profileUser->name }}</div>
@@ -174,7 +187,7 @@
                     <div class="fw-bold fs-5 mb-2">Mettre a jour mon profil</div>
                     <div class="section-copy">Ces informations sont utilisees pour votre connexion et votre identification dans le portail institutionnel.</div>
 
-                    <form method="POST" action="{{ route('institution.profile.update') }}" class="row g-3">
+                    <form method="POST" action="{{ route('institution.profile.update') }}" class="row g-3" enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
                         <div class="col-md-6">
@@ -191,6 +204,21 @@
                         <div class="col-md-6">
                             <label class="form-label">Statut du compte</label>
                             <input type="text" value="{{ $profileUser->status }}" class="form-control" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Logo de l'organisation</label>
+                            <input type="file" name="organization_logo" class="form-control" accept="image/png,image/jpeg,image/webp">
+                            <div class="form-text">PNG, JPG ou WebP. Taille maximale: 4 Mo.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Logo actuel</label>
+                            <div>
+                                @if ($organization?->logoUrl())
+                                    <img src="{{ $organization->logoUrl() }}" alt="{{ $organization->name }} logo" class="profile-logo-preview">
+                                @else
+                                    <div class="text-secondary small pt-2">Aucun logo enregistre.</div>
+                                @endif
+                            </div>
                         </div>
                         <div class="col-12">
                             <div class="quick-note">

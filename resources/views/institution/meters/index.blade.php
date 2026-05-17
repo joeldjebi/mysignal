@@ -1,17 +1,17 @@
 @extends('institution.layouts.app')
 
-@section('title', config('app.name').' | Compteurs')
-@section('page-title', 'Compteurs')
-@section('page-description', 'Liste des compteurs publics visibles pour cette institution.')
+@section('title', config('app.name').' | Identifiants')
+@section('page-title', 'Identifiants')
+@section('page-description', 'Liste des identifiants publics visibles pour cette application et cette organisation.')
 
 @section('content')
     <section class="panel-card">
-        <div class="fw-bold mb-3">Compteurs</div>
+        <div class="fw-bold mb-3">Identifiants</div>
         <form method="GET" class="filter-bar">
             <div class="row g-2 align-items-end">
                 <div class="col-md-8">
                     <label class="form-label small text-secondary">Recherche</label>
-                    <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Numero, libelle, commune, adresse">
+                    <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Identifiant, libelle, commune, adresse">
                 </div>
                 <div class="col-md-2">
                     <label class="form-label small text-secondary">Statut</label>
@@ -28,14 +28,15 @@
             </div>
         </form>
         <div class="table-toolbar">
-            <div class="table-meta">{{ $meters->total() }} compteur(s)</div>
+            <div class="table-meta">{{ $meters->total() }} identifiant(s)</div>
         </div>
         <div class="table-responsive">
             <table class="table table-modern align-middle">
                 <thead>
                     <tr>
-                        <th>Numero</th>
-                        <th>Reseau</th>
+                        <th>Identifiant</th>
+                        <th>Reseau/Type</th>
+                        <th>Application / Organisation</th>
                         <th>Libelle</th>
                         <th>Commune</th>
                         <th>Statut</th>
@@ -47,6 +48,12 @@
                         <tr>
                             <td class="fw-semibold">{{ $meter->meter_number }}</td>
                             <td>{{ $meter->network_type }}</td>
+                            <td>
+                                <div class="meta-stack">
+                                    <span class="meta-title">{{ $meter->application?->name ?: '-' }}</span>
+                                    <span class="meta-subtitle">{{ $meter->organization?->name ?: '-' }}</span>
+                                </div>
+                            </td>
                             <td>{{ $meter->label ?: '-' }}</td>
                             <td>{{ $meter->commune ?: '-' }}</td>
                             <td><span class="status-chip">{{ $meter->status }}</span></td>
@@ -55,7 +62,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="6" class="text-center text-secondary">Aucun compteur disponible.</td></tr>
+                        <tr><td colspan="7" class="text-center text-secondary">Aucun identifiant disponible.</td></tr>
                     @endforelse
                 </tbody>
             </table>

@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Web\Institution;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Web\Institution\Concerns\InteractsWithInstitutionContext;
 use App\Models\OrganizationTypeSignalSla;
+use App\Models\SignalType;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 class SlaController extends Controller
@@ -17,12 +19,18 @@ class SlaController extends Controller
     {
         $context = $this->institutionContext();
         $organizationTypeId = $context['organization']?->organization_type_id;
+        $signalTypes = $this->scopedSignalTypes($context);
+        $signalCodes = $signalTypes->pluck('code')->unique()->values();
 
         $query = OrganizationTypeSignalSla::query()->with('organizationType');
 
         if ($organizationTypeId !== null) {
             $query->where('organization_type_id', $organizationTypeId);
         }
+
+        $signalCodes->isEmpty()
+            ? $query->whereRaw('1 = 0')
+            : $query->whereIn('signal_code', $signalCodes->all());
 
         if ($context['network_type'] !== null) {
             $query->where('network_type', $context['network_type']);
@@ -37,6 +45,7 @@ class SlaController extends Controller
             'features' => $context['feature_codes'],
             'activeNav' => 'sla',
             'slaPolicies' => $query->orderBy('network_type')->orderBy('signal_code')->get(),
+            'signalTypes' => $signalTypes,
         ]);
     }
 
@@ -49,20 +58,31 @@ class SlaController extends Controller
 
         $attributes = $request->validate([
             'signal_code' => ['required', 'string', 'max:30'],
-            'signal_label' => ['required', 'string', 'max:180'],
             'sla_hours' => ['required', 'integer', 'min:1', 'max:999'],
             'description' => ['nullable', 'string'],
         ]);
 
-        OrganizationTypeSignalSla::query()->create([
-            'organization_type_id' => $organizationTypeId,
-            'network_type' => $context['network_type'] ?? 'CIE',
-            'signal_code' => strtoupper($attributes['signal_code']),
-            'signal_label' => $attributes['signal_label'],
-            'sla_hours' => $attributes['sla_hours'],
-            'description' => $attributes['description'] ?? null,
-            'status' => 'active',
-        ]);
+        $signalType = $this->scopedSignalTypes($context)
+            ->firstWhere('code', strtoupper($attributes['signal_code']));
+
+        abort_if($signalType === null, 403);
+
+        OrganizationTypeSignalSla::query()->updateOrCreate(
+            [
+                'organization_type_id' => $organizationTypeId,
+                'signal_code' => $signalType->code,
+            ],
+            [
+                'network_type' => $signalType->organization?->code
+                    ?: $signalType->application?->code
+                    ?: $signalType->network_type
+                    ?: ($context['network_type'] ?? 'GENERAL'),
+                'signal_label' => $signalType->label,
+                'sla_hours' => $attributes['sla_hours'],
+                'description' => $attributes['description'] ?? $signalType->description,
+                'status' => 'active',
+            ],
+        );
 
         return redirect()->route('institution.sla.index')
             ->with('success', 'La regle TCM a ete creee.');
@@ -126,5 +146,20 @@ class SlaController extends Controller
         if ($networkType !== null) {
             abort_unless($sla->network_type === $networkType, 403);
         }
+
+        $allowedSignalCodes = $this->scopedSignalTypes($context)->pluck('code')->all();
+        abort_unless(in_array($sla->signal_code, $allowedSignalCodes, true), 403);
+    }
+
+    private function scopedSignalTypes(array $context): Collection
+    {
+        return SignalType::query()
+            ->with(['application:id,code,name', 'organization:id,code,name'])
+            ->where('status', 'active')
+            ->when($context['application_id'] !== null, fn ($query) => $query->where('application_id', $context['application_id']))
+            ->when($context['organization_id'] !== null, fn ($query) => $query->where('organization_id', $context['organization_id']))
+            ->when($context['network_type'] !== null, fn ($query) => $query->where('network_type', $context['network_type']))
+            ->orderBy('code')
+            ->get();
     }
 }

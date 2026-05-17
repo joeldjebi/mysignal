@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\WasabiService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -22,6 +23,7 @@ class Organization extends Model
         'email',
         'phone',
         'description',
+        'logo_path',
         'status',
     ];
 
@@ -94,5 +96,22 @@ class Organization extends Model
     public function resolvedFeatureCodes(): array
     {
         return $this->resolvedFeatures()->pluck('code')->all();
+    }
+
+    public function logoUrl(): ?string
+    {
+        if (! filled($this->logo_path)) {
+            return null;
+        }
+
+        if (filter_var($this->logo_path, FILTER_VALIDATE_URL)) {
+            return $this->logo_path;
+        }
+
+        if (str_starts_with((string) $this->logo_path, 'organizations/')) {
+            return app(WasabiService::class)->temporaryUrl($this->logo_path);
+        }
+
+        return asset((string) $this->logo_path);
     }
 }

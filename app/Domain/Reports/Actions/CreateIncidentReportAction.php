@@ -133,11 +133,18 @@ class CreateIncidentReportAction
                 ->where('status', 'active')
                 ->value('organization_type_id')
             : null;
+        $slaNetworkTypes = collect([
+            $signalType->organization?->code,
+            $signalType->application?->code,
+            $signalType->network_type,
+            $meter->network_type,
+        ])->filter()->map(fn ($value) => strtoupper((string) $value))->unique()->values()->all();
 
         $programmedSla = $organizationTypeId
             ? OrganizationTypeSignalSla::query()
                 ->where('organization_type_id', $organizationTypeId)
                 ->where('signal_code', $signalType->code)
+                ->when($slaNetworkTypes !== [], fn ($query) => $query->whereIn('network_type', $slaNetworkTypes))
                 ->where('status', 'active')
                 ->value('sla_hours')
             : null;

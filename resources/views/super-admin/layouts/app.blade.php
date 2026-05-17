@@ -291,6 +291,12 @@
                         <span><span class="d-block fw-semibold">Landing page</span><span class="small text-white-50">Accueil public</span></span>
                     </a>
                 @endif
+                @if ($canAccess('SA_MAINTENANCE_CLEANUP'))
+                    <a href="{{ route('super-admin.maintenance.cleanup.index') }}" class="nav-pill {{ request()->routeIs('super-admin.maintenance.*') ? 'active' : '' }}">
+                        <span class="nav-icon">MT</span>
+                        <span><span class="d-block fw-semibold">Maintenance</span><span class="small text-white-50">Nettoyage controle</span></span>
+                    </a>
+                @endif
 
                 <div class="sidebar-label">Geographie</div>
                 @if ($canAccess('SA_COUNTRIES_VIEW') || $canAccess('SA_COUNTRIES_MANAGE'))
@@ -443,26 +449,26 @@
                 <div class="sidebar-label">Acces</div>
                 @if ($canAccess('SA_SCOPED_USERS_MANAGE'))
                     <a href="{{ route('super-admin.scoped-users.index') }}" class="nav-pill {{ request()->routeIs('super-admin.scoped-users.*') ? 'active' : '' }}">
-                        <span class="nav-icon">MU</span>
-                        <span><span class="d-block fw-semibold">Mes utilisateurs</span><span class="small text-white-50">Comptes crees par vous</span></span>
+                        <span class="nav-icon">SA</span>
+                        <span><span class="d-block fw-semibold">Utilisateurs SA</span><span class="small text-white-50">Comptes du back-office global</span></span>
                     </a>
                 @endif
                 @if ($canAccess('SA_SCOPED_ROLES_MANAGE'))
                     <a href="{{ route('super-admin.scoped-roles.index') }}" class="nav-pill {{ request()->routeIs('super-admin.scoped-roles.*') ? 'active' : '' }}">
-                        <span class="nav-icon">MR</span>
-                        <span><span class="d-block fw-semibold">Mes roles</span><span class="small text-white-50">Roles et droits delegues</span></span>
+                        <span class="nav-icon">RS</span>
+                        <span><span class="d-block fw-semibold">Roles SA</span><span class="small text-white-50">Roles du back-office global</span></span>
                     </a>
                 @endif
                 @if ($canAccess('SA_SYSTEM_USERS_VIEW') || $canAccess('SA_SYSTEM_USERS_MANAGE'))
                     <a href="{{ route('super-admin.system-users.index') }}" class="nav-pill {{ request()->routeIs('super-admin.system-users.*') ? 'active' : '' }}">
-                        <span class="nav-icon">US</span>
-                        <span><span class="d-block fw-semibold">Utilisateurs internes</span><span class="small text-white-50">Huissiers, avocats et autres profils</span></span>
+                        <span class="nav-icon">AI</span>
+                        <span><span class="d-block fw-semibold">Utilisateurs AI</span><span class="small text-white-50">Comptes rattaches aux organisations</span></span>
                     </a>
                 @endif
                 @if ($canAccess('SA_ROLES_VIEW') || $canAccess('SA_ROLES_MANAGE'))
                     <a href="{{ route('super-admin.roles.index') }}" class="nav-pill {{ request()->routeIs('super-admin.roles.*') ? 'active' : '' }}">
-                        <span class="nav-icon">RL</span>
-                        <span><span class="d-block fw-semibold">Roles</span><span class="small text-white-50">Profils et droits groupés</span></span>
+                        <span class="nav-icon">RA</span>
+                        <span><span class="d-block fw-semibold">Roles AI</span><span class="small text-white-50">Profils et droits des organisations</span></span>
                     </a>
                 @endif
                 @if ($canAccess('SA_PERMISSIONS_VIEW') || $canAccess('SA_PERMISSIONS_MANAGE'))
@@ -556,6 +562,18 @@
                 syncPhoneFields();
                 form.addEventListener('submit', syncPhoneFields);
             });
+
+            const sidebarMenu = document.querySelector('.sidebar-menu');
+            const activeSidebarItem = sidebarMenu?.querySelector('.nav-pill.active');
+
+            if (sidebarMenu && activeSidebarItem) {
+                const offset = activeSidebarItem.offsetTop - (sidebarMenu.clientHeight / 2) + (activeSidebarItem.clientHeight / 2);
+
+                sidebarMenu.scrollTo({
+                    top: Math.max(0, offset),
+                    behavior: 'instant',
+                });
+            }
 
             function hasFirebaseWebConfig() {
                 return firebasePushEnabled

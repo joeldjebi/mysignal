@@ -40,6 +40,7 @@ use App\Http\Controllers\Web\SuperAdmin\InternalHomeController;
 use App\Http\Controllers\Web\SuperAdmin\LandingPageController;
 use App\Http\Controllers\Web\SuperAdmin\LandingPageContactController;
 use App\Http\Controllers\Web\SuperAdmin\ApplicationController;
+use App\Http\Controllers\Web\SuperAdmin\MaintenanceCleanupController;
 use App\Http\Controllers\Web\SuperAdmin\OrganizationController;
 use App\Http\Controllers\Web\SuperAdmin\OrganizationTypeSignalSlaController;
 use App\Http\Controllers\Web\SuperAdmin\OrganizationTypeController;
@@ -412,6 +413,10 @@ Route::prefix('sa')->name('super-admin.')->group(function (): void {
         Route::patch('public-users/{publicUser}/toggle-status', [PublicUserController::class, 'toggleStatus'])->middleware('super_admin_permission:SA_PUBLIC_USERS_TOGGLE_STATUS,SA_PUBLIC_USERS_MANAGE')->name('public-users.toggle-status');
         Route::get('public-reports', [PublicIncidentReportController::class, 'index'])->middleware('super_admin_permission:SA_PUBLIC_REPORTS_VIEW')->name('public-reports.index');
         Route::get('payments', [PaymentController::class, 'index'])->middleware('super_admin_permission:SA_PAYMENTS_VIEW')->name('payments.index');
+        Route::post('payments/sessions/{paymentSession}/validate', [PaymentController::class, 'validateSession'])->middleware('super_admin_permission:SA_PAYMENTS_MANUAL_VALIDATE')->name('payments.sessions.validate');
+        Route::get('maintenance/cleanup', [MaintenanceCleanupController::class, 'index'])->middleware('super_admin_permission:SA_MAINTENANCE_CLEANUP')->name('maintenance.cleanup.index');
+        Route::delete('maintenance/cleanup', [MaintenanceCleanupController::class, 'destroy'])->middleware('super_admin_permission:SA_MAINTENANCE_CLEANUP')->name('maintenance.cleanup.destroy');
+        Route::delete('maintenance/cleanup/table', [MaintenanceCleanupController::class, 'destroyTable'])->middleware('super_admin_permission:SA_MAINTENANCE_CLEANUP')->name('maintenance.cleanup.table.destroy');
         Route::get('discount-cards', [DiscountCardController::class, 'index'])->middleware('super_admin_permission:SA_DISCOUNT_CARDS_VIEW')->name('discount-cards.index');
         Route::get('discount-transactions', [DiscountTransactionController::class, 'index'])->middleware('super_admin_permission:SA_DISCOUNT_TRANSACTIONS_VIEW')->name('discount-transactions.index');
         Route::get('activity-logs', [SuperAdminActivityLogController::class, 'index'])->name('activity-logs.index');
