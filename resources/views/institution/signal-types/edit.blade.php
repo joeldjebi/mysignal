@@ -2,7 +2,7 @@
 
 @section('title', config('app.name').' | Modifier type de signal')
 @section('page-title', 'Modifier un type de signal')
-@section('page-description', 'Ajuster le referentiel des signaux publics sur votre reseau.')
+@section('page-description', 'Ajuster le referentiel des signaux publics sur votre application et votre organisation.')
 
 @section('content')
     <div class="row g-4">
@@ -10,7 +10,7 @@
             <section class="panel-card h-100">
                 <div class="small text-secondary fw-semibold mb-2">Type de signal</div>
                 <div class="h5 fw-bold mb-1">{{ $signalType->label }}</div>
-                <div class="text-secondary small mb-4">{{ $signalType->code }} · {{ $signalType->network_type }}</div>
+                <div class="text-secondary small mb-4">{{ $signalType->code }} · {{ $signalType->application?->name ?: '-' }} / {{ $signalType->organization?->name ?: '-' }}</div>
                 <div class="d-flex flex-wrap gap-2 mb-3">
                     <span class="status-chip">{{ $signalType->status }}</span>
                     <span class="status-chip">{{ $signalType->default_sla_hours ? $signalType->default_sla_hours.' h' : 'Sans TCM defaut' }}</span>
@@ -23,9 +23,9 @@
                 <div class="d-flex align-items-center justify-content-between mb-3">
                     <div>
                         <div class="fw-bold">Edition du type de signal</div>
-                        <div class="text-secondary small">Cette mise a jour restera limitee a votre reseau institutionnel.</div>
+                        <div class="text-secondary small">Cette mise a jour restera limitee a votre application et votre organisation.</div>
                     </div>
-                    <span class="status-chip">{{ $signalType->network_type }}</span>
+                    <span class="status-chip">{{ $signalType->application?->name ?: '-' }} / {{ $signalType->organization?->code ?: '-' }}</span>
                 </div>
 
                 <form method="POST" action="{{ route('institution.signal-types.update', $signalType) }}" class="row g-3">

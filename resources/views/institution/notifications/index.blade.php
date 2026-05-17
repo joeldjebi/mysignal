@@ -1,7 +1,7 @@
 @extends('institution.layouts.app')
 
 @section('page-title', 'Notifications')
-@section('page-description', 'Historique des alertes liées aux signalements, dommages et dossiers de votre organisation.')
+@section('page-description', 'Historique des alertes liées à votre application et votre organisation.')
 
 @section('content')
     @php
@@ -46,7 +46,7 @@
             <div class="stat-card h-100">
                 <div class="stat-kicker">Notifications</div>
                 <div class="stat-value">{{ number_format($totalCount, 0, ',', ' ') }}</div>
-                <div class="text-secondary small">Total reçu par votre compte AI.</div>
+                <div class="text-secondary small">Total reçu pour ce périmètre AI.</div>
             </div>
         </div>
         <div class="col-md-4">

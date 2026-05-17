@@ -18,18 +18,7 @@ class SignalTypeController extends Controller
     public function index(): View
     {
         $context = $this->institutionContext();
-        $query = SignalType::query()->with(['application', 'organization']);
-
-        if ($context['application_id'] !== null) {
-            $query->where('application_id', $context['application_id']);
-        }
-
-        if ($context['organization_id'] !== null) {
-            $query->where(function ($builder) use ($context): void {
-                $builder->whereNull('organization_id')
-                    ->orWhere('organization_id', $context['organization_id']);
-            });
-        }
+        $query = $this->institutionSignalTypesQuery($context['application_id'], $context['organization_id']);
 
         if (filled(request('status'))) {
             $query->where('status', request('status'));
@@ -37,9 +26,10 @@ class SignalTypeController extends Controller
 
         return view('institution.signal-types.index', [
             'organization' => $context['organization'],
+            'application' => $context['application'],
             'features' => $context['feature_codes'],
             'activeNav' => 'signal-types',
-            'signalTypes' => $query->orderByRaw('CASE WHEN organization_id IS NULL THEN 0 ELSE 1 END')->orderBy('code')->get(),
+            'signalTypes' => $query->orderBy('code')->get(),
         ]);
     }
 
@@ -61,6 +51,7 @@ class SignalTypeController extends Controller
 
         return view('institution.signal-types.edit', [
             'organization' => $context['organization'],
+            'application' => $context['application'],
             'features' => $context['feature_codes'],
             'activeNav' => 'signal-types',
             'signalType' => $signalType,
@@ -94,8 +85,15 @@ class SignalTypeController extends Controller
     {
         abort_if($context['organization_id'] === null, 403);
         abort_if($context['application_id'] !== null && (int) $signalType->application_id !== (int) $context['application_id'], 403);
-        abort_if($signalType->organization_id === null, 403);
         abort_unless((int) $signalType->organization_id === (int) $context['organization_id'], 403);
+    }
+
+    private function institutionSignalTypesQuery(?int $applicationId, ?int $organizationId)
+    {
+        return SignalType::query()
+            ->with(['application', 'organization'])
+            ->where('application_id', $applicationId)
+            ->where('organization_id', $organizationId);
     }
 
     private function validatedAttributes(Request $request, int $organizationId, ?int $applicationId = null, bool $updating = false): array
@@ -106,7 +104,9 @@ class SignalTypeController extends Controller
                 'string',
                 'max:30',
                 Rule::unique('signal_types', 'code')
-                    ->where(fn ($query) => $query->where('organization_id', $organizationId))
+                    ->where(fn ($query) => $query
+                        ->where('application_id', $applicationId)
+                        ->where('organization_id', $organizationId))
                     ->ignore($request->route('signalType')?->id),
             ],
             'label' => ['required', 'string', 'max:180'],

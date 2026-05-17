@@ -123,4 +123,6 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'maintenance_cleanup_enabled' => (bool) env('MAINTENANCE_CLEANUP_ENABLED', false),
+
 ];

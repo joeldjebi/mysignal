@@ -2,7 +2,7 @@
 
 @section('title', config('app.name').' | TCM cibles')
 @section('page-title', 'TCM cibles')
-@section('page-description', 'Referentiel des TCM programmes pour votre type d organisation et votre reseau.')
+@section('page-description', 'Referentiel des TCM programmes pour votre application et votre organisation.')
 
 @section('content')
     <div class="row g-4">
@@ -11,7 +11,7 @@
                 <div class="d-flex align-items-center justify-content-between mb-3">
                     <div>
                         <div class="fw-bold">Nouvelle regle TCM</div>
-                        <div class="text-secondary small">Creation limitee a votre type d'organisation et a votre reseau.</div>
+                        <div class="text-secondary small">Creation limitee aux signaux de votre application et organisation.</div>
                     </div>
                     <span class="status-chip">{{ $organization?->organizationType?->name ?? 'Type non defini' }}</span>
                 </div>
@@ -20,11 +20,14 @@
                     @csrf
                     <div>
                         <label class="form-label">Code signal</label>
-                        <input type="text" name="signal_code" class="form-control" placeholder="EL-01" required>
-                    </div>
-                    <div>
-                        <label class="form-label">Libelle signal</label>
-                        <input type="text" name="signal_label" class="form-control" placeholder="Coupure totale de courant" required>
+                        <select name="signal_code" class="form-select" required>
+                            <option value="">Selectionner</option>
+                            @foreach ($signalTypes as $signalType)
+                                <option value="{{ $signalType->code }}" @selected(old('signal_code') === $signalType->code)>
+                                    {{ $signalType->code }} - {{ $signalType->label }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
                     <div>
                         <label class="form-label">SLA cible (heures)</label>
@@ -34,7 +37,7 @@
                         <label class="form-label">Description</label>
                         <textarea name="description" class="form-control" rows="3"></textarea>
                     </div>
-                    <button type="submit" class="btn btn-dark">Creer</button>
+                    <button type="submit" class="btn btn-dark" @disabled($signalTypes->isEmpty())>Creer</button>
                 </form>
             </section>
         </div>

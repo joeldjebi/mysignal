@@ -2,7 +2,7 @@
 
 @section('title', config('app.name').' | Usagers publics')
 @section('page-title', 'Usagers publics')
-@section('page-description', 'Liste des usagers publics visibles pour cette institution, avec filtre sur les signalements.')
+@section('page-description', 'Liste des usagers publics rattaches a des identifiants de cette application et organisation.')
 
 @section('content')
     @php
@@ -58,6 +58,7 @@
                         <th>Usager</th>
                         <th>Telephone</th>
                         <th>Commune</th>
+                        <th>Identifiants</th>
                         <th>Signalements</th>
                         @if ($canViewPaymentInfo)
                             <th>Payes</th>
@@ -75,6 +76,7 @@
                             </td>
                             <td>{{ $user->phone }}</td>
                             <td>{{ $user->commune ?: '-' }}</td>
+                            <td><span class="status-chip">{{ $user->identifiers_count }}</span></td>
                             <td><span class="status-chip">{{ $user->reports_count }}</span></td>
                             @if ($canViewPaymentInfo)
                                 <td><span class="status-chip">{{ $user->paid_reports_count }}</span></td>
@@ -85,7 +87,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="{{ $canViewPaymentInfo ? 7 : 6 }}" class="text-center text-secondary">Aucun usager disponible.</td></tr>
+                        <tr><td colspan="{{ $canViewPaymentInfo ? 8 : 7 }}" class="text-center text-secondary">Aucun usager disponible.</td></tr>
                     @endforelse
                 </tbody>
             </table>

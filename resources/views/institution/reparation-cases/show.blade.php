@@ -37,6 +37,10 @@
                 </div>
                 <div class="vstack gap-3">
                     <div>
+                        <div class="small text-secondary">Application / Organisation</div>
+                        <div class="fw-semibold">{{ $reparationCase->application?->name ?: '-' }} / {{ $reparationCase->organization?->name ?: '-' }}</div>
+                    </div>
+                    <div>
                         <div class="small text-secondary">Type</div>
                         <div class="fw-semibold">{{ $reparationCase->case_type }}</div>
                     </div>

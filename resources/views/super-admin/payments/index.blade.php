@@ -6,9 +6,113 @@
 
 @section('header-badges')
     <span class="badge-soft">{{ $payments->total() }} paiement{{ $payments->total() > 1 ? 's' : '' }}</span>
+    <span class="badge-soft">{{ $paymentSessions->total() }} session{{ $paymentSessions->total() > 1 ? 's' : '' }} FineoPay</span>
 @endsection
 
 @section('content')
+    <section class="panel-card mb-4">
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 mb-3">
+            <div>
+                <div class="fw-bold">Sessions FineoPay en attente</div>
+                <div class="small text-secondary">Ces lignes existent avant la creation du signalement. Le signalement est cree uniquement apres callback FineoPay succes ou validation manuelle SA.</div>
+            </div>
+            <span class="badge-soft align-self-lg-start">{{ $paymentSessions->total() }} session{{ $paymentSessions->total() > 1 ? 's' : '' }}</span>
+        </div>
+
+        <form method="GET" class="filter-bar">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label small text-secondary">Recherche session</label>
+                    <input type="text" name="session_search" value="{{ request('session_search') }}" class="form-control" placeholder="Sync ref, reference, usager, telephone...">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small text-secondary">Statut session</label>
+                    <select name="session_status" class="form-select">
+                        <option value="">En attente et echouees</option>
+                        @foreach (['pending' => 'En attente', 'paid' => 'Payee', 'failed' => 'Echouee'] as $status => $label)
+                            <option value="{{ $status }}" @selected(request('session_status') === $status)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex gap-2">
+                    <button class="btn btn-dark w-100">Filtrer</button>
+                    <a href="{{ route('super-admin.payments.index') }}" class="btn btn-outline-secondary">RAZ</a>
+                </div>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table table-modern align-middle">
+                <thead>
+                    <tr>
+                        <th>Session</th>
+                        <th>Usager public</th>
+                        <th>Signalement prevu</th>
+                        <th>Montant</th>
+                        <th>Statut</th>
+                        <th class="text-end">Validation SA</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($paymentSessions as $session)
+                        @php
+                            $payload = $session->report_payload ?? [];
+                            $payloadApplication = $applications->firstWhere('id', (int) ($payload['application_id'] ?? 0));
+                            $payloadOrganization = $organizations->firstWhere('id', (int) ($payload['organization_id'] ?? 0));
+                        @endphp
+                        <tr>
+                            <td>
+                                <div class="fw-semibold">{{ $session->sync_ref }}</div>
+                                <div class="small text-secondary">{{ $session->initiated_at?->format('d/m/Y H:i') ?: '-' }}</div>
+                                <div class="small text-secondary">Ref fournisseur : {{ $session->provider_reference ?: '-' }}</div>
+                            </td>
+                            <td>
+                                <div class="fw-semibold">{{ trim(($session->publicUser?->first_name ?? '').' '.($session->publicUser?->last_name ?? '')) ?: '-' }}</div>
+                                <div class="small text-secondary">{{ $session->publicUser?->phone ?: '-' }}</div>
+                                <div class="small text-secondary">{{ $session->publicUser?->publicUserType?->name ?: '-' }}</div>
+                            </td>
+                            <td>
+                                <div class="fw-semibold">{{ $payload['signal_label'] ?? $payload['signal_code'] ?? $payload['incident_type'] ?? '-' }}</div>
+                                <div class="small text-secondary">{{ $payloadApplication?->name ?: $session->incidentReport?->application?->name ?: 'Application inconnue' }} / {{ $payloadOrganization?->name ?: $session->incidentReport?->organization?->name ?: 'Organisation inconnue' }}</div>
+                                <div class="small text-secondary">Compteur #{{ $payload['meter_id'] ?? '-' }}</div>
+                                @if ($session->incidentReport)
+                                    <div class="small text-success">Signalement cree : {{ $session->incidentReport->reference }}</div>
+                                @endif
+                            </td>
+                            <td>
+                                <div class="fw-semibold">{{ number_format((float) $session->amount, 0, ',', ' ') }} {{ $session->currency ?: 'XOF' }}</div>
+                                <div class="small text-secondary">{{ $session->pricingRule?->label ?: 'Tarification non renseignee' }}</div>
+                            </td>
+                            <td><span class="status-chip">{{ $session->status }}</span></td>
+                            <td class="text-end">
+                                @if (($session->status !== 'paid' || $session->incident_report_id === null) && $canManuallyValidatePayments)
+                                    <form method="POST" action="{{ route('super-admin.payments.sessions.validate', $session) }}" class="d-inline-flex flex-column gap-2 align-items-end" onsubmit="return confirm('Valider manuellement ce paiement et creer le signalement ?');">
+                                        @csrf
+                                        <input type="text" name="reason" class="form-control form-control-sm" placeholder="Motif optionnel" style="max-width: 220px;">
+                                        <div class="d-inline-flex gap-2">
+                                            <input type="text" name="confirmation" class="form-control form-control-sm" placeholder="VALIDER" style="width: 110px;" required>
+                                            <button class="btn btn-sm btn-outline-danger">Valider</button>
+                                        </div>
+                                    </form>
+                                @elseif ($session->status !== 'paid' || $session->incident_report_id === null)
+                                    <span class="small text-secondary">Validation reservee</span>
+                                @else
+                                    <span class="small text-success">Deja confirmee</span>
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="6" class="text-center text-secondary">Aucune session FineoPay trouvee.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <div class="table-meta">Page {{ $paymentSessions->currentPage() }} sur {{ $paymentSessions->lastPage() }}</div>
+            {{ $paymentSessions->links() }}
+        </div>
+    </section>
+
     <section class="panel-card">
         <div class="fw-bold mb-3">Historique des paiements</div>
         <form method="GET" class="filter-bar">
