@@ -38,6 +38,8 @@ class SuperAdminPermissionSeeder extends Seeder
             ['code' => 'SA_PUBLIC_USERS_TOGGLE_STATUS', 'name' => 'Activer ou desactiver usagers publics', 'description' => 'Permet d activer ou desactiver les comptes des usagers publics.'],
             ['code' => 'SA_PUBLIC_REPORTS_VIEW', 'name' => 'Voir signalements publics', 'description' => 'Permet de consulter la liste des signalements des usagers publics.'],
             ['code' => 'SA_PAYMENTS_VIEW', 'name' => 'Voir historique des paiements', 'description' => 'Permet de consulter l historique des paiements effectues par les usagers publics.'],
+            ['code' => 'SA_PAYMENTS_MANUAL_VALIDATE', 'name' => 'Valider paiements manuellement', 'description' => 'Permet de valider manuellement une session de paiement et de creer le signalement associe.'],
+            ['code' => 'SA_MAINTENANCE_CLEANUP', 'name' => 'Executer maintenance SA', 'description' => 'Permet de vider des tables operationnelles via des profils de nettoyage controles.'],
             ['code' => 'SA_ACTIVITY_LOGS_VIEW_SELF', 'name' => 'Voir ses activites', 'description' => 'Permet de consulter son propre historique d activite.'],
             ['code' => 'SA_ACTIVITY_LOGS_VIEW_INSTITUTION', 'name' => 'Voir activites AI', 'description' => 'Permet de consulter les activites des admins institutionnels et des collaborateurs institutionnels.'],
             ['code' => 'SA_ACTIVITY_LOGS_VIEW_PUBLIC', 'name' => 'Voir activites UP', 'description' => 'Permet de consulter les activites des usagers publics.'],

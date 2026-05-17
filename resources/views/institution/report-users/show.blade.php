@@ -2,7 +2,7 @@
 
 @section('title', config('app.name').' | Detail usager public')
 @section('page-title', 'Detail usager public')
-@section('page-description', 'Vue detaillee d un usager public, de ses compteurs et de ses signalements par compteur.')
+@section('page-description', 'Vue detaillee d un usager public, de ses identifiants et de ses signalements par identifiant.')
 
 @section('content')
     @php
@@ -26,7 +26,7 @@
                         <div class="fw-semibold">{{ $reportUser->commune ?: '-' }}</div>
                     </div>
                     <div>
-                        <div class="small text-secondary">Nombre de compteurs</div>
+                        <div class="small text-secondary">Nombre d identifiants</div>
                         <div class="fw-semibold">{{ $reportUser->meters->count() }}</div>
                     </div>
                     <div>
@@ -38,13 +38,13 @@
         </div>
         <div class="col-xl-8">
             <section class="panel-card mb-4">
-                <div class="fw-bold mb-3">Liste des compteurs</div>
+                <div class="fw-bold mb-3">Liste des identifiants</div>
                 <div class="table-responsive">
                     <table class="table table-modern align-middle mb-0">
                         <thead>
                             <tr>
-                                <th>Numero</th>
-                                <th>Reseau</th>
+                                <th>Identifiant</th>
+                                <th>Reseau/Type</th>
                                 <th>Libelle</th>
                                 <th>Commune</th>
                             </tr>
@@ -58,7 +58,7 @@
                                     <td>{{ $meter->commune ?: '-' }}</td>
                                 </tr>
                             @empty
-                                <tr><td colspan="4" class="text-center text-secondary">Aucun compteur pour cet usager sur ce reseau.</td></tr>
+                                <tr><td colspan="4" class="text-center text-secondary">Aucun identifiant pour cet usager sur ce reseau.</td></tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -66,14 +66,14 @@
             </section>
 
             <section class="panel-card">
-                <div class="fw-bold mb-3">Historique des signalements par compteur</div>
+                <div class="fw-bold mb-3">Historique des signalements par identifiant</div>
 
                 @forelse ($reportsByMeter as $group)
                     <div class="border rounded-4 p-3 mb-3">
                         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                             <div>
                                 <div class="fw-bold">
-                                    {{ $group['meter']?->meter_number ?: 'Sans compteur associe' }}
+                                    {{ $group['meter']?->meter_number ?: 'Sans identifiant associe' }}
                                 </div>
                                 <div class="small text-secondary">
                                     {{ $group['meter']?->network_type ?: '-' }}

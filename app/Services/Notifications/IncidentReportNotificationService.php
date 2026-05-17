@@ -676,6 +676,8 @@ class IncidentReportNotificationService
             'reparation_case_reference' => $case->reference,
             'report_id' => $case->incident_report_id,
             'report_reference' => $case->incidentReport?->reference,
+            'application_id' => $case->application_id,
+            'organization_id' => $case->organization_id,
             'status' => $case->status,
             'case_type' => $case->case_type,
             ...$extraData,

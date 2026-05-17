@@ -15,7 +15,7 @@ class ReparationCaseController extends Controller
     public function index(): View
     {
         $context = $this->institutionContext();
-        $query = $this->institutionReparationCasesQuery($context['organization_id']);
+        $query = $this->institutionReparationCasesQuery($context['organization_id'], $context['application_id']);
 
         if (filled(request('search'))) {
             $search = trim((string) request('search'));
@@ -52,7 +52,7 @@ class ReparationCaseController extends Controller
     {
         $context = $this->institutionContext();
 
-        abort_unless((int) $reparationCase->organization_id === (int) $context['organization_id'], 403);
+        abort_unless($this->canAccessReparationCase($reparationCase, $context['organization_id'], $context['application_id']), 403);
 
         return view('institution.reparation-cases.show', [
             'organization' => $context['organization'],
@@ -77,10 +77,24 @@ class ReparationCaseController extends Controller
         ]);
     }
 
-    private function institutionReparationCasesQuery(?int $organizationId)
+    private function institutionReparationCasesQuery(?int $organizationId, ?int $applicationId)
     {
         return ReparationCase::query()
-            ->with(['incidentReport', 'publicUser', 'assignedTo', 'bailiff', 'lawyer'])
-            ->when($organizationId !== null, fn ($query) => $query->where('organization_id', $organizationId));
+            ->with(['incidentReport', 'publicUser', 'application', 'organization', 'assignedTo', 'bailiff', 'lawyer'])
+            ->where('organization_id', $organizationId)
+            ->when($applicationId !== null, fn ($query) => $query->where('application_id', $applicationId));
+    }
+
+    private function canAccessReparationCase(ReparationCase $reparationCase, ?int $organizationId, ?int $applicationId): bool
+    {
+        if ($organizationId === null || (int) $reparationCase->organization_id !== (int) $organizationId) {
+            return false;
+        }
+
+        if ($applicationId !== null && (int) $reparationCase->application_id !== (int) $applicationId) {
+            return false;
+        }
+
+        return true;
     }
 }

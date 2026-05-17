@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\Web\Institution\Concerns\InteractsWithInstitutionContext;
 use App\Models\Meter;
 use App\Models\PublicUser;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\View\View;
 
 class ReporterUserController extends Controller
@@ -50,7 +51,12 @@ class ReporterUserController extends Controller
             };
         }
 
-        $query = PublicUser::query()->withCount($withCount);
+        $query = PublicUser::query()
+            ->whereHas('meters', fn (Builder $builder) => $this->applyMeterScope($builder, $context))
+            ->withCount($withCount)
+            ->withCount([
+                'meters as identifiers_count' => fn (Builder $builder) => $this->applyMeterScope($builder, $context),
+            ]);
 
         if (filled(request('search'))) {
             $search = trim((string) request('search'));
@@ -67,7 +73,10 @@ class ReporterUserController extends Controller
         }
 
         if (filled(request('commune'))) {
-            $query->where('commune', request('commune'));
+            $query->whereHas('meters', function (Builder $builder) use ($context): void {
+                $this->applyMeterScope($builder, $context)
+                    ->where('meters.commune', request('commune'));
+            });
         }
 
         if (filled(request('has_reports'))) {
@@ -85,20 +94,9 @@ class ReporterUserController extends Controller
             'features' => $context['feature_codes'],
             'activeNav' => 'report-users',
             'users' => $query->latest()->paginate(15)->withQueryString(),
-            'communes' => PublicUser::query()
-                ->whereHas('incidentReports', function ($builder) use ($context): void {
-                    if ($context['application_id'] !== null) {
-                        $builder->where('application_id', $context['application_id']);
-                    }
-
-                    if ($context['organization_id'] !== null) {
-                        $builder->where('organization_id', $context['organization_id']);
-                    }
-
-                    if ($context['network_type'] !== null) {
-                        $builder->where('network_type', $context['network_type']);
-                    }
-                })
+            'communes' => Meter::query()
+                ->whereHas('publicUsers')
+                ->tap(fn (Builder $builder) => $this->applyMeterScope($builder, $context))
                 ->whereNotNull('commune')
                 ->distinct()
                 ->orderBy('commune')
@@ -113,6 +111,10 @@ class ReporterUserController extends Controller
 
         $reportUser->load([
             'meters' => function ($query) use ($networkType, $context): void {
+                if ($context['application_id'] !== null) {
+                    $query->where('application_id', $context['application_id']);
+                }
+
                 if ($context['organization_id'] !== null) {
                     $query->where('organization_id', $context['organization_id']);
                 }
@@ -163,5 +165,22 @@ class ReporterUserController extends Controller
             'reportUser' => $reportUser,
             'reportsByMeter' => $reportsByMeter,
         ]);
+    }
+
+    private function applyMeterScope(Builder $query, array $context): Builder
+    {
+        if ($context['application_id'] !== null) {
+            $query->where('meters.application_id', $context['application_id']);
+        }
+
+        if ($context['organization_id'] !== null) {
+            $query->where('meters.organization_id', $context['organization_id']);
+        }
+
+        if ($context['network_type'] !== null) {
+            $query->where('meters.network_type', $context['network_type']);
+        }
+
+        return $query;
     }
 }

@@ -2,7 +2,7 @@
 
 @section('title', config('app.name').' | Types de signaux')
 @section('page-title', 'Types de signaux')
-@section('page-description', 'Referentiel des types de signaux pour votre reseau, avec champs requis etTCM par defaut.')
+@section('page-description', 'Referentiel des types de signaux pour votre application et votre organisation, avec champs requis et TCM par defaut.')
 @section('header-badges')
     <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#createInstitutionSignalTypeModal">Nouveau type de signal</button>
 @endsection
@@ -11,10 +11,10 @@
     <section class="panel-card">
         <div class="d-flex align-items-center justify-content-between mb-3">
                     <div>
-                        <div class="fw-bold">Catalogue du reseau</div>
-                        <div class="text-secondary small">Ces types de signaux sont visibles dans le parcours public de declaration.</div>
+                        <div class="fw-bold">Catalogue de l organisation</div>
+                        <div class="text-secondary small">Ces types de signaux sont visibles dans le parcours public de declaration pour {{ $application?->name ?: 'cette application' }} / {{ $organization?->name ?: 'cette organisation' }}.</div>
                     </div>
-                    <span class="status-chip">{{ $organization?->code ?? 'Reseau non defini' }}</span>
+                    <span class="status-chip">{{ $application?->name ?: '-' }} / {{ $organization?->code ?? '-' }}</span>
         </div>
 
                 <form method="GET" class="filter-bar">
@@ -39,6 +39,7 @@
                         <thead>
                             <tr>
                                 <th>Signal</th>
+                                <th>Perimetre</th>
                                 <th>SLA defaut</th>
                                 <th>Champs</th>
                                 <th>Statut</th>
@@ -52,6 +53,10 @@
                                         <div>{{ $signalType->label }}</div>
                                         <div class="small text-secondary">{{ $signalType->code }}</div>
                                         <div class="small text-secondary mt-1">{{ $signalType->description ?: '-' }}</div>
+                                    </td>
+                                    <td>
+                                        <div class="small">{{ $signalType->application?->name ?: '-' }}</div>
+                                        <div class="small text-secondary">{{ $signalType->organization?->name ?: '-' }}</div>
                                     </td>
                                     <td><span class="status-chip">{{ $signalType->default_sla_hours ? $signalType->default_sla_hours.' h' : '-' }}</span></td>
                                     <td>{{ count($signalType->data_fields ?? []) }} champ(s)</td>
@@ -68,7 +73,7 @@
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="5" class="text-center text-secondary">Aucun type de signal disponible pour ce portail.</td></tr>
+                                <tr><td colspan="6" class="text-center text-secondary">Aucun type de signal disponible pour cette application et cette organisation.</td></tr>
                             @endforelse
                         </tbody>
                     </table>

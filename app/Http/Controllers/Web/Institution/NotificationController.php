@@ -25,6 +25,8 @@ class NotificationController extends Controller
             ->where('recipient_type', 'institution')
             ->where('recipient_id', $user->id);
 
+        $this->applyInstitutionScope($baseQuery, $context['application_id'], $context['organization_id']);
+
         $query = (clone $baseQuery)
             ->when($status === 'read', fn ($query) => $query->whereNotNull('read_at'))
             ->when($status === 'unread', fn ($query) => $query->whereNull('read_at'))
@@ -75,22 +77,60 @@ class NotificationController extends Controller
 
     public function markAllAsRead(Request $request): RedirectResponse
     {
-        UserNotification::query()
+        $context = $this->institutionContext();
+        $query = UserNotification::query()
             ->where('recipient_type', 'institution')
             ->where('recipient_id', $request->user()->id)
-            ->whereNull('read_at')
-            ->update(['read_at' => now()]);
+            ->whereNull('read_at');
+
+        $this->applyInstitutionScope($query, $context['application_id'], $context['organization_id']);
+
+        $query->update(['read_at' => now()]);
 
         return back()->with('success', 'Toutes les notifications ont ete marquees comme lues.');
     }
 
     private function abortIfNotOwned(Request $request, UserNotification $notification): void
     {
+        $context = $this->institutionContext();
+
         abort_if(
             $notification->recipient_type !== 'institution'
             || (int) $notification->recipient_id !== (int) $request->user()->id,
             404
         );
+
+        abort_unless($this->notificationMatchesInstitutionScope($notification, $context['application_id'], $context['organization_id']), 404);
+    }
+
+    private function applyInstitutionScope($query, ?int $applicationId, ?int $organizationId): void
+    {
+        $query->where(function ($query) use ($applicationId, $organizationId): void {
+            $query
+                ->where(function ($scopedQuery) use ($applicationId, $organizationId): void {
+                    $scopedQuery
+                        ->where('data->application_id', $applicationId)
+                        ->where('data->organization_id', $organizationId);
+                })
+                ->orWhere(function ($legacyQuery): void {
+                    $legacyQuery
+                        ->whereNull('data->application_id')
+                        ->whereNull('data->organization_id');
+                });
+        });
+    }
+
+    private function notificationMatchesInstitutionScope(UserNotification $notification, ?int $applicationId, ?int $organizationId): bool
+    {
+        $notificationApplicationId = data_get($notification->data, 'application_id');
+        $notificationOrganizationId = data_get($notification->data, 'organization_id');
+
+        if ($notificationApplicationId === null && $notificationOrganizationId === null) {
+            return true;
+        }
+
+        return (int) $notificationApplicationId === (int) $applicationId
+            && (int) $notificationOrganizationId === (int) $organizationId;
     }
 
     private function applyCategoryFilter($query, string $category): void
