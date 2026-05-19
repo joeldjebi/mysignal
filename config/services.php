@@ -67,6 +67,7 @@ return [
     'public_auth' => [
         'otp_digits' => (int) env('PUBLIC_AUTH_OTP_DIGITS', 4),
         'default_otp' => env('PUBLIC_AUTH_DEFAULT_OTP', '2604'),
+        'token_ttl_minutes' => (int) env('PUBLIC_AUTH_TOKEN_TTL_MINUTES', 1051200),
     ],
 
     'partner_auth' => [
