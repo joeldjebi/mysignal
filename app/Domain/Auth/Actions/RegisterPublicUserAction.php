@@ -6,6 +6,7 @@ use App\Domain\Auth\Enums\PublicUserStatus;
 use App\Models\PublicUser;
 use App\Models\PublicUserPhoneVerification;
 use App\Models\PublicUserType;
+use App\Support\Auth\PublicApiTokenTtl;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -63,7 +64,10 @@ class RegisterPublicUserAction
             return $user;
         });
 
-        $token = Auth::guard('public_api')->login($publicUser);
+        $guard = Auth::guard('public_api');
+        $guard->factory()->setTTL(PublicApiTokenTtl::minutes());
+
+        $token = $guard->login($publicUser);
 
         return [
             'token' => $token,

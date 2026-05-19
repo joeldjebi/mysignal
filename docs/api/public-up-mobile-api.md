@@ -28,6 +28,9 @@ Accept: application/json
 Content-Type: application/json
 ```
 
+Les tokens UP retournes par `register` et `login` expirent apres 2 ans par defaut
+(`expires_in` = `63072000` secondes).
+
 ## Format standard des reponses de succes
 L API renvoie un enveloppe uniforme :
 

@@ -48,6 +48,7 @@ class PublicAuthFlowTest extends TestCase
         $registerResponse->assertCreated()
             ->assertJsonPath('success', true)
             ->assertJsonPath('data.user.phone', '0700000001')
+            ->assertJsonPath('data.expires_in', 63072000)
             ->assertJsonStructure([
                 'data' => [
                     'access_token',
@@ -84,7 +85,8 @@ class PublicAuthFlowTest extends TestCase
 
         $loginResponse->assertOk()
             ->assertJsonPath('success', true)
-            ->assertJsonPath('data.user.id', $user->id);
+            ->assertJsonPath('data.user.id', $user->id)
+            ->assertJsonPath('data.expires_in', 63072000);
 
         $token = $loginResponse->json('data.access_token');
 
