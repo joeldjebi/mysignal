@@ -19,8 +19,8 @@ use App\Http\Requests\Api\V1\Public\Auth\VerifyOtpRequest;
 use App\Http\Resources\Api\V1\Public\Auth\PublicUserResource;
 use App\Support\Audit\ActivityLogger;
 use App\Support\Api\ApiResponse;
+use App\Support\Auth\PublicApiTokenTtl;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class PublicAuthController extends Controller
 {
@@ -94,7 +94,7 @@ class PublicAuthController extends Controller
         return ApiResponse::success([
             'access_token' => $result['token'],
             'token_type' => 'bearer',
-            'expires_in' => Auth::guard('public_api')->factory()->getTTL() * 60,
+            'expires_in' => PublicApiTokenTtl::seconds(),
             'user' => new PublicUserResource($user->loadMissing('publicUserType.pricingRule')),
         ], 'Compte public cree avec succes.', 201);
     }
@@ -122,7 +122,7 @@ class PublicAuthController extends Controller
         return ApiResponse::success([
             'access_token' => $result['token'],
             'token_type' => 'bearer',
-            'expires_in' => Auth::guard('public_api')->factory()->getTTL() * 60,
+            'expires_in' => PublicApiTokenTtl::seconds(),
             'user' => new PublicUserResource($user->loadMissing('publicUserType.pricingRule')),
         ], 'Connexion reussie.');
     }
