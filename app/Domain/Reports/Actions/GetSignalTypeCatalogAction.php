@@ -47,7 +47,6 @@ class GetSignalTypeCatalogAction
                         ? ['hours' => $signalType->default_sla_hours, 'label' => $signalType->default_sla_hours.'h']
                         : null,
                     'sla_targets' => $fallbackSlaTargets,
-                    'data_fields' => $signalType->data_fields ?? [],
                 ];
             })
             ->values();

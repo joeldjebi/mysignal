@@ -18,6 +18,10 @@ class PricingRuleSeeder extends Seeder
                 'label' => 'Paiement signalement public',
             ],
             [
+                'code' => 'public_damage_declaration',
+                'label' => 'Paiement declaration de dommage',
+            ],
+            [
                 'code' => 'public_up_standard',
                 'label' => 'Tarification usager public',
             ],

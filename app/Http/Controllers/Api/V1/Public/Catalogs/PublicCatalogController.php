@@ -16,10 +16,8 @@ use App\Models\City;
 use App\Models\Country;
 use App\Models\Organization;
 use App\Models\OrganizationType;
-use App\Models\SignalType;
 use App\Support\Api\ApiResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class PublicCatalogController extends Controller
 {
@@ -118,41 +116,8 @@ class PublicCatalogController extends Controller
 
     public function serviceCategories(Request $request)
     {
-        $serviceCategories = SignalType::query()
-            ->where('status', 'active')
-            ->when(
-                $request->filled('application_id'),
-                fn ($query) => $query->where('application_id', (int) $request->integer('application_id'))
-            )
-            ->when(
-                $request->filled('organization_id'),
-                fn ($query) => $query->where('organization_id', (int) $request->integer('organization_id'))
-            )
-            ->when(
-                $request->filled('signal_code'),
-                fn ($query) => $query->where('code', strtoupper((string) $request->string('signal_code')))
-            )
-            ->get(['id', 'code', 'data_fields'])
-            ->flatMap(function (SignalType $signalType) {
-                return collect($signalType->data_fields ?? [])
-                    ->filter(fn (array $field) => ($field['key'] ?? null) === 'service_category')
-                    ->flatMap(function (array $field) use ($signalType) {
-                        return collect($field['options'] ?? [])
-                            ->map(fn ($option) => trim((string) $option))
-                            ->filter()
-                            ->map(fn (string $option) => [
-                                'code' => Str::slug($option, '_'),
-                                'name' => $option,
-                                'signal_code' => $signalType->code,
-                            ]);
-                    });
-            })
-            ->unique('code')
-            ->sortBy('name')
-            ->values();
-
         return ApiResponse::success([
-            'service_categories' => ServiceCategoryResource::collection($serviceCategories),
+            'service_categories' => ServiceCategoryResource::collection(collect()),
         ]);
     }
 }

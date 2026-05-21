@@ -8,7 +8,6 @@ use App\Models\SignalType;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class SignalTypeController extends Controller
@@ -112,15 +111,6 @@ class SignalTypeController extends Controller
             'label' => ['required', 'string', 'max:180'],
             'default_sla_hours' => ['nullable', 'integer', 'min:1', 'max:999'],
             'description' => ['nullable', 'string'],
-            'field_keys' => ['nullable', 'array'],
-            'field_keys.*' => ['nullable', 'string', 'max:80'],
-            'field_labels' => ['nullable', 'array'],
-            'field_labels.*' => ['nullable', 'string', 'max:180'],
-            'field_types' => ['nullable', 'array'],
-            'field_types.*' => ['nullable', 'in:text,number,textarea,select'],
-            'field_options' => ['nullable', 'array'],
-            'field_options.*' => ['nullable', 'string'],
-            'field_required' => ['nullable', 'array'],
         ]);
 
         return array_filter([
@@ -131,55 +121,6 @@ class SignalTypeController extends Controller
             'label' => $attributes['label'],
             'default_sla_hours' => $attributes['default_sla_hours'] ?? null,
             'description' => $attributes['description'] ?? null,
-            'data_fields' => $this->normalizeDataFields(
-                $attributes['field_keys'] ?? [],
-                $attributes['field_labels'] ?? [],
-                $attributes['field_types'] ?? [],
-                $attributes['field_options'] ?? [],
-                $attributes['field_required'] ?? [],
-            ),
         ], fn ($value, $key) => ! ($key === 'code' && $value === null), ARRAY_FILTER_USE_BOTH);
-    }
-
-    private function normalizeDataFields(array $keys, array $labels, array $types, array $options, array $requiredFlags): array
-    {
-        $rows = [];
-
-        foreach ($keys as $index => $key) {
-            $normalizedKey = trim((string) $key);
-            $normalizedLabel = trim((string) ($labels[$index] ?? ''));
-            $normalizedType = (string) ($types[$index] ?? 'text');
-            $normalizedOptions = collect(preg_split('/\r\n|\r|\n/', (string) ($options[$index] ?? '')))
-                ->map(fn ($option) => trim((string) $option))
-                ->filter()
-                ->values()
-                ->all();
-
-            if ($normalizedKey === '' && $normalizedLabel === '') {
-                continue;
-            }
-
-            if ($normalizedKey === '' || $normalizedLabel === '') {
-                throw ValidationException::withMessages([
-                    'field_keys' => ['Chaque champ requis doit avoir une cle et un libelle.'],
-                ]);
-            }
-
-            $rows[] = [
-                'key' => $normalizedKey,
-                'label' => $normalizedLabel,
-                'type' => in_array($normalizedType, ['text', 'number', 'textarea', 'select'], true) ? $normalizedType : 'text',
-                'required' => in_array((string) $index, array_map('strval', $requiredFlags), true),
-                'options' => $normalizedType === 'select' ? $normalizedOptions : [],
-            ];
-
-            if ($normalizedType === 'select' && count($normalizedOptions) === 0) {
-                throw ValidationException::withMessages([
-                    'field_options' => ['Chaque champ de type liste doit contenir au moins une option.'],
-                ]);
-            }
-        }
-
-        return $rows;
     }
 }

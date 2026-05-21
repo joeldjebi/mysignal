@@ -52,7 +52,6 @@ class PublicIncidentReportTest extends TestCase
             'meter_id' => $meterId,
             'signal_code' => 'EL-01',
             'description' => 'Coupure constatee depuis 18h00.',
-            'signal_payload' => [],
         ]);
 
         $createResponse->assertCreated()
@@ -92,7 +91,6 @@ class PublicIncidentReportTest extends TestCase
             'meter_id' => $meterId,
             'signal_code' => 'EL-01',
             'description' => 'Coupure constatee depuis 18h00.',
-            'signal_payload' => [],
         ])
             ->assertStatus(422)
             ->assertJsonValidationErrors(['meter_id']);
@@ -138,7 +136,6 @@ class PublicIncidentReportTest extends TestCase
             'meter_id' => $meterId,
             'signal_code' => 'EL-01',
             'signal_attachment' => UploadedFile::fake()->image('preuve.jpg'),
-            'signal_payload' => [],
         ], ['Accept' => 'application/json']);
 
         $response->assertCreated()
@@ -194,7 +191,6 @@ class PublicIncidentReportTest extends TestCase
             'incident_type' => 'power_outage',
             'reference' => 'SIG-TEST-001',
             'description' => 'Incident resolu par l institution.',
-            'signal_payload' => [],
             'target_sla_hours' => 4,
             'status' => IncidentReportStatus::Resolved->value,
             'payment_status' => 'paid',

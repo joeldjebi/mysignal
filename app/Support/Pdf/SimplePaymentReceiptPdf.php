@@ -14,7 +14,7 @@ class SimplePaymentReceiptPdf
             ['rect', 36, 744, 523, 62],
             ['fill'],
             ['text', 48, 785, 'F2', 24, '1 1 1', 'RECU DE PAIEMENT'],
-            ['text', 48, 764, 'F1', 11, '1 1 1', 'Justificatif associe a un signalement public'],
+            ['text', 48, 764, 'F1', 11, '1 1 1', 'Justificatif associe a '.strtolower($this->paymentContextLabel($payment))],
             ['text', 400, 785, 'F1', 10, '1 1 1', 'Reference'],
             ['text', 400, 766, 'F2', 14, '1 1 1', (string) $payment->reference],
 
@@ -47,7 +47,7 @@ class SimplePaymentReceiptPdf
             ['rect', 36, 438, 523, 66],
             ['fill'],
             ['text', 48, 483, 'F1', 10, '0.42 0.48 0.54', 'Details de facturation'],
-            ['text', 48, 462, 'F2', 13, '0.13 0.19 0.25', (string) ($payment->pricingRule?->label ?: 'Paiement signalement public')],
+            ['text', 48, 462, 'F2', 13, '0.13 0.19 0.25', (string) ($payment->pricingRule?->label ?: $this->paymentContextLabel($payment))],
             ['text', 48, 444, 'F1', 11, '0.30 0.36 0.42', 'Compteur: '.($payment->incidentReport?->meter?->meter_number ?: '-').'   |   Reseau: '.($payment->incidentReport?->network_type ?: '-')],
 
             ['stroke', '0.87 0.90 0.93'],
@@ -172,5 +172,12 @@ class SimplePaymentReceiptPdf
         ]);
 
         return $parts !== [] ? implode(' - ', $parts) : '-';
+    }
+
+    private function paymentContextLabel(Payment $payment): string
+    {
+        return ($payment->payment_context ?? 'report') === 'damage'
+            ? 'Declaration de dommage'
+            : 'Signalement public';
     }
 }

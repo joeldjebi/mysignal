@@ -18,7 +18,6 @@ class SignalType extends Model
         'label',
         'description',
         'default_sla_hours',
-        'data_fields',
         'status',
     ];
 
@@ -26,7 +25,6 @@ class SignalType extends Model
     {
         return [
             'default_sla_hours' => 'integer',
-            'data_fields' => 'array',
         ];
     }
 

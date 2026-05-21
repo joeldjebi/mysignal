@@ -42,15 +42,6 @@ class PublicCatalogTest extends TestCase
             'label' => 'Coupure internet',
             'description' => 'Test catalog service category',
             'default_sla_hours' => 4,
-            'data_fields' => [
-                [
-                    'key' => 'service_category',
-                    'label' => 'Categorie de service',
-                    'type' => 'select',
-                    'required' => true,
-                    'options' => ['Internet', 'Voix'],
-                ],
-            ],
             'status' => 'active',
         ]);
 
@@ -85,16 +76,10 @@ class PublicCatalogTest extends TestCase
             ->assertJsonPath('data.cities.0.country.code', 'CI');
 
         $serviceCategoriesResponse->assertOk()
-            ->assertJsonPath('data.service_categories.0.name', 'Internet')
+            ->assertJsonCount(0, 'data.service_categories')
             ->assertJsonStructure([
                 'data' => [
-                    'service_categories' => [
-                        '*' => [
-                            'code',
-                            'name',
-                            'signal_code',
-                        ],
-                    ],
+                    'service_categories',
                 ],
             ]);
 

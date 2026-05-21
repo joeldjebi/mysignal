@@ -21,8 +21,11 @@ return new class extends Migration
             $table->string('provider', 30)->default('fineopay');
             $table->string('provider_reference')->nullable();
             $table->text('checkout_link')->nullable();
+            $table->string('payment_context', 30)->default('report')->index();
             $table->json('report_payload');
             $table->json('signal_attachment')->nullable();
+            $table->json('damage_payload')->nullable();
+            $table->json('damage_attachment')->nullable();
             $table->json('metadata')->nullable();
             $table->timestamp('initiated_at')->nullable();
             $table->timestamp('paid_at')->nullable();

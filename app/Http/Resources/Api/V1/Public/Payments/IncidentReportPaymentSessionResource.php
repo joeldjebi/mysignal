@@ -17,6 +17,7 @@ class IncidentReportPaymentSessionResource extends JsonResource
             'currency' => $this->currency,
             'status' => $this->status,
             'provider' => $this->provider,
+            'payment_context' => $this->payment_context ?? 'report',
             'checkout_link' => $this->checkout_link,
             'provider_reference' => $this->provider_reference,
             'initiated_at' => $this->initiated_at?->toIso8601String(),
@@ -29,6 +30,13 @@ class IncidentReportPaymentSessionResource extends JsonResource
                 'id' => $this->pricingRule->id,
                 'code' => $this->pricingRule->code,
                 'label' => $this->pricingRule->label,
+            ] : null,
+            'damage' => ($this->payment_context ?? 'report') === 'damage' ? [
+                'summary' => $this->damage_payload['damage_summary'] ?? null,
+                'amount_estimated' => isset($this->damage_payload['damage_amount_estimated'])
+                    ? (float) $this->damage_payload['damage_amount_estimated']
+                    : null,
+                'has_attachment' => filled($this->damage_attachment),
             ] : null,
         ];
     }

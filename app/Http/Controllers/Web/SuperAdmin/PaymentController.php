@@ -57,6 +57,10 @@ class PaymentController extends Controller
             $query->where('provider', request('provider'));
         }
 
+        if (filled(request('payment_context'))) {
+            $query->where('payment_context', request('payment_context'));
+        }
+
         if (filled(request('application_id'))) {
             $applicationId = (int) request('application_id');
             $query->whereHas('incidentReport', fn ($reportQuery) => $reportQuery->where('application_id', $applicationId));
@@ -82,6 +86,10 @@ class PaymentController extends Controller
                 PaymentStatus::Pending->value,
                 PaymentStatus::Failed->value,
             ]);
+        }
+
+        if (filled(request('session_context'))) {
+            $sessionQuery->where('payment_context', request('session_context'));
         }
 
         if (filled(request('session_search'))) {
@@ -128,7 +136,7 @@ class PaymentController extends Controller
         if ($paymentSession->status === PaymentStatus::Paid->value && $paymentSession->incident_report_id !== null) {
             return redirect()
                 ->route('super-admin.payments.index')
-                ->with('success', 'Cette session est deja payee et le signalement est deja cree.');
+                ->with('success', 'Cette session est deja payee et traitee.');
         }
 
         $validatedSession = $action->handle([
@@ -150,6 +158,7 @@ class PaymentController extends Controller
             $validatedSession,
             [
                 'sync_ref' => $validatedSession->sync_ref,
+                'payment_context' => $validatedSession->payment_context,
                 'incident_report_id' => $validatedSession->incident_report_id,
                 'amount' => $validatedSession->amount,
                 'currency' => $validatedSession->currency,
@@ -161,6 +170,6 @@ class PaymentController extends Controller
 
         return redirect()
             ->route('super-admin.payments.index')
-            ->with('success', 'Paiement valide manuellement. Le signalement est maintenant visible par le SA et l AI concernee.');
+            ->with('success', 'Paiement valide manuellement. La session est maintenant traitee.');
     }
 }

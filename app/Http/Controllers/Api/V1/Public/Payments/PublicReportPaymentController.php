@@ -20,6 +20,10 @@ class PublicReportPaymentController extends Controller
         $payments = Payment::query()
             ->with(['pricingRule', 'incidentReport'])
             ->where('public_user_id', $request->user('public_api')->id)
+            ->when(
+                $request->filled('payment_context'),
+                fn ($query) => $query->where('payment_context', (string) $request->string('payment_context'))
+            )
             ->latest('id')
             ->get();
 

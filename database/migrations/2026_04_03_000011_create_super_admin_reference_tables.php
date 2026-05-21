@@ -18,7 +18,6 @@ return new class extends Migration
             $table->string('label', 180);
             $table->text('description')->nullable();
             $table->unsignedInteger('sla_hours')->nullable();
-            $table->json('data_fields')->nullable();
             $table->string('status', 30)->default('active')->index();
             $table->timestamps();
         });

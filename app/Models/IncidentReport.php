@@ -33,7 +33,6 @@ class IncidentReport extends Model
         'incident_type',
         'reference',
         'description',
-        'signal_payload',
         'signal_attachment',
         'target_sla_hours',
         'occurred_at',
@@ -65,7 +64,6 @@ class IncidentReport extends Model
             'resolution_confirmed_at' => 'datetime',
             'damage_declared_at' => 'datetime',
             'damage_resolved_at' => 'datetime',
-            'signal_payload' => 'array',
             'signal_attachment' => 'array',
             'damage_attachment' => 'array',
             'latitude' => 'decimal:7',
@@ -128,13 +126,6 @@ class IncidentReport extends Model
     public function notificationContexts(): HasMany
     {
         return $this->hasMany(IncidentReportNotificationContext::class);
-    }
-
-    public function resolvedSignalPayload(): array
-    {
-        return collect($this->signal_payload ?? [])
-            ->map(fn ($value) => $this->resolveStoredFilePayload($value))
-            ->all();
     }
 
     public function resolvedDamageAttachment(): mixed

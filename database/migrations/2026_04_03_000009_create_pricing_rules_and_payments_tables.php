@@ -31,6 +31,7 @@ return new class extends Migration
             $table->string('currency', 10)->default('FCFA');
             $table->string('status', 30)->default(PaymentStatus::Pending->value)->index();
             $table->string('provider', 30)->default('simulated');
+            $table->string('payment_context', 30)->default('report')->index();
             $table->string('provider_reference')->nullable();
             $table->timestamp('initiated_at')->nullable();
             $table->timestamp('paid_at')->nullable();

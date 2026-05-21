@@ -75,7 +75,6 @@
                                 <th>Organisation</th>
                                 <th>Signal</th>
                                 <th>SLA defaut</th>
-                                <th>Champs</th>
                                 <th>Statut</th>
                                 <th class="text-end">Actions</th>
                             </tr>
@@ -91,7 +90,6 @@
                                         <div class="small text-secondary mt-1">{{ $signalType->description ?: '-' }}</div>
                                     </td>
                                     <td><span class="status-chip">{{ $signalType->default_sla_hours ? $signalType->default_sla_hours.' h' : '-' }}</span></td>
-                                    <td>{{ count($signalType->data_fields ?? []) }} champ(s)</td>
                                     <td><span class="status-chip">{{ $signalType->status }}</span></td>
                                     <td class="text-end">
                                         <div class="actions-wrap">
@@ -110,7 +108,7 @@
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="7" class="text-center text-secondary">Aucun type de signal enregistre.</td></tr>
+                                <tr><td colspan="6" class="text-center text-secondary">Aucun type de signal enregistre.</td></tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -167,19 +165,6 @@
                             <label class="form-label">Description</label>
                             <textarea name="description" class="form-control" rows="3"></textarea>
                         </div>
-                        @include('partials.signal-type-field-builder', ['builderId' => 'sa-signal-type-create', 'fields' => old() ? collect(old('field_keys', []))->map(function ($key, $index) {
-                            return [
-                                'key' => $key,
-                                'label' => old('field_labels.'.$index),
-                                'type' => old('field_types.'.$index, 'text'),
-                                'options' => collect(preg_split('/\r\n|\r|\n/', (string) old('field_options.'.$index)))
-                                    ->map(fn ($option) => trim((string) $option))
-                                    ->filter()
-                                    ->values()
-                                    ->all(),
-                                'required' => in_array((string) $index, array_map('strval', old('field_required', [])), true),
-                            ];
-                        })->all() : []])
                         <button type="submit" class="btn btn-dark">Creer</button>
                     </form>
                 </div>

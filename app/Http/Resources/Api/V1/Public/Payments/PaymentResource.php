@@ -16,6 +16,11 @@ class PaymentResource extends JsonResource
             'currency' => $this->currency,
             'status' => $this->status,
             'provider' => $this->provider,
+            'payment_context' => $this->payment_context ?? 'report',
+            'payment_context_label' => match ($this->payment_context ?? 'report') {
+                'damage' => 'Declaration de dommage',
+                default => 'Signalement',
+            },
             'provider_reference' => $this->provider_reference,
             'initiated_at' => $this->initiated_at?->toIso8601String(),
             'paid_at' => $this->paid_at?->toIso8601String(),

@@ -22,6 +22,7 @@ class PublicIncidentReportPaymentSessionController extends Controller
                 'incidentReport.city',
                 'incidentReport.commune',
                 'incidentReport.payments.pricingRule',
+                'incidentReport.reparationCase',
             ])
             ->where('sync_ref', $syncRef)
             ->where('public_user_id', $request->user('public_api')->id)

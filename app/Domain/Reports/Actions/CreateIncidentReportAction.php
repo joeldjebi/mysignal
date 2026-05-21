@@ -26,14 +26,12 @@ class CreateIncidentReportAction
         PublicUser $user,
         array $payload,
         ?UploadedFile $signalAttachmentFile = null,
-        ?array $storedSignalAttachment = null,
-        bool $skipDuplicateValidation = false
+        ?array $storedSignalAttachment = null
     ): IncidentReport {
-        $prepared = $this->prepare($user, $payload, $skipDuplicateValidation);
+        $prepared = $this->prepare($user, $payload);
 
         return DB::transaction(function () use ($user, $prepared, $payload, $signalAttachmentFile, $storedSignalAttachment): IncidentReport {
             $reference = $this->generateReference();
-            $storedSignalPayload = $this->storeSignalPayloadFiles($prepared['signal_payload'], $reference);
             $signalAttachment = $signalAttachmentFile
                 ? $this->storeSignalAttachmentFile($signalAttachmentFile, $reference)
                 : $storedSignalAttachment;
@@ -57,7 +55,6 @@ class CreateIncidentReportAction
                 'incident_type' => $prepared['signal_type']->code,
                 'reference' => $reference,
                 'description' => $payload['description'] ?? null,
-                'signal_payload' => $storedSignalPayload,
                 'signal_attachment' => $signalAttachment,
                 'target_sla_hours' => $prepared['programmed_sla'] ?? $prepared['signal_type']->default_sla_hours,
                 'occurred_at' => $payload['occurred_at'] ?? CarbonImmutable::now(),
@@ -71,7 +68,7 @@ class CreateIncidentReportAction
         return $this->prepare($user, $payload);
     }
 
-    private function prepare(PublicUser $user, array $payload, bool $skipDuplicateValidation = false): array
+    private function prepare(PublicUser $user, array $payload): array
     {
         $meter = $user->meters()->whereKey($payload['meter_id'])->first();
 
@@ -103,30 +100,6 @@ class CreateIncidentReportAction
             ]);
         }
 
-        $signalPayload = $payload['signal_payload'] ?? [];
-
-        foreach ($signalType->data_fields ?? [] as $field) {
-            if (($field['required'] ?? true) && (! array_key_exists($field['key'], $signalPayload) || blank($signalPayload[$field['key']]))) {
-                throw ValidationException::withMessages([
-                    'signal_payload.'.$field['key'] => ['La donnee ['.$field['label'].'] est requise pour ce type de signal.'],
-                ]);
-            }
-
-            if (($field['type'] ?? 'text') === 'select' && array_key_exists($field['key'], $signalPayload) && filled($signalPayload[$field['key']])) {
-                $allowedOptions = collect($field['options'] ?? [])
-                    ->map(fn ($option) => trim((string) $option))
-                    ->filter()
-                    ->values()
-                    ->all();
-
-                if (! in_array((string) $signalPayload[$field['key']], $allowedOptions, true)) {
-                    throw ValidationException::withMessages([
-                        'signal_payload.'.$field['key'] => ['La valeur selectionnee pour ['.$field['label'].'] est invalide.'],
-                    ]);
-                }
-            }
-        }
-
         $organizationTypeId = $meter->organization_id
             ? Organization::query()
                 ->whereKey($meter->organization_id)
@@ -149,43 +122,12 @@ class CreateIncidentReportAction
                 ->value('sla_hours')
             : null;
 
-        $effectiveSlaHours = (int) ($programmedSla ?? $signalType->default_sla_hours ?? 0);
-
-        if (! $skipDuplicateValidation) {
-            $latestSimilarReport = IncidentReport::query()
-                ->where('meter_id', $meter->id)
-                ->where('signal_code', $signalType->code)
-                ->whereIn('status', [
-                    IncidentReportStatus::Submitted->value,
-                    IncidentReportStatus::InProgress->value,
-                ])
-                ->latest('created_at')
-                ->first(['id', 'reference', 'created_at', 'target_sla_hours', 'status']);
-
-            if ($latestSimilarReport !== null) {
-                $blockingSlaHours = (int) ($latestSimilarReport->target_sla_hours ?? $effectiveSlaHours);
-
-                if ($blockingSlaHours > 0 && $latestSimilarReport->created_at !== null) {
-                    $availableAt = CarbonImmutable::instance($latestSimilarReport->created_at)->addHours($blockingSlaHours);
-
-                    if (now()->lt($availableAt)) {
-                        throw ValidationException::withMessages([
-                            'signal_code' => [
-                                'Un signalement identique existe deja pour ce compteur. Vous pourrez en soumettre un nouveau a partir du '.$availableAt->translatedFormat('d/m/Y \a H:i').'.',
-                            ],
-                        ]);
-                    }
-                }
-            }
-        }
-
         return [
             'meter' => $meter,
             'country' => $country,
             'city' => $city,
             'commune' => $commune,
             'signal_type' => $signalType,
-            'signal_payload' => $signalPayload,
             'programmed_sla' => $programmedSla,
         ];
     }
@@ -217,37 +159,6 @@ class CreateIncidentReportAction
         }
 
         return [$commune->city->country, $commune->city, $commune];
-    }
-
-    private function storeSignalPayloadFiles(array $signalPayload, string $reference): array
-    {
-        return collect($signalPayload)
-            ->map(function ($value, $key) use ($reference) {
-                if (! is_array($value) || empty($value['data_url'])) {
-                    return $value;
-                }
-
-                $path = $this->wasabiService->uploadDataUrl(
-                    (string) $value['data_url'],
-                    config('wasabi.report_signal_directory', 'reports/signals').'/'.$reference,
-                    (string) $key,
-                    $value['name'] ?? null,
-                );
-
-                if (! $path) {
-                    throw ValidationException::withMessages([
-                        'signal_payload.'.$key => ['Impossible de televerser le fichier sur le stockage distant.'],
-                    ]);
-                }
-
-                return [
-                    'type' => $value['type'] ?? 'file',
-                    'name' => $value['name'] ?? ($key.'.bin'),
-                    'mime_type' => $value['mime_type'] ?? 'application/octet-stream',
-                    'path' => $path,
-                ];
-            })
-            ->all();
     }
 
     private function storeSignalAttachmentFile(UploadedFile $file, string $reference): array

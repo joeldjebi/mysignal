@@ -19,6 +19,7 @@ class Payment extends Model
         'currency',
         'status',
         'provider',
+        'payment_context',
         'provider_reference',
         'initiated_at',
         'paid_at',

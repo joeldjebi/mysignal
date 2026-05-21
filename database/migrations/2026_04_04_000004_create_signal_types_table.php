@@ -16,7 +16,6 @@ return new class extends Migration
             $table->string('label', 180);
             $table->text('description')->nullable();
             $table->unsignedSmallInteger('default_sla_hours')->nullable();
-            $table->json('data_fields')->nullable();
             $table->string('status', 30)->default('active')->index();
             $table->timestamps();
 
@@ -31,7 +30,6 @@ return new class extends Migration
                     'label' => $definition['label'] ?? $code,
                     'description' => $definition['description'] ?? null,
                     'default_sla_hours' => $definition['sla_target']['hours'] ?? null,
-                    'data_fields' => json_encode($definition['data_fields'] ?? [], JSON_UNESCAPED_UNICODE),
                     'status' => 'active',
                     'created_at' => now(),
                     'updated_at' => now(),

@@ -31,7 +31,6 @@ class IncidentReportResource extends JsonResource
             'signal_label' => $this->signal_label,
             'incident_type' => $this->incident_type,
             'description' => $this->description,
-            'signal_payload' => $this->resolvedSignalPayload(),
             'signal_attachment' => $this->resolvedSignalAttachment(),
             'target_sla_hours' => $this->target_sla_hours,
             'occurred_at' => $this->occurred_at?->toIso8601String(),

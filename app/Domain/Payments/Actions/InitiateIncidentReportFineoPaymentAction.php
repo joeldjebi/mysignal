@@ -38,6 +38,7 @@ class InitiateIncidentReportFineoPaymentAction
             'currency' => $pricingRule->currency,
             'status' => PaymentStatus::Pending->value,
             'provider' => 'fineopay',
+            'payment_context' => 'report',
             'report_payload' => $payload,
             'signal_attachment' => $signalAttachment,
             'initiated_at' => CarbonImmutable::now(),

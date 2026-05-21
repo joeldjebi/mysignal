@@ -51,21 +51,6 @@
                         <label class="form-label">Description</label>
                         <textarea name="description" class="form-control" rows="4">{{ old('description', $signalType->description) }}</textarea>
                     </div>
-                    <div class="col-12">
-                        @include('partials.signal-type-field-builder', ['builderId' => 'institution-signal-type-edit', 'fields' => old() ? collect(old('field_keys', []))->map(function ($key, $index) {
-                            return [
-                                'key' => $key,
-                                'label' => old('field_labels.'.$index),
-                                'type' => old('field_types.'.$index, 'text'),
-                                'options' => collect(preg_split('/\r\n|\r|\n/', (string) old('field_options.'.$index)))
-                                    ->map(fn ($option) => trim((string) $option))
-                                    ->filter()
-                                    ->values()
-                                    ->all(),
-                                'required' => in_array((string) $index, array_map('strval', old('field_required', [])), true),
-                            ];
-                        })->all() : ($signalType->data_fields ?? [])])
-                    </div>
                     <div class="col-12 d-flex gap-2">
                         <button type="submit" class="btn btn-dark">Enregistrer</button>
                         <a href="{{ route('institution.signal-types.index') }}" class="btn btn-outline-secondary">Retour</a>

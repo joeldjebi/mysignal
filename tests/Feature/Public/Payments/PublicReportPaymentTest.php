@@ -54,7 +54,6 @@ class PublicReportPaymentTest extends TestCase
             'commune_id' => $commune->id,
             'signal_code' => 'EL-01',
             'description' => 'Coupure constatee.',
-            'signal_payload' => [],
         ])->json('data.report.id');
 
         $paymentId = $this->withToken($token)->postJson("/api/v1/public/reports/{$reportId}/payments")

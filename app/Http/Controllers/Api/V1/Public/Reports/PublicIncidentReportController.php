@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1\Public\Reports;
 
+use App\Domain\Payments\Actions\InitiateDamageDeclarationFineoPaymentAction;
 use App\Domain\Payments\Actions\InitiateIncidentReportFineoPaymentAction;
 use App\Domain\Reports\Enums\IncidentReportStatus;
 use App\Http\Controllers\Controller;
@@ -11,8 +12,6 @@ use App\Http\Resources\Api\V1\Public\Payments\IncidentReportPaymentSessionResour
 use App\Http\Resources\Api\V1\Public\Reports\IncidentReportDamageResource;
 use App\Http\Resources\Api\V1\Public\Reports\IncidentReportResource;
 use App\Models\IncidentReport;
-use App\Services\Notifications\IncidentReportNotificationService;
-use App\Services\WasabiService;
 use App\Support\Api\ApiResponse;
 use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\Request;
@@ -120,12 +119,12 @@ class PublicIncidentReportController extends Controller
         ], 'La resolution du signalement a ete confirmee.');
     }
 
-    public function storeDamage(StoreIncidentReportDamageRequest $request, IncidentReport $report, WasabiService $wasabiService, ActivityLogger $activityLogger, IncidentReportNotificationService $notificationService)
+    public function storeDamage(StoreIncidentReportDamageRequest $request, IncidentReport $report, InitiateDamageDeclarationFineoPaymentAction $action, ActivityLogger $activityLogger)
     {
-        return $this->persistDamage($request, $report, $wasabiService, $activityLogger, $notificationService);
+        return $this->initiateDamagePayment($request, $report, $action, $activityLogger);
     }
 
-    public function storeDamageFromBody(StoreIncidentReportDamageRequest $request, WasabiService $wasabiService, ActivityLogger $activityLogger, IncidentReportNotificationService $notificationService)
+    public function storeDamageFromBody(StoreIncidentReportDamageRequest $request, InitiateDamageDeclarationFineoPaymentAction $action, ActivityLogger $activityLogger)
     {
         $reportId = $request->validated('report_id');
 
@@ -137,19 +136,12 @@ class PublicIncidentReportController extends Controller
 
         $report = IncidentReport::query()->findOrFail($reportId);
 
-        return $this->persistDamage($request, $report, $wasabiService, $activityLogger, $notificationService);
+        return $this->initiateDamagePayment($request, $report, $action, $activityLogger);
     }
 
-    private function persistDamage(StoreIncidentReportDamageRequest $request, IncidentReport $report, WasabiService $wasabiService, ActivityLogger $activityLogger, IncidentReportNotificationService $notificationService)
+    private function initiateDamagePayment(StoreIncidentReportDamageRequest $request, IncidentReport $report, InitiateDamageDeclarationFineoPaymentAction $action, ActivityLogger $activityLogger)
     {
-        abort_unless((int) $report->public_user_id === (int) $request->user('public_api')->id, 404);
-        abort_unless($report->resolution_confirmation_status === 'confirmed', 422, 'Confirmez d abord la resolution du signalement avant d enregistrer un dommage.');
-        abort_unless($report->damage_declared_at === null, 422, 'Le dommage pour ce signalement a deja ete enregistre.');
-        abort_unless($report->resolution_confirmed_at !== null, 422, 'La date de confirmation de resolution est introuvable pour ce signalement.');
-        abort_unless(now()->lessThanOrEqualTo($report->resolution_confirmed_at->copy()->addDay()), 422, 'Le delai de 24h pour declarer un dommage apres confirmation de resolution est depasse.');
-
         $attributes = $request->validated();
-
         $damageAttachmentFile = $request->file('damage_attachment');
 
         if (! $damageAttachmentFile) {
@@ -158,49 +150,31 @@ class PublicIncidentReportController extends Controller
             ]);
         }
 
-        $path = $wasabiService->uploadFile(
-            $damageAttachmentFile,
-            config('wasabi.report_damage_directory', 'reports/damages').'/'.$report->reference,
-            'damage'
+        $paymentSession = $action->handle(
+            $request->user('public_api'),
+            $report,
+            $attributes,
+            $damageAttachmentFile
         );
 
-        $damageAttachment = [
-            'name' => $damageAttachmentFile->getClientOriginalName() ?: 'justificatif-dommage',
-            'mime_type' => $damageAttachmentFile->getMimeType() ?: 'application/octet-stream',
-            'size' => $damageAttachmentFile->getSize(),
-            'path' => $path,
-        ];
-
-        $report->update([
-            'damage_summary' => $attributes['damage_summary'] ?? null,
-            'damage_amount_estimated' => $attributes['damage_amount_estimated'] ?? null,
-            'damage_notes' => $attributes['damage_notes'] ?? null,
-            'damage_attachment' => $damageAttachment,
-            'damage_declared_at' => now(),
-            'damage_resolution_status' => 'submitted',
-            'damage_resolution_notes' => null,
-            'damage_resolved_at' => null,
-        ]);
-
-        $report->load(['application', 'organization', 'meter.organization', 'country', 'city', 'commune', 'payments.pricingRule']);
-
         $activityLogger->log(
-            'public.report.damage_declared',
-            'Declaration d un dommage sur un signalement.',
-            $report,
+            'public.damage.payment_session_created',
+            'Initialisation du paiement FineoPay pour une declaration de dommage.',
+            $paymentSession,
             [
-                'reference' => $report->reference,
-                'damage_resolution_status' => $report->damage_resolution_status,
-                'damage_amount_estimated' => $report->damage_amount_estimated,
-                'has_damage_attachment' => filled($report->damage_attachment),
+                'sync_ref' => $paymentSession->sync_ref,
+                'incident_report_id' => $paymentSession->incident_report_id,
+                'status' => $paymentSession->status,
+                'amount' => $paymentSession->amount,
+                'currency' => $paymentSession->currency,
+                'provider' => $paymentSession->provider,
             ],
             $request
         );
 
-        $notificationService->notifyInstitutionDamageDeclared($report);
-
         return ApiResponse::success([
-            'report' => new IncidentReportResource($report),
-        ], 'Le dommage a ete enregistre avec succes.');
+            'payment_session' => new IncidentReportPaymentSessionResource($paymentSession),
+            'checkout_link' => $paymentSession->checkout_link,
+        ], 'Lien de paiement genere avec succes. Le dommage sera enregistre apres paiement.', 201);
     }
 }

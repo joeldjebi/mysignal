@@ -14,7 +14,7 @@
         <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 mb-3">
             <div>
                 <div class="fw-bold">Sessions FineoPay en attente</div>
-                <div class="small text-secondary">Ces lignes existent avant la creation du signalement. Le signalement est cree uniquement apres callback FineoPay succes ou validation manuelle SA.</div>
+                <div class="small text-secondary">Ces lignes existent avant la creation du signalement ou l enregistrement du dommage. Elles sont traitees apres callback FineoPay succes ou validation manuelle SA.</div>
             </div>
             <span class="badge-soft align-self-lg-start">{{ $paymentSessions->total() }} session{{ $paymentSessions->total() > 1 ? 's' : '' }}</span>
         </div>
@@ -34,6 +34,14 @@
                         @endforeach
                     </select>
                 </div>
+                <div class="col-md-2">
+                    <label class="form-label small text-secondary">Type</label>
+                    <select name="session_context" class="form-select">
+                        <option value="">Tous</option>
+                        <option value="report" @selected(request('session_context') === 'report')>Signalement</option>
+                        <option value="damage" @selected(request('session_context') === 'damage')>Dommage</option>
+                    </select>
+                </div>
                 <div class="col-md-2 d-flex gap-2">
                     <button class="btn btn-dark w-100">Filtrer</button>
                     <a href="{{ route('super-admin.payments.index') }}" class="btn btn-outline-secondary">RAZ</a>
@@ -47,7 +55,7 @@
                     <tr>
                         <th>Session</th>
                         <th>Usager public</th>
-                        <th>Signalement prevu</th>
+                        <th>Operation</th>
                         <th>Montant</th>
                         <th>Statut</th>
                         <th class="text-end">Validation SA</th>
@@ -59,6 +67,7 @@
                             $payload = $session->report_payload ?? [];
                             $payloadApplication = $applications->firstWhere('id', (int) ($payload['application_id'] ?? 0));
                             $payloadOrganization = $organizations->firstWhere('id', (int) ($payload['organization_id'] ?? 0));
+                            $isDamageSession = ($session->payment_context ?? 'report') === 'damage';
                         @endphp
                         <tr>
                             <td>
@@ -72,11 +81,11 @@
                                 <div class="small text-secondary">{{ $session->publicUser?->publicUserType?->name ?: '-' }}</div>
                             </td>
                             <td>
-                                <div class="fw-semibold">{{ $payload['signal_label'] ?? $payload['signal_code'] ?? $payload['incident_type'] ?? '-' }}</div>
+                                <div class="fw-semibold">{{ $isDamageSession ? 'Declaration de dommage' : ($payload['signal_label'] ?? $payload['signal_code'] ?? $payload['incident_type'] ?? '-') }}</div>
                                 <div class="small text-secondary">{{ $payloadApplication?->name ?: $session->incidentReport?->application?->name ?: 'Application inconnue' }} / {{ $payloadOrganization?->name ?: $session->incidentReport?->organization?->name ?: 'Organisation inconnue' }}</div>
-                                <div class="small text-secondary">Compteur #{{ $payload['meter_id'] ?? '-' }}</div>
+                                <div class="small text-secondary">{{ $isDamageSession ? 'Signalement '.$session->incidentReport?->reference : 'Compteur #'.($payload['meter_id'] ?? '-') }}</div>
                                 @if ($session->incidentReport)
-                                    <div class="small text-success">Signalement cree : {{ $session->incidentReport->reference }}</div>
+                                    <div class="small text-success">Signalement : {{ $session->incidentReport->reference }}</div>
                                 @endif
                             </td>
                             <td>
@@ -86,7 +95,7 @@
                             <td><span class="status-chip">{{ $session->status }}</span></td>
                             <td class="text-end">
                                 @if (($session->status !== 'paid' || $session->incident_report_id === null) && $canManuallyValidatePayments)
-                                    <form method="POST" action="{{ route('super-admin.payments.sessions.validate', $session) }}" class="d-inline-flex flex-column gap-2 align-items-end" onsubmit="return confirm('Valider manuellement ce paiement et creer le signalement ?');">
+                                    <form method="POST" action="{{ route('super-admin.payments.sessions.validate', $session) }}" class="d-inline-flex flex-column gap-2 align-items-end" onsubmit="return confirm('Valider manuellement ce paiement et traiter cette session ?');">
                                         @csrf
                                         <input type="text" name="reason" class="form-control form-control-sm" placeholder="Motif optionnel" style="max-width: 220px;">
                                         <div class="d-inline-flex gap-2">
@@ -140,6 +149,14 @@
                     </select>
                 </div>
                 <div class="col-md-2">
+                    <label class="form-label small text-secondary">Type</label>
+                    <select name="payment_context" class="form-select">
+                        <option value="">Tous</option>
+                        <option value="report" @selected(request('payment_context') === 'report')>Signalement</option>
+                        <option value="damage" @selected(request('payment_context') === 'damage')>Dommage</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
                     <label class="form-label small text-secondary">Application</label>
                     <select name="application_id" class="form-select">
                         <option value="">Toutes</option>
@@ -186,6 +203,7 @@
                             <td>
                                 <div class="fw-semibold">{{ $payment->reference }}</div>
                                 <div class="small text-secondary">{{ $payment->initiated_at?->format('d/m/Y H:i') ?: '-' }}</div>
+                                <div class="small text-secondary">{{ ($payment->payment_context ?? 'report') === 'damage' ? 'Declaration de dommage' : 'Signalement' }}</div>
                                 <div class="small text-secondary">Ref fournisseur : {{ $payment->provider_reference ?: '-' }}</div>
                             </td>
                             <td>

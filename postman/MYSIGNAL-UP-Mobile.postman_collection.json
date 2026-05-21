@@ -296,7 +296,7 @@
             "method": "GET",
             "header": [{ "key": "Accept", "value": "application/json" }],
             "url": "{{baseUrl}}/v1/public/signal-types",
-            "description": "Retourne les types de signaux actifs avec leurs champs dynamiques data_fields."
+            "description": "Retourne les types de signaux actifs."
           }
         },
         {
@@ -773,8 +773,6 @@
               "mode": "formdata",
               "formdata": [
                 { "key": "meter_id", "value": "{{meterId}}", "type": "text" },
-                { "key": "application_id", "value": "{{applicationId}}", "type": "text" },
-                { "key": "organization_id", "value": "{{organizationId}}", "type": "text" },
                 { "key": "signal_code", "value": "NETWORK_OUTAGE", "type": "text" },
                 { "key": "description", "value": "Coupure depuis 2 heures", "type": "text" },
                 { "key": "occurred_at", "value": "2026-04-10T12:00:00Z", "type": "text" },
@@ -782,7 +780,6 @@
                 { "key": "longitude", "value": "{{longitude}}", "type": "text" },
                 { "key": "location_accuracy", "value": "{{locationAccuracy}}", "type": "text" },
                 { "key": "location_source", "value": "gps", "type": "text" },
-                { "key": "signal_payload[service_category]", "value": "{{serviceCategory}}", "type": "text" },
                 { "key": "signal_attachment", "type": "file", "src": [], "disabled": true }
               ]
             },
@@ -800,7 +797,7 @@
           }
         },
         {
-          "name": "Create Report With Dynamic Fields",
+          "name": "Create Report With Attachment",
           "request": {
             "method": "POST",
             "header": [
@@ -810,8 +807,6 @@
               "mode": "formdata",
               "formdata": [
                 { "key": "meter_id", "value": "{{meterId}}", "type": "text" },
-                { "key": "application_id", "value": "{{applicationId}}", "type": "text" },
-                { "key": "organization_id", "value": "{{organizationId}}", "type": "text" },
                 { "key": "signal_code", "value": "EL-04", "type": "text" },
                 { "key": "description", "value": "Compteur illisible", "type": "text" },
                 { "key": "occurred_at", "value": "2026-04-10T12:00:00Z", "type": "text" },
@@ -819,17 +814,11 @@
                 { "key": "longitude", "value": "{{longitude}}", "type": "text" },
                 { "key": "location_accuracy", "value": "{{locationAccuracy}}", "type": "text" },
                 { "key": "location_source", "value": "gps", "type": "text" },
-                { "key": "signal_payload[meter_photo_reference][type]", "value": "image", "type": "text" },
-                { "key": "signal_payload[meter_photo_reference][name]", "value": "compteur.jpg", "type": "text" },
-                { "key": "signal_payload[meter_photo_reference][mime_type]", "value": "image/jpeg", "type": "text" },
-                { "key": "signal_payload[meter_photo_reference][data_url]", "value": "data:image/jpeg;base64,...", "type": "text" },
-                { "key": "signal_payload[meter_serial_number]", "value": "{{meterNumber}}", "type": "text" },
-                { "key": "signal_payload[precise_gps]", "value": "{{latitude}},{{longitude}}", "type": "text" },
                 { "key": "signal_attachment", "type": "file", "src": [], "disabled": true }
               ]
             },
             "url": "{{baseUrl}}/v1/public/reports",
-            "description": "Exemple de session FineoPay pour un signalement avec champs dynamiques issus de GET /v1/public/signal-types. Remplacer signal_code et les cles signal_payload par les data_fields du type selectionne. Le signalement est cree uniquement apres callback FineoPay success."
+            "description": "Exemple de session FineoPay pour un signalement avec piece jointe optionnelle. Le signalement est cree uniquement apres callback FineoPay success."
           }
         },
         {
@@ -889,7 +878,7 @@
               ]
             },
             "url": "{{baseUrl}}/v1/public/reports/{{reportId}}/damages",
-            "description": "Declaration par upload direct. Envoyer multipart/form-data avec les champs damage_summary, damage_amount_estimated, damage_notes et damage_attachment en image ou PDF."
+            "description": "Initialise une session FineoPay pour declarer un dommage. Envoyer multipart/form-data avec les champs damage_summary, damage_amount_estimated, damage_notes et damage_attachment en image ou PDF. Le dommage est enregistre uniquement apres callback FineoPay success."
           }
         },
         {
@@ -952,7 +941,7 @@
               ]
             },
             "url": "{{baseUrl}}/v1/public/damages",
-            "description": "Endpoint mobile direct. Envoyer multipart/form-data avec report_id, damage_summary, damage_amount_estimated, damage_notes et damage_attachment en image ou PDF."
+            "description": "Endpoint mobile direct: initialise une session FineoPay pour declarer un dommage. Envoyer multipart/form-data avec report_id, damage_summary, damage_amount_estimated, damage_notes et damage_attachment en image ou PDF. Le dommage est enregistre uniquement apres callback FineoPay success."
           }
         }
       ]
@@ -966,7 +955,8 @@
           "request": {
             "method": "GET",
             "header": [{ "key": "Accept", "value": "application/json" }],
-            "url": "{{baseUrl}}/v1/public/payments"
+            "url": "{{baseUrl}}/v1/public/payments",
+            "description": "Historique des paiements du UP: signalements et dommages. Filtre optionnel: ?payment_context=report ou ?payment_context=damage."
           }
         },
         {

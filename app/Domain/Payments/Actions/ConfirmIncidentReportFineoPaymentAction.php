@@ -4,6 +4,7 @@ namespace App\Domain\Payments\Actions;
 
 use App\Domain\Payments\Enums\PaymentStatus;
 use App\Domain\Reports\Actions\CreateIncidentReportAction;
+use App\Domain\Reports\Actions\PersistIncidentReportDamageAction;
 use App\Models\IncidentReport;
 use App\Models\IncidentReportPaymentSession;
 use App\Models\Payment;
@@ -18,6 +19,7 @@ class ConfirmIncidentReportFineoPaymentAction
 {
     public function __construct(
         private readonly CreateIncidentReportAction $createIncidentReportAction,
+        private readonly PersistIncidentReportDamageAction $persistDamageAction,
         private readonly ActivityLogger $activityLogger,
         private readonly IncidentReportNotificationService $notificationService,
     ) {}
@@ -73,13 +75,20 @@ class ConfirmIncidentReportFineoPaymentAction
             }
 
             $user = $session->publicUser()->firstOrFail();
-            $report = $this->createIncidentReportAction->handle(
-                $user,
-                $session->report_payload,
-                null,
-                $session->signal_attachment,
-                true,
-            );
+            $report = $session->payment_context === 'damage'
+                ? $this->persistDamageAction->handle(
+                    $user,
+                    $session->incidentReport()->firstOrFail(),
+                    $session->damage_payload ?? [],
+                    $session->damage_attachment ?? [],
+                    $request,
+                )
+                : $this->createIncidentReportAction->handle(
+                    $user,
+                    $session->report_payload,
+                    null,
+                    $session->signal_attachment,
+                );
 
             $paidAt = $this->paidAt($payload);
 
@@ -92,6 +101,7 @@ class ConfirmIncidentReportFineoPaymentAction
                 'currency' => $session->currency,
                 'status' => PaymentStatus::Paid->value,
                 'provider' => 'fineopay',
+                'payment_context' => $session->payment_context ?? 'report',
                 'provider_reference' => $payload['reference'] ?? null,
                 'initiated_at' => $session->initiated_at,
                 'paid_at' => $paidAt,
@@ -102,10 +112,12 @@ class ConfirmIncidentReportFineoPaymentAction
                 ],
             ]);
 
-            $report->update([
-                'payment_status' => PaymentStatus::Paid->value,
-                'paid_at' => $paidAt,
-            ]);
+            if (($session->payment_context ?? 'report') === 'report') {
+                $report->update([
+                    'payment_status' => PaymentStatus::Paid->value,
+                    'paid_at' => $paidAt,
+                ]);
+            }
 
             $session->update([
                 'incident_report_id' => $report->id,
@@ -118,7 +130,9 @@ class ConfirmIncidentReportFineoPaymentAction
                 ],
             ]);
 
-            $this->logAndNotify($report, $request);
+            if (($session->payment_context ?? 'report') === 'report') {
+                $this->logAndNotify($report, $request);
+            }
 
             return $session->fresh(['incidentReport', 'pricingRule']);
         });

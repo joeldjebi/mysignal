@@ -1916,8 +1916,8 @@
                             </div>
                             <div class="col-12">
                                 <div class="signal-field-card">
-                                    <div class="fw-bold mb-2" id="reportSignalMetaTitle">Données complémentaires</div>
-                                    <div class="muted-label mb-3" id="reportSignalMetaDescription">Sélectionnez un type de signal pour voir les données requises.</div>
+                                    <div class="fw-bold mb-2" id="reportSignalMetaTitle">Signalement sélectionné</div>
+                                    <div class="muted-label mb-3" id="reportSignalMetaDescription">Sélectionnez un type de signal pour afficher les détails.</div>
                                     <div id="signalPayloadFields" class="row g-3"></div>
                                 </div>
                             </div>
@@ -2772,9 +2772,6 @@
                     document.getElementById(`${prefix}Accuracy`).value = coords.accuracy ? Math.round(coords.accuracy) : '';
                     document.getElementById(`${prefix}LocationSource`).value = source;
 
-                    if (prefix === 'report') {
-                        syncAutoSignalPayloadFields();
-                    }
                 }
 
                 function hasGeoCoordinates(prefix) {
@@ -3388,74 +3385,6 @@
                     return Array.from(deduplicatedTypes.values());
                 }
 
-                function isPhotoSignalField(field) {
-                    return ['photo_reference', 'meter_photo_reference'].includes(field.key);
-                }
-
-                function isGpsSignalField(field) {
-                    return ['precise_gps', 'gps_location'].includes(field.key);
-                }
-
-                function getCurrentReportGpsValue() {
-                    const latitude = document.getElementById('reportLatitude').value;
-                    const longitude = document.getElementById('reportLongitude').value;
-
-                    if (latitude && longitude) {
-                        return `${latitude}, ${longitude}`;
-                    }
-
-                    const meter = state.meters.find((item) => String(item.id) === String(document.getElementById('reportMeterId').value));
-
-                    if (meter?.latitude && meter?.longitude) {
-                        return `${meter.latitude}, ${meter.longitude}`;
-                    }
-
-                    return '';
-                }
-
-                function syncAutoSignalPayloadFields() {
-                    const gpsValue = getCurrentReportGpsValue();
-
-                    document.querySelectorAll('[data-signal-auto-gps="1"]').forEach((field) => {
-                        field.value = gpsValue;
-                    });
-                }
-
-                function readFileAsDataUrl(file) {
-                    return new Promise((resolve, reject) => {
-                        const reader = new FileReader();
-                        reader.onload = () => resolve(String(reader.result || ''));
-                        reader.onerror = () => reject(new Error('Impossible de lire le fichier image.'));
-                        reader.readAsDataURL(file);
-                    });
-                }
-
-                function renderPhotoPreview(input) {
-                    const preview = document.querySelector(`[data-signal-preview-for="${input.dataset.signalKey}"]`);
-
-                    if (!preview) {
-                        return;
-                    }
-
-                    const file = input.files?.[0];
-
-                    if (!file) {
-                        preview.classList.add('d-none');
-                        preview.src = '';
-                        return;
-                    }
-
-                    document.querySelectorAll(`[data-signal-field-type="photo"][data-signal-key="${input.dataset.signalKey}"]`).forEach((candidate) => {
-                        if (candidate !== input) {
-                            candidate.value = '';
-                        }
-                    });
-
-                    const objectUrl = URL.createObjectURL(file);
-                    preview.src = objectUrl;
-                    preview.classList.remove('d-none');
-                }
-
                 function renderSignalOptions() {
                     const signalSelect = document.getElementById('reportSignalCode');
                     const signalTypes = getSignalTypesForCurrentMeter();
@@ -3480,8 +3409,8 @@
 
                     if (!signal) {
                         inlineDescription.textContent = 'Sélectionnez un type de signal pour afficher sa description et son délai de résolution.';
-                        title.textContent = 'Données complémentaires';
-                        description.textContent = 'Sélectionnez un type de signal pour voir les données requises.';
+                        title.textContent = 'Signalement sélectionné';
+                        description.textContent = 'Sélectionnez un type de signal pour afficher les détails.';
                         container.innerHTML = '';
                         return;
                     }
@@ -3502,50 +3431,7 @@
                     signalDescriptionParts.push(slaLabel ? `SLA cible ${slaLabel}` : 'SLA cible non défini');
                     inlineDescription.textContent = signalDescriptionParts.join(' · ');
                     description.textContent = signalDescriptionParts.join(' · ');
-
-                    if (!signal.data_fields?.length) {
-                        container.innerHTML = '<div class="col-12"><div class="muted-label">Aucune donnée complémentaire requise pour ce signal.</div></div>';
-                        return;
-                    }
-
-                    container.innerHTML = signal.data_fields.map((field) => `
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">${field.label}${field.required ? '<span class="required-star">*</span>' : ''}</label>
-                            ${isPhotoSignalField(field)
-                                ? `
-                                    <div class="d-flex gap-2 flex-wrap">
-                                        <label class="btn btn-ghost-premium px-4 mb-0">
-                                            Prendre une photo
-                                            <input class="d-none" type="file" accept="image/*" capture="environment" data-signal-key="${field.key}" data-signal-field-type="photo" ${field.required ? 'required' : ''}>
-                                        </label>
-                                        <label class="btn btn-ghost-premium px-4 mb-0">
-                                            Choisir depuis la galerie
-                                            <input class="d-none" type="file" accept="image/*" data-signal-key="${field.key}" data-signal-field-type="photo" ${field.required ? 'required' : ''}>
-                                        </label>
-                                    </div>
-                                    <div class="muted-label mt-2">Choisissez une image existante ou prenez-la directement depuis l’appareil.</div>
-                                    <img class="img-fluid rounded-4 border mt-3 d-none" data-signal-preview-for="${field.key}" alt="Aperçu photo ${field.label}" style="max-height: 220px; object-fit: cover;">
-                                `
-                                : isGpsSignalField(field)
-                                    ? `<input class="form-control" type="text" data-signal-key="${field.key}" data-signal-auto-gps="1" placeholder="${field.label}" readonly ${field.required ? 'required' : ''}>`
-                                    : field.type === 'select'
-                                        ? `
-                                            <select class="form-select" data-signal-key="${field.key}" ${field.required ? 'required' : ''}>
-                                                <option value="">Sélectionner</option>
-                                                ${(field.options || []).map((option) => `<option value="${escapeHtml(option)}">${escapeHtml(option)}</option>`).join('')}
-                                            </select>
-                                        `
-                                        : field.type === 'textarea'
-                                            ? `<textarea class="form-control" rows="3" data-signal-key="${field.key}" placeholder="${field.label}" ${field.required ? 'required' : ''}></textarea>`
-                                            : `<input class="form-control" type="${field.type === 'number' ? 'number' : 'text'}" data-signal-key="${field.key}" placeholder="${field.label}" ${field.required ? 'required' : ''}>`}
-                        </div>
-                    `).join('');
-
-                    container.querySelectorAll('[data-signal-field-type="photo"]').forEach((input) => {
-                        input.addEventListener('change', () => renderPhotoPreview(input));
-                    });
-
-                    syncAutoSignalPayloadFields();
+                    container.innerHTML = '';
                 }
 
                 function setTextIfExists(id, value) {
@@ -5077,6 +4963,7 @@
                 }
 
                 function renderReportPaymentWaiting(session, mode = 'pending') {
+                    const isDamagePayment = (session?.payment_context || 'report') === 'damage';
                     document.getElementById('reportPaymentWaitingReference').textContent = session?.sync_ref || '-';
                     document.getElementById('reportPaymentWaitingAmount').textContent = formatAmount(session?.amount, session?.currency || 'FCFA');
                     document.getElementById('reportPaymentWaitingProvider').textContent = session?.provider || 'FineoPay';
@@ -5089,9 +4976,15 @@
 
                     if (mode === 'paid') {
                         document.getElementById('reportPaymentWaitingSubtitle').textContent = 'Paiement confirmé. Nous mettons à jour votre espace.';
-                        document.getElementById('reportPaymentWaitingMessage').textContent = 'Le paiement est confirmé et le signalement a été enregistré.';
-                        document.getElementById('reportPaymentWaitingLoaderTitle').textContent = 'Mise à jour des éléments du signalement';
-                        document.getElementById('reportPaymentWaitingLoaderText').textContent = 'Chargement du nouveau signalement, du paiement et des notifications.';
+                        document.getElementById('reportPaymentWaitingMessage').textContent = isDamagePayment
+                            ? 'Le paiement est confirmé et le dommage a été enregistré.'
+                            : 'Le paiement est confirmé et le signalement a été enregistré.';
+                        document.getElementById('reportPaymentWaitingLoaderTitle').textContent = isDamagePayment
+                            ? 'Mise à jour du dommage'
+                            : 'Mise à jour des éléments du signalement';
+                        document.getElementById('reportPaymentWaitingLoaderText').textContent = isDamagePayment
+                            ? 'Chargement du dommage, du paiement et des notifications.'
+                            : 'Chargement du nouveau signalement, du paiement et des notifications.';
                         loader.classList.remove('d-none');
                         refreshButton.disabled = true;
                         reopenButton.classList.add('d-none');
@@ -5103,7 +4996,9 @@
                         document.getElementById('reportPaymentWaitingSubtitle').textContent = 'Le paiement n’a pas été confirmé.';
                         document.getElementById('reportPaymentWaitingMessage').textContent = 'Vous pouvez rouvrir le lien de paiement ou annuler cette attente.';
                         document.getElementById('reportPaymentWaitingLoaderTitle').textContent = 'Paiement échoué ou interrompu';
-                        document.getElementById('reportPaymentWaitingLoaderText').textContent = 'Aucun signalement n’a été enregistré pour cette session.';
+                        document.getElementById('reportPaymentWaitingLoaderText').textContent = isDamagePayment
+                            ? 'Aucun dommage n’a été enregistré pour cette session.'
+                            : 'Aucun signalement n’a été enregistré pour cette session.';
                         loader.classList.add('d-none');
                         refreshButton.disabled = false;
                         reopenButton.classList.remove('d-none');
@@ -5114,7 +5009,9 @@
                     document.getElementById('reportPaymentWaitingSubtitle').textContent = 'Gardez cette page ouverte pendant que vous terminez le paiement dans l’autre onglet.';
                     document.getElementById('reportPaymentWaitingMessage').textContent = 'Nous vérifions automatiquement la confirmation FineoPay.';
                     document.getElementById('reportPaymentWaitingLoaderTitle').textContent = 'Vérification du paiement en cours';
-                    document.getElementById('reportPaymentWaitingLoaderText').textContent = 'Le signalement sera créé automatiquement dès que FineoPay confirme le paiement.';
+                    document.getElementById('reportPaymentWaitingLoaderText').textContent = isDamagePayment
+                        ? 'Le dommage sera enregistré automatiquement dès que FineoPay confirme le paiement.'
+                        : 'Le signalement sera créé automatiquement dès que FineoPay confirme le paiement.';
                     loader.classList.remove('d-none');
                     refreshButton.disabled = false;
                     reopenButton.classList.remove('d-none');
@@ -5133,10 +5030,11 @@
                     if (session.status === 'paid') {
                         stopReportPaymentPolling();
                         renderReportPaymentWaiting(session, 'paid');
-                        showToast('Paiement confirmé. Mise à jour du signalement...');
+                        const isDamagePayment = (session.payment_context || 'report') === 'damage';
+                        showToast(isDamagePayment ? 'Paiement confirmé. Mise à jour du dommage...' : 'Paiement confirmé. Mise à jour du signalement...');
                         persistPendingReportPayment(null);
                         await refreshDashboard();
-                        activatePanel('reports');
+                        activatePanel(isDamagePayment ? 'damages' : 'reports');
 
                         if (session.incident_report_id) {
                             window.AcepenPortal.showReportDetails(Number(session.incident_report_id));
@@ -6586,35 +6484,6 @@
                             payload.append('signal_attachment', signalAttachment);
                         }
 
-                        const signalFields = Array.from(form.querySelectorAll('[data-signal-key]'));
-                        const processedPhotoKeys = new Set();
-
-                        for (const field of signalFields) {
-                            if (field.type === 'file') {
-                                if (processedPhotoKeys.has(field.dataset.signalKey)) {
-                                    continue;
-                                }
-
-                                processedPhotoKeys.add(field.dataset.signalKey);
-                                const candidates = signalFields.filter((candidate) => candidate.type === 'file' && candidate.dataset.signalKey === field.dataset.signalKey);
-                                const selectedInput = candidates.find((candidate) => candidate.files?.[0]);
-                                const file = selectedInput?.files?.[0];
-
-                                if (file) {
-                                    payload.append(`signal_payload[${field.dataset.signalKey}][type]`, 'image');
-                                    payload.append(`signal_payload[${field.dataset.signalKey}][name]`, file.name);
-                                    payload.append(`signal_payload[${field.dataset.signalKey}][mime_type]`, file.type || 'image/jpeg');
-                                    payload.append(`signal_payload[${field.dataset.signalKey}][data_url]`, await readFileAsDataUrl(file));
-                                }
-
-                                continue;
-                            }
-
-                            if (field.value !== '') {
-                                payload.append(`signal_payload[${field.dataset.signalKey}]`, field.value);
-                            }
-                        }
-
                         console.group('[MYSIGNAL] Soumission signalement UP');
                         console.log('Payload soumis a /api/v1/public/reports', debugFormDataPayload(payload));
 
@@ -6692,10 +6561,15 @@
                             body: formData,
                         });
 
+                        const session = response.data?.payment_session;
                         showToast(response.message);
                         damageDeclarationModal?.hide();
-                        await refreshDashboard();
-                        window.AcepenPortal.showReportDetails(Number(reportId));
+                        if (session?.checkout_link) {
+                            showReportPaymentWaiting(session);
+                        } else {
+                            await refreshDashboard();
+                            window.AcepenPortal.showReportDetails(Number(reportId));
+                        }
                     } catch (error) {
                         showToast(error.message, true);
                     } finally {

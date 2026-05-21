@@ -22,7 +22,6 @@ class SignalTypeResource extends JsonResource
             'description' => $this['description'],
             'sla_target' => $this['sla_target'],
             'sla_targets' => $this['sla_targets'] ?? [],
-            'data_fields' => $this['data_fields'],
         ];
     }
 }

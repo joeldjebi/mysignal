@@ -88,7 +88,6 @@ Ces endpoints servent a alimenter :
 - pays, villes, communes, quartiers
 - secteurs d activite pour les profils UPE/UPTI
 - types de signaux
-- champs dynamiques `data_fields`
 
 ### 2. OTP et creation de compte
 - `POST /v1/public/auth/request-otp`
@@ -312,30 +311,6 @@ Retourne le catalogue des types de signaux actifs avec :
 - application
 - organisation
 -TCM cible
-- `data_fields` pour les formulaires dynamiques
-
-Chaque entree `data_fields` decrit un champ complementaire a afficher quand le `signal_code` correspondant est selectionne :
-
-```json
-{
-  "key": "service_category",
-  "label": "Categorie de service",
-  "type": "select",
-  "required": true,
-  "options": ["Internet", "TV", "Telephone"]
-}
-```
-
-Format des champs :
-- `key` : cle a envoyer dans `signal_payload`
-- `label` : libelle a afficher dans le formulaire mobile
-- `type` : `text`, `number`, `textarea` ou `select`
-- `required` : si `true`, la cle doit etre presente et non vide dans `signal_payload`
-- `options` : valeurs autorisees pour les champs `select`
-
-Champs speciaux utilises par le web :
-- `photo_reference` et `meter_photo_reference` sont traites comme des photos. L app mobile doit envoyer un objet avec `type`, `name`, `mime_type` et `data_url`.
-- Les images envoyees en `data_url` sont televersees sur Wasabi par l API. La base conserve ensuite le `path` Wasabi et les metadonnees du fichier, pas le contenu base64.
 - `precise_gps` et `gps_location` sont pre-remplis avec la position GPS courante quand elle est disponible.
 
 ### Compteurs
@@ -425,7 +400,7 @@ Liste les signalements du compte.
 #### POST `/v1/public/reports`
 Initialise le paiement FineoPay d un signalement. Le signalement n est cree en base qu apres callback FineoPay avec `status: success`.
 
-Avant de creer un signalement, l app mobile doit appeler `GET /v1/public/signal-types`, filtrer les types de signaux compatibles avec le compteur selectionne, puis construire `signal_payload` a partir des `data_fields` du `signal_code` choisi.
+Avant de creer un signalement, l app mobile doit appeler `GET /v1/public/signal-types`, puis filtrer les types de signaux compatibles avec le compteur selectionne.
 
 L app mobile ne doit plus envoyer `country_id`, `city_id`, `commune_id` ni `address` lors de la creation d un signalement. Le backend recupere automatiquement le pays, la ville, la commune et l adresse depuis l identifiant selectionne (`meter_id`). Si l identifiant ne contient pas de commune exploitable, l API retourne `422` sur `meter_id`.
 
@@ -438,17 +413,12 @@ Body JSON sans fichier :
 ```json
 {
   "meter_id": 1,
-  "application_id": 1,
-  "organization_id": 1,
   "signal_code": "NETWORK_OUTAGE",
   "description": "Coupure depuis 2 heures",
   "occurred_at": "2026-04-10T12:00:00Z",
   "latitude": 5.348,
   "longitude": -4.001,
-  "location_source": "gps",
-  "signal_payload": {
-    "service_category": "Internet"
-  }
+  "location_source": "gps"
 }
 ```
 
@@ -459,15 +429,12 @@ Accept: application/json
 Content-Type: multipart/form-data
 
 meter_id=1
-application_id=1
-organization_id=1
 signal_code=NETWORK_OUTAGE
 description=Coupure depuis 2 heures
 occurred_at=2026-04-10T12:00:00Z
 latitude=5.348
 longitude=-4.001
 location_source=gps
-signal_payload[service_category]=Internet
 signal_attachment=@preuve.jpg
 ```
 
@@ -550,27 +517,14 @@ Flux mobile recommande :
 - si `status = pending`, continuer ou proposer "Actualiser"
 - si `status = failed`, proposer de relancer le paiement
 
-Exemple avec champs dynamiques requis :
+Exemple avec piece jointe optionnelle :
 ```json
 {
   "meter_id": 1,
   "signal_code": "EL-04",
-  "description": "Compteur illisible",
-  "signal_payload": {
-    "meter_photo_reference": {
-      "type": "image",
-      "name": "compteur.jpg",
-      "mime_type": "image/jpeg",
-      "data_url": "data:image/jpeg;base64,..."
-    },
-    "meter_serial_number": "CIE-12345"
-  }
+  "description": "Compteur illisible"
 }
 ```
-
-Si un champ requis est absent, l API retourne une erreur `422` sur `signal_payload.<key>`. Pour un champ `select`, la valeur envoyee doit faire partie de `options`.
-
-Pour les images, `data_url` doit contenir une vraie chaine base64 complete, par exemple `data:image/jpeg;base64,/9j/...`. La valeur `data:image/jpeg;base64,...` dans les exemples est seulement un placeholder.
 
 La reponse `report` contient maintenant `signal_attachment` avec `name`, `mime_type`, `size`, `path` et `temporary_url` quand un fichier a ete envoye.
 
@@ -581,7 +535,7 @@ Retourne le detail d un signalement.
 Confirme la resolution d un signalement resolu.
 
 #### POST `/v1/public/reports/{report}/damages`
-Declare un dommage.
+Initialise le paiement FineoPay d une declaration de dommage. Le dommage n est enregistre sur le signalement qu apres callback FineoPay avec `status: success`.
 
 Body multipart :
 ```text
@@ -597,10 +551,29 @@ damage_attachment=@preuve.jpg
 
 `damage_attachment` est obligatoire. Formats acceptes : image `jpeg`, `png`, `webp`, `gif`, `heic`, `heif` ou PDF. Taille max : 10 Mo.
 
+Reponse `201` :
+```json
+{
+  "data": {
+    "payment_session": {
+      "sync_ref": "DMG-20260410120000-ABC123",
+      "payment_context": "damage",
+      "amount": 100,
+      "currency": "FCFA",
+      "status": "pending",
+      "checkout_link": "https://..."
+    },
+    "checkout_link": "https://..."
+  }
+}
+```
+
+L app mobile doit ouvrir `checkout_link`, puis verifier `GET /v1/public/payment-sessions/{syncRef}` comme pour un signalement. Quand `status = paid`, le dommage apparait dans `GET /v1/public/damages` et dans le detail du signalement.
+
 ### Paiements
 
 #### GET `/v1/public/payments`
-Liste l historique des paiements du compte.
+Liste l historique des paiements du compte, signalements et dommages inclus. Filtre optionnel : `?payment_context=report` ou `?payment_context=damage`.
 
 #### POST `/v1/public/reports/{report}/payments`
 Ancien flux de paiement pour signalements deja crees. Le nouveau flux recommande est `POST /v1/public/reports`, qui retourne directement un `checkout_link` FineoPay avant creation du signalement.
@@ -744,7 +717,6 @@ Marque toutes les notifications du UP courant comme lues.
 - stocker le `Bearer token` de maniere securisee
 - gerer `422` champ par champ pour les formulaires
 - precharger `locations` et `signal-types` au lancement ou au premier acces
-- exploiter `data_fields` de `signal-types` pour construire des formulaires dynamiques
 - enregistrer le token Firebase apres login avec `POST /v1/public/push-tokens`
 - utiliser `GET /v1/public/notifications` pour synchroniser lu/non lu et les filtres
 - prevoir un rendu PDF ou un telechargement externe pour le recu de paiement

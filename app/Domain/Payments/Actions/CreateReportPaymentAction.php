@@ -63,6 +63,7 @@ class CreateReportPaymentAction
                 'currency' => $pricingRule->currency,
                 'status' => PaymentStatus::Pending->value,
                 'provider' => 'simulated',
+                'payment_context' => 'report',
                 'initiated_at' => CarbonImmutable::now(),
             ]);
         });

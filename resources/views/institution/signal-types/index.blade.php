@@ -2,7 +2,7 @@
 
 @section('title', config('app.name').' | Types de signaux')
 @section('page-title', 'Types de signaux')
-@section('page-description', 'Referentiel des types de signaux pour votre application et votre organisation, avec champs requis et TCM par defaut.')
+@section('page-description', 'Referentiel des types de signaux pour votre application et votre organisation, avec TCM par defaut.')
 @section('header-badges')
     <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#createInstitutionSignalTypeModal">Nouveau type de signal</button>
 @endsection
@@ -41,7 +41,6 @@
                                 <th>Signal</th>
                                 <th>Perimetre</th>
                                 <th>SLA defaut</th>
-                                <th>Champs</th>
                                 <th>Statut</th>
                                 <th class="text-end">Actions</th>
                             </tr>
@@ -59,7 +58,6 @@
                                         <div class="small text-secondary">{{ $signalType->organization?->name ?: '-' }}</div>
                                     </td>
                                     <td><span class="status-chip">{{ $signalType->default_sla_hours ? $signalType->default_sla_hours.' h' : '-' }}</span></td>
-                                    <td>{{ count($signalType->data_fields ?? []) }} champ(s)</td>
                                     <td><span class="status-chip">{{ $signalType->status }}</span></td>
                                     <td class="text-end">
                                         <div class="actions-wrap">
@@ -73,7 +71,7 @@
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="6" class="text-center text-secondary">Aucun type de signal disponible pour cette application et cette organisation.</td></tr>
+                                <tr><td colspan="5" class="text-center text-secondary">Aucun type de signal disponible pour cette application et cette organisation.</td></tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -109,19 +107,6 @@
                             <label class="form-label">Description</label>
                             <textarea name="description" class="form-control" rows="3"></textarea>
                         </div>
-                        @include('partials.signal-type-field-builder', ['builderId' => 'institution-signal-type-create', 'fields' => old() ? collect(old('field_keys', []))->map(function ($key, $index) {
-                            return [
-                                'key' => $key,
-                                'label' => old('field_labels.'.$index),
-                                'type' => old('field_types.'.$index, 'text'),
-                                'options' => collect(preg_split('/\r\n|\r|\n/', (string) old('field_options.'.$index)))
-                                    ->map(fn ($option) => trim((string) $option))
-                                    ->filter()
-                                    ->values()
-                                    ->all(),
-                                'required' => in_array((string) $index, array_map('strval', old('field_required', [])), true),
-                            ];
-                        })->all() : []])
                         <button type="submit" class="btn btn-dark">Creer</button>
                     </form>
                 </div>
