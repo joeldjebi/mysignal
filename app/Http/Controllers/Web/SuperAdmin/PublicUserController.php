@@ -352,16 +352,10 @@ class PublicUserController extends Controller
 
         $typeCode = strtoupper((string) $publicUserType->code);
 
-        if (in_array($typeCode, ['UPE', 'UPTI'], true) && ! filled($attributes['business_sector'] ?? null)) {
-            throw ValidationException::withMessages(['business_sector' => ['Le secteur d activite est obligatoire.']]);
-        }
-
         if ($typeCode === 'UPE') {
             foreach ([
                 'company_name' => 'La raison sociale est obligatoire.',
                 'company_registration_number' => 'Le RCCM ou numero d immatriculation est obligatoire.',
-                'tax_identifier' => 'L identifiant fiscal est obligatoire.',
-                'company_address' => 'L adresse de l entreprise est obligatoire.',
             ] as $field => $message) {
                 if (! filled($attributes[$field] ?? null)) {
                     throw ValidationException::withMessages([$field => [$message]]);

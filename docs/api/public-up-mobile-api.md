@@ -243,8 +243,8 @@ Localisation a l inscription :
 - le backend remplit automatiquement les IDs, les libelles `country`, `city`, `commune` et `location_references` dans le profil retourne
 
 Champs conditionnels :
-- `business_sector` obligatoire pour `UPE` et `UPTI`
-- `company_name`, `company_registration_number`, `tax_identifier`, `company_address` obligatoires pour `UPE`
+- `business_sector`, `tax_identifier`, `company_address` facultatifs a la creation
+- `company_name`, `company_registration_number` obligatoires pour `UPE`
 
 #### POST `/v1/public/auth/login`
 Connexion classique par numero et mot de passe.

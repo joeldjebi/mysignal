@@ -390,7 +390,7 @@
               "raw": "{\n  \"public_user_type_id\": {{publicUserTypeId}},\n  \"first_name\": \"Jean\",\n  \"last_name\": \"Doe\",\n  \"phone\": \"{{phone}}\",\n  \"is_whatsapp_number\": true,\n  \"email\": \"{{email}}\",\n  \"country_id\": {{countryId}},\n  \"city_id\": {{cityId}},\n  \"commune_id\": {{communeId}},\n  \"business_sector\": \"{{businessSector}}\",\n  \"company_name\": \"{{companyName}}\",\n  \"company_registration_number\": \"{{companyRegistrationNumber}}\",\n  \"tax_identifier\": \"{{taxIdentifier}}\",\n  \"company_address\": \"{{companyAddress}}\",\n  \"password\": \"{{password}}\",\n  \"password_confirmation\": \"{{password}}\",\n  \"verification_token\": \"{{verificationToken}}\"\n}"
             },
             "url": "{{baseUrl}}/v1/public/auth/register",
-            "description": "Cree un compte UP et retourne directement un access token. Selectionner d abord pays, ville et commune via les catalogues, puis envoyer country_id, city_id et commune_id. Pour UPE et UPTI, business_sector est obligatoire; pour UPE, les champs company_* et tax_identifier sont obligatoires."
+            "description": "Cree un compte UP et retourne directement un access token. Selectionner d abord pays, ville et commune via les catalogues, puis envoyer country_id, city_id et commune_id. business_sector, tax_identifier et company_address sont facultatifs a la creation. Pour UPE, company_name et company_registration_number restent obligatoires."
           }
         },
         {

@@ -564,13 +564,13 @@
                     document.getElementById('businessFields').classList.toggle('hidden', !showBusinessFields);
                     document.querySelectorAll('#businessFields input').forEach((input) => {
                         input.disabled = !showBusinessFields;
-                        input.required = showBusinessFields;
+                        input.required = showBusinessFields && ['company_name', 'company_registration_number'].includes(input.name);
                     });
 
                     document.getElementById('sectorFields').classList.toggle('hidden', !showSectorFields);
                     document.querySelectorAll('#sectorFields select').forEach((input) => {
                         input.disabled = !showSectorFields;
-                        input.required = showSectorFields;
+                        input.required = false;
                     });
                 }
 

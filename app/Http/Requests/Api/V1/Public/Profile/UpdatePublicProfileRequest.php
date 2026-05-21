@@ -89,15 +89,6 @@ class UpdatePublicProfileRequest extends FormRequest
 
             $typeCode = strtoupper((string) $publicUserType->code);
 
-            if (in_array($typeCode, ['UPE', 'UPTI'], true)) {
-                $incomingSector = $this->input('business_sector');
-                $currentSector = $this->user('public_api')?->business_sector;
-
-                if (! filled($incomingSector) && ! filled($currentSector)) {
-                    $validator->errors()->add('business_sector', 'Le secteur d activite est obligatoire.');
-                }
-            }
-
             if ($typeCode !== 'UPE') {
                 return;
             }
@@ -105,8 +96,6 @@ class UpdatePublicProfileRequest extends FormRequest
             foreach ([
                 'company_name' => 'La raison sociale est obligatoire.',
                 'company_registration_number' => 'Le RCCM ou numero d immatriculation est obligatoire.',
-                'tax_identifier' => 'L identifiant fiscal est obligatoire.',
-                'company_address' => 'L adresse de l entreprise est obligatoire.',
             ] as $field => $message) {
                 $incomingValue = $this->input($field);
                 $currentValue = $this->user('public_api')?->{$field};

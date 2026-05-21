@@ -29,13 +29,13 @@
             sectorFields.classList.toggle('business-fields-hidden', !showSectorFields);
             sectorInputs.forEach((input) => {
                 input.disabled = !showSectorFields;
-                input.required = showSectorFields;
+                input.required = false;
             });
 
             businessFields.classList.toggle('business-fields-hidden', !showBusinessFields);
             businessInputs.forEach((input) => {
                 input.disabled = !showBusinessFields;
-                input.required = showBusinessFields;
+                input.required = showBusinessFields && ['company_name', 'company_registration_number'].includes(input.name);
             });
 
             if (summaryType) {

@@ -4,6 +4,7 @@ namespace Tests\Feature\Public\Auth;
 
 use App\Models\PublicUser;
 use App\Models\Commune;
+use App\Models\PublicUserType;
 use Database\Seeders\Reference\LocationReferenceSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -69,6 +70,45 @@ class PublicAuthFlowTest extends TestCase
             'commune' => 'Cocody',
             'commune_id' => $commune->id,
         ]);
+    }
+
+    public function test_upe_registration_accepts_optional_business_sector_tax_identifier_and_company_address(): void
+    {
+        $this->seed(LocationReferenceSeeder::class);
+
+        $otpResponse = $this->postJson('/api/v1/public/auth/request-otp', [
+            'phone' => '0700000003',
+        ]);
+
+        $verificationToken = $this->postJson('/api/v1/public/auth/verify-otp', [
+            'phone' => '0700000003',
+            'code' => $otpResponse->json('data.otp_code_for_testing'),
+        ])->json('data.verification_token');
+
+        $commune = Commune::query()->where('name', 'Cocody')->with('city.country')->firstOrFail();
+        $upeTypeId = PublicUserType::query()->where('code', 'UPE')->value('id');
+
+        $registerResponse = $this->postJson('/api/v1/public/auth/register', [
+            'public_user_type_id' => $upeTypeId,
+            'first_name' => 'Awa',
+            'last_name' => 'Kone',
+            'phone' => '0700000003',
+            'email' => 'awa@example.test',
+            'country_id' => $commune->city->country->id,
+            'city_id' => $commune->city->id,
+            'commune_id' => $commune->id,
+            'company_name' => 'Awa Services',
+            'company_registration_number' => 'CI-ABJ-2026-B-001',
+            'password' => 'secret123',
+            'password_confirmation' => 'secret123',
+            'verification_token' => $verificationToken,
+        ]);
+
+        $registerResponse->assertCreated()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.user.business_sector', null)
+            ->assertJsonPath('data.user.tax_identifier', null)
+            ->assertJsonPath('data.user.company_address', null);
     }
 
     public function test_public_user_can_login_and_fetch_profile(): void

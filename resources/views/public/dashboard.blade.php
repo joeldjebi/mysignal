@@ -2690,14 +2690,14 @@
                     businessFieldsContainer.classList.toggle('hidden', !showBusinessFields);
                     businessFieldsContainer.querySelectorAll('input, select, textarea').forEach((field) => {
                         field.disabled = !showBusinessFields;
-                        field.required = showBusinessFields;
+                        field.required = showBusinessFields && ['company_name', 'company_registration_number'].includes(field.name);
                     });
 
                     if (sectorFieldsContainer) {
                         sectorFieldsContainer.classList.toggle('hidden', !showSectorFields);
                         sectorFieldsContainer.querySelectorAll('input, select, textarea').forEach((field) => {
                             field.disabled = !showSectorFields;
-                            field.required = showSectorFields;
+                            field.required = false;
                         });
                     }
                 }
