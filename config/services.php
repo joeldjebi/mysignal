@@ -66,7 +66,10 @@ return [
 
     'public_auth' => [
         'otp_digits' => (int) env('PUBLIC_AUTH_OTP_DIGITS', 4),
-        'default_otp' => env('PUBLIC_AUTH_DEFAULT_OTP', '2604'),
+        'default_otp' => env(
+            'PUBLIC_AUTH_DEFAULT_OTP',
+            in_array(env('APP_ENV', 'production'), ['local', 'testing'], true) ? '2604' : ''
+        ),
         'token_ttl_minutes' => (int) env('PUBLIC_AUTH_TOKEN_TTL_MINUTES', 1051200),
         'send_sms' => (bool) env('PUBLIC_AUTH_SEND_SMS', ! in_array(env('APP_ENV', 'production'), ['local', 'testing'], true)),
         'sms_sender' => env('PUBLIC_AUTH_SMS_SENDER', 'MY-SIGNAL'),
