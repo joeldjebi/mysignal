@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "d9fc140d-3013-4373-b6cf-cd1fbc59c205",
     "name": "My-Signal UP Mobile API",
-    "description": "Collection Postman pour l integration mobile des usagers publics (UP). Elle couvre l authentification OTP, la gestion du profil, des compteurs, des foyers Gonhi, des signalements, des paiements, des abonnements UP, des dossiers contentieux et des retours d experience.",
+    "description": "Collection Postman pour l integration mobile des usagers publics (UP). Elle couvre les catalogues publics dont les secteurs d activite, l authentification OTP, la gestion du profil, des compteurs, des foyers Gonhi, des signalements, des paiements, des abonnements UP, des dossiers contentieux et des retours d experience.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
