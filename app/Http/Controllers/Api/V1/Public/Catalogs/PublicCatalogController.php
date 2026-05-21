@@ -4,12 +4,14 @@ namespace App\Http\Controllers\Api\V1\Public\Catalogs;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\V1\Public\Catalogs\ApplicationResource;
+use App\Http\Resources\Api\V1\Public\Catalogs\BusinessSectorResource;
 use App\Http\Resources\Api\V1\Public\Catalogs\CityResource;
 use App\Http\Resources\Api\V1\Public\Catalogs\CountryResource;
 use App\Http\Resources\Api\V1\Public\Catalogs\OrganizationResource;
 use App\Http\Resources\Api\V1\Public\Catalogs\OrganizationTypeResource;
 use App\Http\Resources\Api\V1\Public\Catalogs\ServiceCategoryResource;
 use App\Models\Application;
+use App\Models\BusinessSector;
 use App\Models\City;
 use App\Models\Country;
 use App\Models\Organization;
@@ -98,6 +100,19 @@ class PublicCatalogController extends Controller
 
         return ApiResponse::success([
             'cities' => CityResource::collection($cities),
+        ]);
+    }
+
+    public function businessSectors()
+    {
+        $businessSectors = BusinessSector::query()
+            ->where('status', 'active')
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+
+        return ApiResponse::success([
+            'business_sectors' => BusinessSectorResource::collection($businessSectors),
         ]);
     }
 

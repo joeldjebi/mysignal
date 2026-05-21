@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Public\Catalogs;
 
+use App\Models\BusinessSector;
 use App\Models\Organization;
 use App\Models\SignalType;
 use Database\Seeders\Reference\ApplicationSeeder;
@@ -60,6 +61,10 @@ class PublicCatalogTest extends TestCase
         $citiesResponse = $this->getJson('/api/v1/public/cities?country_id=1');
         $serviceCategoriesResponse = $this->getJson('/api/v1/public/service-categories?application_id='.$applicationId.'&organization_id='.$organization->id);
 
+        BusinessSector::query()->where('code', 'ENERGIE')->update(['status' => 'inactive']);
+
+        $businessSectorsResponse = $this->getJson('/api/v1/public/business-sectors');
+
         $applicationsResponse->assertOk()
             ->assertJsonPath('success', true)
             ->assertJsonPath('data.applications.0.code', 'ÉLÈCTRICITÉ');
@@ -88,6 +93,23 @@ class PublicCatalogTest extends TestCase
                             'code',
                             'name',
                             'signal_code',
+                        ],
+                    ],
+                ],
+            ]);
+
+        $businessSectorsResponse->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonMissingPath('data.business_sectors.0.status')
+            ->assertJsonMissing(['code' => 'ENERGIE'])
+            ->assertJsonStructure([
+                'data' => [
+                    'business_sectors' => [
+                        '*' => [
+                            'id',
+                            'code',
+                            'name',
+                            'description',
                         ],
                     ],
                 ],

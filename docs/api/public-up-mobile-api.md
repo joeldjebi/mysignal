@@ -81,10 +81,12 @@ Autres statuts importants :
 ### 1. Catalogues publics
 Avant authentification, l application mobile peut charger :
 - `GET /v1/public/locations`
+- `GET /v1/public/business-sectors`
 - `GET /v1/public/signal-types`
 
-Ces deux endpoints servent a alimenter :
+Ces endpoints servent a alimenter :
 - pays, villes, communes, quartiers
+- secteurs d activite pour les profils UPE/UPTI
 - types de signaux
 - champs dynamiques `data_fields`
 
@@ -125,6 +127,29 @@ La route publique `GET /v1/public/user-types` retourne les types UP actifs a aff
 Impact :
 - l app mobile doit choisir ou preselectionner `public_user_type_id` au moment de l inscription
 - les champs entreprise et secteur restent conditionnels selon le type selectionne
+
+### Secteurs d activite
+La route publique `GET /v1/public/business-sectors` retourne les secteurs actifs disponibles pour le champ `business_sector`.
+
+Reponse :
+```json
+{
+  "success": true,
+  "message": "Request processed successfully.",
+  "data": {
+    "business_sectors": [
+      {
+        "id": 1,
+        "code": "ENERGIE",
+        "name": "Energie",
+        "description": "Production, distribution et services lies a l energie."
+      }
+    ]
+  }
+}
+```
+
+Pour l inscription ou la mise a jour du profil, envoyer la valeur `name` dans `business_sector`.
 
 ### Paiement
 Le paiement actuellement implemente est `simulated`.

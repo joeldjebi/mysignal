@@ -40,6 +40,7 @@ Route::prefix('v1/public')->group(function (): void {
     Route::get('organizations', [PublicCatalogController::class, 'organizations']);
     Route::get('countries', [PublicCatalogController::class, 'countries']);
     Route::get('cities', [PublicCatalogController::class, 'cities']);
+    Route::get('business-sectors', [PublicCatalogController::class, 'businessSectors']);
     Route::get('service-categories', [PublicCatalogController::class, 'serviceCategories']);
     Route::get('locations', [PublicLocationController::class, 'index']);
     Route::get('communes', [PublicLocationController::class, 'communes']);

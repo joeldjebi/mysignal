@@ -266,6 +266,31 @@
           }
         },
         {
+          "name": "Business Sectors",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "const sectors = json?.data?.business_sectors || [];",
+                  "pm.test('Business sectors returned', function () { pm.expect(sectors.length).to.be.greaterThan(0); });",
+                  "const selected = sectors.find((sector) => sector.name === (pm.environment.get('businessSector') || 'Energie')) || sectors[0];",
+                  "if (selected?.name) pm.environment.set('businessSector', selected.name);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/business-sectors",
+            "description": "Retourne les secteurs d activite actifs. Utiliser le champ name comme valeur de business_sector."
+          }
+        },
+        {
           "name": "Signal Types",
           "request": {
             "method": "GET",
