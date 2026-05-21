@@ -7,6 +7,7 @@ use App\Domain\Auth\Actions\RegisterPublicUserAction;
 use App\Domain\Auth\Actions\RequestPublicOtpAction;
 use App\Domain\Auth\Actions\ResetPublicPasswordAction;
 use App\Domain\Auth\Actions\VerifyPublicOtpAction;
+use App\Domain\Auth\Data\OtpRequestResult;
 use App\Domain\Auth\Enums\OtpPurpose;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Public\Auth\LoginPublicUserRequest;
@@ -40,11 +41,7 @@ class PublicAuthController extends Controller
             'public',
         );
 
-        return ApiResponse::success([
-            'phone' => $result->phone,
-            'expires_at' => $result->expiresAt,
-            'otp_code_for_testing' => app()->environment('local', 'testing') ? $result->code : null,
-        ], 'OTP envoye avec succes.');
+        return ApiResponse::success($this->otpRequestPayload($result), 'OTP envoye avec succes.');
     }
 
     public function verifyOtp(VerifyOtpRequest $request, VerifyPublicOtpAction $action, ActivityLogger $activityLogger)
@@ -143,11 +140,7 @@ class PublicAuthController extends Controller
             'public',
         );
 
-        return ApiResponse::success([
-            'phone' => $result->phone,
-            'expires_at' => $result->expiresAt,
-            'otp_code_for_testing' => app()->environment('local', 'testing') ? $result->code : null,
-        ], 'OTP envoye avec succes.');
+        return ApiResponse::success($this->otpRequestPayload($result), 'OTP envoye avec succes.');
     }
 
     public function verifyPasswordResetOtp(VerifyPublicPasswordResetOtpRequest $request, VerifyPublicOtpAction $action, ActivityLogger $activityLogger)
@@ -200,5 +193,24 @@ class PublicAuthController extends Controller
         return ApiResponse::success([
             'user' => new PublicUserResource($user),
         ], 'Mot de passe reinitialise avec succes.');
+    }
+
+    private function otpRequestPayload(OtpRequestResult $result): array
+    {
+        $payload = [
+            'phone' => $result->phone,
+            'expires_at' => $result->expiresAt,
+            'otp_code_for_testing' => app()->environment('local', 'testing') ? $result->code : null,
+        ];
+
+        if (config('app.debug') && $result->smsResponse !== null) {
+            $payload['sms'] = [
+                'provider' => 'mtarget',
+                'msisdn' => $result->smsMsisdn,
+                'response' => $result->smsResponse,
+            ];
+        }
+
+        return $payload;
     }
 }

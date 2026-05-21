@@ -68,11 +68,20 @@ return [
         'otp_digits' => (int) env('PUBLIC_AUTH_OTP_DIGITS', 4),
         'default_otp' => env('PUBLIC_AUTH_DEFAULT_OTP', '2604'),
         'token_ttl_minutes' => (int) env('PUBLIC_AUTH_TOKEN_TTL_MINUTES', 1051200),
+        'send_sms' => (bool) env('PUBLIC_AUTH_SEND_SMS', ! in_array(env('APP_ENV', 'production'), ['local', 'testing'], true)),
+        'sms_sender' => env('PUBLIC_AUTH_SMS_SENDER', 'MY-SIGNAL'),
+        'sms_country_code' => env('PUBLIC_AUTH_SMS_COUNTRY_CODE', '225'),
     ],
 
     'partner_auth' => [
         'otp_digits' => (int) env('PARTNER_AUTH_OTP_DIGITS', 4),
         'default_otp' => env('PARTNER_AUTH_DEFAULT_OTP', '2604'),
+    ],
+
+    'mtarget' => [
+        'url' => env('MTARGET_URL', 'https://api-public-2.mtarget.fr/messages'),
+        'username' => env('MTARGET_USERNAME', 'bwantech'),
+        'password' => env('MTARGET_PASSWORD', 'x7jyKG0IJRNH'),
     ],
 
 ];
