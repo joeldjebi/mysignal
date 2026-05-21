@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Services\Notifications\IncidentReportNotificationService;
 use App\Services\WasabiService;
 use App\Support\Audit\ActivityLogger;
+use App\Support\Auth\SuperAdminAccessResolver;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -354,8 +355,10 @@ class LegalCaseController extends Controller
 
     private function activePortal(Request $request): string
     {
-        $portal = $request->attributes->get('super_admin_access')?->portal
-            ?: $request->user()?->getRelationValue('activeAccess')?->portal;
+        $portal = app(SuperAdminAccessResolver::class)->resolveLegalPortal(
+            $request->user(),
+            $request->attributes->get('super_admin_access'),
+        );
 
         abort_if(! in_array($portal, ['huissier', 'aoda', 'avocat'], true), 403);
 

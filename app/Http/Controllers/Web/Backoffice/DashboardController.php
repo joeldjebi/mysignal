@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web\Backoffice;
 use App\Http\Controllers\Controller;
 use App\Models\ReparationCase;
 use App\Models\ReparationCaseStep;
+use App\Support\Auth\SuperAdminAccessResolver;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -91,8 +92,10 @@ class DashboardController extends Controller
 
     private function activePortal(Request $request): string
     {
-        $portal = $request->attributes->get('super_admin_access')?->portal
-            ?: $request->user()?->getRelationValue('activeAccess')?->portal;
+        $portal = app(SuperAdminAccessResolver::class)->resolveLegalPortal(
+            $request->user(),
+            $request->attributes->get('super_admin_access'),
+        );
 
         abort_if(! in_array($portal, ['huissier', 'aoda', 'avocat'], true), 403);
 

@@ -150,6 +150,36 @@ class UserAccessProfileTest extends TestCase
         $this->assertTrue(auth()->user()->hasEffectivePermissionCode('SA_DASHBOARD_VIEW'));
     }
 
+    public function test_generic_backoffice_access_with_huissier_role_opens_legal_workspace(): void
+    {
+        $this->seedAccessReferences();
+
+        $user = $this->user([
+            'email' => 'huissier.backoffice@example.com',
+            'phone' => '22511111111',
+            'organization_id' => null,
+        ]);
+        $huissierRole = Role::query()->where('code', 'HUISSIER')->firstOrFail();
+
+        $backofficeAccess = UserAccess::query()->create([
+            'user_id' => $user->id,
+            'organization_id' => null,
+            'portal' => 'backoffice',
+            'status' => 'active',
+        ]);
+        $backofficeAccess->roles()->sync([$huissierRole->id]);
+
+        $this->actingAs($user);
+
+        $this->get(route('backoffice.dashboard'))
+            ->assertOk()
+            ->assertSee('Tableau de bord huissier');
+
+        $this->get(route('backoffice.legal-cases.index'))
+            ->assertOk()
+            ->assertSee('Mes dossiers de constat');
+    }
+
     public function test_super_admin_can_manage_user_access_profiles_from_system_user_screen(): void
     {
         $this->seedAccessReferences();

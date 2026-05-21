@@ -238,7 +238,8 @@
             $authUser->setRelation('activeAccess', $activeAccess);
         }
 
-        $activePortal = $activeAccess?->portal;
+        $activePortal = app(\App\Support\Auth\SuperAdminAccessResolver::class)->resolveLegalPortal($authUser, $activeAccess)
+            ?: $activeAccess?->portal;
         $internalPortalLabels = [
             'backoffice' => 'Backoffice',
             'huissier' => 'Huissier',
