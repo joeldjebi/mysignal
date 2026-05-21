@@ -120,11 +120,11 @@ Pour les besoins de test, le code OTP UP par defaut est `2604`.
 Ce code est utilise pour l inscription et la reinitialisation du mot de passe tant que le systeme d envoi OTP n est pas encore branche.
 
 ### Types d usagers publics
-La route publique de catalogue des `public_user_types` n existe pas encore dans l API.
+La route publique `GET /v1/public/user-types` retourne les types UP actifs a afficher dans l inscription.
 
 Impact :
-- l app mobile doit connaitre `public_user_type_id` au moment de l inscription
-- a court terme, il faut soit l alimenter depuis une configuration distante, soit ajouter une route API dediee plus tard
+- l app mobile doit choisir ou preselectionner `public_user_type_id` au moment de l inscription
+- les champs entreprise et secteur restent conditionnels selon le type selectionne
 
 ### Paiement
 Le paiement actuellement implemente est `simulated`.
@@ -227,12 +227,20 @@ Body minimal `UP` :
   "first_name": "Jean",
   "last_name": "Doe",
   "phone": "0700000000",
-  "commune": "Cocody",
+  "country_id": 1,
+  "city_id": 1,
+  "commune_id": 6,
   "password": "12345678",
   "password_confirmation": "12345678",
   "verification_token": "{{verificationToken}}"
 }
 ```
+
+Localisation a l inscription :
+- l app mobile doit faire choisir `country_id`, puis `city_id`, puis `commune_id`
+- utiliser `GET /v1/public/locations` pour recuperer l arbre complet pays > villes > communes
+- l API verifie que la commune appartient bien a la ville et au pays envoyes
+- le backend remplit automatiquement les IDs, les libelles `country`, `city`, `commune` et `location_references` dans le profil retourne
 
 Champs conditionnels :
 - `business_sector` obligatoire pour `UPE` et `UPTI`
@@ -258,6 +266,7 @@ Retourne l usager courant authentifie.
 Retourne le profil detaille.
 
 #### PUT `/v1/public/profile`
+Pour mettre a jour la localisation du profil, envoyer ensemble `country_id`, `city_id` et `commune_id`. Le backend recalculera les libelles `country`, `city` et `commune`.
 Met a jour le profil.
 
 Remarque :
@@ -714,7 +723,7 @@ Marque toutes les notifications du UP courant comme lues.
 - enregistrer le token Firebase apres login avec `POST /v1/public/push-tokens`
 - utiliser `GET /v1/public/notifications` pour synchroniser lu/non lu et les filtres
 - prevoir un rendu PDF ou un telechargement externe pour le recu de paiement
-- considerer que `public_user_type_id` n a pas encore de route publique de catalogue
+- utiliser `GET /v1/public/user-types` pour alimenter le choix du type UP avant inscription
 
 ## Fichiers fournis
 - Collection Postman : [MYSIGNAL-UP-Mobile.postman_collection.json](/Users/macbookpro/Documents/BG/SIGNAL/MYSIGNAL/postman/MYSIGNAL-UP-Mobile.postman_collection.json)

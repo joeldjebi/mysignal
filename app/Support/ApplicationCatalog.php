@@ -25,7 +25,7 @@ class ApplicationCatalog
     public static function findByNetworkType(?string $networkType): ?Application
     {
         $code = match (strtoupper((string) $networkType)) {
-            'CIE' => 'MON_NRJ',
+            'CIE' => 'ÉLÈCTRICITÉ',
             'SODECI' => 'MON_EAU',
             default => strtoupper((string) $networkType),
         };

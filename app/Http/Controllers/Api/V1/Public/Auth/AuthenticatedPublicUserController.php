@@ -12,7 +12,7 @@ class AuthenticatedPublicUserController extends Controller
     public function __invoke(Request $request)
     {
         return ApiResponse::success([
-            'user' => new PublicUserResource($request->user('public_api')->loadMissing('publicUserType.pricingRule')),
+            'user' => new PublicUserResource($request->user('public_api')->loadMissing(['publicUserType.pricingRule', 'countryReference', 'cityReference', 'communeReference'])),
         ]);
     }
 }

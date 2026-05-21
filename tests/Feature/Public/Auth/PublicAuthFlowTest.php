@@ -3,6 +3,7 @@
 namespace Tests\Feature\Public\Auth;
 
 use App\Models\PublicUser;
+use App\Models\Commune;
 use Database\Seeders\Reference\LocationReferenceSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -33,13 +34,16 @@ class PublicAuthFlowTest extends TestCase
             ->assertJsonPath('success', true);
 
         $verificationToken = $verifyResponse->json('data.verification_token');
+        $commune = Commune::query()->where('name', 'Cocody')->with('city.country')->firstOrFail();
 
         $registerResponse = $this->postJson('/api/v1/public/auth/register', [
             'first_name' => 'Ahou',
             'last_name' => 'Kouassi',
             'phone' => '0700000001',
             'email' => 'ahou@example.test',
-            'commune' => 'Cocody',
+            'country_id' => $commune->city->country->id,
+            'city_id' => $commune->city->id,
+            'commune_id' => $commune->id,
             'password' => 'secret123',
             'password_confirmation' => 'secret123',
             'verification_token' => $verificationToken,
@@ -60,7 +64,10 @@ class PublicAuthFlowTest extends TestCase
 
         $this->assertDatabaseHas('public_users', [
             'phone' => '0700000001',
+            'country' => "Cote d'Ivoire",
+            'city' => 'Abidjan',
             'commune' => 'Cocody',
+            'commune_id' => $commune->id,
         ]);
     }
 

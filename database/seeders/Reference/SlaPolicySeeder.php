@@ -19,7 +19,7 @@ class SlaPolicySeeder extends Seeder
         }
 
         $applicationTypeMap = [
-            'MON_NRJ' => ['ELECTRICITE'],
+            'ÉLÈCTRICITÉ' => ['ELECTRICITE'],
             'MON_EAU' => ['EAU_POTABLE'],
             'MA_BANK' => ['BANQUE', 'MICROFINANCE'],
             'MON_ASS' => ['ASSURANCE'],

@@ -8,6 +8,7 @@ use App\Models\ApplicationContentBlock;
 use App\Models\BusinessSector;
 use App\Models\Commune;
 use App\Models\ContactSubmission;
+use App\Models\Country;
 use App\Models\IncidentReport;
 use App\Models\LandingPageSection;
 use App\Models\Organization;
@@ -39,6 +40,16 @@ class PublicPortalController extends Controller
                 ->orderBy('sort_order')
                 ->orderBy('name')
                 ->get(),
+            'countries' => Country::query()
+                ->where('status', 'active')
+                ->with([
+                    'cities' => fn ($query) => $query->where('status', 'active')->orderBy('name')->with([
+                        'communes' => fn ($communeQuery) => $communeQuery->where('status', 'active')->orderBy('name'),
+                    ]),
+                ])
+                ->orderBy('name')
+                ->get(),
+            'registrationCountries' => $this->registrationCountries(),
             'communes' => Commune::query()
                 ->where('status', 'active')
                 ->orderBy('name')
@@ -208,11 +219,50 @@ class PublicPortalController extends Controller
                 ->orderBy('sort_order')
                 ->orderBy('name')
                 ->get(),
+            'countries' => Country::query()
+                ->where('status', 'active')
+                ->with([
+                    'cities' => fn ($query) => $query->where('status', 'active')->orderBy('name')->with([
+                        'communes' => fn ($communeQuery) => $communeQuery->where('status', 'active')->orderBy('name'),
+                    ]),
+                ])
+                ->orderBy('name')
+                ->get(),
+            'registrationCountries' => $this->registrationCountries(),
             'communes' => Commune::query()
                 ->where('status', 'active')
                 ->orderBy('name')
                 ->get(),
         ]);
+    }
+
+    private function registrationCountries()
+    {
+        return Country::query()
+            ->where('status', 'active')
+            ->with([
+                'cities' => fn ($query) => $query->where('status', 'active')->orderBy('name')->with([
+                    'communes' => fn ($communeQuery) => $communeQuery->where('status', 'active')->orderBy('name'),
+                ]),
+            ])
+            ->orderBy('name')
+            ->get()
+            ->map(fn (Country $country) => [
+                'id' => $country->id,
+                'name' => $country->name,
+                'code' => $country->code,
+                'cities' => $country->cities->map(fn ($city) => [
+                    'id' => $city->id,
+                    'name' => $city->name,
+                    'code' => $city->code,
+                    'communes' => $city->communes->map(fn ($commune) => [
+                        'id' => $commune->id,
+                        'name' => $commune->name,
+                        'code' => $commune->code,
+                    ])->values(),
+                ])->values(),
+            ])
+            ->values();
     }
 
     public function dashboard()

@@ -27,7 +27,7 @@ return new class extends Migration
             ->map(fn ($rows) => $rows->pluck('id')->all());
 
         $networkMappings = [
-            'CIE' => 'MON_NRJ',
+            'CIE' => 'ÉLÈCTRICITÉ',
             'SODECI' => 'MON_EAU',
         ];
 

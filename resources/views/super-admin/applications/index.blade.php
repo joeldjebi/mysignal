@@ -264,7 +264,7 @@
                         @csrf
                         <div class="col-md-4">
                             <label class="form-label">Code</label>
-                            <input type="text" name="code" class="form-control" placeholder="MON_NRJ" required>
+                            <input type="text" name="code" class="form-control" placeholder="ÉLÈCTRICITÉ" required>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Nom</label>

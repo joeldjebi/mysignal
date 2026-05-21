@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api\V1\Public\Profile;
 
+use App\Models\Commune;
 use App\Models\PublicUserType;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -23,6 +24,9 @@ class UpdatePublicProfileRequest extends FormRequest
             'last_name' => ['sometimes', 'required', 'string', 'max:100'],
             'is_whatsapp_number' => ['sometimes', 'nullable', 'boolean'],
             'email' => ['sometimes', 'nullable', 'email', 'max:255', Rule::unique('public_users', 'email')->ignore($userId)],
+            'country_id' => ['sometimes', 'required', 'integer', Rule::exists('countries', 'id')->where('status', 'active')],
+            'city_id' => ['sometimes', 'required', 'integer', Rule::exists('cities', 'id')->where('status', 'active')],
+            'commune_id' => ['sometimes', 'required', 'integer', Rule::exists('communes', 'id')->where('status', 'active')],
             'company_name' => ['sometimes', 'nullable', 'string', 'max:180'],
             'company_registration_number' => ['sometimes', 'nullable', 'string', 'max:120'],
             'tax_identifier' => ['sometimes', 'nullable', 'string', 'max:120'],
@@ -44,6 +48,29 @@ class UpdatePublicProfileRequest extends FormRequest
                 $validator->errors()->add('public_user_type_id', 'Le type d usager public ne peut pas etre modifie depuis le profil.');
 
                 return;
+            }
+
+            if ($this->hasAny(['country_id', 'city_id', 'commune_id']) && ! $this->has(['country_id', 'city_id', 'commune_id'])) {
+                $validator->errors()->add('commune_id', 'Le pays, la ville et la commune doivent etre envoyes ensemble.');
+            }
+
+            if ($this->has(['country_id', 'city_id', 'commune_id'])) {
+                $commune = Commune::query()
+                    ->with('city.country')
+                    ->whereKey($this->input('commune_id'))
+                    ->where('status', 'active')
+                    ->first();
+
+                if ($commune !== null) {
+                    $city = $commune->city;
+                    $country = $city?->country;
+
+                    if ($city === null || $country === null || $city->status !== 'active' || $country->status !== 'active') {
+                        $validator->errors()->add('commune_id', 'La commune selectionnee est inactive ou invalide.');
+                    } elseif ((int) $this->input('city_id') !== (int) $city->id || (int) $this->input('country_id') !== (int) $country->id) {
+                        $validator->errors()->add('commune_id', 'La commune selectionnee ne correspond pas au pays et a la ville.');
+                    }
+                }
             }
 
             $typeId = (int) $this->user('public_api')?->public_user_type_id;

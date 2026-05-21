@@ -105,7 +105,7 @@ class CreateMeterAction
         }
 
         $applicationCode = match ($networkType) {
-            'CIE' => 'MON_NRJ',
+            'CIE' => 'ÉLÈCTRICITÉ',
             'SODECI' => 'MON_EAU',
             default => $networkType !== '' ? $networkType : 'GENERIC',
         };

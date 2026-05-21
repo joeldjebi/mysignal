@@ -95,7 +95,7 @@ class PublicAuthController extends Controller
             'access_token' => $result['token'],
             'token_type' => 'bearer',
             'expires_in' => PublicApiTokenTtl::seconds(),
-            'user' => new PublicUserResource($user->loadMissing('publicUserType.pricingRule')),
+            'user' => new PublicUserResource($user->loadMissing(['publicUserType.pricingRule', 'countryReference', 'cityReference', 'communeReference'])),
         ], 'Compte public cree avec succes.', 201);
     }
 
@@ -123,7 +123,7 @@ class PublicAuthController extends Controller
             'access_token' => $result['token'],
             'token_type' => 'bearer',
             'expires_in' => PublicApiTokenTtl::seconds(),
-            'user' => new PublicUserResource($user->loadMissing('publicUserType.pricingRule')),
+            'user' => new PublicUserResource($user->loadMissing(['publicUserType.pricingRule', 'countryReference', 'cityReference', 'communeReference'])),
         ], 'Connexion reussie.');
     }
 

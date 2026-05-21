@@ -31,7 +31,7 @@
     { "key": "taxIdentifier", "value": "DF-1234567890" },
     { "key": "companyAddress", "value": "Rue des Jardins, Cocody" },
     { "key": "applicationId", "value": "1" },
-    { "key": "applicationCode", "value": "MON_NRJ" },
+    { "key": "applicationCode", "value": "ÉLÈCTRICITÉ" },
     { "key": "organizationId", "value": "1" },
     { "key": "organizationTypeId", "value": "1" },
     { "key": "countryId", "value": "1" },
@@ -52,6 +52,7 @@
     { "key": "paymentSessionSyncRef", "value": "" },
     { "key": "paymentId", "value": "" },
     { "key": "subscriptionPaymentId", "value": "" },
+    { "key": "discountCardId", "value": "" },
     { "key": "householdId", "value": "" },
     { "key": "invitationId", "value": "" },
     { "key": "invitedPhone", "value": "0711111111" },
@@ -80,7 +81,7 @@
                   "const json = pm.response.json();",
                   "const applications = json?.data?.applications || [];",
                   "pm.test('Applications returned', function () { pm.expect(applications.length).to.be.greaterThan(0); });",
-                  "const selected = applications.find((application) => application.code === (pm.environment.get('applicationCode') || 'MON_NRJ')) || applications[0];",
+                  "const selected = applications.find((application) => application.code === (pm.environment.get('applicationCode') || 'ÉLÈCTRICITÉ')) || applications[0];",
                   "if (selected?.id) pm.environment.set('applicationId', selected.id);",
                   "if (selected?.code) pm.environment.set('applicationCode', selected.code);"
                 ]
@@ -386,10 +387,10 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"public_user_type_id\": {{publicUserTypeId}},\n  \"first_name\": \"Jean\",\n  \"last_name\": \"Doe\",\n  \"phone\": \"{{phone}}\",\n  \"is_whatsapp_number\": true,\n  \"email\": \"{{email}}\",\n  \"commune\": \"{{communeName}}\",\n  \"business_sector\": \"{{businessSector}}\",\n  \"company_name\": \"{{companyName}}\",\n  \"company_registration_number\": \"{{companyRegistrationNumber}}\",\n  \"tax_identifier\": \"{{taxIdentifier}}\",\n  \"company_address\": \"{{companyAddress}}\",\n  \"password\": \"{{password}}\",\n  \"password_confirmation\": \"{{password}}\",\n  \"verification_token\": \"{{verificationToken}}\"\n}"
+              "raw": "{\n  \"public_user_type_id\": {{publicUserTypeId}},\n  \"first_name\": \"Jean\",\n  \"last_name\": \"Doe\",\n  \"phone\": \"{{phone}}\",\n  \"is_whatsapp_number\": true,\n  \"email\": \"{{email}}\",\n  \"country_id\": {{countryId}},\n  \"city_id\": {{cityId}},\n  \"commune_id\": {{communeId}},\n  \"business_sector\": \"{{businessSector}}\",\n  \"company_name\": \"{{companyName}}\",\n  \"company_registration_number\": \"{{companyRegistrationNumber}}\",\n  \"tax_identifier\": \"{{taxIdentifier}}\",\n  \"company_address\": \"{{companyAddress}}\",\n  \"password\": \"{{password}}\",\n  \"password_confirmation\": \"{{password}}\",\n  \"verification_token\": \"{{verificationToken}}\"\n}"
             },
             "url": "{{baseUrl}}/v1/public/auth/register",
-            "description": "Cree un compte UP et retourne directement un access token. Pour UPE et UPTI, business_sector est obligatoire; pour UPE, les champs company_* et tax_identifier sont obligatoires."
+            "description": "Cree un compte UP et retourne directement un access token. Selectionner d abord pays, ville et commune via les catalogues, puis envoyer country_id, city_id et commune_id. Pour UPE et UPTI, business_sector est obligatoire; pour UPE, les champs company_* et tax_identifier sont obligatoires."
           }
         },
         {
@@ -513,7 +514,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"first_name\": \"Jean\",\n  \"last_name\": \"Doe\",\n  \"is_whatsapp_number\": true,\n  \"email\": \"{{email}}\",\n  \"commune\": \"{{communeName}}\",\n  \"business_sector\": \"{{businessSector}}\",\n  \"company_name\": \"{{companyName}}\",\n  \"company_registration_number\": \"{{companyRegistrationNumber}}\",\n  \"tax_identifier\": \"{{taxIdentifier}}\",\n  \"company_address\": \"{{companyAddress}}\",\n  \"address\": \"{{address}}\",\n  \"latitude\": {{latitude}},\n  \"longitude\": {{longitude}},\n  \"location_accuracy\": {{locationAccuracy}},\n  \"location_source\": \"gps\"\n}"
+              "raw": "{\n  \"first_name\": \"Jean\",\n  \"last_name\": \"Doe\",\n  \"is_whatsapp_number\": true,\n  \"email\": \"{{email}}\",\n  \"country_id\": {{countryId}},\n  \"city_id\": {{cityId}},\n  \"commune_id\": {{communeId}},\n  \"business_sector\": \"{{businessSector}}\",\n  \"company_name\": \"{{companyName}}\",\n  \"company_registration_number\": \"{{companyRegistrationNumber}}\",\n  \"tax_identifier\": \"{{taxIdentifier}}\",\n  \"company_address\": \"{{companyAddress}}\",\n  \"address\": \"{{address}}\",\n  \"latitude\": {{latitude}},\n  \"longitude\": {{longitude}},\n  \"location_accuracy\": {{locationAccuracy}},\n  \"location_source\": \"gps\"\n}"
             },
             "url": "{{baseUrl}}/v1/public/profile"
           }
@@ -1036,7 +1037,7 @@
     },
     {
       "name": "09 - Abonnements UP",
-      "description": "Flux d abonnement annuel UP et paiement simule associe.",
+      "description": "Flux d abonnement annuel UP, paiement simule associe et carte de reduction mobile.",
       "item": [
         {
           "name": "List Subscriptions",
@@ -1123,6 +1124,30 @@
             },
             "url": "{{baseUrl}}/v1/public/subscription/payments/{{subscriptionPaymentId}}/confirm",
             "description": "Confirme le paiement simule et active l abonnement UP."
+          }
+        },
+        {
+          "name": "Get Discount Card",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Card key is present', function () { pm.expect(json?.data).to.have.property('card'); });",
+                  "const card = json?.data?.card;",
+                  "if (card?.id) pm.environment.set('discountCardId', card.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/discount-card",
+            "description": "Retourne la derniere carte de reduction du UP connecte, ou card: null si aucune carte n est disponible. La carte contient card_uuid, card_number, status, dates de validite et qr_payload a afficher/scanner cote mobile."
           }
         }
       ]

@@ -70,7 +70,7 @@ return new class extends Migration
 
         $applications = [
             [
-                'code' => 'MON_NRJ',
+                'code' => 'ÉLÈCTRICITÉ',
                 'name' => 'MON NRJ',
                 'slug' => 'mon-nrj',
                 'tagline' => 'Les griefs lies a l energie au meme endroit.',
@@ -99,11 +99,11 @@ return new class extends Migration
             ],
             [
                 'code' => 'MA_BANK',
-                'name' => 'MA BANK',
+                'name' => 'BANQUE',
                 'slug' => 'ma-bank',
                 'tagline' => 'Les griefs bancaires et microfinances au meme endroit.',
                 'short_description' => 'Pour les litiges bancaires, microfinances, transactions, frais et incidents de services financiers.',
-                'long_description' => 'MA BANK centralise les griefs des consommateurs vis-a-vis des banques et institutions de microfinance afin de soutenir les actions correctives et les reparations utiles.',
+                'long_description' => 'BANQUE centralise les griefs des consommateurs vis-a-vis des banques et institutions de microfinance afin de soutenir les actions correctives et les reparations utiles.',
                 'logo_path' => 'image/logo/logo-my-signal.png',
                 'primary_color' => '#0c2435',
                 'secondary_color' => '#1e5877',
@@ -113,11 +113,11 @@ return new class extends Migration
             ],
             [
                 'code' => 'MON_ASS',
-                'name' => 'MON ASS',
+                'name' => 'ASSURANCE',
                 'slug' => 'mon-ass',
                 'tagline' => 'Les griefs lies aux assurances au meme endroit.',
                 'short_description' => 'Pour les litiges d assurances, sinistres, remboursements et qualite de service.',
-                'long_description' => 'MON ASS permet de regrouper les griefs des assures, d objectiver les delais et de documenter les suites ou dedommagements eventuels.',
+                'long_description' => 'ASSURANCE permet de regrouper les griefs des assures, d objectiver les delais et de documenter les suites ou dedommagements eventuels.',
                 'logo_path' => 'image/logo/logo-my-signal.png',
                 'primary_color' => '#0c2435',
                 'secondary_color' => '#1e5877',
@@ -127,11 +127,11 @@ return new class extends Migration
             ],
             [
                 'code' => 'MA_COM',
-                'name' => 'MA COM',
+                'name' => 'TÉLÉCOM',
                 'slug' => 'ma-com',
                 'tagline' => 'Les griefs telecoms, voix, SMS et data au meme endroit.',
                 'short_description' => 'Pour les incidents de telecommunication, voix, SMS, internet et qualite de connectivite.',
-                'long_description' => 'MA COM regroupe les griefs des consommateurs lies aux telecommunications et a la data afin de soutenir la reparation des torts et l amelioration de service.',
+                'long_description' => 'TÉLÉCOM regroupe les griefs des consommateurs lies aux telecommunications et a la data afin de soutenir la reparation des torts et l amelioration de service.',
                 'logo_path' => 'image/logo/logo-my-signal.png',
                 'primary_color' => '#0c2435',
                 'secondary_color' => '#1e5877',
@@ -141,11 +141,11 @@ return new class extends Migration
             ],
             [
                 'code' => 'MON_ENVI',
-                'name' => 'MON ENVI',
+                'name' => 'ENVIRONNEMENT',
                 'slug' => 'mon-envi',
                 'tagline' => 'Les griefs environnementaux au meme endroit.',
                 'short_description' => 'Pour les problemes environnementaux, pollutions, nuisances et atteintes au cadre de vie.',
-                'long_description' => 'MON ENVI aide a regrouper les griefs des consommateurs et citoyens lies a l environnement afin de mieux documenter les atteintes et soutenir les actions correctives.',
+                'long_description' => 'ENVIRONNEMENT aide a regrouper les griefs des consommateurs et citoyens lies a l environnement afin de mieux documenter les atteintes et soutenir les actions correctives.',
                 'logo_path' => 'image/logo/logo-my-signal.png',
                 'primary_color' => '#0c2435',
                 'secondary_color' => '#1e5877',
@@ -167,7 +167,7 @@ return new class extends Migration
 
         $applicationIdsByCode = DB::table('applications')->pluck('id', 'code');
         $signalNetworkMap = [
-            'CIE' => 'MON_NRJ',
+            'CIE' => 'ÉLÈCTRICITÉ',
             'SODECI' => 'MON_EAU',
         ];
 

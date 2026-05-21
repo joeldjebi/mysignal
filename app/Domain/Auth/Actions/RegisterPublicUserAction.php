@@ -3,6 +3,7 @@
 namespace App\Domain\Auth\Actions;
 
 use App\Domain\Auth\Enums\PublicUserStatus;
+use App\Models\Commune;
 use App\Models\PublicUser;
 use App\Models\PublicUserPhoneVerification;
 use App\Models\PublicUserType;
@@ -34,7 +35,11 @@ class RegisterPublicUserAction
             ]);
         }
 
-        $publicUser = DB::transaction(function () use ($payload, $verification, $publicUserTypeId): PublicUser {
+        $commune = Commune::query()
+            ->with('city.country')
+            ->findOrFail($payload['commune_id']);
+
+        $publicUser = DB::transaction(function () use ($payload, $verification, $publicUserTypeId, $commune): PublicUser {
             $user = PublicUser::query()->firstOrNew([
                 'phone' => $payload['phone'],
             ]);
@@ -45,12 +50,17 @@ class RegisterPublicUserAction
                 'last_name' => $payload['last_name'],
                 'is_whatsapp_number' => (bool) ($payload['is_whatsapp_number'] ?? false),
                 'email' => $payload['email'] ?? $user->email,
+                'country_id' => $commune->city->country->id,
+                'city_id' => $commune->city->id,
+                'commune_id' => $commune->id,
                 'company_name' => $payload['company_name'] ?? $user->company_name,
                 'company_registration_number' => $payload['company_registration_number'] ?? $user->company_registration_number,
                 'tax_identifier' => $payload['tax_identifier'] ?? $user->tax_identifier,
                 'business_sector' => $payload['business_sector'] ?? $user->business_sector,
                 'company_address' => $payload['company_address'] ?? $user->company_address,
-                'commune' => $payload['commune'],
+                'country' => $commune->city->country->name,
+                'city' => $commune->city->name,
+                'commune' => $commune->name,
                 'password' => $payload['password'],
                 'phone_verified_at' => $verification->verified_at,
                 'status' => PublicUserStatus::Active->value,
@@ -71,7 +81,7 @@ class RegisterPublicUserAction
 
         return [
             'token' => $token,
-            'user' => $publicUser->fresh('publicUserType.pricingRule'),
+            'user' => $publicUser->fresh(['publicUserType.pricingRule', 'countryReference', 'cityReference', 'communeReference']),
         ];
     }
 }

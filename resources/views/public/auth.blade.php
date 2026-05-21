@@ -327,14 +327,17 @@
                                         <label class="form-label fw-semibold">Email</label>
                                         <input class="form-control" type="email" name="email">
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold">Pays</label>
+                                        <select class="form-select" name="country_id" id="registerCountryId" required></select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold">Ville</label>
+                                        <select class="form-select" name="city_id" id="registerCityId" required></select>
+                                    </div>
+                                    <div class="col-md-4">
                                         <label class="form-label fw-semibold">Commune</label>
-                                        <select class="form-select" name="commune" required>
-                                            <option value="">Selectionner une commune</option>
-                                            @foreach ($communes as $commune)
-                                                <option value="{{ $commune->name }}">{{ $commune->name }}</option>
-                                            @endforeach
-                                        </select>
+                                        <select class="form-select" name="commune_id" id="registerCommuneId" required></select>
                                     </div>
 
                                     <div class="col-12 hidden" id="sectorFields">
@@ -382,6 +385,7 @@
                 const tokenKey = 'acepen_public_token';
                 const dashboardPanelStorageKey = 'acepen_public_dashboard_panel';
                 const dialCodeOptions = @json($dialCodeOptions);
+                const countries = @json($registrationCountries);
 
                 const authAlert = document.getElementById('authAlert');
                 const verificationToken = document.getElementById('verificationToken');
@@ -412,6 +416,57 @@
                         select.innerHTML = dialCodeOptions.map((option) => `<option value="${option.value}">${option.label}</option>`).join('');
                         select.value = select.value || dialCodeOptions[0]?.value || '225';
                     });
+                }
+
+                function optionMarkup(items, placeholder) {
+                    const options = items.map((item) => `<option value="${item.id}">${item.name}</option>`).join('');
+
+                    return `<option value="">${placeholder}</option>${options}`;
+                }
+
+                function selectedCountry() {
+                    const countryId = Number(document.getElementById('registerCountryId').value);
+
+                    return countries.find((country) => Number(country.id) === countryId) || null;
+                }
+
+                function selectedCity() {
+                    const cityId = Number(document.getElementById('registerCityId').value);
+
+                    return (selectedCountry()?.cities || []).find((city) => Number(city.id) === cityId) || null;
+                }
+
+                function populateRegisterCountries() {
+                    const countrySelect = document.getElementById('registerCountryId');
+                    countrySelect.innerHTML = optionMarkup(countries, 'Selectionner un pays');
+
+                    const defaultCountry = countries.find((country) => country.code === 'CI') || countries[0];
+                    if (defaultCountry) {
+                        countrySelect.value = defaultCountry.id;
+                    }
+
+                    populateRegisterCities();
+                }
+
+                function populateRegisterCities() {
+                    const citySelect = document.getElementById('registerCityId');
+                    const cities = selectedCountry()?.cities || [];
+                    citySelect.innerHTML = optionMarkup(cities, 'Selectionner une ville');
+                    citySelect.disabled = cities.length === 0;
+
+                    const defaultCity = cities.find((city) => city.name === 'Abidjan') || cities[0];
+                    if (defaultCity) {
+                        citySelect.value = defaultCity.id;
+                    }
+
+                    populateRegisterCommunes();
+                }
+
+                function populateRegisterCommunes() {
+                    const communeSelect = document.getElementById('registerCommuneId');
+                    const communes = selectedCity()?.communes || [];
+                    communeSelect.innerHTML = optionMarkup(communes, 'Selectionner une commune');
+                    communeSelect.disabled = communes.length === 0;
                 }
 
                 function composePhoneNumber(form) {
@@ -695,6 +750,8 @@
                 });
 
                 document.getElementById('registerPublicUserTypeId').addEventListener('change', syncUserTypeFields);
+                document.getElementById('registerCountryId').addEventListener('change', populateRegisterCities);
+                document.getElementById('registerCityId').addEventListener('change', populateRegisterCommunes);
                 document.querySelectorAll('#registerForm [name="phone_dial_code"], #registerForm [name="phone_local"]').forEach((input) => {
                     input.addEventListener('input', () => {
                         setRegistrationVerified(composePhoneNumber(document.getElementById('registerForm')));
@@ -717,6 +774,7 @@
                 }
 
                 populateDialCodeSelects();
+                populateRegisterCountries();
                 setRegistrationVerified();
                 setPasswordResetVerified();
                 syncRegisterWhatsappAvailability();

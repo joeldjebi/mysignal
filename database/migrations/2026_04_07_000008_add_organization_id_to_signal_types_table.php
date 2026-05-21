@@ -28,7 +28,7 @@ return new class extends Migration
 
             if (! $applicationId) {
                 $applicationId = match ($applicationCode) {
-                    'CIE' => DB::table('applications')->where('code', 'MON_NRJ')->value('id'),
+                    'CIE' => DB::table('applications')->where('code', 'ÉLÈCTRICITÉ')->value('id'),
                     'SODECI' => DB::table('applications')->where('code', 'MON_EAU')->value('id'),
                     default => null,
                 };

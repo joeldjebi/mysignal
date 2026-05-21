@@ -20,7 +20,7 @@ class PublicCatalogTest extends TestCase
         $this->seed(OrganizationTypeSeeder::class);
         $this->seed(LocationReferenceSeeder::class);
 
-        $applicationId = \App\Models\Application::query()->where('code', 'MON_NRJ')->value('id');
+        $applicationId = \App\Models\Application::query()->where('code', 'ÉLÈCTRICITÉ')->value('id');
         $organizationTypeId = \App\Models\OrganizationType::query()->where('code', 'PARTNER_ESTABLISHMENT')->value('id');
 
         $organization = Organization::query()->create([
@@ -36,7 +36,7 @@ class PublicCatalogTest extends TestCase
         SignalType::query()->create([
             'application_id' => $applicationId,
             'organization_id' => $organization->id,
-            'network_type' => 'MON_NRJ',
+            'network_type' => 'ÉLÈCTRICITÉ',
             'code' => 'NETWORK_OUTAGE',
             'label' => 'Coupure internet',
             'description' => 'Test catalog service category',
@@ -62,14 +62,14 @@ class PublicCatalogTest extends TestCase
 
         $applicationsResponse->assertOk()
             ->assertJsonPath('success', true)
-            ->assertJsonPath('data.applications.0.code', 'MON_NRJ');
+            ->assertJsonPath('data.applications.0.code', 'ÉLÈCTRICITÉ');
 
         $applicationTypesResponse->assertOk()
             ->assertJsonPath('data.application_types.0.code', 'ASSURANCE');
 
         $organizationsResponse->assertOk()
             ->assertJsonPath('data.organizations.0.code', 'SHOP_PARTNER')
-            ->assertJsonPath('data.organizations.0.application.code', 'MON_NRJ')
+            ->assertJsonPath('data.organizations.0.application.code', 'ÉLÈCTRICITÉ')
             ->assertJsonPath('data.organizations.0.organization_type.code', 'PARTNER_ESTABLISHMENT');
 
         $countriesResponse->assertOk()

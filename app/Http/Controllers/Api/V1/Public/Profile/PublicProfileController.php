@@ -18,7 +18,7 @@ class PublicProfileController extends Controller
     public function show(Request $request)
     {
         return ApiResponse::success([
-            'user' => new PublicUserResource($request->user('public_api')->loadMissing('publicUserType.pricingRule')),
+            'user' => new PublicUserResource($request->user('public_api')->loadMissing(['publicUserType.pricingRule', 'countryReference', 'cityReference', 'communeReference'])),
         ]);
     }
 
@@ -27,7 +27,7 @@ class PublicProfileController extends Controller
         $user = $action->handle($request->user('public_api'), $request->validated());
 
         return ApiResponse::success([
-            'user' => new PublicUserResource($user->loadMissing('publicUserType.pricingRule')),
+            'user' => new PublicUserResource($user->loadMissing(['publicUserType.pricingRule', 'countryReference', 'cityReference', 'communeReference'])),
         ], 'Profil mis a jour avec succes.');
     }
 

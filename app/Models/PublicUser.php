@@ -21,12 +21,17 @@ class PublicUser extends Authenticatable implements JWTSubject
         'phone',
         'is_whatsapp_number',
         'email',
+        'country_id',
+        'city_id',
+        'commune_id',
         'company_name',
         'company_registration_number',
         'tax_identifier',
         'business_sector',
         'company_address',
         'commune',
+        'country',
+        'city',
         'address',
         'latitude',
         'longitude',
@@ -159,6 +164,21 @@ class PublicUser extends Authenticatable implements JWTSubject
     public function publicUserType(): BelongsTo
     {
         return $this->belongsTo(PublicUserType::class);
+    }
+
+    public function countryReference(): BelongsTo
+    {
+        return $this->belongsTo(Country::class, 'country_id');
+    }
+
+    public function cityReference(): BelongsTo
+    {
+        return $this->belongsTo(City::class, 'city_id');
+    }
+
+    public function communeReference(): BelongsTo
+    {
+        return $this->belongsTo(Commune::class, 'commune_id');
     }
 
     public function businessSector(): BelongsTo
