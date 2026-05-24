@@ -35,7 +35,16 @@ class InitiateDamageDeclarationFineoPaymentAction
             ->first();
 
         if ($existingPending !== null) {
-            return $existingPending->load(['pricingRule', 'incidentReport']);
+            if (array_key_exists('purchase_receipt_id', $payload)) {
+                $existingPending->update([
+                    'damage_payload' => [
+                        ...($existingPending->damage_payload ?? []),
+                        'purchase_receipt_id' => $payload['purchase_receipt_id'] ?? null,
+                    ],
+                ]);
+            }
+
+            return $existingPending->fresh(['pricingRule', 'incidentReport']);
         }
 
         $pricingRule = $this->resolvePricingRule();
@@ -57,6 +66,7 @@ class InitiateDamageDeclarationFineoPaymentAction
                 'damage_summary' => $payload['damage_summary'] ?? null,
                 'damage_amount_estimated' => $payload['damage_amount_estimated'] ?? null,
                 'damage_notes' => $payload['damage_notes'] ?? null,
+                'purchase_receipt_id' => $payload['purchase_receipt_id'] ?? null,
             ],
             'damage_attachment' => $damageAttachment,
             'initiated_at' => CarbonImmutable::now(),

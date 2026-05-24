@@ -36,6 +36,7 @@ class IncidentReportPaymentSessionResource extends JsonResource
                 'amount_estimated' => isset($this->damage_payload['damage_amount_estimated'])
                     ? (float) $this->damage_payload['damage_amount_estimated']
                     : null,
+                'purchase_receipt_id' => $this->damage_payload['purchase_receipt_id'] ?? null,
                 'has_attachment' => filled($this->damage_attachment),
             ] : null,
         ];

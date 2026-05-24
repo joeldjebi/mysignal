@@ -36,6 +36,7 @@
                     <tr>
                         <th>Identifiant</th>
                         <th>Reseau/Type</th>
+                        <th>Usage</th>
                         <th>Application / Organisation</th>
                         <th>Libelle</th>
                         <th>Commune</th>
@@ -48,6 +49,11 @@
                         <tr>
                             <td class="fw-semibold">{{ $meter->meter_number }}</td>
                             <td>{{ $meter->network_type }}</td>
+                            <td>
+                                <span class="status-chip">
+                                    {{ ($meter->gbonhi_assignments_count ?? 0) > 0 ? 'Gbonhi' : 'Personnel' }}
+                                </span>
+                            </td>
                             <td>
                                 <div class="meta-stack">
                                     <span class="meta-title">{{ $meter->application?->name ?: '-' }}</span>
@@ -62,7 +68,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="7" class="text-center text-secondary">Aucun identifiant disponible.</td></tr>
+                        <tr><td colspan="8" class="text-center text-secondary">Aucun identifiant disponible.</td></tr>
                     @endforelse
                 </tbody>
             </table>

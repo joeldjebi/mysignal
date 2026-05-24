@@ -18,6 +18,7 @@ class Meter extends Model
         'network_type',
         'meter_number',
         'label',
+        'city',
         'commune',
         'neighborhood',
         'sub_neighborhood',
@@ -41,8 +42,13 @@ class Meter extends Model
     public function publicUsers(): BelongsToMany
     {
         return $this->belongsToMany(PublicUser::class, 'meter_assignments')
-            ->withPivot(['is_primary'])
+            ->withPivot(['is_primary', 'assignment_source'])
             ->withTimestamps();
+    }
+
+    public function assignments(): HasMany
+    {
+        return $this->hasMany(MeterAssignment::class);
     }
 
     public function application(): BelongsTo

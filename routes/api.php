@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\V1\Public\Payments\FineoPayCallbackController;
 use App\Http\Controllers\Api\V1\Public\Payments\PublicIncidentReportPaymentSessionController;
 use App\Http\Controllers\Api\V1\Public\Payments\PublicReportPaymentController;
 use App\Http\Controllers\Api\V1\Public\Profile\PublicProfileController;
+use App\Http\Controllers\Api\V1\Public\PurchaseReceipts\PublicPurchaseReceiptController;
 use App\Http\Controllers\Api\V1\Public\ReparationCases\PublicReparationCaseController;
 use App\Http\Controllers\Api\V1\Public\Reports\PublicIncidentReportController;
 use App\Http\Controllers\Api\V1\Public\Rex\PublicRexFeedbackController;
@@ -85,6 +86,13 @@ Route::prefix('v1/public')->group(function (): void {
         Route::post('meters', [PublicMeterController::class, 'store']);
         Route::get('meters/{meter}', [PublicMeterController::class, 'show']);
         Route::patch('meters/{meter}', [PublicMeterController::class, 'update']);
+        Route::delete('meters/{meter}', [PublicMeterController::class, 'destroy']);
+
+        Route::get('purchase-receipts', [PublicPurchaseReceiptController::class, 'index']);
+        Route::post('purchase-receipts', [PublicPurchaseReceiptController::class, 'store']);
+        Route::get('purchase-receipts/{purchaseReceipt}', [PublicPurchaseReceiptController::class, 'show']);
+        Route::patch('purchase-receipts/{purchaseReceipt}', [PublicPurchaseReceiptController::class, 'update']);
+        Route::delete('purchase-receipts/{purchaseReceipt}', [PublicPurchaseReceiptController::class, 'destroy']);
 
         Route::post('households', [PublicHouseholdController::class, 'store']);
         Route::get('households/me', [PublicHouseholdController::class, 'showMine']);
@@ -98,8 +106,10 @@ Route::prefix('v1/public')->group(function (): void {
         Route::get('reports/{report}', [PublicIncidentReportController::class, 'show']);
         Route::post('reports/{report}/confirm-resolution', [PublicIncidentReportController::class, 'confirmResolution']);
         Route::post('reports/{report}/damages', [PublicIncidentReportController::class, 'storeDamage']);
+        Route::patch('reports/{report}/damages', [PublicIncidentReportController::class, 'updateDamage']);
         Route::get('damages', [PublicIncidentReportController::class, 'damages']);
         Route::post('damages', [PublicIncidentReportController::class, 'storeDamageFromBody']);
+        Route::patch('damages/{report}', [PublicIncidentReportController::class, 'updateDamage']);
         Route::get('reparation-cases', [PublicReparationCaseController::class, 'index']);
         Route::get('rex-feedbacks', [PublicRexFeedbackController::class, 'index']);
         Route::post('rex-feedbacks', [PublicRexFeedbackController::class, 'store']);

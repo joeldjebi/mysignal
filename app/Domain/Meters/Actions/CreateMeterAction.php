@@ -41,6 +41,7 @@ class CreateMeterAction
                     'organization_id' => $organization->id,
                     'network_type' => $networkType,
                     'label' => $payload['label'] ?? null,
+                    'city' => $payload['city'] ?? null,
                     'commune' => $payload['commune'] ?? null,
                     'neighborhood' => $payload['neighborhood'] ?? null,
                     'sub_neighborhood' => $payload['sub_neighborhood'] ?? null,
@@ -58,6 +59,7 @@ class CreateMeterAction
                 'organization_id' => $meter->organization_id ?? $organization->id,
                 'network_type' => $meter->network_type ?? $networkType,
                 'label' => $meter->label ?? ($payload['label'] ?? null),
+                'city' => $meter->city ?? ($payload['city'] ?? null),
                 'commune' => $meter->commune ?? ($payload['commune'] ?? null),
                 'neighborhood' => $meter->neighborhood ?? ($payload['neighborhood'] ?? null),
                 'sub_neighborhood' => $meter->sub_neighborhood ?? ($payload['sub_neighborhood'] ?? null),
@@ -83,6 +85,7 @@ class CreateMeterAction
                 'meter_id' => $meter->id,
                 'public_user_id' => $user->id,
                 'is_primary' => (bool) ($payload['is_primary'] ?? false),
+                'assignment_source' => 'personal',
             ]);
 
             return $meter->fresh();

@@ -17,6 +17,7 @@ class UpdateMeterRequest extends FormRequest
             'application_id' => ['sometimes', 'integer', 'exists:applications,id'],
             'organization_id' => ['sometimes', 'integer', 'exists:organizations,id'],
             'label' => ['sometimes', 'nullable', 'string', 'max:120'],
+            'city' => ['sometimes', 'nullable', 'string', 'max:120', 'exists:cities,name'],
             'commune' => ['sometimes', 'nullable', 'string', 'max:120', 'exists:communes,name'],
             'neighborhood' => ['sometimes', 'nullable', 'string', 'max:120'],
             'sub_neighborhood' => ['sometimes', 'nullable', 'string', 'max:120'],

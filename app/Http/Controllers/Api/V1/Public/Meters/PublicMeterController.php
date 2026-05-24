@@ -76,4 +76,31 @@ class PublicMeterController extends Controller
             'meter' => new MeterResource($ownedMeter),
         ], 'Compteur mis a jour avec succes.');
     }
+
+    public function destroy(Request $request, Meter $meter)
+    {
+        $user = $request->user('public_api');
+
+        $ownedMeter = $user->meters()
+            ->whereKey($meter->id)
+            ->firstOrFail();
+
+        $assignment = $user->meterAssignments()
+            ->where('meter_id', $ownedMeter->id)
+            ->firstOrFail();
+
+        $wasPrimary = (bool) $assignment->is_primary;
+        $assignment->delete();
+
+        if ($wasPrimary) {
+            $nextPrimaryAssignment = $user->meterAssignments()
+                ->latest('id')
+                ->limit(1)
+                ->first();
+
+            $nextPrimaryAssignment?->update(['is_primary' => true]);
+        }
+
+        return ApiResponse::success([], 'Compteur supprime avec succes.');
+    }
 }

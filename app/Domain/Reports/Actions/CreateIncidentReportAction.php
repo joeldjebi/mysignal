@@ -135,6 +135,7 @@ class CreateIncidentReportAction
     private function resolveLocationFromMeter(PublicUser $user, Meter $meter): array
     {
         $communeName = trim((string) ($meter->commune ?: $user->commune));
+        $cityName = trim((string) ($meter->city ?: $user->city));
 
         if ($communeName === '') {
             throw ValidationException::withMessages([
@@ -146,6 +147,7 @@ class CreateIncidentReportAction
             ->with('city.country')
             ->where('name', $communeName)
             ->where('status', 'active')
+            ->when($cityName !== '', fn ($query) => $query->whereHas('city', fn ($cityQuery) => $cityQuery->where('name', $cityName)))
             ->whereHas('city', function ($query): void {
                 $query->where('status', 'active')
                     ->whereHas('country', fn ($countryQuery) => $countryQuery->where('status', 'active'));

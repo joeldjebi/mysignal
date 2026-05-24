@@ -77,13 +77,18 @@ class PublicUser extends Authenticatable implements JWTSubject
     public function meters(): BelongsToMany
     {
         return $this->belongsToMany(Meter::class, 'meter_assignments')
-            ->withPivot(['is_primary'])
+            ->withPivot(['is_primary', 'assignment_source'])
             ->withTimestamps();
     }
 
     public function meterAssignments(): HasMany
     {
         return $this->hasMany(MeterAssignment::class);
+    }
+
+    public function purchaseReceipts(): HasMany
+    {
+        return $this->hasMany(PurchaseReceipt::class);
     }
 
     public function ownedHousehold(): HasOne

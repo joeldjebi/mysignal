@@ -1190,6 +1190,13 @@
                                 <span class="small text-white-50">Historique et suivi</span>
                             </span>
                         </button>
+                        <button class="nav-pill" type="button" data-panel-target="receipts">
+                            <span class="nav-icon">RC</span>
+                            <span>
+                                <span class="d-block fw-semibold">Mes reçus</span>
+                                <span class="small text-white-50">Achats de matériel</span>
+                            </span>
+                        </button>
                         <button class="nav-pill" type="button" data-panel-target="cases">
                             <span class="nav-icon">DC</span>
                             <span>
@@ -1198,7 +1205,7 @@
                             </span>
                         </button>
                         <div class="sidebar-bottom-links">
-                            <button class="nav-pill" type="button" data-panel-target="subscriptions">
+                            <button class="nav-pill d-none" type="button" data-panel-target="subscriptions">
                                 <span class="nav-icon">AB</span>
                                 <span>
                                     <span class="d-block fw-semibold">Mes abonnements</span>
@@ -1258,7 +1265,7 @@
                                         <button class="simple-home-secondary" type="button" data-panel-target="payments">Voir mes paiements</button>
                                     </div>
 
-                                    <div class="simple-home-note" id="subscriptionOverviewText">Abonnement non actif</div>
+                                    <div class="simple-home-note" id="subscriptionOverviewText">Accès libre aux signalements</div>
                                     <button class="d-none" id="subscriptionOverviewButton" type="button">Prendre un abonnement</button>
                                     <span class="d-none" id="meterCount">0</span>
                                     <span class="d-none" id="reportCount">0</span>
@@ -1444,6 +1451,7 @@
                                     <input type="hidden" name="network_type" id="meterNetworkType" required>
                                     <div class="col-md-4"><label class="form-label fw-semibold">Mon identifiant</label><input class="form-control" name="meter_number" required></div>
                                     <div class="col-md-4"><label class="form-label fw-semibold">Libelle</label><input class="form-control" name="label"></div>
+                                    <div class="col-md-4"><label class="form-label fw-semibold">Ville</label><select class="form-select" name="city" id="meterCitySelect"></select></div>
                                     <div class="col-md-4"><label class="form-label fw-semibold">Commune</label><select class="form-select" name="commune" id="meterCommuneSelect"></select></div>
                                     <div class="col-md-4"><label class="form-label fw-semibold">Quartier</label><select class="form-select" name="neighborhood" id="meterNeighborhoodSelect"></select></div>
                                     <div class="col-md-4"><label class="form-label fw-semibold">Sous-quartier</label><select class="form-select" name="sub_neighborhood" id="meterSubNeighborhoodSelect"></select></div>
@@ -1687,7 +1695,7 @@
                         </div>
                     </section>
 
-                    <section class="public-panel" data-panel="subscriptions">
+                    <section class="public-panel d-none" data-panel="subscriptions">
                         <div class="dashboard-card">
                             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
                                 <div>
@@ -1820,6 +1828,38 @@
                                 </div>
                             </div>
                             <div id="damagesList"></div>
+                        </div>
+                    </section>
+
+                    <section class="public-panel" data-panel="receipts">
+                        <div class="dashboard-card">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+                                <div>
+                                    <div class="section-title">Mes reçus d’achat</div>
+                                    <div class="muted-label">Conservez les informations utiles sur vos achats de matériel.</div>
+                                </div>
+                            </div>
+                            <div class="mini-card mb-4">
+                                <form id="purchaseReceiptForm" class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold">Nom du matériel</label>
+                                        <input class="form-control" name="material_name" maxlength="160" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold">Date d’achat</label>
+                                        <input class="form-control" type="date" name="purchase_date" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold">Montant (FCFA)</label>
+                                        <input class="form-control" type="number" min="0" step="0.01" name="amount" required>
+                                    </div>
+                                    <div class="col-12 d-flex justify-content-end gap-2">
+                                        <button class="btn btn-ghost-premium px-4 d-none" type="button" id="cancelPurchaseReceiptEditButton">Annuler</button>
+                                        <button class="btn btn-premium px-4" type="submit">Enregistrer le reçu</button>
+                                    </div>
+                                </form>
+                            </div>
+                            <div id="purchaseReceiptsList" class="row g-3"></div>
                         </div>
                     </section>
 
@@ -2010,6 +2050,30 @@
                             <div class="col-12">
                                 <label class="form-label fw-semibold">Détails complémentaires</label>
                                 <textarea class="form-control" name="damage_notes" rows="4" placeholder="Expliquez l’impact du sinistre, ce qui reste endommagé et les informations utiles pour l’analyse."></textarea>
+                            </div>
+                            <div class="col-12">
+                                <div class="soft-panel">
+                                    <div class="fw-bold mb-1">Reçu d’achat lié au dommage</div>
+                                    <div class="muted-label">Optionnel. Sélectionnez un reçu déjà enregistré ou saisissez les trois informations du reçu pendant cette déclaration.</div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Reçu enregistré</label>
+                                <select class="form-select" name="purchase_receipt_id" id="damagePurchaseReceiptId">
+                                    <option value="">Aucun reçu sélectionné</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Nom du matériel</label>
+                                <input class="form-control" type="text" name="receipt_material_name" maxlength="160" placeholder="Ex: Téléviseur">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Date d’achat</label>
+                                <input class="form-control" type="date" name="receipt_purchase_date">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Montant (FCFA)</label>
+                                <input class="form-control" type="number" min="0" step="0.01" name="receipt_amount" placeholder="150000">
                             </div>
                             <div class="col-12 d-flex justify-content-end gap-2">
                                 <button class="btn btn-ghost-premium px-4" type="button" data-bs-dismiss="modal">Annuler</button>
@@ -2225,6 +2289,7 @@
                     pendingHouseholdInvitations: [],
                     meters: [],
                     payments: [],
+                    purchaseReceipts: [],
                     pendingReportPayment: null,
                     pendingReportPaymentPoller: null,
                     pendingReportPaymentAttempts: 0,
@@ -2242,6 +2307,7 @@
                     rexFeedbacksPageSize: 5,
                     reparationCases: [],
                     countries: [],
+                    cities: [],
                     communes: [],
                     reports: [],
                     notifications: [],
@@ -3078,18 +3144,56 @@
                     const options = state.communes.length
                         ? state.communes.map((commune) => `<option value="${commune.name}">${commune.name}</option>`).join('')
                         : '<option value="">Aucune commune disponible</option>';
-                    ['profileCommuneSelect', 'meterCommuneSelect'].forEach((id) => {
-                        const select = document.getElementById(id);
-                        select.innerHTML = options;
-                        if (selectedName && state.communes.some((commune) => commune.name === selectedName)) {
-                            select.value = selectedName;
-                        }
-                    });
+                    const profileSelect = document.getElementById('profileCommuneSelect');
+                    profileSelect.innerHTML = options;
+                    if (selectedName && state.communes.some((commune) => commune.name === selectedName)) {
+                        profileSelect.value = selectedName;
+                    }
+                    populateMeterCityOptions();
+                    populateMeterCommuneOptions(selectedName);
                     populateMeterNeighborhoodOptions();
                 }
 
+                function populateMeterCityOptions(selectedCityName = null) {
+                    const select = document.getElementById('meterCitySelect');
+                    const options = state.cities.length
+                        ? state.cities.map((city) => `<option value="${city.name}">${city.name}</option>`).join('')
+                        : '<option value="">Aucune ville disponible</option>';
+
+                    select.innerHTML = options;
+
+                    if (selectedCityName && state.cities.some((city) => city.name === selectedCityName)) {
+                        select.value = selectedCityName;
+                    }
+                }
+
+                function getMeterCommunes() {
+                    const selectedCity = document.getElementById('meterCitySelect')?.value || '';
+
+                    if (!selectedCity) {
+                        return state.communes;
+                    }
+
+                    return state.communes.filter((commune) => commune.city_name === selectedCity);
+                }
+
+                function populateMeterCommuneOptions(selectedName = null) {
+                    const select = document.getElementById('meterCommuneSelect');
+                    const communes = getMeterCommunes();
+
+                    select.innerHTML = communes.length
+                        ? communes.map((commune) => `<option value="${commune.name}">${commune.name}</option>`).join('')
+                        : '<option value="">Aucune commune disponible</option>';
+
+                    if (selectedName && communes.some((commune) => commune.name === selectedName)) {
+                        select.value = selectedName;
+                    }
+                }
+
                 function getCommuneByName(name) {
-                    return state.communes.find((commune) => commune.name === name) || null;
+                    return getMeterCommunes().find((commune) => commune.name === name)
+                        || state.communes.find((commune) => commune.name === name)
+                        || null;
                 }
 
                 function populateMeterNeighborhoodOptions(selectedNeighborhood = '', selectedSubNeighborhood = '') {
@@ -3131,6 +3235,10 @@
                     const matchedCommune = state.communes.find((commune) => normalizeText(commune.name) === normalizeText(communeCandidate));
 
                     if (matchedCommune) {
+                        if (selectId === 'meterCommuneSelect') {
+                            populateMeterCityOptions(matchedCommune.city_name || null);
+                            populateMeterCommuneOptions(matchedCommune.name);
+                        }
                         communeSelect.value = matchedCommune.name;
                     }
                 }
@@ -3331,7 +3439,7 @@
                     const noMeterHint = document.getElementById('reportNoMeterHint');
 
                     meterSelect.innerHTML = filteredMeters.length
-                        ? filteredMeters.map((meter) => `<option value="${meter.id}">${meter.organization_name || meter.network_type} · ${meter.meter_number}${meter.label ? ' · ' + meter.label : ''}</option>`).join('')
+                        ? filteredMeters.map((meter) => `<option value="${meter.id}">${meter.organization_name || meter.network_type} · ${meter.meter_number}${meter.label ? ' · ' + meter.label : ''} · ${meter.assignment_label || 'Compteur personnel'}</option>`).join('')
                         : '<option value="">Aucun identifiant disponible</option>';
 
                     meterSelect.disabled = filteredMeters.length === 0;
@@ -3612,20 +3720,6 @@
                     }
 
                     const subscription = state.subscription;
-                    const active = isSubscriptionUsable(subscription);
-
-                    if (!active) {
-                        wrap.innerHTML = `
-                            <div class="member-wallet-locked">
-                                <div class="small text-secondary fw-semibold mb-2">Carte membre consommateur</div>
-                                <div class="fw-bold mb-1">Disponible avec un abonnement actif</div>
-                                <div class="muted-label mb-3">Active ton abonnement annuel pour obtenir ta carte virtuelle et accéder aux réductions partenaires.</div>
-                                <button class="btn btn-premium w-100" type="button" id="memberWalletSubscribeButton">Prendre un abonnement</button>
-                            </div>
-                        `;
-                        document.getElementById('memberWalletSubscribeButton')?.addEventListener('click', () => openSubscriptionPrompt(true));
-                        return;
-                    }
 
                     const cardNumber = buildMemberCardNumber(state.currentUser, subscription);
                     const fullName = `${state.currentUser.first_name || ''} ${state.currentUser.last_name || ''}`.trim() || 'Membre consommateur';
@@ -3675,7 +3769,7 @@
                     const sharedMeterSelect = document.getElementById('householdSharedMeterId');
                     if (sharedMeterSelect) {
                         sharedMeterSelect.innerHTML = meters.length
-                            ? meters.map((meter) => `<option value="${meter.id}">${meter.organization_name || meter.network_type} · ${meter.meter_number}${meter.label ? ' · ' + meter.label : ''}</option>`).join('')
+                            ? meters.map((meter) => `<option value="${meter.id}">${meter.organization_name || meter.network_type} · ${meter.meter_number}${meter.label ? ' · ' + meter.label : ''} · ${meter.assignment_label || 'Compteur personnel'}</option>`).join('')
                             : '<option value="">Aucun identifiant disponible</option>';
                     }
                     renderSignalOptions();
@@ -3697,12 +3791,66 @@
                             <div class="mini-card h-100">
                                 <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
                                     <div><div class="fw-bold">${meter.label || meter.organization_name || meter.network_type}</div><div class="muted-label">${meter.meter_number}</div></div>
-                                    <span class="status-pill">${meter.is_primary ? 'Principal' : (meter.organization_name || meter.network_type)}</span>
+                                    <div class="d-flex flex-column align-items-end gap-2">
+                                        <span class="status-pill">${meter.assignment_label || 'Compteur personnel'}</span>
+                                        ${meter.is_primary ? '<span class="status-pill">Principal</span>' : ''}
+                                    </div>
                                 </div>
                                 <div class="muted-label mb-2">${meter.application_name || 'Application non définie'}</div>
-                                <div class="muted-label mb-3">${[meter.commune, meter.neighborhood, meter.sub_neighborhood].filter(Boolean).join(' · ') || 'Commune non renseignée'}${meter.address ? ' · ' + meter.address : ''}</div>
+                                <div class="muted-label mb-3">${[meter.city, meter.commune, meter.neighborhood, meter.sub_neighborhood].filter(Boolean).join(' · ') || 'Localisation non renseignée'}${meter.address ? ' · ' + meter.address : ''}</div>
                                 <div class="muted-label mb-3">${meter.latitude && meter.longitude ? `GPS ${meter.latitude}, ${meter.longitude}` : 'Position GPS non renseignée'}</div>
                                 <button class="btn btn-ghost-premium w-100" type="button" onclick="window.AcepenPortal.prefillMeter(${meter.id})">Modifier</button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+
+                function renderPurchaseReceiptOptions() {
+                    const select = document.getElementById('damagePurchaseReceiptId');
+
+                    if (!select) {
+                        return;
+                    }
+
+                    const currentValue = select.value;
+                    select.innerHTML = '<option value="">Aucun reçu sélectionné</option>'
+                        + state.purchaseReceipts.map((receipt) => `
+                            <option value="${receipt.id}">
+                                ${escapeHtml(receipt.material_name)} · ${formatDateTime(receipt.purchase_date)} · ${formatAmount(receipt.amount)}
+                            </option>
+                        `).join('');
+                    select.value = state.purchaseReceipts.some((receipt) => String(receipt.id) === String(currentValue)) ? currentValue : '';
+                }
+
+                function renderPurchaseReceipts(receipts) {
+                    state.purchaseReceipts = receipts || [];
+                    renderPurchaseReceiptOptions();
+
+                    const list = document.getElementById('purchaseReceiptsList');
+
+                    if (!list) {
+                        return;
+                    }
+
+                    if (!state.purchaseReceipts.length) {
+                        list.innerHTML = '<div class="col-12"><div class="mini-card"><div class="fw-bold mb-1">Aucun reçu enregistré</div><div class="muted-label">Ajoutez vos achats de matériel pour les retrouver rapidement lors d’une déclaration de dommage.</div></div></div>';
+                        return;
+                    }
+
+                    list.innerHTML = state.purchaseReceipts.map((receipt) => `
+                        <div class="col-md-6 col-xl-4">
+                            <div class="mini-card h-100">
+                                <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+                                    <div>
+                                        <div class="fw-bold">${escapeHtml(receipt.material_name)}</div>
+                                        <div class="muted-label">${formatDateTime(receipt.purchase_date)}</div>
+                                    </div>
+                                    <span class="status-pill">${formatAmount(receipt.amount)}</span>
+                                </div>
+                                <div class="d-flex gap-2 mt-3">
+                                    <button class="btn btn-ghost-premium flex-fill" type="button" onclick="window.AcepenPortal.prefillPurchaseReceipt(${receipt.id})">Modifier</button>
+                                    <button class="btn btn-ghost-premium flex-fill" type="button" onclick="window.AcepenPortal.deletePurchaseReceipt(${receipt.id})">Supprimer</button>
+                                </div>
                             </div>
                         </div>
                     `).join('');
@@ -4750,6 +4898,9 @@
                                             ${report.damage_declaration?.resolution_notes
                                                 ? `<div class="muted-label">Réponse institutionnelle: ${report.damage_declaration.resolution_notes}</div>`
                                                 : ''}
+                                            ${report.damage_declaration?.purchase_receipt
+                                                ? `<div class="muted-label">Reçu: ${report.damage_declaration.purchase_receipt.material_name} · ${formatDateTime(report.damage_declaration.purchase_receipt.purchase_date)} · ${formatAmount(report.damage_declaration.purchase_receipt.amount)}</div>`
+                                                : '<div class="muted-label">Aucun reçu d’achat rattaché.</div>'}
                                         </div>
                                         <div class="col-lg-4">
                                             ${report.damage_declaration?.attachment?.temporary_url
@@ -4778,6 +4929,7 @@
                                                     `)
                                                 : '<div class="muted-label">Aucun justificatif joint.</div>'}
                                             <div class="d-grid gap-2 mt-3">
+                                                <button class="btn btn-premium btn-sm" type="button" onclick="window.AcepenPortal.openDamageEditForm(${report.id})">Modifier le dommage</button>
                                                 <button class="btn btn-ghost-premium btn-sm" type="button" onclick="window.AcepenPortal.showReportDetails(${report.id})">Voir le détail</button>
                                             </div>
                                         </div>
@@ -5114,18 +5266,7 @@
                 }
 
                 function isSubscriptionUsable(subscription = state.subscription) {
-                    if (!subscription || subscription.status !== 'active') {
-                        return false;
-                    }
-
-                    if (!subscription.end_date) {
-                        return true;
-                    }
-
-                    const endDate = new Date(subscription.end_date);
-                    endDate.setDate(endDate.getDate() + Number(subscription.grâce_period_days || 0));
-
-                    return endDate >= new Date();
+                    return true;
                 }
 
                 function getPendingSubscriptionPayment() {
@@ -5136,26 +5277,20 @@
                     const subscription = state.subscription;
                     const active = isSubscriptionUsable(subscription);
                     const pendingPayment = getPendingSubscriptionPayment();
-                    const statusLabel = active
-                        ? 'Abonnement actif'
-                        : getSubscriptionStatusLabel(subscription?.status || (pendingPayment ? 'pending' : null));
-                    const details = active
-                        ? `Abonnement valable jusqu’au ${formatDateTime(subscription.end_date)}`
-                        : pendingPayment
-                            ? `Paiement ${pendingPayment.reference} en attente de confirmation.`
-                            : 'Active ton abonnement annuel pour effectuer des signalements.';
+                    const statusLabel = 'Accès libre';
+                    const details = 'Vous pouvez effectuer vos signalements sans abonnement.';
 
                     document.getElementById('topbarSubscriptionBadge').textContent = statusLabel;
                     document.getElementById('subscriptionOverviewText').textContent = details;
-                    document.getElementById('subscriptionOverviewButton').textContent = pendingPayment ? 'Finaliser le paiement' : (active ? 'Voir abonnement' : 'Prendre un abonnement');
-                    document.getElementById('openSubscriptionModalButton').textContent = pendingPayment ? 'Finaliser abonnement' : (active ? 'Abonnement actif' : 'Prendre un abonnement');
-                    document.getElementById('openSubscriptionModalButton').classList.toggle('btn-ghost-premium', active);
-                    document.getElementById('openSubscriptionModalButton').classList.toggle('btn-premium', !active);
+                    document.getElementById('subscriptionOverviewButton').textContent = 'Accès libre';
+                    document.getElementById('openSubscriptionModalButton').textContent = 'Accès libre';
+                    document.getElementById('openSubscriptionModalButton').classList.add('btn-ghost-premium');
+                    document.getElementById('openSubscriptionModalButton').classList.remove('btn-premium');
                     renderMemberWalletCard();
 
                     document.getElementById('subscriptionPromptStatus').textContent = statusLabel;
                     document.getElementById('subscriptionPromptDetails').textContent = details;
-                    document.getElementById('subscriptionPromptBadge').textContent = subscription?.status || (pendingPayment ? 'pending' : 'non actif');
+                    document.getElementById('subscriptionPromptBadge').textContent = 'libre';
 
                     const paymentPanel = document.getElementById('subscriptionPaymentPanel');
                     paymentPanel.classList.toggle('d-none', !pendingPayment);
@@ -5164,8 +5299,8 @@
                         document.getElementById('subscriptionPaymentAmount').textContent = formatAmount(pendingPayment.amount, pendingPayment.currency);
                     }
 
-                    document.getElementById('startSubscriptionPaymentButton').classList.toggle('d-none', active || !!pendingPayment);
-                    document.getElementById('confirmSubscriptionPaymentButton').classList.toggle('d-none', active || !pendingPayment);
+                    document.getElementById('startSubscriptionPaymentButton').classList.add('d-none');
+                    document.getElementById('confirmSubscriptionPaymentButton').classList.add('d-none');
                     renderSubscriptionHistory();
                 }
 
@@ -5336,22 +5471,11 @@
                 }
 
                 function shouldPromptSubscription() {
-                    if (isSubscriptionUsable()) {
-                        return false;
-                    }
-
-                    const userId = state.currentUser?.id || 'guest';
-                    return sessionStorage.getItem(`acepen_subscription_prompt_dismissed_${userId}`) !== '1';
+                    return false;
                 }
 
                 function openSubscriptionPrompt(force = false) {
                     renderSubscriptionStatus();
-
-                    if (!force && !shouldPromptSubscription()) {
-                        return;
-                    }
-
-                    subscriptionPromptModal?.show();
                 }
 
                 async function startSubscriptionPayment() {
@@ -5788,7 +5912,18 @@
                     const response = await fetch('/api/v1/public/locations', { headers: { Accept: 'application/json' } });
                     const data = await response.json();
                     state.countries = data.data.countries || [];
-                    state.communes = state.countries.flatMap((country) => (country.cities || []).flatMap((city) => city.communes || []));
+                    state.cities = state.countries.flatMap((country) => (country.cities || []).map((city) => ({
+                        ...city,
+                        country_id: country.id,
+                        country_name: country.name,
+                    })));
+                    state.communes = state.countries.flatMap((country) => (country.cities || []).flatMap((city) => (city.communes || []).map((commune) => ({
+                        ...commune,
+                        city_id: city.id,
+                        city_name: city.name,
+                        country_id: country.id,
+                        country_name: country.name,
+                    }))));
                     populateCommuneSelects();
                     populateReportLocationSelects();
                     const signalResponse = await fetch('/api/v1/public/signal-types', { headers: { Accept: 'application/json' } });
@@ -5800,12 +5935,13 @@
 
                 async function refreshDashboard() {
                     await loadReferenceData();
-                    const [me, meters, household, reports, payments, subscription, discountCard, subscriptionHistory, subscriptionPayments, rexFeedbacks, invitations, reparationCases, notifications] = await Promise.all([
+                    const [me, meters, household, reports, payments, purchaseReceipts, subscription, discountCard, subscriptionHistory, subscriptionPayments, rexFeedbacks, invitations, reparationCases, notifications] = await Promise.all([
                         apiFetch('/me'),
                         apiFetch('/meters'),
                         apiFetch('/households/me'),
                         apiFetch('/reports'),
                         apiFetch('/payments'),
+                        apiFetch('/purchase-receipts'),
                         apiFetch('/subscription'),
                         apiFetch('/discount-card'),
                         apiFetch('/subscriptions'),
@@ -5826,6 +5962,7 @@
                     state.unreadNotificationsCount = notifications.data.unread_count || 0;
                     renderSubscriptionStatus();
                     renderMeters(meters.data.meters);
+                    renderPurchaseReceipts(purchaseReceipts.data.purchase_receipts || []);
                     const households = household.data.households || [];
                     const selectedHousehold = households.find((item) => String(item.id) === String(state.selectedHouseholdId))
                         || household.data.household;
@@ -5837,7 +5974,6 @@
                     renderNotifications();
                     renderIncomingHouseholdInvitations(invitations.data.invitations);
                     renderReparationCases(reparationCases.data.reparation_cases);
-                    openSubscriptionPrompt();
                     restorePendingReportPayment();
                 }
 
@@ -5855,7 +5991,9 @@
                         form.meter_number.value = meter.meter_number;
                         form.meter_number.disabled = true;
                         form.label.value = meter.label || '';
-                        populateCommuneSelects(meter.commune || null);
+                        const meterCity = meter.city || state.communes.find((commune) => commune.name === meter.commune)?.city_name || null;
+                        populateMeterCityOptions(meterCity);
+                        populateMeterCommuneOptions(meter.commune || null);
                         form.commune.value = meter.commune || '';
                         populateMeterNeighborhoodOptions(meter.neighborhood || '', meter.sub_neighborhood || '');
                         form.neighborhood.value = meter.neighborhood || '';
@@ -5938,9 +6076,66 @@
 
                         document.getElementById('damageDeclarationReportId').value = String(report.id);
                         document.getElementById('damageDeclarationTitle').textContent = `${report.reference} · ${report.signal_label || report.signal_code}`;
-                        document.getElementById('damageDeclarationForm').reset();
+                        const form = document.getElementById('damageDeclarationForm');
+                        form.reset();
+                        form.dataset.mode = 'create';
+                        form.querySelector('button[type="submit"]').textContent = 'Enregistrer le dommage';
+                        document.getElementById('damageAttachmentInput').required = true;
+                        ['receipt_material_name', 'receipt_purchase_date', 'receipt_amount'].forEach((name) => {
+                            form.elements[name].disabled = false;
+                        });
+                        renderPurchaseReceiptOptions();
                         resetDamageAttachmentPreview();
                         damageDeclarationModal?.show();
+                    },
+                    openDamageEditForm(reportId) {
+                        const report = state.reports.find((item) => item.id === reportId);
+
+                        if (!report?.damage_declaration?.declared_at) {
+                            showToast('Aucun dommage a modifier pour ce signalement.', true);
+                            return;
+                        }
+
+                        const form = document.getElementById('damageDeclarationForm');
+                        form.reset();
+                        form.dataset.mode = 'edit';
+                        document.getElementById('damageDeclarationReportId').value = String(report.id);
+                        document.getElementById('damageDeclarationTitle').textContent = `Modifier le dommage · ${report.reference}`;
+                        form.damage_summary.value = report.damage_declaration.summary || '';
+                        form.damage_amount_estimated.value = report.damage_declaration.amount_estimated ?? '';
+                        form.damage_notes.value = report.damage_declaration.notes || '';
+                        document.getElementById('damageAttachmentInput').required = false;
+                        form.querySelector('button[type="submit"]').textContent = 'Mettre a jour le dommage';
+                        ['receipt_material_name', 'receipt_purchase_date', 'receipt_amount'].forEach((name) => {
+                            form.elements[name].disabled = false;
+                        });
+                        renderPurchaseReceiptOptions();
+                        document.getElementById('damagePurchaseReceiptId').value = report.damage_declaration.purchase_receipt?.id || '';
+                        document.getElementById('damagePurchaseReceiptId').dispatchEvent(new Event('change', { bubbles: true }));
+                        resetDamageAttachmentPreview();
+                        damageDeclarationModal?.show();
+                    },
+                    prefillPurchaseReceipt(receiptId) {
+                        const receipt = state.purchaseReceipts.find((item) => Number(item.id) === Number(receiptId));
+                        if (!receipt) return;
+
+                        activatePanel('receipts');
+                        const form = document.getElementById('purchaseReceiptForm');
+                        form.dataset.editId = String(receipt.id);
+                        form.material_name.value = receipt.material_name || '';
+                        form.purchase_date.value = receipt.purchase_date || '';
+                        form.amount.value = receipt.amount || '';
+                        form.querySelector('button[type="submit"]').textContent = 'Mettre à jour le reçu';
+                        document.getElementById('cancelPurchaseReceiptEditButton')?.classList.remove('d-none');
+                    },
+                    async deletePurchaseReceipt(receiptId) {
+                        try {
+                            await apiFetch(`/purchase-receipts/${receiptId}`, { method: 'DELETE' });
+                            showToast('Reçu supprimé avec succès.');
+                            await refreshDashboard();
+                        } catch (error) {
+                            showToast(error.message, true);
+                        }
                     },
                     async acceptInvitation(invitationId) {
                         try {
@@ -6254,18 +6449,20 @@
                     window.AcepenPortal.openDamageForm(reportId);
                 });
                 document.getElementById('openPublicSidebarButton').addEventListener('click', openSidebar);
-                document.getElementById('openSubscriptionModalButton').addEventListener('click', () => openSubscriptionPrompt(true));
-                document.getElementById('subscriptionOverviewButton').addEventListener('click', () => openSubscriptionPrompt(true));
-                document.getElementById('openSubscriptionFromHistoryButton').addEventListener('click', () => openSubscriptionPrompt(true));
+                document.getElementById('openSubscriptionModalButton').addEventListener('click', () => activatePanel('reports'));
+                document.getElementById('subscriptionOverviewButton').addEventListener('click', () => activatePanel('reports'));
+                document.getElementById('openSubscriptionFromHistoryButton').addEventListener('click', () => activatePanel('reports'));
                 document.getElementById('startSubscriptionPaymentButton').addEventListener('click', startSubscriptionPayment);
                 document.getElementById('confirmSubscriptionPaymentButton').addEventListener('click', confirmSubscriptionPayment);
                 subscriptionPromptModalElement?.addEventListener('hidden.bs.modal', () => {
-                    if (!isSubscriptionUsable() && state.currentUser?.id) {
-                        sessionStorage.setItem(`acepen_subscription_prompt_dismissed_${state.currentUser.id}`, '1');
-                    }
+                    return;
                 });
                 document.getElementById('publicSidebarBackdrop').addEventListener('click', closeSidebar);
 
+                document.getElementById('meterCitySelect').addEventListener('change', () => {
+                    populateMeterCommuneOptions();
+                    populateMeterNeighborhoodOptions();
+                });
                 document.getElementById('meterCommuneSelect').addEventListener('change', () => populateMeterNeighborhoodOptions());
                 document.getElementById('meterNeighborhoodSelect').addEventListener('change', () => {
                     populateMeterNeighborhoodOptions(document.getElementById('meterNeighborhoodSelect').value);
@@ -6318,8 +6515,12 @@
                 });
 
                 damageDeclarationModalElement?.addEventListener('hidden.bs.modal', () => {
-                    document.getElementById('damageDeclarationForm').reset();
+                    const form = document.getElementById('damageDeclarationForm');
+                    form.reset();
+                    delete form.dataset.mode;
                     document.getElementById('damageDeclarationReportId').value = '';
+                    document.getElementById('damageAttachmentInput').required = true;
+                    form.querySelector('button[type="submit"]').textContent = 'Enregistrer le dommage';
                     resetDamageAttachmentPreview();
                 });
 
@@ -6405,6 +6606,53 @@
                     } finally {
                         setLoading(form, false);
                     }
+                });
+
+                document.getElementById('purchaseReceiptForm')?.addEventListener('submit', async (event) => {
+                    event.preventDefault();
+                    const form = event.currentTarget;
+                    setLoading(form, true);
+
+                    try {
+                        const payload = Object.fromEntries(new FormData(form).entries());
+                        const editId = form.dataset.editId;
+                        const response = await apiFetch(editId ? `/purchase-receipts/${editId}` : '/purchase-receipts', {
+                            method: editId ? 'PATCH' : 'POST',
+                            body: JSON.stringify(payload),
+                        });
+
+                        form.reset();
+                        delete form.dataset.editId;
+                        form.querySelector('button[type="submit"]').textContent = 'Enregistrer le reçu';
+                        document.getElementById('cancelPurchaseReceiptEditButton')?.classList.add('d-none');
+                        showToast(response.message);
+                        await refreshDashboard();
+                    } catch (error) {
+                        showToast(error.message, true);
+                    } finally {
+                        setLoading(form, false);
+                    }
+                });
+
+                document.getElementById('cancelPurchaseReceiptEditButton')?.addEventListener('click', () => {
+                    const form = document.getElementById('purchaseReceiptForm');
+                    form.reset();
+                    delete form.dataset.editId;
+                    form.querySelector('button[type="submit"]').textContent = 'Enregistrer le reçu';
+                    document.getElementById('cancelPurchaseReceiptEditButton')?.classList.add('d-none');
+                });
+
+                document.getElementById('damagePurchaseReceiptId')?.addEventListener('change', (event) => {
+                    const form = document.getElementById('damageDeclarationForm');
+                    const hasSelectedReceipt = !!event.currentTarget.value;
+
+                    ['receipt_material_name', 'receipt_purchase_date', 'receipt_amount'].forEach((name) => {
+                        const input = form.elements[name];
+                        input.disabled = hasSelectedReceipt;
+                        if (hasSelectedReceipt) {
+                            input.value = '';
+                        }
+                    });
                 });
 
                 document.getElementById('householdForm').addEventListener('submit', async (event) => {
@@ -6553,8 +6801,16 @@
                     try {
                         const payload = Object.fromEntries(new FormData(form).entries());
                         const reportId = payload.report_id;
+                        const isEdit = form.dataset.mode === 'edit';
                         const formData = new FormData(form);
                         formData.delete('report_id');
+                        if (isEdit) {
+                            formData.append('_method', 'PATCH');
+                            const attachment = formData.get('damage_attachment');
+                            if (attachment instanceof File && attachment.size === 0) {
+                                formData.delete('damage_attachment');
+                            }
+                        }
 
                         const response = await apiFetch(`/reports/${reportId}/damages`, {
                             method: 'POST',
@@ -6564,7 +6820,7 @@
                         const session = response.data?.payment_session;
                         showToast(response.message);
                         damageDeclarationModal?.hide();
-                        if (session?.checkout_link) {
+                        if (!isEdit && session?.checkout_link) {
                             showReportPaymentWaiting(session);
                         } else {
                             await refreshDashboard();

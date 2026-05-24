@@ -65,6 +65,7 @@ class StoreMeterRequest extends FormRequest
             'network_type' => ['nullable', 'string', 'max:60'],
             'meter_number' => ['required', 'string', 'max:50', 'regex:/^[A-Z0-9\\-]+$/i'],
             'label' => ['nullable', 'string', 'max:120'],
+            'city' => ['nullable', 'string', 'max:120', 'exists:cities,name'],
             'commune' => ['nullable', 'string', 'max:120', 'exists:communes,name'],
             'neighborhood' => ['nullable', 'string', 'max:120'],
             'sub_neighborhood' => ['nullable', 'string', 'max:120'],

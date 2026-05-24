@@ -32,6 +32,7 @@ class PublicMeterTest extends TestCase
             'network_type' => 'CIE',
             'meter_number' => 'CIE-12345',
             'label' => 'Maison principale',
+            'city' => 'Abidjan',
             'commune' => 'Yopougon',
             'neighborhood' => 'Niangon',
             'sub_neighborhood' => 'Niangon Nord',
@@ -41,6 +42,9 @@ class PublicMeterTest extends TestCase
 
         $createResponse->assertCreated()
             ->assertJsonPath('data.meter.network_type', 'CIE')
+            ->assertJsonPath('data.meter.city', 'Abidjan')
+            ->assertJsonPath('data.meter.assignment_type', 'personal')
+            ->assertJsonPath('data.meter.is_gbonhi', false)
             ->assertJsonPath('data.meter.neighborhood', 'Niangon')
             ->assertJsonPath('data.meter.sub_neighborhood', 'Niangon Nord')
             ->assertJsonPath('data.meter.is_primary', true);
@@ -79,16 +83,19 @@ class PublicMeterTest extends TestCase
             'network_type' => 'CIE',
             'meter_number' => 'CIE-20001',
             'label' => 'Compteur 2',
+            'city' => 'Abidjan',
             'is_primary' => false,
         ])->json('data.meter.id');
 
         $updateResponse = $this->withToken($token)->patchJson("/api/v1/public/meters/{$secondMeter}", [
             'label' => 'Compteur principal',
+            'city' => null,
             'is_primary' => true,
         ]);
 
         $updateResponse->assertOk()
             ->assertJsonPath('data.meter.label', 'Compteur principal')
+            ->assertJsonPath('data.meter.city', null)
             ->assertJsonPath('data.meter.is_primary', true);
 
         $listResponse = $this->withToken($token)->getJson('/api/v1/public/meters');
@@ -136,5 +143,60 @@ class PublicMeterTest extends TestCase
         $this->withToken($token)->getJson('/api/v1/public/meters')
             ->assertOk()
             ->assertJsonCount(2, 'data.meters');
+    }
+
+    public function test_authenticated_public_user_can_delete_meter_assignment(): void
+    {
+        $user = PublicUser::query()->create([
+            'first_name' => 'Mariam',
+            'last_name' => 'Kone',
+            'phone' => '0700000203',
+            'commune' => 'Yopougon',
+            'password' => 'secret123',
+            'status' => 'active',
+            'phone_verified_at' => now(),
+        ]);
+
+        $token = JWTAuth::fromUser($user);
+
+        $firstMeter = $this->withToken($token)->postJson('/api/v1/public/meters', [
+            'network_type' => 'CIE',
+            'meter_number' => 'CIE-30000',
+            'label' => 'Compteur 1',
+            'is_primary' => true,
+        ])->json('data.meter.id');
+
+        $secondMeter = $this->withToken($token)->postJson('/api/v1/public/meters', [
+            'network_type' => 'CIE',
+            'meter_number' => 'CIE-30001',
+            'label' => 'Compteur 2',
+            'is_primary' => false,
+        ])->json('data.meter.id');
+
+        $this->withToken($token)
+            ->deleteJson("/api/v1/public/meters/{$firstMeter}")
+            ->assertOk()
+            ->assertJsonPath('message', 'Compteur supprime avec succes.');
+
+        $this->assertDatabaseMissing('meter_assignments', [
+            'public_user_id' => $user->id,
+            'meter_id' => $firstMeter,
+        ]);
+
+        $this->assertDatabaseHas('meter_assignments', [
+            'public_user_id' => $user->id,
+            'meter_id' => $secondMeter,
+            'is_primary' => true,
+        ]);
+
+        $this->assertDatabaseHas('meters', [
+            'id' => $firstMeter,
+            'meter_number' => 'CIE-30000',
+        ]);
+
+        $this->withToken($token)->getJson('/api/v1/public/meters')
+            ->assertOk()
+            ->assertJsonCount(1, 'data.meters')
+            ->assertJsonPath('data.meters.0.id', $secondMeter);
     }
 }

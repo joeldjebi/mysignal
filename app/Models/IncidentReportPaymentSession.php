@@ -58,4 +58,5 @@ class IncidentReportPaymentSession extends Model
     {
         return $this->belongsTo(IncidentReport::class);
     }
+
 }

@@ -48,6 +48,7 @@ class IncidentReport extends Model
         'damage_amount_estimated',
         'damage_notes',
         'damage_attachment',
+        'purchase_receipt_id',
         'damage_declared_at',
         'damage_resolution_status',
         'damage_resolution_notes',
@@ -121,6 +122,11 @@ class IncidentReport extends Model
     public function reparationCase(): HasOne
     {
         return $this->hasOne(ReparationCase::class);
+    }
+
+    public function purchaseReceipt(): BelongsTo
+    {
+        return $this->belongsTo(PurchaseReceipt::class);
     }
 
     public function notificationContexts(): HasMany

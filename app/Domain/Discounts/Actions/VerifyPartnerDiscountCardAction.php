@@ -42,18 +42,6 @@ class VerifyPartnerDiscountCardAction
 
         $subscription = $card->subscription;
 
-        if ($subscription === null || ! $subscription->isActive()) {
-            throw ValidationException::withMessages([
-                'card_uuid' => ['L abonnement associe n est pas actif.'],
-            ]);
-        }
-
-        if ($subscription->end_date !== null && $subscription->end_date->isPast()) {
-            throw ValidationException::withMessages([
-                'card_uuid' => ['L abonnement associe est arrive a expiration.'],
-            ]);
-        }
-
         if ($this->isSelfDiscountAttempt($partnerUser, $card)) {
             throw ValidationException::withMessages([
                 'card_uuid' => ['Un agent partenaire ne peut pas appliquer une reduction sur sa propre carte UP.'],
@@ -97,7 +85,7 @@ class VerifyPartnerDiscountCardAction
             'card' => $card,
             'offer' => $offer,
             'member_display_name' => trim((string) ($card->publicUser?->first_name.' '.$card->publicUser?->last_name)),
-            'subscription_status' => $subscription->status,
+            'subscription_status' => $subscription?->status ?? 'not_required',
             'message' => 'Carte valide.',
             'verified_at' => $now->toIso8601String(),
         ];

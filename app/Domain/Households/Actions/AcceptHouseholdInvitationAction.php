@@ -55,6 +55,7 @@ class AcceptHouseholdInvitationAction
                     ],
                     [
                         'is_primary' => false,
+                        'assignment_source' => 'gbonhi',
                     ],
                 );
             }

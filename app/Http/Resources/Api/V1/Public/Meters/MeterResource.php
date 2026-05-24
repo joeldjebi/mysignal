@@ -14,6 +14,8 @@ class MeterResource extends JsonResource
             ? $this->application
             : ApplicationCatalog::findByNetworkType($this->network_type);
 
+        $assignmentSource = $this->pivot?->assignment_source ?: 'personal';
+
         return [
             'id' => $this->id,
             'application_id' => $application?->id,
@@ -27,6 +29,7 @@ class MeterResource extends JsonResource
             'network_type' => $this->network_type,
             'meter_number' => $this->meter_number,
             'label' => $this->label,
+            'city' => $this->city,
             'commune' => $this->commune,
             'neighborhood' => $this->neighborhood,
             'sub_neighborhood' => $this->sub_neighborhood,
@@ -37,6 +40,10 @@ class MeterResource extends JsonResource
             'location_source' => $this->location_source,
             'status' => $this->status,
             'is_primary' => (bool) ($this->pivot?->is_primary ?? false),
+            'assignment_source' => $assignmentSource,
+            'assignment_type' => $assignmentSource,
+            'is_gbonhi' => $assignmentSource === 'gbonhi',
+            'assignment_label' => $assignmentSource === 'gbonhi' ? 'Compteur Gbonhi' : 'Compteur personnel',
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

@@ -8,10 +8,12 @@ use App\Domain\Reports\Enums\IncidentReportStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Public\Reports\StoreIncidentReportDamageRequest;
 use App\Http\Requests\Api\V1\Public\Reports\StoreIncidentReportRequest;
+use App\Http\Requests\Api\V1\Public\Reports\UpdateIncidentReportDamageRequest;
 use App\Http\Resources\Api\V1\Public\Payments\IncidentReportPaymentSessionResource;
 use App\Http\Resources\Api\V1\Public\Reports\IncidentReportDamageResource;
 use App\Http\Resources\Api\V1\Public\Reports\IncidentReportResource;
 use App\Models\IncidentReport;
+use App\Models\PurchaseReceipt;
 use App\Support\Api\ApiResponse;
 use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\Request;
@@ -22,7 +24,7 @@ class PublicIncidentReportController extends Controller
     public function index(Request $request)
     {
         $reports = IncidentReport::query()
-            ->with(['application', 'organization', 'meter.organization', 'country', 'city', 'commune', 'payments.pricingRule'])
+            ->with(['application', 'organization', 'meter.organization', 'country', 'city', 'commune', 'purchaseReceipt', 'payments.pricingRule'])
             ->where('public_user_id', $request->user('public_api')->id)
             ->latest('id')
             ->get();
@@ -66,7 +68,7 @@ class PublicIncidentReportController extends Controller
     public function show(Request $request, IncidentReport $report)
     {
         abort_unless((int) $report->public_user_id === (int) $request->user('public_api')->id, 404);
-        $report->load(['application', 'organization', 'meter.organization', 'country', 'city', 'commune', 'payments.pricingRule']);
+        $report->load(['application', 'organization', 'meter.organization', 'country', 'city', 'commune', 'purchaseReceipt', 'payments.pricingRule']);
 
         return ApiResponse::success([
             'report' => new IncidentReportResource($report),
@@ -76,7 +78,7 @@ class PublicIncidentReportController extends Controller
     public function damages(Request $request)
     {
         $damages = IncidentReport::query()
-            ->with(['application', 'organization', 'reparationCase'])
+            ->with(['application', 'organization', 'purchaseReceipt', 'reparationCase'])
             ->where('public_user_id', $request->user('public_api')->id)
             ->whereNotNull('damage_declared_at')
             ->when($request->filled('resolution_status'), fn ($query) => $query->where('damage_resolution_status', (string) $request->string('resolution_status')))
@@ -100,7 +102,7 @@ class PublicIncidentReportController extends Controller
             'resolution_confirmed_at' => now(),
         ]);
 
-        $report->load(['application', 'organization', 'meter.organization', 'country', 'city', 'commune', 'payments.pricingRule']);
+        $report->load(['application', 'organization', 'meter.organization', 'country', 'city', 'commune', 'purchaseReceipt', 'payments.pricingRule']);
 
         $activityLogger->log(
             'public.report.resolution_confirmed',
@@ -139,16 +141,73 @@ class PublicIncidentReportController extends Controller
         return $this->initiateDamagePayment($request, $report, $action, $activityLogger);
     }
 
+    public function updateDamage(UpdateIncidentReportDamageRequest $request, IncidentReport $report, ActivityLogger $activityLogger)
+    {
+        abort_unless((int) $report->public_user_id === (int) $request->user('public_api')->id, 404);
+
+        if ($report->damage_declared_at === null) {
+            throw ValidationException::withMessages([
+                'report_id' => ['Aucun dommage n est encore enregistre pour ce signalement.'],
+            ]);
+        }
+
+        $attributes = $request->validated();
+        $purchaseReceipt = $this->resolveDamagePurchaseReceipt($request, $attributes);
+        $payload = [];
+
+        foreach (['damage_summary', 'damage_amount_estimated', 'damage_notes'] as $field) {
+            if (array_key_exists($field, $attributes)) {
+                $payload[$field] = $attributes[$field];
+            }
+        }
+
+        if ($purchaseReceipt instanceof PurchaseReceipt) {
+            $payload['purchase_receipt_id'] = $purchaseReceipt->id;
+        } elseif (array_key_exists('purchase_receipt_id', $attributes)) {
+            $payload['purchase_receipt_id'] = null;
+        }
+
+        if ($payload !== []) {
+            $report->update($payload);
+        }
+
+        $report->load(['application', 'organization', 'meter.organization', 'country', 'city', 'commune', 'purchaseReceipt', 'payments.pricingRule']);
+
+        $activityLogger->log(
+            'public.report.damage_updated',
+            'Mise a jour d un dommage par l usager.',
+            $report,
+            [
+                'reference' => $report->reference,
+                'damage_amount_estimated' => $report->damage_amount_estimated,
+                'purchase_receipt_id' => $report->purchase_receipt_id,
+            ],
+            $request
+        );
+
+        return ApiResponse::success([
+            'report' => new IncidentReportResource($report),
+            'damage' => new IncidentReportDamageResource($report),
+        ], 'Dommage mis a jour avec succes.');
+    }
+
     private function initiateDamagePayment(StoreIncidentReportDamageRequest $request, IncidentReport $report, InitiateDamageDeclarationFineoPaymentAction $action, ActivityLogger $activityLogger)
     {
         $attributes = $request->validated();
         $damageAttachmentFile = $request->file('damage_attachment');
+        $purchaseReceipt = $this->resolveDamagePurchaseReceipt($request, $attributes);
 
         if (! $damageAttachmentFile) {
             throw ValidationException::withMessages([
                 'damage_attachment' => ['Le justificatif du dommage est requis.'],
             ]);
         }
+
+        if ($purchaseReceipt instanceof PurchaseReceipt) {
+            $attributes['purchase_receipt_id'] = $purchaseReceipt->id;
+        }
+
+        unset($attributes['receipt_material_name'], $attributes['receipt_purchase_date'], $attributes['receipt_amount']);
 
         $paymentSession = $action->handle(
             $request->user('public_api'),
@@ -176,5 +235,38 @@ class PublicIncidentReportController extends Controller
             'payment_session' => new IncidentReportPaymentSessionResource($paymentSession),
             'checkout_link' => $paymentSession->checkout_link,
         ], 'Lien de paiement genere avec succes. Le dommage sera enregistre apres paiement.', 201);
+    }
+
+    private function resolveDamagePurchaseReceipt(Request $request, array $attributes): ?PurchaseReceipt
+    {
+        $user = $request->user('public_api');
+
+        if (! empty($attributes['purchase_receipt_id'])) {
+            $receipt = $user->purchaseReceipts()
+                ->whereKey($attributes['purchase_receipt_id'])
+                ->first();
+
+            if ($receipt === null) {
+                throw ValidationException::withMessages([
+                    'purchase_receipt_id' => ['Le recu selectionne est introuvable pour cet usager.'],
+                ]);
+            }
+
+            return $receipt;
+        }
+
+        $hasInlineReceipt = filled($attributes['receipt_material_name'] ?? null)
+            || filled($attributes['receipt_purchase_date'] ?? null)
+            || filled($attributes['receipt_amount'] ?? null);
+
+        if (! $hasInlineReceipt) {
+            return null;
+        }
+
+        return $user->purchaseReceipts()->create([
+            'material_name' => $attributes['receipt_material_name'],
+            'purchase_date' => $attributes['receipt_purchase_date'],
+            'amount' => $attributes['receipt_amount'],
+        ]);
     }
 }

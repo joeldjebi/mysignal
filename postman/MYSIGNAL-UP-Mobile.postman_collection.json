@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "d9fc140d-3013-4373-b6cf-cd1fbc59c205",
     "name": "My-Signal UP Mobile API",
-    "description": "Collection Postman pour l integration mobile des usagers publics (UP). Elle couvre les catalogues publics dont les secteurs d activite, l authentification OTP, la gestion du profil, des compteurs, des foyers Gonhi, des signalements, des paiements, des abonnements UP, des dossiers contentieux et des retours d experience.",
+    "description": "Collection Postman pour l integration mobile des usagers publics (UP). Elle couvre les catalogues publics dont les secteurs d activite, l authentification OTP, la gestion du profil, des compteurs, des foyers Gonhi, des recus d achat, des signalements, des paiements, des dossiers contentieux et des retours d experience. Les abonnements UP restent documentes comme historique optionnel, mais ils ne conditionnent plus l acces aux signalements.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -36,6 +36,7 @@
     { "key": "organizationTypeId", "value": "1" },
     { "key": "countryId", "value": "1" },
     { "key": "cityId", "value": "1" },
+    { "key": "cityName", "value": "Abidjan" },
     { "key": "communeId", "value": "1" },
     { "key": "communeName", "value": "Cocody" },
     { "key": "neighborhoodName", "value": "Riviera" },
@@ -48,6 +49,10 @@
     { "key": "meterNumber", "value": "AB12345678" },
     { "key": "additionalMeterNumber", "value": "AB87654321" },
     { "key": "meterId", "value": "" },
+    { "key": "purchaseReceiptId", "value": "" },
+    { "key": "receiptMaterialName", "value": "Television" },
+    { "key": "receiptPurchaseDate", "value": "2026-05-20" },
+    { "key": "receiptAmount", "value": "150000" },
     { "key": "reportId", "value": "" },
     { "key": "paymentSessionSyncRef", "value": "" },
     { "key": "paymentId", "value": "" },
@@ -595,7 +600,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"application_id\": {{applicationId}},\n  \"organization_id\": {{organizationId}},\n  \"network_type\": \"CIE\",\n  \"meter_number\": \"{{meterNumber}}\",\n  \"label\": \"Compteur principal\",\n  \"commune\": \"{{communeName}}\",\n  \"neighborhood\": \"{{neighborhoodName}}\",\n  \"sub_neighborhood\": \"{{subNeighborhoodName}}\",\n  \"address\": \"{{address}}\",\n  \"latitude\": {{latitude}},\n  \"longitude\": {{longitude}},\n  \"location_accuracy\": {{locationAccuracy}},\n  \"location_source\": \"gps\",\n  \"is_primary\": true\n}"
+              "raw": "{\n  \"application_id\": {{applicationId}},\n  \"organization_id\": {{organizationId}},\n  \"network_type\": \"CIE\",\n  \"meter_number\": \"{{meterNumber}}\",\n  \"label\": \"Compteur principal\",\n  \"city\": \"{{cityName}}\",\n  \"commune\": \"{{communeName}}\",\n  \"neighborhood\": \"{{neighborhoodName}}\",\n  \"sub_neighborhood\": \"{{subNeighborhoodName}}\",\n  \"address\": \"{{address}}\",\n  \"latitude\": {{latitude}},\n  \"longitude\": {{longitude}},\n  \"location_accuracy\": {{locationAccuracy}},\n  \"location_source\": \"gps\",\n  \"is_primary\": true\n}"
             },
             "url": "{{baseUrl}}/v1/public/meters"
           }
@@ -610,7 +615,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"application_id\": {{applicationId}},\n  \"organization_id\": {{organizationId}},\n  \"network_type\": \"CIE\",\n  \"meter_number\": \"{{additionalMeterNumber}}\",\n  \"label\": \"Compteur secondaire\",\n  \"commune\": \"{{communeName}}\",\n  \"neighborhood\": \"{{neighborhoodName}}\",\n  \"sub_neighborhood\": \"{{subNeighborhoodName}}\",\n  \"address\": \"Rue 24\",\n  \"latitude\": {{latitude}},\n  \"longitude\": {{longitude}},\n  \"location_accuracy\": {{locationAccuracy}},\n  \"location_source\": \"gps\",\n  \"is_primary\": false\n}"
+              "raw": "{\n  \"application_id\": {{applicationId}},\n  \"organization_id\": {{organizationId}},\n  \"network_type\": \"CIE\",\n  \"meter_number\": \"{{additionalMeterNumber}}\",\n  \"label\": \"Compteur secondaire\",\n  \"city\": \"{{cityName}}\",\n  \"commune\": \"{{communeName}}\",\n  \"neighborhood\": \"{{neighborhoodName}}\",\n  \"sub_neighborhood\": \"{{subNeighborhoodName}}\",\n  \"address\": \"Rue 24\",\n  \"latitude\": {{latitude}},\n  \"longitude\": {{longitude}},\n  \"location_accuracy\": {{locationAccuracy}},\n  \"location_source\": \"gps\",\n  \"is_primary\": false\n}"
             },
             "url": "{{baseUrl}}/v1/public/meters"
           }
@@ -633,8 +638,16 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"application_id\": {{applicationId}},\n  \"organization_id\": {{organizationId}},\n  \"label\": \"Compteur salon\",\n  \"commune\": \"{{communeName}}\",\n  \"neighborhood\": \"{{neighborhoodName}}\",\n  \"sub_neighborhood\": \"{{subNeighborhoodName}}\",\n  \"address\": \"Rue 12 bis\",\n  \"latitude\": {{latitude}},\n  \"longitude\": {{longitude}},\n  \"location_accuracy\": {{locationAccuracy}},\n  \"location_source\": \"gps\",\n  \"is_primary\": true\n}"
+              "raw": "{\n  \"application_id\": {{applicationId}},\n  \"organization_id\": {{organizationId}},\n  \"label\": \"Compteur salon\",\n  \"city\": \"{{cityName}}\",\n  \"commune\": \"{{communeName}}\",\n  \"neighborhood\": \"{{neighborhoodName}}\",\n  \"sub_neighborhood\": \"{{subNeighborhoodName}}\",\n  \"address\": \"Rue 12 bis\",\n  \"latitude\": {{latitude}},\n  \"longitude\": {{longitude}},\n  \"location_accuracy\": {{locationAccuracy}},\n  \"location_source\": \"gps\",\n  \"is_primary\": true\n}"
             },
+            "url": "{{baseUrl}}/v1/public/meters/{{meterId}}"
+          }
+        },
+        {
+          "name": "Delete Meter",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
             "url": "{{baseUrl}}/v1/public/meters/{{meterId}}"
           }
         }
@@ -739,7 +752,79 @@
       ]
     },
     {
-      "name": "06 - Signalements",
+      "name": "06 - Recus d'achat",
+      "item": [
+        {
+          "name": "List Purchase Receipts",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/purchase-receipts",
+            "description": "Liste les recus d achat de materiel enregistres par l UP connecte."
+          }
+        },
+        {
+          "name": "Create Purchase Receipt",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json?.data?.purchase_receipt?.id) pm.environment.set('purchaseReceiptId', json.data.purchase_receipt.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"material_name\": \"{{receiptMaterialName}}\",\n  \"purchase_date\": \"{{receiptPurchaseDate}}\",\n  \"amount\": {{receiptAmount}}\n}"
+            },
+            "url": "{{baseUrl}}/v1/public/purchase-receipts"
+          }
+        },
+        {
+          "name": "Show Purchase Receipt",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/purchase-receipts/{{purchaseReceiptId}}"
+          }
+        },
+        {
+          "name": "Update Purchase Receipt",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"material_name\": \"{{receiptMaterialName}}\",\n  \"purchase_date\": \"{{receiptPurchaseDate}}\",\n  \"amount\": {{receiptAmount}}\n}"
+            },
+            "url": "{{baseUrl}}/v1/public/purchase-receipts/{{purchaseReceiptId}}"
+          }
+        },
+        {
+          "name": "Delete Purchase Receipt",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/purchase-receipts/{{purchaseReceiptId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 - Signalements",
       "item": [
         {
           "name": "List Reports",
@@ -871,6 +956,30 @@
                   "type": "text"
                 },
                 {
+                  "key": "purchase_receipt_id",
+                  "value": "{{purchaseReceiptId}}",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "receipt_material_name",
+                  "value": "{{receiptMaterialName}}",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "receipt_purchase_date",
+                  "value": "{{receiptPurchaseDate}}",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "receipt_amount",
+                  "value": "{{receiptAmount}}",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
                   "key": "damage_attachment",
                   "type": "file",
                   "src": []
@@ -878,7 +987,7 @@
               ]
             },
             "url": "{{baseUrl}}/v1/public/reports/{{reportId}}/damages",
-            "description": "Initialise une session FineoPay pour declarer un dommage. Envoyer multipart/form-data avec les champs damage_summary, damage_amount_estimated, damage_notes et damage_attachment en image ou PDF. Le dommage est enregistre uniquement apres callback FineoPay success."
+            "description": "Initialise une session FineoPay pour declarer un dommage. purchase_receipt_id est facultatif pour lier un recu existant; sinon activer receipt_material_name, receipt_purchase_date et receipt_amount pour creer un recu pendant la declaration. Le dommage est enregistre uniquement apres callback FineoPay success."
           }
         },
         {
@@ -901,6 +1010,38 @@
             "header": [{ "key": "Accept", "value": "application/json" }],
             "url": "{{baseUrl}}/v1/public/damages",
             "description": "Liste les dommages declares par l UP connecte. Filtre optionnel: ?resolution_status=submitted|in_progress|resolved|rejected."
+          }
+        },
+        {
+          "name": "Update Damage",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"damage_summary\": \"Materiel endommage mis a jour\",\n  \"damage_amount_estimated\": 30000,\n  \"damage_notes\": \"Routeur et decodeur grilles\",\n  \"purchase_receipt_id\": {{purchaseReceiptId}}\n}"
+            },
+            "url": "{{baseUrl}}/v1/public/reports/{{reportId}}/damages",
+            "description": "Met a jour les informations d un dommage deja declare. purchase_receipt_id est facultatif; envoyer null pour retirer le recu rattache. On peut aussi envoyer receipt_material_name, receipt_purchase_date et receipt_amount pour creer un nouveau recu pendant la mise a jour."
+          }
+        },
+        {
+          "name": "Update Damage With Inline Receipt",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"damage_summary\": \"Materiel endommage avec nouveau recu\",\n  \"damage_amount_estimated\": 30000,\n  \"damage_notes\": \"Recu cree pendant la mise a jour du dommage\",\n  \"receipt_material_name\": \"{{receiptMaterialName}}\",\n  \"receipt_purchase_date\": \"{{receiptPurchaseDate}}\",\n  \"receipt_amount\": {{receiptAmount}}\n}"
+            },
+            "url": "{{baseUrl}}/v1/public/damages/{{reportId}}",
+            "description": "Alias mobile direct pour mettre a jour un dommage via son report_id et creer un recu en meme temps."
           }
         },
         {
@@ -934,6 +1075,30 @@
                   "type": "text"
                 },
                 {
+                  "key": "purchase_receipt_id",
+                  "value": "{{purchaseReceiptId}}",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "receipt_material_name",
+                  "value": "{{receiptMaterialName}}",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "receipt_purchase_date",
+                  "value": "{{receiptPurchaseDate}}",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "receipt_amount",
+                  "value": "{{receiptAmount}}",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
                   "key": "damage_attachment",
                   "type": "file",
                   "src": []
@@ -941,13 +1106,13 @@
               ]
             },
             "url": "{{baseUrl}}/v1/public/damages",
-            "description": "Endpoint mobile direct: initialise une session FineoPay pour declarer un dommage. Envoyer multipart/form-data avec report_id, damage_summary, damage_amount_estimated, damage_notes et damage_attachment en image ou PDF. Le dommage est enregistre uniquement apres callback FineoPay success."
+            "description": "Endpoint mobile direct: initialise une session FineoPay pour declarer un dommage. Le recu d achat est facultatif: activer purchase_receipt_id pour un recu existant, ou les 3 champs receipt_* pour creer un recu pendant la declaration."
           }
         }
       ]
     },
     {
-      "name": "07 - Paiements",
+      "name": "08 - Paiements",
       "description": "Le flux de paiement actuel est simule.",
       "item": [
         {
@@ -1015,7 +1180,7 @@
       ]
     },
     {
-      "name": "08 - Dossiers contentieux",
+      "name": "09 - Dossiers contentieux",
       "item": [
         {
           "name": "List Reparation Cases / Mes dossiers",
@@ -1051,8 +1216,8 @@
       ]
     },
     {
-      "name": "09 - Abonnements UP",
-      "description": "Flux d abonnement annuel UP, paiement simule associe et carte de reduction mobile.",
+      "name": "10 - Abonnements UP (historique optionnel)",
+      "description": "Historique optionnel: les abonnements UP ne conditionnent plus l acces aux signalements. Ces endpoints restent disponibles pour consulter ou tester l ancien flux.",
       "item": [
         {
           "name": "List Subscriptions",
@@ -1168,7 +1333,7 @@
       ]
     },
     {
-      "name": "10 - Retours d experience",
+      "name": "11 - Retours d experience",
       "description": "REX mobile sur signalement, dommage ou dossier contentieux eligible.",
       "item": [
         {
@@ -1267,7 +1432,7 @@
       ]
     },
     {
-      "name": "11 - Notifications push",
+      "name": "12 - Notifications push",
       "description": "Enregistrement du token Firebase et consultation des notifications UP avec filtres mobile.",
       "item": [
         {

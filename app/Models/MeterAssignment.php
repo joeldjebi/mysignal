@@ -11,6 +11,7 @@ class MeterAssignment extends Model
         'meter_id',
         'public_user_id',
         'is_primary',
+        'assignment_source',
     ];
 
     protected function casts(): array

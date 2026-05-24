@@ -24,6 +24,12 @@
 
                 <div class="vstack gap-3">
                     <div>
+                        <div class="small text-secondary">Usage</div>
+                        <div class="fw-semibold">
+                            {{ $meter->assignments->contains('assignment_source', 'gbonhi') ? 'Compteur Gbonhi' : 'Compteur personnel' }}
+                        </div>
+                    </div>
+                    <div>
                         <div class="small text-secondary">Commune</div>
                         <div class="fw-semibold">{{ $meter->commune ?: '-' }}</div>
                     </div>

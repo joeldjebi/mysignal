@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Api\V1\Public\Reports;
 
+use App\Http\Resources\Api\V1\Public\PurchaseReceipts\PurchaseReceiptResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -36,6 +37,9 @@ class IncidentReportDamageResource extends JsonResource
             'amount_estimated' => $this->damage_amount_estimated !== null ? (float) $this->damage_amount_estimated : null,
             'notes' => $this->damage_notes,
             'attachment' => $this->resolvedDamageAttachment(),
+            'purchase_receipt' => $this->whenLoaded('purchaseReceipt', fn () => $this->purchaseReceipt
+                ? new PurchaseReceiptResource($this->purchaseReceipt)
+                : null),
             'resolution_status' => $this->damage_resolution_status,
             'resolution_notes' => $this->damage_resolution_notes,
             'resolved_at' => $this->damage_resolved_at?->toIso8601String(),

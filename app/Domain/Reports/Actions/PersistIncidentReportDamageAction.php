@@ -35,13 +35,14 @@ class PersistIncidentReportDamageAction
             'damage_amount_estimated' => $payload['damage_amount_estimated'] ?? null,
             'damage_notes' => $payload['damage_notes'] ?? null,
             'damage_attachment' => $damageAttachment,
+            'purchase_receipt_id' => $payload['purchase_receipt_id'] ?? null,
             'damage_declared_at' => now(),
             'damage_resolution_status' => 'submitted',
             'damage_resolution_notes' => null,
             'damage_resolved_at' => null,
         ]);
 
-        $report->load(['application', 'organization', 'meter.organization', 'country', 'city', 'commune', 'payments.pricingRule']);
+        $report->load(['application', 'organization', 'meter.organization', 'country', 'city', 'commune', 'purchaseReceipt', 'payments.pricingRule']);
 
         $this->activityLogger->log(
             'public.report.damage_declared',

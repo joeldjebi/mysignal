@@ -16,6 +16,7 @@ class UpdateMeterAction
                 'organization_id' => $payload['organization_id'] ?? $meter->organization_id,
                 'network_type' => $payload['network_type'] ?? $meter->network_type,
                 'label' => $payload['label'] ?? $meter->label,
+                'city' => array_key_exists('city', $payload) ? $payload['city'] : $meter->city,
                 'commune' => $payload['commune'] ?? $meter->commune,
                 'neighborhood' => $payload['neighborhood'] ?? $meter->neighborhood,
                 'sub_neighborhood' => $payload['sub_neighborhood'] ?? $meter->sub_neighborhood,

@@ -109,6 +109,7 @@ Ces endpoints servent a alimenter :
 
 ### 6. Donnees metier principales
 - compteurs : `meters`
+- recus d achat : `purchase-receipts`
 - foyers Gonhi : `households`
 - signalements : `reports`
 - paiements : `payments`
@@ -330,6 +331,7 @@ Body d exemple :
   "organization_id": 1,
   "meter_number": "AB12345678",
   "label": "Compteur principal",
+  "city": "Abidjan",
   "commune": "Cocody",
   "address": "Rue 12",
   "is_primary": true
@@ -341,6 +343,39 @@ Retourne un compteur possede par l usager.
 
 #### PATCH `/v1/public/meters/{meter}`
 Met a jour un compteur.
+
+#### DELETE `/v1/public/meters/{meter}`
+Supprime l identifiant du compte courant.
+
+La suppression retire le rattachement entre l usager connecte et l identifiant. Les signalements historiques et les rattachements d autres usagers restent conserves.
+
+Les compteurs retournes par l API incluent aussi :
+- `assignment_type` : `personal` ou `gbonhi`
+- `is_gbonhi` : booleen
+- `assignment_label` : libelle pret a afficher cote mobile
+
+### Recus d achat
+
+#### GET `/v1/public/purchase-receipts`
+Liste les recus d achat de materiel enregistres par l UP connecte.
+
+#### POST `/v1/public/purchase-receipts`
+Enregistre un recu d achat.
+
+Body :
+```json
+{
+  "material_name": "Television",
+  "purchase_date": "2026-05-20",
+  "amount": 150000
+}
+```
+
+#### PATCH `/v1/public/purchase-receipts/{purchaseReceipt}`
+Met a jour un recu d achat.
+
+#### DELETE `/v1/public/purchase-receipts/{purchaseReceipt}`
+Supprime un recu d achat du compte courant.
 
 ### Foyers Gonhi
 
@@ -547,9 +582,29 @@ damage_summary=Materiel endommage
 damage_amount_estimated=25000
 damage_notes=Routeur grille
 damage_attachment=@preuve.jpg
+purchase_receipt_id=1
 ```
 
 `damage_attachment` est obligatoire. Formats acceptes : image `jpeg`, `png`, `webp`, `gif`, `heic`, `heif` ou PDF. Taille max : 10 Mo.
+Le recu d achat est facultatif. Envoyer `purchase_receipt_id` pour rattacher un recu existant, ou envoyer directement `receipt_material_name`, `receipt_purchase_date` et `receipt_amount` pour creer un recu pendant la declaration.
+
+#### PATCH `/v1/public/reports/{report}/damages`
+Met a jour un dommage deja declare, sans relancer de paiement.
+
+Body possible :
+```json
+{
+  "damage_summary": "Materiel endommage mis a jour",
+  "damage_amount_estimated": 30000,
+  "damage_notes": "Routeur et decodeur grilles",
+  "purchase_receipt_id": 1
+}
+```
+
+`purchase_receipt_id` est facultatif. Envoyer `null` pour retirer le recu rattache. Pour creer un recu pendant la mise a jour, envoyer `receipt_material_name`, `receipt_purchase_date` et `receipt_amount`.
+
+Alias mobile direct :
+- `PATCH /v1/public/damages/{report}`
 
 Reponse `201` :
 ```json

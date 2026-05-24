@@ -17,7 +17,10 @@ class MeterController extends Controller
 
         $query = $this->institutionMetersQuery($context['application_id'], $context['organization_id'], $context['network_type']);
 
-        $query->with(['application', 'organization']);
+        $query->with(['application', 'organization'])
+            ->withCount([
+                'assignments as gbonhi_assignments_count' => fn ($builder) => $builder->where('assignment_source', 'gbonhi'),
+            ]);
 
         if (filled(request('search'))) {
             $search = trim((string) request('search'));
@@ -51,6 +54,7 @@ class MeterController extends Controller
             'application',
             'organization',
             'publicUsers',
+            'assignments',
             'incidentReports' => fn ($query) => $query
                 ->with('commune')
                 ->when($context['application_id'] !== null, fn ($builder) => $builder->where('application_id', $context['application_id']))
