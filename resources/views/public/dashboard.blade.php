@@ -1853,6 +1853,11 @@
                                         <label class="form-label fw-semibold">Montant (FCFA)</label>
                                         <input class="form-control" type="number" min="0" step="0.01" name="amount" required>
                                     </div>
+                                    <div class="col-12">
+                                        <label class="form-label fw-semibold">Fichier du reçu</label>
+                                        <input class="form-control" type="file" name="receipt_file" accept="image/*,application/pdf">
+                                        <div class="location-search-hint">Image ou PDF stocké sur Wasabi. Optionnel lors de la saisie, remplaçable à la modification.</div>
+                                    </div>
                                     <div class="col-12 d-flex justify-content-end gap-2">
                                         <button class="btn btn-ghost-premium px-4 d-none" type="button" id="cancelPurchaseReceiptEditButton">Annuler</button>
                                         <button class="btn btn-premium px-4" type="submit">Enregistrer le reçu</button>
@@ -2074,6 +2079,11 @@
                             <div class="col-md-4">
                                 <label class="form-label fw-semibold">Montant (FCFA)</label>
                                 <input class="form-control" type="number" min="0" step="0.01" name="receipt_amount" placeholder="150000">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Fichier du reçu</label>
+                                <input class="form-control" type="file" name="receipt_attachment" accept="image/*,application/pdf">
+                                <div class="geo-help mt-2">Optionnel. Si vous créez un reçu ici, le fichier sera stocké sur Wasabi.</div>
                             </div>
                             <div class="col-12 d-flex justify-content-end gap-2">
                                 <button class="btn btn-ghost-premium px-4" type="button" data-bs-dismiss="modal">Annuler</button>
@@ -3847,6 +3857,9 @@
                                     </div>
                                     <span class="status-pill">${formatAmount(receipt.amount)}</span>
                                 </div>
+                                ${receipt.attachment?.temporary_url
+                                    ? `<a class="btn btn-ghost-premium w-100 mt-2" href="${escapeHtml(receipt.attachment.temporary_url)}" target="_blank" rel="noopener">Voir le fichier</a>`
+                                    : '<div class="muted-label mt-2">Aucun fichier joint</div>'}
                                 <div class="d-flex gap-2 mt-3">
                                     <button class="btn btn-ghost-premium flex-fill" type="button" onclick="window.AcepenPortal.prefillPurchaseReceipt(${receipt.id})">Modifier</button>
                                     <button class="btn btn-ghost-premium flex-fill" type="button" onclick="window.AcepenPortal.deletePurchaseReceipt(${receipt.id})">Supprimer</button>
@@ -6081,7 +6094,7 @@
                         form.dataset.mode = 'create';
                         form.querySelector('button[type="submit"]').textContent = 'Enregistrer le dommage';
                         document.getElementById('damageAttachmentInput').required = true;
-                        ['receipt_material_name', 'receipt_purchase_date', 'receipt_amount'].forEach((name) => {
+                        ['receipt_material_name', 'receipt_purchase_date', 'receipt_amount', 'receipt_attachment'].forEach((name) => {
                             form.elements[name].disabled = false;
                         });
                         renderPurchaseReceiptOptions();
@@ -6106,7 +6119,7 @@
                         form.damage_notes.value = report.damage_declaration.notes || '';
                         document.getElementById('damageAttachmentInput').required = false;
                         form.querySelector('button[type="submit"]').textContent = 'Mettre a jour le dommage';
-                        ['receipt_material_name', 'receipt_purchase_date', 'receipt_amount'].forEach((name) => {
+                        ['receipt_material_name', 'receipt_purchase_date', 'receipt_amount', 'receipt_attachment'].forEach((name) => {
                             form.elements[name].disabled = false;
                         });
                         renderPurchaseReceiptOptions();
@@ -6125,6 +6138,7 @@
                         form.material_name.value = receipt.material_name || '';
                         form.purchase_date.value = receipt.purchase_date || '';
                         form.amount.value = receipt.amount || '';
+                        form.receipt_file.value = '';
                         form.querySelector('button[type="submit"]').textContent = 'Mettre à jour le reçu';
                         document.getElementById('cancelPurchaseReceiptEditButton')?.classList.remove('d-none');
                     },
@@ -6614,11 +6628,21 @@
                     setLoading(form, true);
 
                     try {
-                        const payload = Object.fromEntries(new FormData(form).entries());
                         const editId = form.dataset.editId;
+                        const formData = new FormData(form);
+                        const receiptFile = formData.get('receipt_file');
+
+                        if (receiptFile instanceof File && receiptFile.size === 0) {
+                            formData.delete('receipt_file');
+                        }
+
+                        if (editId) {
+                            formData.append('_method', 'PATCH');
+                        }
+
                         const response = await apiFetch(editId ? `/purchase-receipts/${editId}` : '/purchase-receipts', {
-                            method: editId ? 'PATCH' : 'POST',
-                            body: JSON.stringify(payload),
+                            method: 'POST',
+                            body: formData,
                         });
 
                         form.reset();
@@ -6646,7 +6670,7 @@
                     const form = document.getElementById('damageDeclarationForm');
                     const hasSelectedReceipt = !!event.currentTarget.value;
 
-                    ['receipt_material_name', 'receipt_purchase_date', 'receipt_amount'].forEach((name) => {
+                    ['receipt_material_name', 'receipt_purchase_date', 'receipt_amount', 'receipt_attachment'].forEach((name) => {
                         const input = form.elements[name];
                         input.disabled = hasSelectedReceipt;
                         if (hasSelectedReceipt) {
@@ -6804,6 +6828,10 @@
                         const isEdit = form.dataset.mode === 'edit';
                         const formData = new FormData(form);
                         formData.delete('report_id');
+                        const receiptAttachment = formData.get('receipt_attachment');
+                        if (receiptAttachment instanceof File && receiptAttachment.size === 0) {
+                            formData.delete('receipt_attachment');
+                        }
                         if (isEdit) {
                             formData.append('_method', 'PATCH');
                             const attachment = formData.get('damage_attachment');

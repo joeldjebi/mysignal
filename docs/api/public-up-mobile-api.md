@@ -362,17 +362,18 @@ Liste les recus d achat de materiel enregistres par l UP connecte.
 #### POST `/v1/public/purchase-receipts`
 Enregistre un recu d achat.
 
-Body :
-```json
-{
-  "material_name": "Television",
-  "purchase_date": "2026-05-20",
-  "amount": 150000
-}
+Body `multipart/form-data` :
+```text
+material_name=Television
+purchase_date=2026-05-20
+amount=150000
+receipt_file=@recu.pdf
 ```
 
+`receipt_file` est optionnel. Formats acceptes : image `jpeg`, `png`, `webp`, `gif`, `heic`, `heif` ou PDF. Taille max : 10 Mo. Le fichier est stocke sur Wasabi et retourne dans `attachment.temporary_url`.
+
 #### PATCH `/v1/public/purchase-receipts/{purchaseReceipt}`
-Met a jour un recu d achat.
+Met a jour un recu d achat. Envoyer `receipt_file` en `multipart/form-data` pour remplacer le fichier stocke sur Wasabi.
 
 #### DELETE `/v1/public/purchase-receipts/{purchaseReceipt}`
 Supprime un recu d achat du compte courant.
@@ -586,7 +587,7 @@ purchase_receipt_id=1
 ```
 
 `damage_attachment` est obligatoire. Formats acceptes : image `jpeg`, `png`, `webp`, `gif`, `heic`, `heif` ou PDF. Taille max : 10 Mo.
-Le recu d achat est facultatif. Envoyer `purchase_receipt_id` pour rattacher un recu existant, ou envoyer directement `receipt_material_name`, `receipt_purchase_date` et `receipt_amount` pour creer un recu pendant la declaration.
+Le recu d achat est facultatif. Envoyer `purchase_receipt_id` pour rattacher un recu existant, ou envoyer directement `receipt_material_name`, `receipt_purchase_date`, `receipt_amount` et optionnellement `receipt_attachment=@recu.pdf` pour creer un recu pendant la declaration. Le fichier du recu est stocke sur Wasabi.
 
 #### PATCH `/v1/public/reports/{report}/damages`
 Met a jour un dommage deja declare, sans relancer de paiement.
@@ -601,7 +602,7 @@ Body possible :
 }
 ```
 
-`purchase_receipt_id` est facultatif. Envoyer `null` pour retirer le recu rattache. Pour creer un recu pendant la mise a jour, envoyer `receipt_material_name`, `receipt_purchase_date` et `receipt_amount`.
+`purchase_receipt_id` est facultatif. Envoyer `null` pour retirer le recu rattache. Pour creer un recu pendant la mise a jour, envoyer `receipt_material_name`, `receipt_purchase_date`, `receipt_amount` et optionnellement `receipt_attachment` en `multipart/form-data`.
 
 Alias mobile direct :
 - `PATCH /v1/public/damages/{report}`

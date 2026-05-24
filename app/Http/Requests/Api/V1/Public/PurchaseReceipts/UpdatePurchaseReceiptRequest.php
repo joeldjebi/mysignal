@@ -17,6 +17,7 @@ class UpdatePurchaseReceiptRequest extends FormRequest
             'material_name' => ['sometimes', 'required', 'string', 'max:160'],
             'purchase_date' => ['sometimes', 'required', 'date', 'before_or_equal:today'],
             'amount' => ['sometimes', 'required', 'numeric', 'min:0', 'max:999999999.99'],
+            'receipt_file' => ['nullable', 'file', 'max:10240', 'mimetypes:image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif,application/pdf'],
         ];
     }
 }

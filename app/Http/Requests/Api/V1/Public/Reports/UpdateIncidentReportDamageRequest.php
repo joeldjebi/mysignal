@@ -22,6 +22,7 @@ class UpdateIncidentReportDamageRequest extends FormRequest
             'receipt_material_name' => ['nullable', 'string', 'max:160'],
             'receipt_purchase_date' => ['nullable', 'date', 'before_or_equal:today'],
             'receipt_amount' => ['nullable', 'numeric', 'min:0', 'max:999999999.99'],
+            'receipt_attachment' => ['nullable', 'file', 'max:10240', 'mimetypes:image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif,application/pdf'],
         ];
     }
 
@@ -30,7 +31,8 @@ class UpdateIncidentReportDamageRequest extends FormRequest
         $validator->after(function (Validator $validator): void {
             $hasInlineReceipt = $this->filled('receipt_material_name')
                 || $this->filled('receipt_purchase_date')
-                || $this->filled('receipt_amount');
+                || $this->filled('receipt_amount')
+                || $this->hasFile('receipt_attachment');
 
             if (! $hasInlineReceipt) {
                 return;

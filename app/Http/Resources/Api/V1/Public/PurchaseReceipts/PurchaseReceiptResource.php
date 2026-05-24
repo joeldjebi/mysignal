@@ -14,6 +14,8 @@ class PurchaseReceiptResource extends JsonResource
             'material_name' => $this->material_name,
             'purchase_date' => $this->purchase_date?->toDateString(),
             'amount' => $this->amount !== null ? (float) $this->amount : null,
+            'attachment' => $this->resolvedAttachment(),
+            'has_attachment' => filled($this->attachment),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

@@ -14,4 +14,5 @@ return [
     'landing_partner_logo_directory' => env('WASABI_LANDING_PARTNER_LOGO_DIRECTORY', 'landing/partners'),
     'report_signal_directory' => env('WASABI_REPORT_SIGNAL_DIRECTORY', 'reports/signals'),
     'report_damage_directory' => env('WASABI_REPORT_DAMAGE_DIRECTORY', 'reports/damages'),
+    'purchase_receipt_directory' => env('WASABI_PURCHASE_RECEIPT_DIRECTORY', 'purchase-receipts'),
 ];

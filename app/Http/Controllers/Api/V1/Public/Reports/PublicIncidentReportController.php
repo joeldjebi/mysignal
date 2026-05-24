@@ -14,13 +14,17 @@ use App\Http\Resources\Api\V1\Public\Reports\IncidentReportDamageResource;
 use App\Http\Resources\Api\V1\Public\Reports\IncidentReportResource;
 use App\Models\IncidentReport;
 use App\Models\PurchaseReceipt;
+use App\Services\WasabiService;
 use App\Support\Api\ApiResponse;
 use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\ValidationException;
 
 class PublicIncidentReportController extends Controller
 {
+    public function __construct(private readonly WasabiService $wasabiService) {}
+
     public function index(Request $request)
     {
         $reports = IncidentReport::query()
@@ -207,7 +211,7 @@ class PublicIncidentReportController extends Controller
             $attributes['purchase_receipt_id'] = $purchaseReceipt->id;
         }
 
-        unset($attributes['receipt_material_name'], $attributes['receipt_purchase_date'], $attributes['receipt_amount']);
+        unset($attributes['receipt_material_name'], $attributes['receipt_purchase_date'], $attributes['receipt_amount'], $attributes['receipt_attachment']);
 
         $paymentSession = $action->handle(
             $request->user('public_api'),
@@ -257,16 +261,45 @@ class PublicIncidentReportController extends Controller
 
         $hasInlineReceipt = filled($attributes['receipt_material_name'] ?? null)
             || filled($attributes['receipt_purchase_date'] ?? null)
-            || filled($attributes['receipt_amount'] ?? null);
+            || filled($attributes['receipt_amount'] ?? null)
+            || $request->hasFile('receipt_attachment');
 
         if (! $hasInlineReceipt) {
             return null;
         }
 
-        return $user->purchaseReceipts()->create([
+        $receiptAttributes = [
             'material_name' => $attributes['receipt_material_name'],
             'purchase_date' => $attributes['receipt_purchase_date'],
             'amount' => $attributes['receipt_amount'],
-        ]);
+        ];
+
+        if ($request->hasFile('receipt_attachment')) {
+            $receiptAttributes['attachment'] = $this->storeReceiptFile($request->file('receipt_attachment'), (string) $user->id);
+        }
+
+        return $user->purchaseReceipts()->create($receiptAttributes);
+    }
+
+    private function storeReceiptFile(UploadedFile $file, string $userId): array
+    {
+        $path = $this->wasabiService->uploadFile(
+            $file,
+            config('wasabi.purchase_receipt_directory', 'purchase-receipts').'/'.$userId,
+            'receipt'
+        );
+
+        if (! $path) {
+            throw ValidationException::withMessages([
+                'receipt_attachment' => ['Impossible de televerser le fichier du recu sur le stockage distant.'],
+            ]);
+        }
+
+        return [
+            'name' => $file->getClientOriginalName() ?: 'recu-achat',
+            'mime_type' => $file->getMimeType() ?: 'application/octet-stream',
+            'size' => $file->getSize(),
+            'path' => $path,
+        ];
     }
 }

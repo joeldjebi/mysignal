@@ -780,14 +780,19 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Accept", "value": "application/json" },
-              { "key": "Content-Type", "value": "application/json" }
+              { "key": "Accept", "value": "application/json" }
             ],
             "body": {
-              "mode": "raw",
-              "raw": "{\n  \"material_name\": \"{{receiptMaterialName}}\",\n  \"purchase_date\": \"{{receiptPurchaseDate}}\",\n  \"amount\": {{receiptAmount}}\n}"
+              "mode": "formdata",
+              "formdata": [
+                { "key": "material_name", "value": "{{receiptMaterialName}}", "type": "text" },
+                { "key": "purchase_date", "value": "{{receiptPurchaseDate}}", "type": "text" },
+                { "key": "amount", "value": "{{receiptAmount}}", "type": "text" },
+                { "key": "receipt_file", "type": "file", "src": "{{receiptFilePath}}", "disabled": true }
+              ]
             },
-            "url": "{{baseUrl}}/v1/public/purchase-receipts"
+            "url": "{{baseUrl}}/v1/public/purchase-receipts",
+            "description": "Enregistre un recu d achat. Activer receipt_file pour envoyer l image/PDF du recu vers Wasabi."
           }
         },
         {
@@ -801,16 +806,22 @@
         {
           "name": "Update Purchase Receipt",
           "request": {
-            "method": "PATCH",
+            "method": "POST",
             "header": [
-              { "key": "Accept", "value": "application/json" },
-              { "key": "Content-Type", "value": "application/json" }
+              { "key": "Accept", "value": "application/json" }
             ],
             "body": {
-              "mode": "raw",
-              "raw": "{\n  \"material_name\": \"{{receiptMaterialName}}\",\n  \"purchase_date\": \"{{receiptPurchaseDate}}\",\n  \"amount\": {{receiptAmount}}\n}"
+              "mode": "formdata",
+              "formdata": [
+                { "key": "_method", "value": "PATCH", "type": "text" },
+                { "key": "material_name", "value": "{{receiptMaterialName}}", "type": "text" },
+                { "key": "purchase_date", "value": "{{receiptPurchaseDate}}", "type": "text" },
+                { "key": "amount", "value": "{{receiptAmount}}", "type": "text" },
+                { "key": "receipt_file", "type": "file", "src": "{{receiptFilePath}}", "disabled": true }
+              ]
             },
-            "url": "{{baseUrl}}/v1/public/purchase-receipts/{{purchaseReceiptId}}"
+            "url": "{{baseUrl}}/v1/public/purchase-receipts/{{purchaseReceiptId}}",
+            "description": "Met a jour un recu. Activer receipt_file pour remplacer le fichier stocke sur Wasabi."
           }
         },
         {
@@ -980,6 +991,12 @@
                   "disabled": true
                 },
                 {
+                  "key": "receipt_attachment",
+                  "type": "file",
+                  "src": "{{receiptFilePath}}",
+                  "disabled": true
+                },
+                {
                   "key": "damage_attachment",
                   "type": "file",
                   "src": []
@@ -987,7 +1004,7 @@
               ]
             },
             "url": "{{baseUrl}}/v1/public/reports/{{reportId}}/damages",
-            "description": "Initialise une session FineoPay pour declarer un dommage. purchase_receipt_id est facultatif pour lier un recu existant; sinon activer receipt_material_name, receipt_purchase_date et receipt_amount pour creer un recu pendant la declaration. Le dommage est enregistre uniquement apres callback FineoPay success."
+            "description": "Initialise une session FineoPay pour declarer un dommage. purchase_receipt_id est facultatif pour lier un recu existant; sinon activer receipt_material_name, receipt_purchase_date, receipt_amount et optionnellement receipt_attachment pour creer un recu pendant la declaration. Les fichiers de recu sont stockes sur Wasabi."
           }
         },
         {
@@ -1031,17 +1048,25 @@
         {
           "name": "Update Damage With Inline Receipt",
           "request": {
-            "method": "PATCH",
+            "method": "POST",
             "header": [
-              { "key": "Accept", "value": "application/json" },
-              { "key": "Content-Type", "value": "application/json" }
+              { "key": "Accept", "value": "application/json" }
             ],
             "body": {
-              "mode": "raw",
-              "raw": "{\n  \"damage_summary\": \"Materiel endommage avec nouveau recu\",\n  \"damage_amount_estimated\": 30000,\n  \"damage_notes\": \"Recu cree pendant la mise a jour du dommage\",\n  \"receipt_material_name\": \"{{receiptMaterialName}}\",\n  \"receipt_purchase_date\": \"{{receiptPurchaseDate}}\",\n  \"receipt_amount\": {{receiptAmount}}\n}"
+              "mode": "formdata",
+              "formdata": [
+                { "key": "_method", "value": "PATCH", "type": "text" },
+                { "key": "damage_summary", "value": "Materiel endommage avec nouveau recu", "type": "text" },
+                { "key": "damage_amount_estimated", "value": "30000", "type": "text" },
+                { "key": "damage_notes", "value": "Recu cree pendant la mise a jour du dommage", "type": "text" },
+                { "key": "receipt_material_name", "value": "{{receiptMaterialName}}", "type": "text" },
+                { "key": "receipt_purchase_date", "value": "{{receiptPurchaseDate}}", "type": "text" },
+                { "key": "receipt_amount", "value": "{{receiptAmount}}", "type": "text" },
+                { "key": "receipt_attachment", "type": "file", "src": "{{receiptFilePath}}", "disabled": true }
+              ]
             },
             "url": "{{baseUrl}}/v1/public/damages/{{reportId}}",
-            "description": "Alias mobile direct pour mettre a jour un dommage via son report_id et creer un recu en meme temps."
+            "description": "Alias mobile direct pour mettre a jour un dommage via son report_id et creer un recu en meme temps. Activer receipt_attachment pour envoyer le fichier du recu vers Wasabi."
           }
         },
         {
@@ -1099,6 +1124,12 @@
                   "disabled": true
                 },
                 {
+                  "key": "receipt_attachment",
+                  "type": "file",
+                  "src": "{{receiptFilePath}}",
+                  "disabled": true
+                },
+                {
                   "key": "damage_attachment",
                   "type": "file",
                   "src": []
@@ -1106,7 +1137,7 @@
               ]
             },
             "url": "{{baseUrl}}/v1/public/damages",
-            "description": "Endpoint mobile direct: initialise une session FineoPay pour declarer un dommage. Le recu d achat est facultatif: activer purchase_receipt_id pour un recu existant, ou les 3 champs receipt_* pour creer un recu pendant la declaration."
+            "description": "Endpoint mobile direct: initialise une session FineoPay pour declarer un dommage. Le recu d achat est facultatif: activer purchase_receipt_id pour un recu existant, ou les 3 champs receipt_* avec receipt_attachment optionnel pour creer un recu pendant la declaration. Les fichiers de recu sont stockes sur Wasabi."
           }
         }
       ]
