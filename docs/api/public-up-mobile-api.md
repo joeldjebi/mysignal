@@ -439,6 +439,27 @@ Body :
 
 `relationship` est optionnel. Si l app mobile ne l envoie pas, l API enregistre automatiquement `membre`.
 
+#### DELETE `/v1/public/households/invitations/{invitation}`
+Annule une invitation Gonhi envoyee.
+
+Seul l invitateur ou le proprietaire du Gonhi peut annuler une invitation encore en attente. Une invitation deja acceptee ne peut plus etre annulee.
+
+Succes :
+```json
+{
+  "success": true,
+  "message": "Invitation Gbonhi annulee avec succes.",
+  "data": {
+    "invitation": {
+      "id": 1,
+      "status": "declined"
+    },
+    "household": {},
+    "households": []
+  }
+}
+```
+
 #### POST `/v1/public/households/invitations/accept`
 Accepte une invitation. Un compte UP peut etre rattache a plusieurs Gonhi.
 

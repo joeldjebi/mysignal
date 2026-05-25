@@ -188,6 +188,98 @@ class PublicHouseholdTest extends TestCase
         ]);
     }
 
+    public function test_owner_can_cancel_pending_household_invitation(): void
+    {
+        PublicUser::query()->create([
+            'first_name' => 'Claire',
+            'last_name' => 'Yao',
+            'phone' => '0700000308',
+            'commune' => 'Cocody',
+            'password' => 'secret123',
+            'status' => 'active',
+            'phone_verified_at' => now(),
+        ]);
+
+        PublicUser::query()->create([
+            'first_name' => 'Kevin',
+            'last_name' => 'Yao',
+            'phone' => '0700000309',
+            'commune' => 'Cocody',
+            'password' => 'secret123',
+            'status' => 'active',
+            'phone_verified_at' => now(),
+        ]);
+
+        $ownerToken = $this->loginAndGetToken('0700000308', 'secret123');
+
+        $householdId = $this->withToken($ownerToken)->postJson('/api/v1/public/households', [
+            'name' => 'Foyer Yao',
+        ])->json('data.household.id');
+
+        $invitationId = $this->withToken($ownerToken)->postJson("/api/v1/public/households/{$householdId}/invitations", [
+            'phone' => '0700000309',
+            'relationship' => 'child',
+        ])->json('data.invitation.id');
+
+        $this->withToken($ownerToken)
+            ->deleteJson("/api/v1/public/households/invitations/{$invitationId}")
+            ->assertOk()
+            ->assertJsonPath('data.invitation.status', 'declined')
+            ->assertJsonCount(0, 'data.household.pending_invitations');
+
+        $this->assertDatabaseHas('household_invitations', [
+            'id' => $invitationId,
+            'household_id' => $householdId,
+        ]);
+
+        $this->assertNotNull(HouseholdInvitation::query()->findOrFail($invitationId)->declined_at);
+    }
+
+    public function test_invited_user_cannot_cancel_household_invitation(): void
+    {
+        PublicUser::query()->create([
+            'first_name' => 'Claire',
+            'last_name' => 'Yao',
+            'phone' => '0700000313',
+            'commune' => 'Cocody',
+            'password' => 'secret123',
+            'status' => 'active',
+            'phone_verified_at' => now(),
+        ]);
+
+        PublicUser::query()->create([
+            'first_name' => 'Kevin',
+            'last_name' => 'Yao',
+            'phone' => '0700000314',
+            'commune' => 'Cocody',
+            'password' => 'secret123',
+            'status' => 'active',
+            'phone_verified_at' => now(),
+        ]);
+
+        $ownerToken = $this->loginAndGetToken('0700000313', 'secret123');
+        $memberToken = $this->loginAndGetToken('0700000314', 'secret123');
+
+        $householdId = $this->withToken($ownerToken)->postJson('/api/v1/public/households', [
+            'name' => 'Foyer Yao',
+        ])->json('data.household.id');
+
+        $invitationId = $this->withToken($ownerToken)->postJson("/api/v1/public/households/{$householdId}/invitations", [
+            'phone' => '0700000314',
+            'relationship' => 'child',
+        ])->json('data.invitation.id');
+
+        $this->withToken($memberToken)
+            ->deleteJson("/api/v1/public/households/invitations/{$invitationId}")
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('invitation');
+
+        $this->assertDatabaseHas('household_invitations', [
+            'id' => $invitationId,
+            'declined_at' => null,
+        ]);
+    }
+
     public function test_member_can_accept_invitations_from_multiple_households(): void
     {
         $firstOwner = PublicUser::query()->create([

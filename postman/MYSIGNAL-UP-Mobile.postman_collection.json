@@ -694,6 +694,29 @@
           }
         },
         {
+          "name": "Delete Household",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Gbonhi deleted', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "if (pm.response.code === 200) pm.environment.set('householdId', '');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/households/{{householdId}}",
+            "description": "Supprime le Gonhi selectionne. Seul le proprietaire peut supprimer le Gonhi; les membres, invitations et acces compteur Gbonhi associes sont retires."
+          }
+        },
+        {
           "name": "Pending Invitations",
           "request": {
             "method": "GET",
@@ -704,6 +727,18 @@
         },
         {
           "name": "Invite Household Member",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json?.data?.invitation?.id) pm.environment.set('invitationId', json.data.invitation.id);"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -716,6 +751,15 @@
             },
             "url": "{{baseUrl}}/v1/public/households/{{householdId}}/invitations",
             "description": "relationship est optionnel. Si absent, l API enregistre automatiquement membre."
+          }
+        },
+        {
+          "name": "Cancel Sent Invitation",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/households/invitations/{{invitationId}}",
+            "description": "Annule une invitation Gonhi envoyee encore en attente. Seul l invitateur ou le proprietaire du Gonhi peut annuler."
           }
         },
         {

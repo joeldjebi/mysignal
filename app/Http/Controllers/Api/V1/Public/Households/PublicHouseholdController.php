@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1\Public\Households;
 
 use App\Domain\Households\Actions\AcceptHouseholdInvitationAction;
+use App\Domain\Households\Actions\CancelHouseholdInvitationAction;
 use App\Domain\Households\Actions\CreateHouseholdAction;
 use App\Domain\Households\Actions\DeclineHouseholdInvitationAction;
 use App\Domain\Households\Actions\DeleteHouseholdAction;
@@ -15,6 +16,7 @@ use App\Http\Requests\Api\V1\Public\Households\StoreHouseholdRequest;
 use App\Http\Resources\Api\V1\Public\Households\HouseholdInvitationResource;
 use App\Http\Resources\Api\V1\Public\Households\HouseholdResource;
 use App\Models\Household;
+use App\Models\HouseholdInvitation;
 use App\Models\PublicUser;
 use App\Services\Notifications\PushNotificationDispatcher;
 use App\Support\Api\ApiResponse;
@@ -118,6 +120,22 @@ class PublicHouseholdController extends Controller
         return ApiResponse::success([
             'invitation' => new HouseholdInvitationResource($invitation),
         ], 'Invitation Gonhi envoyee avec succes.', 201);
+    }
+
+    public function cancelInvitation(Request $request, HouseholdInvitation $invitation, CancelHouseholdInvitationAction $action)
+    {
+        $action->handle($request->user('public_api'), $invitation);
+
+        $households = $this->userHouseholds($request->user('public_api'));
+        $selectedHousehold = $households
+            ->first(fn ($household): bool => (int) $household->id === (int) $invitation->household_id)
+            ?: $households->first();
+
+        return ApiResponse::success([
+            'invitation' => new HouseholdInvitationResource($invitation->fresh()),
+            'household' => $selectedHousehold ? new HouseholdResource($selectedHousehold) : null,
+            'households' => HouseholdResource::collection($households),
+        ], 'Invitation Gbonhi annulee avec succes.');
     }
 
     public function accept(AcceptHouseholdInvitationRequest $request, AcceptHouseholdInvitationAction $action)
