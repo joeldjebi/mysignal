@@ -96,6 +96,7 @@ Route::prefix('v1/public')->group(function (): void {
 
         Route::post('households', [PublicHouseholdController::class, 'store']);
         Route::get('households/me', [PublicHouseholdController::class, 'showMine']);
+        Route::delete('households/{household}', [PublicHouseholdController::class, 'destroy']);
         Route::get('households/invitations/pending', [PublicHouseholdController::class, 'pendingInvitations']);
         Route::post('households/{household}/invitations', [PublicHouseholdController::class, 'invite']);
         Route::post('households/invitations/accept', [PublicHouseholdController::class, 'accept']);

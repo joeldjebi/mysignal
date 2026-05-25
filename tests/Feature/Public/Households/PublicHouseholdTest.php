@@ -280,6 +280,79 @@ class PublicHouseholdTest extends TestCase
         ]);
     }
 
+    public function test_owner_can_delete_household(): void
+    {
+        PublicUser::query()->create([
+            'first_name' => 'Claire',
+            'last_name' => 'Yao',
+            'phone' => '0700000320',
+            'commune' => 'Cocody',
+            'password' => 'secret123',
+            'status' => 'active',
+            'phone_verified_at' => now(),
+        ]);
+
+        $token = $this->loginAndGetToken('0700000320', 'secret123');
+
+        $householdId = $this->withToken($token)->postJson('/api/v1/public/households', [
+            'name' => 'Foyer a supprimer',
+        ])->json('data.household.id');
+
+        $this->withToken($token)
+            ->deleteJson("/api/v1/public/households/{$householdId}")
+            ->assertOk()
+            ->assertJsonPath('data.household', null)
+            ->assertJsonCount(0, 'data.households');
+
+        $this->assertDatabaseMissing('households', [
+            'id' => $householdId,
+        ]);
+
+        $this->assertDatabaseMissing('household_members', [
+            'household_id' => $householdId,
+        ]);
+    }
+
+    public function test_non_owner_cannot_delete_household(): void
+    {
+        PublicUser::query()->create([
+            'first_name' => 'Claire',
+            'last_name' => 'Yao',
+            'phone' => '0700000321',
+            'commune' => 'Cocody',
+            'password' => 'secret123',
+            'status' => 'active',
+            'phone_verified_at' => now(),
+        ]);
+
+        PublicUser::query()->create([
+            'first_name' => 'Kevin',
+            'last_name' => 'Yao',
+            'phone' => '0700000322',
+            'commune' => 'Cocody',
+            'password' => 'secret123',
+            'status' => 'active',
+            'phone_verified_at' => now(),
+        ]);
+
+        $ownerToken = $this->loginAndGetToken('0700000321', 'secret123');
+        $otherToken = $this->loginAndGetToken('0700000322', 'secret123');
+
+        $householdId = $this->withToken($ownerToken)->postJson('/api/v1/public/households', [
+            'name' => 'Foyer protege',
+        ])->json('data.household.id');
+
+        $this->withToken($otherToken)
+            ->deleteJson("/api/v1/public/households/{$householdId}")
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('household');
+
+        $this->assertDatabaseHas('households', [
+            'id' => $householdId,
+            'name' => 'Foyer protege',
+        ]);
+    }
+
     private function loginAndGetToken(string $phone, string $password): string
     {
         return $this->postJson('/api/v1/public/auth/login', [

@@ -1511,7 +1511,10 @@
                                 <div class="mini-card mb-4">
                                     <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
                                         <div><div class="fw-bold fs-5" id="householdName">-</div><div class="muted-label" id="householdAddress">-</div></div>
-                                        <span class="status-pill" id="householdStatus">active</span>
+                                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                                            <span class="status-pill" id="householdStatus">active</span>
+                                            <button class="btn btn-sm btn-outline-danger d-none" type="button" id="deleteHouseholdButton">Supprimer</button>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="row g-4">
@@ -3932,6 +3935,9 @@
                     document.getElementById('householdName').textContent = household.name || 'Gbonhi principal';
                     document.getElementById('householdAddress').textContent = [household.commune, household.address].filter(Boolean).join(' · ') || 'Adresse non renseignée';
                     document.getElementById('householdStatus').textContent = household.status || 'active';
+                    const deleteButton = document.getElementById('deleteHouseholdButton');
+                    deleteButton.classList.toggle('d-none', String(household.owner_public_user_id) !== String(state.currentUser?.id));
+                    deleteButton.dataset.householdId = String(household.id);
                     document.getElementById('householdMembersList').innerHTML = household.members?.length
                         ? household.members.map((member) => `<div class="d-flex justify-content-between align-items-center rounded-4 border px-3 py-3"><div><div class="fw-semibold">${member.user.first_name ?? ''} ${member.user.last_name ?? ''}</div><div class="muted-label">${member.user.phone ?? ''} · ${member.relationship}</div></div><span class="status-pill">${member.is_owner ? 'Titulaire' : 'Membre'}</span></div>`).join('')
                         : '<div class="muted-label">Aucun membre.</div>';
@@ -6151,6 +6157,24 @@
                             showToast(error.message, true);
                         }
                     },
+                    async deleteHousehold(householdId) {
+                        const household = state.households.find((item) => String(item.id) === String(householdId));
+                        const householdName = household?.name || 'ce Gbonhi';
+
+                        if (!window.confirm(`Supprimer ${householdName} ? Les membres et invitations associes seront retires.`)) {
+                            return;
+                        }
+
+                        try {
+                            const response = await apiFetch(`/households/${householdId}`, { method: 'DELETE' });
+                            showToast(response.message);
+                            state.selectedHouseholdId = response.data.household?.id || null;
+                            await refreshDashboard();
+                            activatePanel('household');
+                        } catch (error) {
+                            showToast(error.message, true);
+                        }
+                    },
                     async acceptInvitation(invitationId) {
                         try {
                             activatePanel('household');
@@ -6706,6 +6730,14 @@
                 document.getElementById('cancelHouseholdFormButton').addEventListener('click', () => {
                     document.getElementById('householdForm').reset();
                     setHouseholdFormVisible(false);
+                });
+
+                document.getElementById('deleteHouseholdButton')?.addEventListener('click', (event) => {
+                    const householdId = event.currentTarget.dataset.householdId;
+
+                    if (householdId) {
+                        window.AcepenPortal.deleteHousehold(householdId);
+                    }
                 });
 
                 document.getElementById('householdInvitationForm').addEventListener('submit', async (event) => {

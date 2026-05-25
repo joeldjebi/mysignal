@@ -406,6 +406,23 @@ La reponse garde `household` pour compatibilite avec les anciennes versions mobi
 }
 ```
 
+#### DELETE `/v1/public/households/{household}`
+Supprime un Gonhi.
+
+Seul le proprietaire du Gonhi peut le supprimer. La suppression retire les membres, les invitations associees et les acces compteur crees par les invitations de ce Gonhi quand ils ne sont pas partages par un autre Gonhi.
+
+Succes :
+```json
+{
+  "success": true,
+  "message": "Gbonhi supprime avec succes.",
+  "data": {
+    "household": null,
+    "households": []
+  }
+}
+```
+
 #### GET `/v1/public/households/invitations/pending`
 Retourne les invitations en attente. Les invitations Gonhi n expirent pas : elles restent disponibles tant qu elles ne sont pas acceptees ou refusees.
 
