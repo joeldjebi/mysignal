@@ -460,6 +460,23 @@ Succes :
 }
 ```
 
+#### DELETE `/v1/public/households/{household}/members/{member}`
+Retire un membre d un Gonhi.
+
+Seul le proprietaire du Gonhi peut retirer un membre. Le proprietaire ne peut pas se retirer lui-meme via cette route. Si le membre retire avait recu des acces compteur via ce Gonhi, ces acces sont retires lorsqu ils ne sont pas aussi justifies par un autre Gonhi.
+
+Succes :
+```json
+{
+  "success": true,
+  "message": "Membre retire du Gbonhi avec succes.",
+  "data": {
+    "household": {},
+    "households": []
+  }
+}
+```
+
 #### POST `/v1/public/households/invitations/accept`
 Accepte une invitation. Un compte UP peut etre rattache a plusieurs Gonhi.
 

@@ -3,6 +3,7 @@
 namespace Tests\Feature\Public\Households;
 
 use App\Models\HouseholdInvitation;
+use App\Models\HouseholdMember;
 use App\Models\PublicUser;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -369,6 +370,141 @@ class PublicHouseholdTest extends TestCase
             'public_user_id' => $secondOwner->id,
             'household_id' => $secondHouseholdId,
             'is_owner' => true,
+        ]);
+    }
+
+    public function test_owner_can_remove_member_from_household(): void
+    {
+        $owner = PublicUser::query()->create([
+            'first_name' => 'Claire',
+            'last_name' => 'Yao',
+            'phone' => '0700000315',
+            'commune' => 'Cocody',
+            'password' => 'secret123',
+            'status' => 'active',
+            'phone_verified_at' => now(),
+        ]);
+
+        $member = PublicUser::query()->create([
+            'first_name' => 'Kevin',
+            'last_name' => 'Yao',
+            'phone' => '0700000316',
+            'commune' => 'Cocody',
+            'password' => 'secret123',
+            'status' => 'active',
+            'phone_verified_at' => now(),
+        ]);
+
+        $ownerToken = $this->loginAndGetToken('0700000315', 'secret123');
+        $memberToken = $this->loginAndGetToken('0700000316', 'secret123');
+
+        $householdId = $this->withToken($ownerToken)->postJson('/api/v1/public/households', [
+            'name' => 'Foyer Yao',
+        ])->json('data.household.id');
+
+        $invite = $this->withToken($ownerToken)->postJson("/api/v1/public/households/{$householdId}/invitations", [
+            'phone' => '0700000316',
+            'relationship' => 'child',
+        ]);
+
+        $this->withToken($memberToken)->postJson('/api/v1/public/households/invitations/accept', [
+            'invitation_id' => $invite->json('data.invitation.id'),
+            'code' => $invite->json('data.invitation.code_for_testing'),
+        ])->assertOk();
+
+        $memberRow = HouseholdMember::query()
+            ->where('household_id', $householdId)
+            ->where('public_user_id', $member->id)
+            ->firstOrFail();
+
+        $this->withToken($ownerToken)
+            ->deleteJson("/api/v1/public/households/{$householdId}/members/{$memberRow->id}")
+            ->assertOk()
+            ->assertJsonCount(1, 'data.household.members')
+            ->assertJsonPath('data.household.members.0.user.id', $owner->id);
+
+        $this->assertDatabaseMissing('household_members', [
+            'household_id' => $householdId,
+            'public_user_id' => $member->id,
+        ]);
+    }
+
+    public function test_non_owner_cannot_remove_household_member(): void
+    {
+        PublicUser::query()->create([
+            'first_name' => 'Claire',
+            'last_name' => 'Yao',
+            'phone' => '0700000317',
+            'commune' => 'Cocody',
+            'password' => 'secret123',
+            'status' => 'active',
+            'phone_verified_at' => now(),
+        ]);
+
+        PublicUser::query()->create([
+            'first_name' => 'Kevin',
+            'last_name' => 'Yao',
+            'phone' => '0700000318',
+            'commune' => 'Cocody',
+            'password' => 'secret123',
+            'status' => 'active',
+            'phone_verified_at' => now(),
+        ]);
+
+        $ownerToken = $this->loginAndGetToken('0700000317', 'secret123');
+        $otherToken = $this->loginAndGetToken('0700000318', 'secret123');
+
+        $householdId = $this->withToken($ownerToken)->postJson('/api/v1/public/households', [
+            'name' => 'Foyer Yao',
+        ])->json('data.household.id');
+
+        $ownerMemberId = HouseholdMember::query()
+            ->where('household_id', $householdId)
+            ->where('is_owner', true)
+            ->value('id');
+
+        $this->withToken($otherToken)
+            ->deleteJson("/api/v1/public/households/{$householdId}/members/{$ownerMemberId}")
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('household');
+
+        $this->assertDatabaseHas('household_members', [
+            'id' => $ownerMemberId,
+            'household_id' => $householdId,
+        ]);
+    }
+
+    public function test_owner_cannot_remove_themselves_from_household(): void
+    {
+        PublicUser::query()->create([
+            'first_name' => 'Claire',
+            'last_name' => 'Yao',
+            'phone' => '0700000319',
+            'commune' => 'Cocody',
+            'password' => 'secret123',
+            'status' => 'active',
+            'phone_verified_at' => now(),
+        ]);
+
+        $ownerToken = $this->loginAndGetToken('0700000319', 'secret123');
+
+        $householdId = $this->withToken($ownerToken)->postJson('/api/v1/public/households', [
+            'name' => 'Foyer Yao',
+        ])->json('data.household.id');
+
+        $ownerMemberId = HouseholdMember::query()
+            ->where('household_id', $householdId)
+            ->where('is_owner', true)
+            ->value('id');
+
+        $this->withToken($ownerToken)
+            ->deleteJson("/api/v1/public/households/{$householdId}/members/{$ownerMemberId}")
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('member');
+
+        $this->assertDatabaseHas('household_members', [
+            'id' => $ownerMemberId,
+            'household_id' => $householdId,
         ]);
     }
 

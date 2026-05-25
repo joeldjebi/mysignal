@@ -8,6 +8,7 @@ use App\Domain\Households\Actions\CreateHouseholdAction;
 use App\Domain\Households\Actions\DeclineHouseholdInvitationAction;
 use App\Domain\Households\Actions\DeleteHouseholdAction;
 use App\Domain\Households\Actions\InviteHouseholdMemberAction;
+use App\Domain\Households\Actions\RemoveHouseholdMemberAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Public\Households\AcceptHouseholdInvitationRequest;
 use App\Http\Requests\Api\V1\Public\Households\DeclineHouseholdInvitationRequest;
@@ -17,6 +18,7 @@ use App\Http\Resources\Api\V1\Public\Households\HouseholdInvitationResource;
 use App\Http\Resources\Api\V1\Public\Households\HouseholdResource;
 use App\Models\Household;
 use App\Models\HouseholdInvitation;
+use App\Models\HouseholdMember;
 use App\Models\PublicUser;
 use App\Services\Notifications\PushNotificationDispatcher;
 use App\Support\Api\ApiResponse;
@@ -42,7 +44,7 @@ class PublicHouseholdController extends Controller
 
         $household->load([
             'members.publicUser',
-            'invitations' => fn ($query) => $query->whereNull('accepted_at'),
+            'invitations' => fn ($query) => $query->whereNull('accepted_at')->whereNull('declined_at'),
         ]);
 
         return ApiResponse::success([
@@ -87,7 +89,7 @@ class PublicHouseholdController extends Controller
             ->householdMembers()
             ->with([
                 'household.members.publicUser',
-                'household.invitations' => fn ($query) => $query->whereNull('accepted_at'),
+                'household.invitations' => fn ($query) => $query->whereNull('accepted_at')->whereNull('declined_at'),
             ])
             ->latest('id')
             ->get();
@@ -138,6 +140,23 @@ class PublicHouseholdController extends Controller
         ], 'Invitation Gbonhi annulee avec succes.');
     }
 
+    public function removeMember(Request $request, Household $household, HouseholdMember $member, RemoveHouseholdMemberAction $action)
+    {
+        $user = $request->user('public_api');
+
+        $action->handle($user, $household, $member);
+
+        $households = $this->userHouseholds($user);
+        $selectedHousehold = $households
+            ->first(fn ($item): bool => (int) $item->id === (int) $household->id)
+            ?: $households->first();
+
+        return ApiResponse::success([
+            'household' => $selectedHousehold ? new HouseholdResource($selectedHousehold) : null,
+            'households' => HouseholdResource::collection($households),
+        ], 'Membre retire du Gbonhi avec succes.');
+    }
+
     public function accept(AcceptHouseholdInvitationRequest $request, AcceptHouseholdInvitationAction $action)
     {
         $invitation = $action->handle($request->user('public_api'), $request->validated());
@@ -145,7 +164,7 @@ class PublicHouseholdController extends Controller
         $household = $invitation->household()
             ->with([
                 'members.publicUser',
-                'invitations' => fn ($query) => $query->whereNull('accepted_at'),
+                'invitations' => fn ($query) => $query->whereNull('accepted_at')->whereNull('declined_at'),
             ])
             ->firstOrFail();
 

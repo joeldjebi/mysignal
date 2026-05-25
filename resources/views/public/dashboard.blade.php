@@ -3936,10 +3936,11 @@
                     document.getElementById('householdAddress').textContent = [household.commune, household.address].filter(Boolean).join(' · ') || 'Adresse non renseignée';
                     document.getElementById('householdStatus').textContent = household.status || 'active';
                     const deleteButton = document.getElementById('deleteHouseholdButton');
-                    deleteButton.classList.toggle('d-none', String(household.owner_public_user_id) !== String(state.currentUser?.id));
+                    const canManageHousehold = String(household.owner_public_user_id) === String(state.currentUser?.id);
+                    deleteButton.classList.toggle('d-none', !canManageHousehold);
                     deleteButton.dataset.householdId = String(household.id);
                     document.getElementById('householdMembersList').innerHTML = household.members?.length
-                        ? household.members.map((member) => `<div class="d-flex justify-content-between align-items-center rounded-4 border px-3 py-3"><div><div class="fw-semibold">${member.user.first_name ?? ''} ${member.user.last_name ?? ''}</div><div class="muted-label">${member.user.phone ?? ''} · ${member.relationship}</div></div><span class="status-pill">${member.is_owner ? 'Titulaire' : 'Membre'}</span></div>`).join('')
+                        ? household.members.map((member) => `<div class="d-flex justify-content-between align-items-center rounded-4 border px-3 py-3 gap-3 flex-wrap"><div><div class="fw-semibold">${member.user.first_name ?? ''} ${member.user.last_name ?? ''}</div><div class="muted-label">${member.user.phone ?? ''} · ${member.relationship}</div></div><div class="report-actions"><span class="status-pill">${member.is_owner ? 'Titulaire' : 'Membre'}</span>${canManageHousehold && !member.is_owner ? `<button class="btn btn-ghost-premium btn-sm px-3" type="button" onclick="window.AcepenPortal.removeHouseholdMember(${household.id}, ${member.id})">Retirer</button>` : ''}</div></div>`).join('')
                         : '<div class="muted-label">Aucun membre.</div>';
                     document.getElementById('householdInvitationsList').innerHTML = household.pending_invitations?.length
                         ? household.pending_invitations.map((invitation) => `<div class="d-flex justify-content-between align-items-center rounded-4 border px-3 py-3 gap-3 flex-wrap"><div><div class="fw-semibold">${invitation.phone}</div><div class="muted-label">${invitation.relationship}</div></div><div class="report-actions"><span class="status-pill">En attente</span><button class="btn btn-ghost-premium btn-sm px-3" type="button" onclick="window.AcepenPortal.cancelHouseholdInvitation(${invitation.id})">Annuler</button></div></div>`).join('')
@@ -6178,6 +6179,21 @@
                     async cancelHouseholdInvitation(invitationId) {
                         try {
                             const response = await apiFetch(`/households/invitations/${invitationId}`, { method: 'DELETE' });
+                            showToast(response.message);
+                            renderHousehold(response.data.household, response.data.households || null);
+                            await refreshDashboard();
+                            activatePanel('household');
+                        } catch (error) {
+                            showToast(error.message, true);
+                        }
+                    },
+                    async removeHouseholdMember(householdId, memberId) {
+                        if (!window.confirm('Retirer ce membre du Gbonhi ?')) {
+                            return;
+                        }
+
+                        try {
+                            const response = await apiFetch(`/households/${householdId}/members/${memberId}`, { method: 'DELETE' });
                             showToast(response.message);
                             renderHousehold(response.data.household, response.data.households || null);
                             await refreshDashboard();

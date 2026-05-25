@@ -59,6 +59,7 @@
     { "key": "subscriptionPaymentId", "value": "" },
     { "key": "discountCardId", "value": "" },
     { "key": "householdId", "value": "" },
+    { "key": "householdMemberId", "value": "" },
     { "key": "invitationId", "value": "" },
     { "key": "invitedPhone", "value": "0711111111" },
     { "key": "reparationCaseId", "value": "" },
@@ -686,11 +687,35 @@
         },
         {
           "name": "Get My Households",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "const household = json?.data?.household;",
+                  "if (household?.id) pm.environment.set('householdId', household.id);",
+                  "const removableMember = household?.members?.find((member) => !member.is_owner);",
+                  "if (removableMember?.id) pm.environment.set('householdMemberId', removableMember.id);"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [{ "key": "Accept", "value": "application/json" }],
             "url": "{{baseUrl}}/v1/public/households/me",
             "description": "Retourne household pour compatibilite et households[] pour la liste complete des Gonhi rattaches au compte."
+          }
+        },
+        {
+          "name": "Remove Household Member",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/households/{{householdId}}/members/{{householdMemberId}}",
+            "description": "Retire un membre du Gonhi. Seul le proprietaire peut retirer un membre non titulaire."
           }
         },
         {
