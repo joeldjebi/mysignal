@@ -41,6 +41,7 @@ use App\Http\Controllers\Web\SuperAdmin\LandingPageController;
 use App\Http\Controllers\Web\SuperAdmin\LandingPageContactController;
 use App\Http\Controllers\Web\SuperAdmin\ApplicationController;
 use App\Http\Controllers\Web\SuperAdmin\MaintenanceCleanupController;
+use App\Http\Controllers\Web\SuperAdmin\NeighborhoodController;
 use App\Http\Controllers\Web\SuperAdmin\OrganizationController;
 use App\Http\Controllers\Web\SuperAdmin\OrganizationTypeSignalSlaController;
 use App\Http\Controllers\Web\SuperAdmin\OrganizationTypeController;
@@ -58,6 +59,7 @@ use App\Http\Controllers\Web\SuperAdmin\SignalTypeController;
 use App\Http\Controllers\Web\SuperAdmin\ScopedRoleController;
 use App\Http\Controllers\Web\SuperAdmin\ScopedUserController;
 use App\Http\Controllers\Web\SuperAdmin\SubscriptionPlanController;
+use App\Http\Controllers\Web\SuperAdmin\SubNeighborhoodController;
 use App\Http\Controllers\Web\SuperAdmin\UserAccessController;
 use App\Http\Controllers\Web\SuperAdmin\SystemUserController;
 use App\Http\Controllers\Web\SuperAdmin\UpSubscriptionController;
@@ -327,6 +329,20 @@ Route::prefix('sa')->name('super-admin.')->group(function (): void {
         Route::put('communes/{commune}', [CommuneController::class, 'update'])->middleware('super_admin_permission:SA_COMMUNES_UPDATE,SA_COMMUNES_MANAGE')->name('communes.update');
         Route::delete('communes/{commune}', [CommuneController::class, 'destroy'])->middleware('super_admin_permission:SA_COMMUNES_DELETE,SA_COMMUNES_MANAGE')->name('communes.destroy');
         Route::patch('communes/{commune}/toggle-status', [CommuneController::class, 'toggleStatus'])->middleware('super_admin_permission:SA_COMMUNES_TOGGLE_STATUS,SA_COMMUNES_MANAGE')->name('communes.toggle-status');
+
+        Route::get('neighborhoods', [NeighborhoodController::class, 'index'])->middleware('super_admin_permission:SA_NEIGHBORHOODS_VIEW,SA_NEIGHBORHOODS_MANAGE')->name('neighborhoods.index');
+        Route::post('neighborhoods', [NeighborhoodController::class, 'store'])->middleware('super_admin_permission:SA_NEIGHBORHOODS_CREATE,SA_NEIGHBORHOODS_MANAGE')->name('neighborhoods.store');
+        Route::get('neighborhoods/{neighborhood}/edit', [NeighborhoodController::class, 'edit'])->middleware('super_admin_permission:SA_NEIGHBORHOODS_UPDATE,SA_NEIGHBORHOODS_MANAGE')->name('neighborhoods.edit');
+        Route::put('neighborhoods/{neighborhood}', [NeighborhoodController::class, 'update'])->middleware('super_admin_permission:SA_NEIGHBORHOODS_UPDATE,SA_NEIGHBORHOODS_MANAGE')->name('neighborhoods.update');
+        Route::delete('neighborhoods/{neighborhood}', [NeighborhoodController::class, 'destroy'])->middleware('super_admin_permission:SA_NEIGHBORHOODS_DELETE,SA_NEIGHBORHOODS_MANAGE')->name('neighborhoods.destroy');
+        Route::patch('neighborhoods/{neighborhood}/toggle-status', [NeighborhoodController::class, 'toggleStatus'])->middleware('super_admin_permission:SA_NEIGHBORHOODS_TOGGLE_STATUS,SA_NEIGHBORHOODS_MANAGE')->name('neighborhoods.toggle-status');
+
+        Route::get('sub-neighborhoods', [SubNeighborhoodController::class, 'index'])->middleware('super_admin_permission:SA_SUB_NEIGHBORHOODS_VIEW,SA_SUB_NEIGHBORHOODS_MANAGE')->name('sub-neighborhoods.index');
+        Route::post('sub-neighborhoods', [SubNeighborhoodController::class, 'store'])->middleware('super_admin_permission:SA_SUB_NEIGHBORHOODS_CREATE,SA_SUB_NEIGHBORHOODS_MANAGE')->name('sub-neighborhoods.store');
+        Route::get('sub-neighborhoods/{subNeighborhood}/edit', [SubNeighborhoodController::class, 'edit'])->middleware('super_admin_permission:SA_SUB_NEIGHBORHOODS_UPDATE,SA_SUB_NEIGHBORHOODS_MANAGE')->name('sub-neighborhoods.edit');
+        Route::put('sub-neighborhoods/{subNeighborhood}', [SubNeighborhoodController::class, 'update'])->middleware('super_admin_permission:SA_SUB_NEIGHBORHOODS_UPDATE,SA_SUB_NEIGHBORHOODS_MANAGE')->name('sub-neighborhoods.update');
+        Route::delete('sub-neighborhoods/{subNeighborhood}', [SubNeighborhoodController::class, 'destroy'])->middleware('super_admin_permission:SA_SUB_NEIGHBORHOODS_DELETE,SA_SUB_NEIGHBORHOODS_MANAGE')->name('sub-neighborhoods.destroy');
+        Route::patch('sub-neighborhoods/{subNeighborhood}/toggle-status', [SubNeighborhoodController::class, 'toggleStatus'])->middleware('super_admin_permission:SA_SUB_NEIGHBORHOODS_TOGGLE_STATUS,SA_SUB_NEIGHBORHOODS_MANAGE')->name('sub-neighborhoods.toggle-status');
 
         Route::get('business-sectors', [BusinessSectorController::class, 'index'])->middleware('super_admin_permission:SA_BUSINESS_SECTORS_VIEW,SA_BUSINESS_SECTORS_MANAGE')->name('business-sectors.index');
         Route::post('business-sectors', [BusinessSectorController::class, 'store'])->middleware('super_admin_permission:SA_BUSINESS_SECTORS_CREATE,SA_BUSINESS_SECTORS_MANAGE')->name('business-sectors.store');

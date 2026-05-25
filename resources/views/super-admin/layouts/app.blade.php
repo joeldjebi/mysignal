@@ -318,6 +318,18 @@
                         <span><span class="d-block fw-semibold">Communes</span><span class="small text-white-50">Referentiel communes</span></span>
                     </a>
                 @endif
+                @if ($canAccess('SA_NEIGHBORHOODS_VIEW') || $canAccess('SA_NEIGHBORHOODS_MANAGE'))
+                    <a href="{{ route('super-admin.neighborhoods.index') }}" class="nav-pill {{ request()->routeIs('super-admin.neighborhoods.*') ? 'active' : '' }}">
+                        <span class="nav-icon">QT</span>
+                        <span><span class="d-block fw-semibold">Quartiers</span><span class="small text-white-50">Referentiel quartiers</span></span>
+                    </a>
+                @endif
+                @if ($canAccess('SA_SUB_NEIGHBORHOODS_VIEW') || $canAccess('SA_SUB_NEIGHBORHOODS_MANAGE'))
+                    <a href="{{ route('super-admin.sub-neighborhoods.index') }}" class="nav-pill {{ request()->routeIs('super-admin.sub-neighborhoods.*') ? 'active' : '' }}">
+                        <span class="nav-icon">SQ</span>
+                        <span><span class="d-block fw-semibold">Sous-quartiers</span><span class="small text-white-50">Referentiel sous-quartiers</span></span>
+                    </a>
+                @endif
                 @if ($canAccess('SA_BUSINESS_SECTORS_VIEW') || $canAccess('SA_BUSINESS_SECTORS_MANAGE'))
                     <a href="{{ route('super-admin.business-sectors.index') }}" class="nav-pill {{ request()->routeIs('super-admin.business-sectors.*') ? 'active' : '' }}">
                         <span class="nav-icon">SC</span>
