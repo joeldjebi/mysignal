@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web\SuperAdmin;
 use App\Http\Controllers\Controller;
 use App\Models\Application;
 use App\Models\Organization;
+use App\Models\SignalSubType;
 use App\Models\SignalType;
 use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
@@ -78,7 +79,7 @@ class SignalTypeController extends Controller
     public function edit(SignalType $signalType): View
     {
         return view('super-admin.signal-types.edit', [
-            'signalType' => $signalType,
+            'signalType' => $signalType->load(['subTypes' => fn ($query) => $query->orderBy('sort_order')->orderBy('label')]),
             'applications' => Application::query()
                 ->with(['organizations' => fn ($query) => $query->where('status', 'active')->orderBy('name')])
                 ->where('status', 'active')
@@ -152,6 +153,86 @@ class SignalTypeController extends Controller
         return back()->with('success', 'Le statut du type de signal a ete mis a jour.');
     }
 
+    public function storeSubType(Request $request, SignalType $signalType, ActivityLogger $activityLogger): RedirectResponse
+    {
+        $subType = $signalType->subTypes()->create($this->validatedSubTypeAttributes($request, $signalType));
+
+        $activityLogger->log(
+            'signal_sub_type.created',
+            'Creation d un sous-type de signal.',
+            $subType,
+            [
+                'signal_type_id' => $signalType->id,
+                'code' => $subType->code,
+                'label' => $subType->label,
+            ],
+            $request
+        );
+
+        return redirect()->route('super-admin.signal-types.edit', $signalType)
+            ->with('success', 'Le sous-type de signal a ete cree.');
+    }
+
+    public function updateSubType(Request $request, SignalType $signalType, SignalSubType $subType, ActivityLogger $activityLogger): RedirectResponse
+    {
+        $this->ensureSubTypeBelongsToSignalType($signalType, $subType);
+
+        $before = $subType->only(['code', 'label', 'description', 'sort_order', 'status']);
+        $subType->update($this->validatedSubTypeAttributes($request, $signalType, $subType));
+
+        $activityLogger->log(
+            'signal_sub_type.updated',
+            'Mise a jour d un sous-type de signal.',
+            $subType,
+            [
+                'before' => $before,
+                'after' => $subType->only(['code', 'label', 'description', 'sort_order', 'status']),
+            ],
+            $request
+        );
+
+        return redirect()->route('super-admin.signal-types.edit', $signalType)
+            ->with('success', 'Le sous-type de signal a ete mis a jour.');
+    }
+
+    public function toggleSubTypeStatus(Request $request, SignalType $signalType, SignalSubType $subType, ActivityLogger $activityLogger): RedirectResponse
+    {
+        $this->ensureSubTypeBelongsToSignalType($signalType, $subType);
+
+        $subType->update([
+            'status' => $subType->status === 'active' ? 'inactive' : 'active',
+        ]);
+
+        $activityLogger->log(
+            'signal_sub_type.status_toggled',
+            'Changement de statut d un sous-type de signal.',
+            $subType,
+            ['status' => $subType->status],
+            $request
+        );
+
+        return back()->with('success', 'Le statut du sous-type de signal a ete mis a jour.');
+    }
+
+    public function destroySubType(Request $request, SignalType $signalType, SignalSubType $subType, ActivityLogger $activityLogger): RedirectResponse
+    {
+        $this->ensureSubTypeBelongsToSignalType($signalType, $subType);
+
+        $snapshot = $subType->only(['id', 'signal_type_id', 'code', 'label', 'status']);
+        $subType->delete();
+
+        $activityLogger->log(
+            'signal_sub_type.deleted',
+            'Suppression d un sous-type de signal.',
+            SignalSubType::class,
+            $snapshot,
+            $request
+        );
+
+        return redirect()->route('super-admin.signal-types.edit', $signalType)
+            ->with('success', 'Le sous-type de signal a ete supprime.');
+    }
+
     private function validatedAttributes(Request $request, ?SignalType $signalType = null): array
     {
         $attributes = $request->validate([
@@ -207,5 +288,36 @@ class SignalTypeController extends Controller
             'default_sla_hours' => $attributes['default_sla_hours'] ?? null,
             'description' => $attributes['description'] ?? null,
         ];
+    }
+
+    private function validatedSubTypeAttributes(Request $request, SignalType $signalType, ?SignalSubType $subType = null): array
+    {
+        $attributes = $request->validate([
+            'code' => [
+                'required',
+                'string',
+                'max:60',
+                Rule::unique('signal_sub_types', 'code')
+                    ->where('signal_type_id', $signalType->id)
+                    ->ignore($subType?->id),
+                Rule::notIn(['OTHER', 'other', 'Other']),
+            ],
+            'label' => ['required', 'string', 'max:180'],
+            'description' => ['nullable', 'string'],
+            'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
+        ]);
+
+        return [
+            'code' => strtoupper($attributes['code']),
+            'label' => $attributes['label'],
+            'description' => $attributes['description'] ?? null,
+            'sort_order' => $attributes['sort_order'] ?? 0,
+            'status' => $subType?->status ?? 'active',
+        ];
+    }
+
+    private function ensureSubTypeBelongsToSignalType(SignalType $signalType, SignalSubType $subType): void
+    {
+        abort_unless((int) $subType->signal_type_id === (int) $signalType->id, 404);
     }
 }

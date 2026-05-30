@@ -18,6 +18,7 @@ class StoreIncidentReportRequest extends FormRequest
             'application_id' => ['nullable', 'integer', 'exists:applications,id'],
             'organization_id' => ['nullable', 'integer', 'exists:organizations,id'],
             'signal_code' => ['required', 'string'],
+            'signal_sub_type_code' => ['nullable', 'string', 'max:60'],
             'description' => ['nullable', 'string', 'max:1000'],
             'occurred_at' => ['nullable', 'date'],
             'latitude' => ['nullable', 'numeric', 'between:-90,90'],

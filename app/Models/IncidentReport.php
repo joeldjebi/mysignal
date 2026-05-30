@@ -30,6 +30,9 @@ class IncidentReport extends Model
         'network_type',
         'signal_code',
         'signal_label',
+        'signal_sub_type_id',
+        'signal_sub_type_code',
+        'signal_sub_type_label',
         'incident_type',
         'reference',
         'description',
@@ -117,6 +120,11 @@ class IncidentReport extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
+    }
+
+    public function signalSubType(): BelongsTo
+    {
+        return $this->belongsTo(SignalSubType::class);
     }
 
     public function reparationCase(): HasOne

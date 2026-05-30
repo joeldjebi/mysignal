@@ -1941,6 +1941,16 @@
                                 <div class="select-search-results" id="reportSignalCodeResults"></div>
                                 <div class="location-search-hint mt-2" id="reportSignalInlineDescription">Sélectionnez un type de signal pour afficher sa description et son délai de résolution.</div>
                             </div>
+                            <div class="col-md-4 d-none" id="reportSignalSubTypeWrap">
+                                <label class="form-label fw-semibold">Sous-type de signal<span class="required-star">*</span></label>
+                                <div class="select-search-shell">
+                                    <input class="form-control select-search-input" style="display:block;width:100%;" type="search" data-search-select-target="reportSignalSubTypeCode" autocomplete="off" placeholder="Rechercher un sous-type">
+                                    <button class="select-search-toggle" type="button" data-search-toggle-target="reportSignalSubTypeCode" aria-label="Afficher les options"></button>
+                                </div>
+                                <div class="select-search-help">Champ de sélection avec recherche.</div>
+                                <select class="form-select d-none" name="signal_sub_type_code" id="reportSignalSubTypeCode"></select>
+                                <div class="select-search-results" id="reportSignalSubTypeCodeResults"></div>
+                            </div>
                             <div class="col-md-4">
                                 <label class="form-label fw-semibold">Date et heure<span class="required-star">*</span></label>
                                 <input class="form-control" type="datetime-local" name="occurred_at" id="reportOccurredAt" readonly>
@@ -3519,6 +3529,8 @@
 
                 function renderSignalPayloadFields() {
                     const signalSelect = document.getElementById('reportSignalCode');
+                    const subTypeWrap = document.getElementById('reportSignalSubTypeWrap');
+                    const subTypeSelect = document.getElementById('reportSignalSubTypeCode');
                     const availableSignals = getSignalTypesForCurrentMeter();
                     const signal = availableSignals.find((item) => item.code === signalSelect.value) || availableSignals[0];
                     const selectedMeter = state.meters.find((item) => String(item.id) === String(document.getElementById('reportMeterId')?.value || ''));
@@ -3527,6 +3539,15 @@
                     const title = document.getElementById('reportSignalMetaTitle');
                     const description = document.getElementById('reportSignalMetaDescription');
                     const container = document.getElementById('signalPayloadFields');
+
+                    const subTypes = signal?.sub_types || [];
+                    subTypeWrap.classList.toggle('d-none', subTypes.length === 0);
+                    subTypeSelect.required = subTypes.length > 0;
+                    subTypeSelect.disabled = subTypes.length === 0;
+                    subTypeSelect.innerHTML = subTypes.length
+                        ? subTypes.map((subType) => `<option value="${escapeHtml(subType.code)}">${escapeHtml(subType.label)}</option>`).join('')
+                        : '<option value="">Aucun sous-type</option>';
+                    refreshSearchableSelect('reportSignalSubTypeCode');
 
                     if (!signal) {
                         inlineDescription.textContent = 'Sélectionnez un type de signal pour afficher sa description et son délai de résolution.';
@@ -5947,8 +5968,8 @@
                     populateCommuneSelects();
                     populateReportLocationSelects();
                     const signalResponse = await fetch('/api/v1/public/signal-types', { headers: { Accept: 'application/json' } });
-                    const signalData = await signalResponse.json();
-                    state.signalTypes = signalData.data.signal_types || [];
+                    const signalData = await signalResponse.json().catch(() => ({}));
+                    state.signalTypes = signalData?.data?.signal_types || [];
                     renderSignalOptions();
                     initGooglePlacesAutocomplete();
                 }
@@ -6798,7 +6819,7 @@
                         const payload = new FormData();
                         const rawFormData = new FormData(form);
 
-                        ['meter_id', 'signal_code', 'occurred_at', 'description', 'latitude', 'longitude', 'location_accuracy', 'location_source'].forEach((key) => {
+                        ['meter_id', 'signal_code', 'signal_sub_type_code', 'occurred_at', 'description', 'latitude', 'longitude', 'location_accuracy', 'location_source'].forEach((key) => {
                             const value = rawFormData.get(key);
 
                             if (value !== null && value !== '') {

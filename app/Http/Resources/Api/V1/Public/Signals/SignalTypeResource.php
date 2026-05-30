@@ -22,6 +22,8 @@ class SignalTypeResource extends JsonResource
             'description' => $this['description'],
             'sla_target' => $this['sla_target'],
             'sla_targets' => $this['sla_targets'] ?? [],
+            'sub_types' => $this['sub_types'] ?? [],
+            'requires_sub_type' => count($this['sub_types'] ?? []) > 0,
         ];
     }
 }

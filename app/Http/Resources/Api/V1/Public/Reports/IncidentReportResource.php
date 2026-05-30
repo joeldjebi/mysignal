@@ -30,6 +30,12 @@ class IncidentReportResource extends JsonResource
             'network_type' => $this->network_type,
             'signal_code' => $this->signal_code,
             'signal_label' => $this->signal_label,
+            'signal_sub_type' => [
+                'id' => $this->signal_sub_type_id,
+                'code' => $this->signal_sub_type_code,
+                'label' => $this->signal_sub_type_label,
+                'is_other' => $this->signal_sub_type_code === 'OTHER',
+            ],
             'incident_type' => $this->incident_type,
             'description' => $this->description,
             'signal_attachment' => $this->resolvedSignalAttachment(),

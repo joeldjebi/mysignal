@@ -9,6 +9,7 @@ use App\Models\Meter;
 use App\Models\Organization;
 use App\Models\OrganizationTypeSignalSla;
 use App\Models\PublicUser;
+use App\Models\SignalSubType;
 use App\Models\SignalType;
 use App\Services\WasabiService;
 use Carbon\CarbonImmutable;
@@ -52,6 +53,9 @@ class CreateIncidentReportAction
                 'network_type' => $prepared['meter']->network_type,
                 'signal_code' => $prepared['signal_type']->code,
                 'signal_label' => $prepared['signal_type']->label,
+                'signal_sub_type_id' => $prepared['signal_sub_type']?->id,
+                'signal_sub_type_code' => $prepared['signal_sub_type_code'],
+                'signal_sub_type_label' => $prepared['signal_sub_type_label'],
                 'incident_type' => $prepared['signal_type']->code,
                 'reference' => $reference,
                 'description' => $payload['description'] ?? null,
@@ -100,6 +104,8 @@ class CreateIncidentReportAction
             ]);
         }
 
+        [$signalSubType, $signalSubTypeCode, $signalSubTypeLabel] = $this->resolveSignalSubType($signalType, $payload);
+
         $organizationTypeId = $meter->organization_id
             ? Organization::query()
                 ->whereKey($meter->organization_id)
@@ -128,8 +134,46 @@ class CreateIncidentReportAction
             'city' => $city,
             'commune' => $commune,
             'signal_type' => $signalType,
+            'signal_sub_type' => $signalSubType,
+            'signal_sub_type_code' => $signalSubTypeCode,
+            'signal_sub_type_label' => $signalSubTypeLabel,
             'programmed_sla' => $programmedSla,
         ];
+    }
+
+    private function resolveSignalSubType(SignalType $signalType, array $payload): array
+    {
+        $activeSubTypes = $signalType->subTypes()
+            ->where('status', 'active')
+            ->orderBy('sort_order')
+            ->orderBy('label')
+            ->get();
+
+        if ($activeSubTypes->isEmpty()) {
+            return [null, null, null];
+        }
+
+        $selectedCode = strtoupper(trim((string) ($payload['signal_sub_type_code'] ?? '')));
+
+        if ($selectedCode === '') {
+            throw ValidationException::withMessages([
+                'signal_sub_type_code' => ['Le sous-type de signal est obligatoire pour ce type de signalement.'],
+            ]);
+        }
+
+        if ($selectedCode === 'OTHER') {
+            return [null, 'OTHER', 'Autre'];
+        }
+
+        $subType = $activeSubTypes->first(fn (SignalSubType $item): bool => $item->code === $selectedCode);
+
+        if (! $subType instanceof SignalSubType) {
+            throw ValidationException::withMessages([
+                'signal_sub_type_code' => ['Le sous-type de signal selectionne est invalide.'],
+            ]);
+        }
+
+        return [$subType, $subType->code, $subType->label];
     }
 
     private function resolveLocationFromMeter(PublicUser $user, Meter $meter): array

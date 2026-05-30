@@ -15,7 +15,11 @@ class GetSignalTypeCatalogAction
             ->groupBy('signal_code');
 
         return SignalType::query()
-            ->with(['application:id,code,name,slug', 'organization:id,code,name'])
+            ->with([
+                'application:id,code,name,slug',
+                'organization:id,code,name',
+                'subTypes' => fn ($query) => $query->where('status', 'active')->orderBy('sort_order')->orderBy('label'),
+            ])
             ->where('status', 'active')
             ->orderBy('application_id')
             ->orderBy('organization_id')
@@ -47,6 +51,25 @@ class GetSignalTypeCatalogAction
                         ? ['hours' => $signalType->default_sla_hours, 'label' => $signalType->default_sla_hours.'h']
                         : null,
                     'sla_targets' => $fallbackSlaTargets,
+                    'sub_types' => $signalType->subTypes->isNotEmpty()
+                        ? $signalType->subTypes
+                            ->map(fn ($subType): array => [
+                                'id' => $subType->id,
+                                'code' => $subType->code,
+                                'label' => $subType->label,
+                                'description' => $subType->description,
+                                'is_other' => false,
+                            ])
+                            ->push([
+                                'id' => null,
+                                'code' => 'OTHER',
+                                'label' => 'Autre',
+                                'description' => 'Le motif exact ne figure pas dans la liste.',
+                                'is_other' => true,
+                            ])
+                            ->values()
+                            ->all()
+                        : [],
                 ];
             })
             ->values();

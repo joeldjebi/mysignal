@@ -312,6 +312,19 @@ Retourne le catalogue des types de signaux actifs avec :
 - application
 - organisation
 -TCM cible
+- `sub_types` : sous-types actifs du type de signal. Quand ce tableau est non vide, l app doit afficher un champ sous-type obligatoire.
+- `requires_sub_type` : `true` quand `sub_types` est non vide.
+
+Quand un type de signal a des sous-types, l API ajoute automatiquement l option :
+```json
+{
+  "code": "OTHER",
+  "label": "Autre",
+  "is_other": true
+}
+```
+
+L app mobile doit envoyer `signal_sub_type_code`. Utiliser `OTHER` si le motif voulu n existe pas dans la liste.
 - `precise_gps` et `gps_location` sont pre-remplis avec la position GPS courante quand elle est disponible.
 
 ### Compteurs
@@ -505,6 +518,7 @@ Body JSON sans fichier :
 {
   "meter_id": 1,
   "signal_code": "NETWORK_OUTAGE",
+  "signal_sub_type_code": "OTHER",
   "description": "Coupure depuis 2 heures",
   "occurred_at": "2026-04-10T12:00:00Z",
   "latitude": 5.348,
@@ -521,6 +535,7 @@ Content-Type: multipart/form-data
 
 meter_id=1
 signal_code=NETWORK_OUTAGE
+signal_sub_type_code=OTHER
 description=Coupure depuis 2 heures
 occurred_at=2026-04-10T12:00:00Z
 latitude=5.348
@@ -530,6 +545,8 @@ signal_attachment=@preuve.jpg
 ```
 
 `signal_attachment` est optionnel. Formats acceptes : images `jpeg`, `png`, `webp`, `gif`, `heic`, `heif` et videos `mp4`, `mov/quicktime`, `avi`, `mpeg`. Taille max : 50 Mo.
+
+`signal_sub_type_code` est obligatoire uniquement si le `signal_code` choisi a `requires_sub_type: true` dans `GET /v1/public/signal-types`.
 
 Reponse `201` :
 ```json

@@ -8,6 +8,8 @@ use App\Models\Commune;
 use App\Models\Country;
 use App\Models\IncidentReport;
 use App\Models\PublicUser;
+use App\Models\SignalSubType;
+use App\Models\SignalType;
 use App\Services\WasabiService;
 use Database\Seeders\Reference\LocationReferenceSeeder;
 use Database\Seeders\Reference\PricingRuleSeeder;
@@ -63,6 +65,56 @@ class PublicIncidentReportTest extends TestCase
         $this->withToken($token)->getJson('/api/v1/public/reports')
             ->assertOk()
             ->assertJsonCount(1, 'data.reports');
+    }
+
+    public function test_public_user_must_choose_sub_type_when_signal_type_has_active_sub_types(): void
+    {
+        $this->seed([
+            LocationReferenceSeeder::class,
+            PricingRuleSeeder::class,
+        ]);
+
+        $user = PublicUser::query()->create([
+            'first_name' => 'Awa',
+            'last_name' => 'Kone',
+            'phone' => '0700000420',
+            'commune' => 'Cocody',
+            'password' => 'secret123',
+            'status' => 'active',
+            'phone_verified_at' => now(),
+        ]);
+
+        $token = JWTAuth::fromUser($user);
+
+        $meterId = $this->withToken($token)->postJson('/api/v1/public/meters', [
+            'network_type' => 'CIE',
+            'meter_number' => 'CIE-42000',
+            'label' => 'Appartement',
+            'commune' => 'Cocody',
+            'is_primary' => true,
+        ])->json('data.meter.id');
+
+        $signalType = SignalType::query()->where('code', 'EL-01')->firstOrFail();
+        SignalSubType::query()->create([
+            'signal_type_id' => $signalType->id,
+            'code' => 'EL_01_LOCAL',
+            'label' => 'Coupure localisee',
+            'status' => 'active',
+        ]);
+
+        $this->withToken($token)->postJson('/api/v1/public/reports', [
+            'meter_id' => $meterId,
+            'signal_code' => 'EL-01',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors('signal_sub_type_code');
+
+        $this->withToken($token)->postJson('/api/v1/public/reports', [
+            'meter_id' => $meterId,
+            'signal_code' => 'EL-01',
+            'signal_sub_type_code' => 'OTHER',
+        ])->assertCreated()
+            ->assertJsonPath('data.report.signal_sub_type.code', 'OTHER')
+            ->assertJsonPath('data.report.signal_sub_type.label', 'Autre');
     }
 
     public function test_public_user_gets_validation_error_when_meter_has_no_location(): void

@@ -49,6 +49,7 @@
     { "key": "meterNumber", "value": "AB12345678" },
     { "key": "additionalMeterNumber", "value": "AB87654321" },
     { "key": "meterId", "value": "" },
+    { "key": "signalSubTypeCode", "value": "OTHER" },
     { "key": "purchaseReceiptId", "value": "" },
     { "key": "receiptMaterialName", "value": "Television" },
     { "key": "receiptPurchaseDate", "value": "2026-05-20" },
@@ -939,6 +940,7 @@
               "formdata": [
                 { "key": "meter_id", "value": "{{meterId}}", "type": "text" },
                 { "key": "signal_code", "value": "NETWORK_OUTAGE", "type": "text" },
+                { "key": "signal_sub_type_code", "value": "{{signalSubTypeCode}}", "type": "text", "description": "Obligatoire si le type de signal retourne requires_sub_type=true. Utiliser OTHER pour Autre." },
                 { "key": "description", "value": "Coupure depuis 2 heures", "type": "text" },
                 { "key": "occurred_at", "value": "2026-04-10T12:00:00Z", "type": "text" },
                 { "key": "latitude", "value": "{{latitude}}", "type": "text" },
@@ -973,6 +975,7 @@
               "formdata": [
                 { "key": "meter_id", "value": "{{meterId}}", "type": "text" },
                 { "key": "signal_code", "value": "EL-04", "type": "text" },
+                { "key": "signal_sub_type_code", "value": "{{signalSubTypeCode}}", "type": "text", "description": "Obligatoire si le type de signal retourne requires_sub_type=true. Utiliser OTHER pour Autre." },
                 { "key": "description", "value": "Compteur illisible", "type": "text" },
                 { "key": "occurred_at", "value": "2026-04-10T12:00:00Z", "type": "text" },
                 { "key": "latitude", "value": "{{latitude}}", "type": "text" },
