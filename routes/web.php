@@ -391,6 +391,7 @@ Route::prefix('sa')->name('super-admin.')->group(function (): void {
 
         Route::get('organizations', [OrganizationController::class, 'index'])->middleware('super_admin_permission:SA_ORGANIZATIONS_VIEW,SA_ORGANIZATIONS_MANAGE')->name('organizations.index');
         Route::post('organizations', [OrganizationController::class, 'store'])->middleware('super_admin_permission:SA_ORGANIZATIONS_CREATE,SA_ORGANIZATIONS_MANAGE')->name('organizations.store');
+        Route::post('organizations/import', [OrganizationController::class, 'import'])->middleware('super_admin_permission:SA_ORGANIZATIONS_CREATE,SA_ORGANIZATIONS_MANAGE')->name('organizations.import');
         Route::get('organizations/{organization}', [OrganizationController::class, 'show'])->middleware('super_admin_permission:SA_ORGANIZATIONS_VIEW,SA_ORGANIZATIONS_MANAGE')->name('organizations.show');
         Route::get('organizations/{organization}/edit', [OrganizationController::class, 'edit'])->middleware('super_admin_permission:SA_ORGANIZATIONS_UPDATE,SA_ORGANIZATIONS_MANAGE')->name('organizations.edit');
         Route::put('organizations/{organization}', [OrganizationController::class, 'update'])->middleware('super_admin_permission:SA_ORGANIZATIONS_UPDATE,SA_ORGANIZATIONS_MANAGE')->name('organizations.update');

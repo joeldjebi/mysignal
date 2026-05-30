@@ -22,6 +22,8 @@ class Organization extends Model
         'portal_key',
         'email',
         'phone',
+        'commune',
+        'address',
         'description',
         'logo_path',
         'status',

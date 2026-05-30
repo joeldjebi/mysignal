@@ -216,6 +216,14 @@
                         <div class="org-hero-label">Contact</div>
                         <div class="fw-semibold">{{ $organization->email ?: ($organization->phone ?: '-') }}</div>
                     </div>
+                    <div class="org-hero-card">
+                        <div class="org-hero-label">Commune</div>
+                        <div class="fw-semibold">{{ $organization->commune ?: '-' }}</div>
+                    </div>
+                    <div class="org-hero-card">
+                        <div class="org-hero-label">Adresse</div>
+                        <div class="fw-semibold">{{ $organization->address ?: '-' }}</div>
+                    </div>
                 </div>
             </div>
 

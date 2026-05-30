@@ -6,6 +6,9 @@
 
 @section('header-badges')
     <span class="badge-soft">{{ $organizations->total() }} organisations</span>
+    <button type="button" class="btn btn-outline-dark" data-bs-toggle="modal" data-bs-target="#importOrganizationsModal">
+        Importer CSV
+    </button>
     <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#createOrganizationModal">
         Creer une institution
     </button>
@@ -241,6 +244,7 @@
                                             <div class="org-code">{{ $organization->code }}</div>
                                             <div class="fw-bold">{{ $organization->name }}</div>
                                             <div class="small text-secondary">{{ $organization->email ?: 'Aucun email renseigne' }}</div>
+                                            <div class="small text-secondary">{{ collect([$organization->commune, $organization->address])->filter()->implode(' - ') ?: 'Localisation non renseignee' }}</div>
                                         </div>
                                     </td>
                                     <td>
@@ -322,6 +326,68 @@
         </div>
     </section>
 
+    <div class="modal fade" id="importOrganizationsModal" tabindex="-1" aria-labelledby="importOrganizationsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header">
+                    <div>
+                        <h5 class="modal-title fw-bold" id="importOrganizationsModalLabel">Importer des institutions</h5>
+                        <div class="small text-secondary">CSV ou XLSX attendu : Nom, Commune, Adresse, Mobile ou Type_organisation, Nom, Commune, Region_District.</div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <form method="POST" action="{{ route('super-admin.organizations.import') }}" enctype="multipart/form-data">
+                    @csrf
+                    <input type="hidden" name="import_form" value="1">
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Application</label>
+                                <select name="application_id" class="form-select" required>
+                                    <option value="">Selectionner</option>
+                                    @foreach ($applications as $application)
+                                        <option value="{{ $application->id }}" @selected(old('application_id') == $application->id)>{{ $application->name }}</option>
+                                    @endforeach
+                                </select>
+                                <div class="small text-secondary mt-2">Les fonctionnalites de cette application seront liees aux institutions importees.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Type d'organisation</label>
+                                <select name="organization_type_id" class="form-select">
+                                    <option value="">Selectionner un type existant</option>
+                                    @foreach ($organizationTypes as $organizationType)
+                                        <option value="{{ $organizationType->id }}" @selected(old('organization_type_id') == $organizationType->id)>{{ $organizationType->name }}</option>
+                                    @endforeach
+                                </select>
+                                <div class="small text-secondary mt-2">Facultatif si le fichier contient une colonne Type_organisation.</div>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Nouveau type d'organisation</label>
+                                <input type="text" name="organization_type_name" value="{{ old('organization_type_name') }}" class="form-control" placeholder="Ex : Institution publique">
+                                <div class="small text-secondary mt-2">Facultatif si vous choisissez un type existant ou si le fichier contient Type_organisation.</div>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Fichier CSV ou XLSX</label>
+                                <input type="file" name="csv_file" class="form-control" accept=".csv,.xlsx,text/csv,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required>
+                                <div class="small text-secondary mt-2">Mobile peut etre vide ou absent. S il est vide ou trop court, un numero a 10 chiffres sera genere ou complete automatiquement.</div>
+                            </div>
+                            <div class="col-12">
+                                <div class="alert alert-light border mb-0">
+                                    <div class="fw-semibold mb-1">Regles appliquees</div>
+                                    <div class="small text-secondary">Code institution depuis le nom, type d'organisation cree depuis Type_organisation si present, admin institutionnel cree avec email en @mysignal.pro et mot de passe par defaut 12345678.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-dark">Importer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="createOrganizationModal" tabindex="-1" aria-labelledby="createOrganizationModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-xl">
             <div class="modal-content border-0 shadow-lg">
@@ -373,6 +439,14 @@
                             <div class="col-md-3">
                                 @include('partials.phone-field', ['value' => old('phone'), 'placeholder' => '0700000000'])
                             </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Commune</label>
+                                <input type="text" name="commune" value="{{ old('commune') }}" class="form-control" placeholder="Cocody">
+                            </div>
+                            <div class="col-md-8">
+                                <label class="form-label">Adresse</label>
+                                <input type="text" name="address" value="{{ old('address') }}" class="form-control" placeholder="Rue 12">
+                            </div>
                             <div class="col-12">
                                 <label class="form-label">Description</label>
                                 <textarea name="description" class="form-control" rows="3">{{ old('description') }}</textarea>
@@ -421,6 +495,15 @@
 @endsection
 
 @section('scripts')
+    @if ($errors->any() && old('import_form'))
+        <script>
+            const importOrganizationsModal = document.getElementById('importOrganizationsModal');
+
+            if (importOrganizationsModal) {
+                bootstrap.Modal.getOrCreateInstance(importOrganizationsModal).show();
+            }
+        </script>
+    @endif
     @if ($errors->any() && old('code'))
         <script>
             const createOrganizationModal = document.getElementById('createOrganizationModal');

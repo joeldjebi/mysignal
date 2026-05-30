@@ -113,6 +113,14 @@
                     <label class="form-label">Email</label>
                     <input type="email" name="email" value="{{ old('email', $organization->email) }}" class="form-control">
                 </div>
+                <div class="col-md-4">
+                    <label class="form-label">Commune</label>
+                    <input type="text" name="commune" value="{{ old('commune', $organization->commune) }}" class="form-control">
+                </div>
+                <div class="col-md-8">
+                    <label class="form-label">Adresse</label>
+                    <input type="text" name="address" value="{{ old('address', $organization->address) }}" class="form-control">
+                </div>
                 <div class="col-12">
                     <label class="form-label">Description</label>
                     <textarea name="description" class="form-control" rows="3">{{ old('description', $organization->description) }}</textarea>
