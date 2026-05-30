@@ -361,6 +361,10 @@
                         <span class="nav-icon">SG</span>
                         <span><span class="d-block fw-semibold">Types de signaux</span><span class="small text-white-50">Catalogue public editable</span></span>
                     </a>
+                    <a href="{{ route('super-admin.signal-sub-types.index') }}" class="nav-pill {{ request()->routeIs('super-admin.signal-sub-types.*') ? 'active' : '' }}">
+                        <span class="nav-icon">ST</span>
+                        <span><span class="d-block fw-semibold">Sous-types de signal</span><span class="small text-white-50">Motifs proposes aux UP</span></span>
+                    </a>
                 @endif
                 @if ($canAccess('SA_SLA_POLICIES_VIEW') || $canAccess('SA_SLA_POLICIES_MANAGE'))
                     <a href="{{ route('super-admin.sla-policies.index') }}" class="nav-pill {{ request()->routeIs('super-admin.sla-policies.*') ? 'active' : '' }}">
@@ -708,6 +712,7 @@
                 ['/sa/features', 'SA_FEATURES'],
                 ['/sa/applications', 'SA_APPLICATIONS'],
                 ['/sa/signal-types', 'SA_SIGNAL_TYPES'],
+                ['/sa/signal-sub-types', 'SA_SIGNAL_TYPES'],
                 ['/sa/sla-policies', 'SA_SLA_POLICIES'],
                 ['/sa/subscription-plans', 'SA_SUBSCRIPTION_PLANS'],
                 ['/sa/public-user-types', 'SA_PUBLIC_USER_TYPES'],

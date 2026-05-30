@@ -93,6 +93,7 @@
                                     <td><span class="status-chip">{{ $signalType->status }}</span></td>
                                     <td class="text-end">
                                         <div class="actions-wrap">
+                                            <a href="{{ route('super-admin.signal-sub-types.index', ['signal_type_id' => $signalType->id]) }}" class="btn btn-sm btn-outline-primary">Sous-types</a>
                                             <a href="{{ route('super-admin.signal-types.edit', $signalType) }}" class="btn btn-sm btn-outline-dark">Modifier</a>
                                             <form method="POST" action="{{ route('super-admin.signal-types.toggle-status', $signalType) }}">
                                                 @csrf

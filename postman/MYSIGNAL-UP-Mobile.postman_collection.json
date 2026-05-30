@@ -49,6 +49,7 @@
     { "key": "meterNumber", "value": "AB12345678" },
     { "key": "additionalMeterNumber", "value": "AB87654321" },
     { "key": "meterId", "value": "" },
+    { "key": "signalCode", "value": "EL-01" },
     { "key": "signalSubTypeCode", "value": "OTHER" },
     { "key": "purchaseReceiptId", "value": "" },
     { "key": "receiptMaterialName", "value": "Television" },
@@ -299,11 +300,29 @@
         },
         {
           "name": "Signal Types",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "const signalTypes = json?.data?.signal_types || [];",
+                  "pm.test('Signal types returned', function () { pm.expect(signalTypes.length).to.be.greaterThan(0); });",
+                  "const selected = signalTypes.find((type) => type.code === (pm.environment.get('signalCode') || 'EL-01')) || signalTypes[0];",
+                  "if (selected?.code) pm.environment.set('signalCode', selected.code);",
+                  "const subTypes = selected?.sub_types || [];",
+                  "const selectedSubType = subTypes.find((subType) => subType.code === (pm.environment.get('signalSubTypeCode') || 'OTHER')) || subTypes[0];",
+                  "if (selectedSubType?.code) pm.environment.set('signalSubTypeCode', selectedSubType.code);"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [{ "key": "Accept", "value": "application/json" }],
             "url": "{{baseUrl}}/v1/public/signal-types",
-            "description": "Retourne les types de signaux actifs."
+            "description": "Retourne les types de signaux actifs avec sub_types et requires_sub_type. Le test Postman renseigne signalCode et signalSubTypeCode."
           }
         },
         {
@@ -939,8 +958,8 @@
               "mode": "formdata",
               "formdata": [
                 { "key": "meter_id", "value": "{{meterId}}", "type": "text" },
-                { "key": "signal_code", "value": "NETWORK_OUTAGE", "type": "text" },
-                { "key": "signal_sub_type_code", "value": "{{signalSubTypeCode}}", "type": "text", "description": "Obligatoire si le type de signal retourne requires_sub_type=true. Utiliser OTHER pour Autre." },
+                { "key": "signal_code", "value": "{{signalCode}}", "type": "text", "description": "Code retourne par GET /v1/public/signal-types et compatible avec le meter selectionne." },
+                { "key": "signal_sub_type_code", "value": "{{signalSubTypeCode}}", "type": "text", "disabled": true, "description": "Facultatif. Activer uniquement si le type de signal retourne requires_sub_type=true." },
                 { "key": "description", "value": "Coupure depuis 2 heures", "type": "text" },
                 { "key": "occurred_at", "value": "2026-04-10T12:00:00Z", "type": "text" },
                 { "key": "latitude", "value": "{{latitude}}", "type": "text" },
@@ -951,7 +970,46 @@
               ]
             },
             "url": "{{baseUrl}}/v1/public/reports",
-            "description": "Nouveau flux: initialise une session FineoPay et retourne data.checkout_link. Le signalement est cree uniquement apres callback FineoPay success. Le backend deduit pays, ville, commune et adresse depuis meter_id. signal_attachment est optionnel; activer le champ fichier pour envoyer une photo ou une video."
+            "description": "Payload sans sous-type: utiliser cette requete quand le type de signal retourne requires_sub_type=false. Nouveau flux: initialise une session FineoPay et retourne data.checkout_link. Le signalement est cree uniquement apres callback FineoPay success. Le backend deduit pays, ville, commune et adresse depuis meter_id."
+          }
+        },
+        {
+          "name": "Create Report With Sub Type",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json?.data?.report?.id) pm.environment.set('reportId', json.data.report.id);",
+                  "if (json?.data?.payment_session?.sync_ref) pm.environment.set('paymentSessionSyncRef', json.data.payment_session.sync_ref);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "meter_id", "value": "{{meterId}}", "type": "text" },
+                { "key": "signal_code", "value": "{{signalCode}}", "type": "text", "description": "Code retourne par GET /v1/public/signal-types et compatible avec le meter selectionne." },
+                { "key": "signal_sub_type_code", "value": "{{signalSubTypeCode}}", "type": "text", "description": "Obligatoire uniquement si le type de signal retourne requires_sub_type=true. Utiliser OTHER pour Autre." },
+                { "key": "description", "value": "Coupure depuis 2 heures", "type": "text" },
+                { "key": "occurred_at", "value": "2026-04-10T12:00:00Z", "type": "text" },
+                { "key": "latitude", "value": "{{latitude}}", "type": "text" },
+                { "key": "longitude", "value": "{{longitude}}", "type": "text" },
+                { "key": "location_accuracy", "value": "{{locationAccuracy}}", "type": "text" },
+                { "key": "location_source", "value": "gps", "type": "text" },
+                { "key": "signal_attachment", "type": "file", "src": [], "disabled": true }
+              ]
+            },
+            "url": "{{baseUrl}}/v1/public/reports",
+            "description": "Payload avec sous-type: utiliser cette requete quand le type de signal retourne requires_sub_type=true."
           }
         },
         {
@@ -974,8 +1032,8 @@
               "mode": "formdata",
               "formdata": [
                 { "key": "meter_id", "value": "{{meterId}}", "type": "text" },
-                { "key": "signal_code", "value": "EL-04", "type": "text" },
-                { "key": "signal_sub_type_code", "value": "{{signalSubTypeCode}}", "type": "text", "description": "Obligatoire si le type de signal retourne requires_sub_type=true. Utiliser OTHER pour Autre." },
+                { "key": "signal_code", "value": "{{signalCode}}", "type": "text", "description": "Code retourne par GET /v1/public/signal-types et compatible avec le meter selectionne." },
+                { "key": "signal_sub_type_code", "value": "{{signalSubTypeCode}}", "type": "text", "disabled": true, "description": "Facultatif. Activer uniquement si le type de signal retourne requires_sub_type=true." },
                 { "key": "description", "value": "Compteur illisible", "type": "text" },
                 { "key": "occurred_at", "value": "2026-04-10T12:00:00Z", "type": "text" },
                 { "key": "latitude", "value": "{{latitude}}", "type": "text" },

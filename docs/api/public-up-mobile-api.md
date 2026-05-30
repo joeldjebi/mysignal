@@ -71,6 +71,8 @@ Autres statuts importants :
 - `password`
 - `publicUserTypeId`
 - `meterId`
+- `signalCode`
+- `signalSubTypeCode`
 - `reportId`
 - `paymentId`
 - `householdId`
@@ -324,7 +326,7 @@ Quand un type de signal a des sous-types, l API ajoute automatiquement l option 
 }
 ```
 
-L app mobile doit envoyer `signal_sub_type_code`. Utiliser `OTHER` si le motif voulu n existe pas dans la liste.
+L app mobile doit envoyer `signal_sub_type_code` uniquement quand `requires_sub_type` vaut `true`. Utiliser `OTHER` si le motif voulu n existe pas dans la liste.
 - `precise_gps` et `gps_location` sont pre-remplis avec la position GPS courante quand elle est disponible.
 
 ### Compteurs
@@ -513,36 +515,68 @@ Compatibilite d un type de signal avec un compteur :
 - si le type de signal a un `organization_id`, il doit correspondre a l `organization_id` du compteur
 - si le type de signal a `organization_id: null`, il sert de type generique pour l application
 
-Body JSON sans fichier :
+Payload attendu sans fichier :
+
+| Champ | Obligatoire | Description |
+| --- | --- | --- |
+| `meter_id` | oui | Identifiant rattache au UP. |
+| `signal_code` | oui | Code du type retourne par `GET /v1/public/signal-types`, compatible avec le compteur choisi. |
+| `signal_sub_type_code` | conditionnel | Obligatoire quand le type choisi retourne `requires_sub_type: true`. Envoyer le code d un sous-type actif ou `OTHER` pour Autre. |
+| `description` | non | Detail libre saisi par le UP. |
+| `occurred_at` | oui | Date ISO 8601 de l incident. |
+| `latitude` | non | Latitude GPS courante. |
+| `longitude` | non | Longitude GPS courante. |
+| `location_accuracy` | non | Precision GPS en metres si disponible. |
+| `location_source` | non | Exemple : `gps`. |
+| `signal_attachment` | non | Fichier image ou video, en multipart uniquement. |
+
+Body JSON sans sous-type, quand `requires_sub_type: false` :
 ```json
 {
   "meter_id": 1,
-  "signal_code": "NETWORK_OUTAGE",
+  "signal_code": "EL-01",
+  "description": "Coupure depuis 2 heures",
+  "occurred_at": "2026-04-10T12:00:00Z",
+  "latitude": 5.348,
+  "longitude": -4.001,
+  "location_accuracy": 20,
+  "location_source": "gps"
+}
+```
+
+Body JSON avec sous-type, quand `requires_sub_type: true` :
+```json
+{
+  "meter_id": 1,
+  "signal_code": "EL-01",
   "signal_sub_type_code": "OTHER",
   "description": "Coupure depuis 2 heures",
   "occurred_at": "2026-04-10T12:00:00Z",
   "latitude": 5.348,
   "longitude": -4.001,
+  "location_accuracy": 20,
   "location_source": "gps"
 }
 ```
 
-Body multipart avec photo ou video optionnelle :
+Body multipart avec photo ou video optionnelle, sans sous-type si `requires_sub_type: false` :
 ```text
 POST /api/v1/public/reports
 Accept: application/json
 Content-Type: multipart/form-data
 
 meter_id=1
-signal_code=NETWORK_OUTAGE
-signal_sub_type_code=OTHER
+signal_code=EL-01
 description=Coupure depuis 2 heures
 occurred_at=2026-04-10T12:00:00Z
 latitude=5.348
 longitude=-4.001
+location_accuracy=20
 location_source=gps
 signal_attachment=@preuve.jpg
 ```
+
+Ajouter `signal_sub_type_code=OTHER` ou le code du sous-type selectionne uniquement si le type de signal retourne `requires_sub_type: true`.
 
 `signal_attachment` est optionnel. Formats acceptes : images `jpeg`, `png`, `webp`, `gif`, `heic`, `heif` et videos `mp4`, `mov/quicktime`, `avi`, `mpeg`. Taille max : 50 Mo.
 
@@ -629,12 +663,19 @@ Exemple avec piece jointe optionnelle :
 ```json
 {
   "meter_id": 1,
-  "signal_code": "EL-04",
-  "description": "Compteur illisible"
+  "signal_code": "EL-01",
+  "description": "Compteur illisible",
+  "occurred_at": "2026-04-10T12:00:00Z",
+  "latitude": 5.348,
+  "longitude": -4.001,
+  "location_accuracy": 20,
+  "location_source": "gps"
 }
 ```
 
-La reponse `report` contient maintenant `signal_attachment` avec `name`, `mime_type`, `size`, `path` et `temporary_url` quand un fichier a ete envoye.
+Ajouter `signal_sub_type_code` dans cet exemple seulement si le type de signal choisi exige un sous-type.
+
+La reponse `report` contient maintenant `signal_sub_type` avec `id`, `code`, `label`, `is_other`, et `signal_attachment` avec `name`, `mime_type`, `size`, `path` et `temporary_url` quand un fichier a ete envoye.
 
 #### GET `/v1/public/reports/{report}`
 Retourne le detail d un signalement.

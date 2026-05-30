@@ -93,6 +93,52 @@ class SignalTypeController extends Controller
         ]);
     }
 
+    public function subTypesIndex(): View
+    {
+        $query = SignalSubType::query()
+            ->with(['signalType.application', 'signalType.organization']);
+
+        if (filled(request('search'))) {
+            $search = trim((string) request('search'));
+            $query->where(function ($builder) use ($search): void {
+                $builder->where('code', 'like', '%'.$search.'%')
+                    ->orWhere('label', 'like', '%'.$search.'%')
+                    ->orWhere('description', 'like', '%'.$search.'%')
+                    ->orWhereHas('signalType', function ($signalTypeQuery) use ($search): void {
+                        $signalTypeQuery->where('code', 'like', '%'.$search.'%')
+                            ->orWhere('label', 'like', '%'.$search.'%');
+                    });
+            });
+        }
+
+        if (filled(request('signal_type_id'))) {
+            $query->where('signal_type_id', request('signal_type_id'));
+        }
+
+        if (filled(request('status'))) {
+            $query->where('status', request('status'));
+        }
+
+        return view('super-admin.signal-sub-types.index', [
+            'subTypes' => $query
+                ->join('signal_types', 'signal_sub_types.signal_type_id', '=', 'signal_types.id')
+                ->orderBy('signal_types.application_id')
+                ->orderBy('signal_types.organization_id')
+                ->orderBy('signal_types.code')
+                ->orderBy('signal_sub_types.sort_order')
+                ->orderBy('signal_sub_types.label')
+                ->select('signal_sub_types.*')
+                ->paginate(15)
+                ->withQueryString(),
+            'signalTypes' => SignalType::query()
+                ->with(['application', 'organization'])
+                ->orderBy('application_id')
+                ->orderBy('organization_id')
+                ->orderBy('code')
+                ->get(),
+        ]);
+    }
+
     public function update(Request $request, SignalType $signalType, ActivityLogger $activityLogger): RedirectResponse
     {
         $before = $signalType->only([
@@ -157,19 +203,24 @@ class SignalTypeController extends Controller
     {
         $subType = $signalType->subTypes()->create($this->validatedSubTypeAttributes($request, $signalType));
 
-        $activityLogger->log(
-            'signal_sub_type.created',
-            'Creation d un sous-type de signal.',
-            $subType,
-            [
-                'signal_type_id' => $signalType->id,
-                'code' => $subType->code,
-                'label' => $subType->label,
-            ],
-            $request
-        );
+        $this->logSubTypeCreation($activityLogger, $request, $signalType, $subType);
 
         return redirect()->route('super-admin.signal-types.edit', $signalType)
+            ->with('success', 'Le sous-type de signal a ete cree.');
+    }
+
+    public function storeSubTypeFromIndex(Request $request, ActivityLogger $activityLogger): RedirectResponse
+    {
+        $attributes = $request->validate([
+            'signal_type_id' => ['required', 'exists:signal_types,id'],
+        ]);
+
+        $signalType = SignalType::query()->findOrFail($attributes['signal_type_id']);
+        $subType = $signalType->subTypes()->create($this->validatedSubTypeAttributes($request, $signalType));
+
+        $this->logSubTypeCreation($activityLogger, $request, $signalType, $subType);
+
+        return redirect()->route('super-admin.signal-sub-types.index', ['signal_type_id' => $signalType->id])
             ->with('success', 'Le sous-type de signal a ete cree.');
     }
 
@@ -319,5 +370,20 @@ class SignalTypeController extends Controller
     private function ensureSubTypeBelongsToSignalType(SignalType $signalType, SignalSubType $subType): void
     {
         abort_unless((int) $subType->signal_type_id === (int) $signalType->id, 404);
+    }
+
+    private function logSubTypeCreation(ActivityLogger $activityLogger, Request $request, SignalType $signalType, SignalSubType $subType): void
+    {
+        $activityLogger->log(
+            'signal_sub_type.created',
+            'Creation d un sous-type de signal.',
+            $subType,
+            [
+                'signal_type_id' => $signalType->id,
+                'code' => $subType->code,
+                'label' => $subType->label,
+            ],
+            $request
+        );
     }
 }
