@@ -160,6 +160,16 @@
                             </div>
                         @endif
                     </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Icone mobile</label>
+                        <input type="file" name="icon_file" class="form-control" accept=".png,.svg,.jpg,.jpeg">
+                        <div class="small text-secondary mt-2">Laisser vide pour conserver l icone actuelle.</div>
+                        @if ($application->iconUrl())
+                            <div class="mt-3">
+                                <img src="{{ $application->iconUrl() }}" alt="Icone actuelle" style="width:72px;height:72px;border-radius:18px;object-fit:contain;background:#fff;padding:.35rem;box-shadow:0 12px 24px rgba(16,42,67,.08);">
+                            </div>
+                        @endif
+                    </div>
                     <div class="col-md-4">
                         <label class="form-label">Couleur primaire</label>
                         <input type="text" name="primary_color" value="{{ old('primary_color', $application->primary_color) }}" class="form-control">

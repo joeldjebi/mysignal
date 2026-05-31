@@ -21,6 +21,7 @@ class Application extends Model
         'long_description',
         'logo_path',
         'hero_image_path',
+        'icon_path',
         'primary_color',
         'secondary_color',
         'accent_color',
@@ -71,6 +72,11 @@ class Application extends Model
     public function heroImageUrl(): ?string
     {
         return $this->resolveAssetUrl($this->hero_image_path);
+    }
+
+    public function iconUrl(): ?string
+    {
+        return $this->resolveAssetUrl($this->icon_path);
     }
 
     private function resolveAssetUrl(?string $path): ?string

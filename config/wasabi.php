@@ -9,6 +9,7 @@ return [
     'url' => env('WASABI_URL'),
     'avatar_directory' => env('WASABI_AVATAR_DIRECTORY', 'images/avatar'),
     'application_logo_directory' => env('WASABI_APPLICATION_LOGO_DIRECTORY', 'applications/logos'),
+    'application_icon_directory' => env('WASABI_APPLICATION_ICON_DIRECTORY', 'applications/icons'),
     'organization_logo_directory' => env('WASABI_ORGANIZATION_LOGO_DIRECTORY', 'organizations/logos'),
     'application_hero_directory' => env('WASABI_APPLICATION_HERO_DIRECTORY', 'applications/heroes'),
     'landing_partner_logo_directory' => env('WASABI_LANDING_PARTNER_LOGO_DIRECTORY', 'landing/partners'),

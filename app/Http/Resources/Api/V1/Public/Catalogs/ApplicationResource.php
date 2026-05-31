@@ -16,6 +16,7 @@ class ApplicationResource extends JsonResource
             'slug' => $this->slug,
             'tagline' => $this->tagline,
             'short_description' => $this->short_description,
+            'icon_url' => $this->iconUrl(),
             'primary_color' => $this->primary_color,
             'secondary_color' => $this->secondary_color,
             'accent_color' => $this->accent_color,

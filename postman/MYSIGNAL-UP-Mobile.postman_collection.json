@@ -94,6 +94,7 @@
                   "if (selected?.code) pm.environment.set('applicationCode', selected.code);",
                   "if (selected && Object.prototype.hasOwnProperty.call(selected, 'requires_public_user_identifier')) pm.environment.set('requiresPublicUserIdentifier', selected.requires_public_user_identifier ? 'true' : 'false');",
                   "pm.test('Identifier requirement exposed', function () { pm.expect(selected).to.have.property('requires_public_user_identifier'); });",
+                  "pm.test('Mobile icon URL exposed', function () { pm.expect(selected).to.have.property('icon_url'); });",
                   "pm.test('Nearby notification setting exposed', function () { pm.expect(json?.data?.settings || {}).to.have.property('public_nearby_report_notifications_enabled'); });"
                 ]
               }
@@ -103,7 +104,7 @@
             "method": "GET",
             "header": [{ "key": "Accept", "value": "application/json" }],
             "url": "{{baseUrl}}/v1/public/applications",
-            "description": "Retourne la liste des applications actives pour les formulaires mobiles. Chaque application expose requires_public_user_identifier. data.settings.public_nearby_report_notifications_enabled indique si les notifications UP dans un rayon de 1 km sont actives cote backend."
+            "description": "Retourne la liste des applications actives pour les formulaires mobiles. Chaque application expose icon_url et requires_public_user_identifier. data.settings.public_nearby_report_notifications_enabled indique si les notifications UP dans un rayon de 1 km sont actives cote backend."
           }
         },
         {

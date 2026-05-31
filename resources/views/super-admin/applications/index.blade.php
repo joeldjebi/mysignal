@@ -194,6 +194,11 @@
 
                         <div class="fw-semibold">{{ $application->tagline ?: '-' }}</div>
                         <div class="small text-secondary mt-1">{{ $application->short_description ?: 'Aucune description courte renseignee.' }}</div>
+                        @if ($application->iconUrl())
+                            <div class="mt-3">
+                                <img src="{{ $application->iconUrl() }}" alt="Icone {{ $application->name }}" style="width:40px;height:40px;border-radius:10px;object-fit:contain;background:#fff;padding:.25rem;border:1px solid rgba(16,42,67,.08);">
+                            </div>
+                        @endif
 
                         <div class="app-admin-meta">
                             <div class="app-admin-box">
@@ -311,6 +316,11 @@
                             <label class="form-label">Image hero</label>
                             <input type="file" name="hero_image_file" class="form-control" accept=".jpg,.jpeg,.png,.webp">
                             <div class="small text-secondary mt-2">Le fichier sera envoye sur Wasabi.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Icone mobile</label>
+                            <input type="file" name="icon_file" class="form-control" accept=".png,.svg,.jpg,.jpeg">
+                            <div class="small text-secondary mt-2">PNG, SVG, JPG ou JPEG. Le fichier sera envoye sur Wasabi.</div>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Couleur primaire</label>

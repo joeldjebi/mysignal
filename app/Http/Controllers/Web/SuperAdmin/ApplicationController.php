@@ -155,6 +155,7 @@ class ApplicationController extends Controller
             'long_description' => ['nullable', 'string'],
             'logo_file' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             'hero_image_file' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:6144'],
+            'icon_file' => ['nullable', 'file', 'mimes:png,svg,jpg,jpeg', 'max:2048'],
             'primary_color' => ['nullable', 'string', 'max:20'],
             'secondary_color' => ['nullable', 'string', 'max:20'],
             'accent_color' => ['nullable', 'string', 'max:20'],
@@ -166,6 +167,7 @@ class ApplicationController extends Controller
 
         $logoPath = $application?->logo_path;
         $heroImagePath = $application?->hero_image_path;
+        $iconPath = $application?->icon_path;
 
         if ($request->hasFile('logo_file') && $wasabiService !== null) {
             if (filled($application?->logo_path) && str_starts_with((string) $application->logo_path, 'applications/')) {
@@ -191,6 +193,18 @@ class ApplicationController extends Controller
             );
         }
 
+        if ($request->hasFile('icon_file') && $wasabiService !== null) {
+            if (filled($application?->icon_path) && str_starts_with((string) $application->icon_path, 'applications/')) {
+                $wasabiService->deleteFile($application->icon_path);
+            }
+
+            $iconPath = $wasabiService->uploadFile(
+                $request->file('icon_file'),
+                config('wasabi.application_icon_directory', 'applications/icons'),
+                'application-icon'
+            );
+        }
+
         return [[
             'code' => strtoupper((string) $attributes['code']),
             'name' => $attributes['name'],
@@ -200,6 +214,7 @@ class ApplicationController extends Controller
             'long_description' => $attributes['long_description'] ?? null,
             'logo_path' => $logoPath,
             'hero_image_path' => $heroImagePath,
+            'icon_path' => $iconPath,
             'primary_color' => $attributes['primary_color'] ?? null,
             'secondary_color' => $attributes['secondary_color'] ?? null,
             'accent_color' => $attributes['accent_color'] ?? null,
