@@ -392,6 +392,7 @@ Route::prefix('sa')->name('super-admin.')->group(function (): void {
         Route::get('organizations', [OrganizationController::class, 'index'])->middleware('super_admin_permission:SA_ORGANIZATIONS_VIEW,SA_ORGANIZATIONS_MANAGE')->name('organizations.index');
         Route::post('organizations', [OrganizationController::class, 'store'])->middleware('super_admin_permission:SA_ORGANIZATIONS_CREATE,SA_ORGANIZATIONS_MANAGE')->name('organizations.store');
         Route::post('organizations/import', [OrganizationController::class, 'import'])->middleware('super_admin_permission:SA_ORGANIZATIONS_CREATE,SA_ORGANIZATIONS_MANAGE')->name('organizations.import');
+        Route::get('organizations/import-template/{template}', [OrganizationController::class, 'downloadImportTemplate'])->middleware('super_admin_permission:SA_ORGANIZATIONS_VIEW,SA_ORGANIZATIONS_MANAGE')->name('organizations.import-template');
         Route::get('organizations/{organization}', [OrganizationController::class, 'show'])->middleware('super_admin_permission:SA_ORGANIZATIONS_VIEW,SA_ORGANIZATIONS_MANAGE')->name('organizations.show');
         Route::get('organizations/{organization}/edit', [OrganizationController::class, 'edit'])->middleware('super_admin_permission:SA_ORGANIZATIONS_UPDATE,SA_ORGANIZATIONS_MANAGE')->name('organizations.edit');
         Route::put('organizations/{organization}', [OrganizationController::class, 'update'])->middleware('super_admin_permission:SA_ORGANIZATIONS_UPDATE,SA_ORGANIZATIONS_MANAGE')->name('organizations.update');
@@ -438,6 +439,7 @@ Route::prefix('sa')->name('super-admin.')->group(function (): void {
         Route::get('payments', [PaymentController::class, 'index'])->middleware('super_admin_permission:SA_PAYMENTS_VIEW')->name('payments.index');
         Route::post('payments/sessions/{paymentSession}/validate', [PaymentController::class, 'validateSession'])->middleware('super_admin_permission:SA_PAYMENTS_MANUAL_VALIDATE')->name('payments.sessions.validate');
         Route::get('maintenance/cleanup', [MaintenanceCleanupController::class, 'index'])->middleware('super_admin_permission:SA_MAINTENANCE_CLEANUP')->name('maintenance.cleanup.index');
+        Route::patch('maintenance/nearby-report-notifications', [MaintenanceCleanupController::class, 'toggleNearbyReportNotifications'])->middleware('super_admin_permission:SA_MAINTENANCE_CLEANUP')->name('maintenance.nearby-report-notifications.toggle');
         Route::delete('maintenance/cleanup', [MaintenanceCleanupController::class, 'destroy'])->middleware('super_admin_permission:SA_MAINTENANCE_CLEANUP')->name('maintenance.cleanup.destroy');
         Route::delete('maintenance/cleanup/table', [MaintenanceCleanupController::class, 'destroyTable'])->middleware('super_admin_permission:SA_MAINTENANCE_CLEANUP')->name('maintenance.cleanup.table.destroy');
         Route::get('discount-cards', [DiscountCardController::class, 'index'])->middleware('super_admin_permission:SA_DISCOUNT_CARDS_VIEW')->name('discount-cards.index');

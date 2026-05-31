@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class OrganizationController extends Controller
 {
@@ -172,6 +173,34 @@ class OrganizationController extends Controller
 
         return redirect()->route('super-admin.organizations.index')
             ->with('success', "{$createdOrganizations} institution(s) et {$createdAdmins} admin(s) institutionnel(s) ont ete crees.");
+    }
+
+    public function downloadImportTemplate(string $template): StreamedResponse
+    {
+        $templates = [
+            'standard' => [
+                'filename' => 'modele_import_institutions_standard.csv',
+                'headers' => ['Nom', 'Commune', 'Adresse', 'Mobile'],
+            ],
+            'typed' => [
+                'filename' => 'modele_import_institutions_type_organisation.csv',
+                'headers' => ['Type_organisation', 'Nom', 'Commune', 'Region_District', 'Statut'],
+            ],
+        ];
+
+        abort_unless(isset($templates[$template]), 404);
+
+        $response = new StreamedResponse(function () use ($templates, $template): void {
+            $output = fopen('php://output', 'wb');
+            fwrite($output, "\xEF\xBB\xBF");
+            fputcsv($output, $templates[$template]['headers'], ';');
+            fclose($output);
+        }, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
+        $response->headers->set('Content-Disposition', $response->headers->makeDisposition('attachment', $templates[$template]['filename']));
+
+        return $response;
     }
 
     public function edit(Organization $organization): View

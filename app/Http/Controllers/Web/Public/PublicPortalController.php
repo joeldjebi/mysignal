@@ -284,10 +284,12 @@ class PublicPortalController extends Controller
                     'code' => $application->code,
                     'name' => $application->name,
                     'network_type' => $networkType,
+                    'requires_public_user_identifier' => (bool) $application->requires_public_user_identifier,
                     'organizations' => $application->organizations->map(fn ($organization) => [
                         'id' => $organization->id,
                         'code' => $organization->code,
                         'name' => $organization->name,
+                        'organization_type_id' => $organization->organization_type_id,
                         'network_type' => $organization->code ?: $networkType,
                     ])->values()->all(),
                 ];

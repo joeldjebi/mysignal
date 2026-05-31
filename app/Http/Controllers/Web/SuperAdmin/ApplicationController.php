@@ -159,6 +159,7 @@ class ApplicationController extends Controller
             'secondary_color' => ['nullable', 'string', 'max:20'],
             'accent_color' => ['nullable', 'string', 'max:20'],
             'sort_order' => ['nullable', 'integer', 'min:1', 'max:999'],
+            'requires_public_user_identifier' => ['nullable', 'boolean'],
             'feature_ids' => ['nullable', 'array'],
             'feature_ids.*' => ['integer', 'exists:features,id'],
         ]);
@@ -203,6 +204,7 @@ class ApplicationController extends Controller
             'secondary_color' => $attributes['secondary_color'] ?? null,
             'accent_color' => $attributes['accent_color'] ?? null,
             'sort_order' => $attributes['sort_order'] ?? 1,
+            'requires_public_user_identifier' => (bool) ($attributes['requires_public_user_identifier'] ?? false),
             'status' => $application?->status ?? 'active',
         ], $attributes['feature_ids'] ?? []];
     }

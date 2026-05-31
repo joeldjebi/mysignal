@@ -20,6 +20,7 @@ class ApplicationResource extends JsonResource
             'secondary_color' => $this->secondary_color,
             'accent_color' => $this->accent_color,
             'sort_order' => $this->sort_order,
+            'requires_public_user_identifier' => (bool) $this->requires_public_user_identifier,
         ];
     }
 }

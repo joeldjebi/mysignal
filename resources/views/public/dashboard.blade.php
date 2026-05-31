@@ -1920,7 +1920,7 @@
                                 <div class="select-search-results" id="reportOrganizationTypeResults"></div>
                                 <div class="location-search-hint">Choisissez d’abord l’application, puis l’organisation concernée, pour afficher uniquement les identifiants et types de signal compatibles.</div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-4" id="reportMeterFieldWrap">
                                 <label class="form-label fw-semibold">identifiant<span class="required-star">*</span></label>
                                 <div class="select-search-shell">
                                     <input class="form-control select-search-input" style="display:block;width:100%;" type="search" data-search-select-target="reportMeterId" autocomplete="off" placeholder="Rechercher un identifiant">
@@ -1959,7 +1959,7 @@
                             <div class="col-12">
                                 <div class="soft-panel">
                                     <div class="fw-bold mb-1">Localisation automatique</div>
-                                    <div class="muted-label">Le pays, la ville, la commune et l’adresse sont récupérés automatiquement à partir de l’identifiant sélectionné.</div>
+                                    <div class="muted-label" id="reportLocationHelp">Le pays, la ville, la commune et l’adresse sont récupérés automatiquement à partir de l’identifiant sélectionné.</div>
                                 </div>
                                 <input type="hidden" name="latitude" id="reportLatitude">
                                 <input type="hidden" name="longitude" id="reportLongitude">
@@ -3345,6 +3345,18 @@
                     return application?.organizations || [];
                 }
 
+                function getSelectedReportApplication() {
+                    const applicationId = String(document.getElementById('reportApplicationId')?.value || '');
+
+                    return serviceApplications.find((item) => String(item.id) === applicationId) || null;
+                }
+
+                function reportRequiresIdentifier() {
+                    const application = getSelectedReportApplication();
+
+                    return application ? application.requires_public_user_identifier !== false : true;
+                }
+
                 function getSelectedReportOrganizationId() {
                     return document.getElementById('reportOrganizationType').value || '';
                 }
@@ -3364,6 +3376,10 @@
                 }
 
                 function getFilteredMetersForSelectedNetwork() {
+                    if (!reportRequiresIdentifier()) {
+                        return [];
+                    }
+
                     const organizationId = getSelectedReportOrganizationId();
 
                     if (!organizationId) {
@@ -3458,8 +3474,36 @@
 
                 function renderReportMeterOptions(preferredMeterId = null) {
                     const meterSelect = document.getElementById('reportMeterId');
+                    const meterWrap = document.getElementById('reportMeterFieldWrap');
                     const filteredMeters = getFilteredMetersForSelectedNetwork();
                     const noMeterHint = document.getElementById('reportNoMeterHint');
+                    const locationHelp = document.getElementById('reportLocationHelp');
+                    const requiresIdentifier = reportRequiresIdentifier();
+
+                    meterWrap.classList.toggle('d-none', !requiresIdentifier);
+                    meterSelect.required = requiresIdentifier;
+                    meterSelect.disabled = !requiresIdentifier;
+                    locationHelp.textContent = requiresIdentifier
+                        ? 'Le pays, la ville, la commune et l’adresse sont récupérés automatiquement à partir de l’identifiant sélectionné.'
+                        : 'Le pays, la ville, la commune et l’adresse sont récupérés automatiquement à partir de votre profil.';
+
+                    if (!requiresIdentifier) {
+                        meterSelect.innerHTML = '<option value="">Aucun identifiant requis</option>';
+                        meterSelect.value = '';
+                        noMeterHint.classList.add('d-none');
+                        if (document.getElementById('reportLocationSource').value === 'meter_location') {
+                            clearReportGeoFields();
+                        }
+                        if (!hasGeoCoordinates('report') && state.currentUser?.latitude && state.currentUser?.longitude) {
+                            fillGeoFields('report', {
+                                latitude: state.currentUser.latitude,
+                                longitude: state.currentUser.longitude,
+                                accuracy: state.currentUser.location_accuracy || '',
+                            }, 'profile_location');
+                        }
+                        refreshSearchableSelect('reportMeterId');
+                        return;
+                    }
 
                     meterSelect.innerHTML = filteredMeters.length
                         ? filteredMeters.map((meter) => `<option value="${meter.id}">${meter.organization_name || meter.network_type} · ${meter.meter_number}${meter.label ? ' · ' + meter.label : ''} · ${meter.assignment_label || 'Compteur personnel'}</option>`).join('')
@@ -3482,9 +3526,15 @@
 
                 function getSignalTypesForCurrentMeter() {
                     const meter = state.meters.find((item) => String(item.id) === String(document.getElementById('reportMeterId').value));
-                    if (!meter) return [];
+                    const application = getSelectedReportApplication();
+                    const organizationId = getSelectedReportOrganizationId();
+
+                    if (!meter && !application) return [];
+
                     const matchingTypes = state.signalTypes.filter((type) => {
-                        if (String(type.application_id) !== String(meter.application_id)) {
+                        const applicationId = meter?.application_id || application?.id;
+
+                        if (String(type.application_id) !== String(applicationId)) {
                             return false;
                         }
 
@@ -3492,7 +3542,7 @@
                             return true;
                         }
 
-                        return String(type.organization_id) === String(meter.organization_id);
+                        return String(type.organization_id) === String(meter?.organization_id || organizationId);
                     });
 
                     const deduplicatedTypes = new Map();
@@ -3534,7 +3584,8 @@
                     const availableSignals = getSignalTypesForCurrentMeter();
                     const signal = availableSignals.find((item) => item.code === signalSelect.value) || availableSignals[0];
                     const selectedMeter = state.meters.find((item) => String(item.id) === String(document.getElementById('reportMeterId')?.value || ''));
-                    const organizationTypeId = selectedMeter?.organization_type_id ? String(selectedMeter.organization_type_id) : null;
+                    const selectedOrganization = getAvailableReportOrganizations().find((item) => String(item.id) === String(getSelectedReportOrganizationId()));
+                    const organizationTypeId = selectedMeter?.organization_type_id ? String(selectedMeter.organization_type_id) : (selectedOrganization?.organization_type_id ? String(selectedOrganization.organization_type_id) : null);
                     const inlineDescription = document.getElementById('reportSignalInlineDescription');
                     const title = document.getElementById('reportSignalMetaTitle');
                     const description = document.getElementById('reportSignalMetaDescription');

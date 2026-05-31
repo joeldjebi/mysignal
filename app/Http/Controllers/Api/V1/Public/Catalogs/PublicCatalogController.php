@@ -14,6 +14,7 @@ use App\Models\Application;
 use App\Models\BusinessSector;
 use App\Models\City;
 use App\Models\Country;
+use App\Models\Feature;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Support\Api\ApiResponse;
@@ -31,6 +32,12 @@ class PublicCatalogController extends Controller
 
         return ApiResponse::success([
             'applications' => ApplicationResource::collection($applications),
+            'settings' => [
+                'public_nearby_report_notifications_enabled' => Feature::query()
+                    ->where('code', 'PUBLIC_NEARBY_REPORT_NOTIFICATIONS')
+                    ->where('status', 'active')
+                    ->exists(),
+            ],
         ]);
     }
 

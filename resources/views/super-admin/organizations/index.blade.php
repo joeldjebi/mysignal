@@ -367,6 +367,14 @@
                                 <div class="small text-secondary mt-2">Facultatif si vous choisissez un type existant ou si le fichier contient Type_organisation.</div>
                             </div>
                             <div class="col-12">
+                                <label class="form-label">Modeles de fichier</label>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <a href="{{ route('super-admin.organizations.import-template', 'standard') }}" class="btn btn-outline-dark btn-sm">Modele Nom, Commune, Adresse, Mobile</a>
+                                    <a href="{{ route('super-admin.organizations.import-template', 'typed') }}" class="btn btn-outline-dark btn-sm">Modele Type_organisation</a>
+                                </div>
+                                <div class="small text-secondary mt-2">Telechargez un modele, renseignez les lignes, puis importez le fichier complete.</div>
+                            </div>
+                            <div class="col-12">
                                 <label class="form-label">Fichier CSV ou XLSX</label>
                                 <input type="file" name="csv_file" class="form-control" accept=".csv,.xlsx,text/csv,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required>
                                 <div class="small text-secondary mt-2">Mobile peut etre vide ou absent. S il est vide ou trop court, un numero a 10 chiffres sera genere ou complete automatiquement.</div>

@@ -3,6 +3,7 @@
 namespace App\Domain\Reports\Actions;
 
 use App\Domain\Reports\Enums\IncidentReportStatus;
+use App\Models\Application;
 use App\Models\Commune;
 use App\Models\IncidentReport;
 use App\Models\Meter;
@@ -39,18 +40,18 @@ class CreateIncidentReportAction
 
             return IncidentReport::query()->create([
                 'public_user_id' => $user->id,
-                'application_id' => $prepared['meter']->application_id ?: $prepared['signal_type']->application_id,
-                'organization_id' => $prepared['meter']->organization_id,
-                'meter_id' => $prepared['meter']->id,
+                'application_id' => $prepared['application']->id,
+                'organization_id' => $prepared['organization']?->id,
+                'meter_id' => $prepared['meter']?->id,
                 'country_id' => $prepared['country']->id,
                 'city_id' => $prepared['city']->id,
                 'commune_id' => $prepared['commune']->id,
-                'address' => $prepared['meter']->address ?: ($user->address ?? null),
-                'latitude' => $prepared['meter']->latitude ?? ($payload['latitude'] ?? null),
-                'longitude' => $prepared['meter']->longitude ?? ($payload['longitude'] ?? null),
-                'location_accuracy' => $prepared['meter']->location_accuracy ?? ($payload['location_accuracy'] ?? null),
-                'location_source' => $prepared['meter']->location_source ?? ($payload['location_source'] ?? null),
-                'network_type' => $prepared['meter']->network_type,
+                'address' => $prepared['meter']?->address ?: ($user->address ?? null),
+                'latitude' => $prepared['meter']?->latitude ?? ($payload['latitude'] ?? $user->latitude ?? null),
+                'longitude' => $prepared['meter']?->longitude ?? ($payload['longitude'] ?? $user->longitude ?? null),
+                'location_accuracy' => $prepared['meter']?->location_accuracy ?? ($payload['location_accuracy'] ?? $user->location_accuracy ?? null),
+                'location_source' => $prepared['meter']?->location_source ?? ($payload['location_source'] ?? $user->location_source ?? null),
+                'network_type' => $prepared['meter']?->network_type ?: ($prepared['organization']?->code ?: $prepared['application']->code),
                 'signal_code' => $prepared['signal_type']->code,
                 'signal_label' => $prepared['signal_type']->label,
                 'signal_sub_type_id' => $prepared['signal_sub_type']?->id,
@@ -74,25 +75,68 @@ class CreateIncidentReportAction
 
     private function prepare(PublicUser $user, array $payload): array
     {
-        $meter = $user->meters()->whereKey($payload['meter_id'])->first();
+        $meter = null;
 
-        if ($meter === null) {
+        if (! empty($payload['meter_id'])) {
+            $meter = $user->meters()->whereKey($payload['meter_id'])->first();
+
+            if ($meter === null) {
+                throw ValidationException::withMessages([
+                    'meter_id' => ['Le compteur selectionne ne vous appartient pas.'],
+                ]);
+            }
+        }
+
+        $application = $meter?->application;
+
+        if (! $application instanceof Application && ! empty($payload['application_id'])) {
+            $application = Application::query()
+                ->whereKey($payload['application_id'])
+                ->where('status', 'active')
+                ->first();
+        }
+
+        if (! $application instanceof Application) {
             throw ValidationException::withMessages([
-                'meter_id' => ['Le compteur selectionne ne vous appartient pas.'],
+                'application_id' => ['L application selectionnee est invalide.'],
             ]);
         }
 
-        [$country, $city, $commune] = $this->resolveLocationFromMeter($user, $meter);
+        if ($application->requires_public_user_identifier && $meter === null) {
+            throw ValidationException::withMessages([
+                'meter_id' => ['Un identifiant est obligatoire pour cette application.'],
+            ]);
+        }
+
+        $organization = $meter?->organization;
+
+        if (! $organization instanceof Organization && ! empty($payload['organization_id'])) {
+            $organization = Organization::query()
+                ->whereKey($payload['organization_id'])
+                ->where('application_id', $application->id)
+                ->where('status', 'active')
+                ->first();
+        }
+
+        if (! empty($payload['organization_id']) && ! $organization instanceof Organization) {
+            throw ValidationException::withMessages([
+                'organization_id' => ['L organisation selectionnee est invalide pour cette application.'],
+            ]);
+        }
+
+        [$country, $city, $commune] = $meter
+            ? $this->resolveLocationFromMeter($user, $meter)
+            : $this->resolveLocationFromProfile($user);
 
         $signalType = SignalType::query()
             ->where('status', 'active')
             ->where('code', strtoupper($payload['signal_code']))
-            ->where('application_id', $meter->application_id)
-            ->where(function ($query) use ($meter): void {
+            ->where('application_id', $application->id)
+            ->where(function ($query) use ($organization): void {
                 $query->whereNull('organization_id');
 
-                if ($meter->organization_id !== null) {
-                    $query->orWhere('organization_id', $meter->organization_id);
+                if ($organization?->id !== null) {
+                    $query->orWhere('organization_id', $organization->id);
                 }
             })
             ->orderByRaw('CASE WHEN organization_id IS NULL THEN 1 ELSE 0 END')
@@ -106,17 +150,18 @@ class CreateIncidentReportAction
 
         [$signalSubType, $signalSubTypeCode, $signalSubTypeLabel] = $this->resolveSignalSubType($signalType, $payload);
 
-        $organizationTypeId = $meter->organization_id
+        $organizationTypeId = $meter?->organization_id
             ? Organization::query()
                 ->whereKey($meter->organization_id)
                 ->where('status', 'active')
                 ->value('organization_type_id')
-            : null;
+            : $organization?->organization_type_id;
         $slaNetworkTypes = collect([
             $signalType->organization?->code,
-            $signalType->application?->code,
+            $application->code,
             $signalType->network_type,
-            $meter->network_type,
+            $meter?->network_type,
+            $organization?->code,
         ])->filter()->map(fn ($value) => strtoupper((string) $value))->unique()->values()->all();
 
         $programmedSla = $organizationTypeId
@@ -130,6 +175,8 @@ class CreateIncidentReportAction
 
         return [
             'meter' => $meter,
+            'application' => $application,
+            'organization' => $organization,
             'country' => $country,
             'city' => $city,
             'commune' => $commune,
@@ -201,6 +248,53 @@ class CreateIncidentReportAction
         if ($commune === null || $commune->city === null || $commune->city->country === null) {
             throw ValidationException::withMessages([
                 'meter_id' => ['La commune enregistree sur cet identifiant ne correspond a aucune commune active. Mettez a jour l identifiant avant de signaler.'],
+            ]);
+        }
+
+        return [$commune->city->country, $commune->city, $commune];
+    }
+
+    private function resolveLocationFromProfile(PublicUser $user): array
+    {
+        $commune = null;
+
+        if ($user->commune_id !== null) {
+            $commune = Commune::query()
+                ->with('city.country')
+                ->whereKey($user->commune_id)
+                ->where('status', 'active')
+                ->whereHas('city', function ($query): void {
+                    $query->where('status', 'active')
+                        ->whereHas('country', fn ($countryQuery) => $countryQuery->where('status', 'active'));
+                })
+                ->first();
+        }
+
+        if ($commune === null) {
+            $communeName = trim((string) $user->commune);
+            $cityName = trim((string) $user->city);
+
+            if ($communeName === '') {
+                throw ValidationException::withMessages([
+                    'commune' => ['La commune du profil est requise pour signaler sans identifiant.'],
+                ]);
+            }
+
+            $commune = Commune::query()
+                ->with('city.country')
+                ->where('name', $communeName)
+                ->where('status', 'active')
+                ->when($cityName !== '', fn ($query) => $query->whereHas('city', fn ($cityQuery) => $cityQuery->where('name', $cityName)))
+                ->whereHas('city', function ($query): void {
+                    $query->where('status', 'active')
+                        ->whereHas('country', fn ($countryQuery) => $countryQuery->where('status', 'active'));
+                })
+                ->first();
+        }
+
+        if ($commune === null || $commune->city === null || $commune->city->country === null) {
+            throw ValidationException::withMessages([
+                'commune' => ['La commune du profil ne correspond a aucune commune active. Mettez a jour votre profil avant de signaler sans identifiant.'],
             ]);
         }
 

@@ -14,7 +14,7 @@ class StoreIncidentReportRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'meter_id' => ['required', 'integer', 'exists:meters,id'],
+            'meter_id' => ['nullable', 'integer', 'exists:meters,id'],
             'application_id' => ['nullable', 'integer', 'exists:applications,id'],
             'organization_id' => ['nullable', 'integer', 'exists:organizations,id'],
             'signal_code' => ['required', 'string'],

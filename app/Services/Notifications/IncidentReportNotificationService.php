@@ -3,6 +3,7 @@
 namespace App\Services\Notifications;
 
 use App\Domain\Reports\Enums\IncidentReportStatus;
+use App\Models\Feature;
 use App\Models\IncidentReport;
 use App\Models\IncidentReportNotificationContext;
 use App\Models\Meter;
@@ -15,6 +16,7 @@ use Illuminate\Database\Eloquent\Builder;
 class IncidentReportNotificationService
 {
     private const NEARBY_RADIUS_METERS = 1000;
+    private const NEARBY_REPORT_NOTIFICATIONS_FEATURE = 'PUBLIC_NEARBY_REPORT_NOTIFICATIONS';
 
     public function __construct(private readonly PushNotificationDispatcher $dispatcher)
     {
@@ -398,6 +400,10 @@ class IncidentReportNotificationService
 
     private function notifyNearbyReportCreated(IncidentReport $report): void
     {
+        if (! $this->nearbyReportNotificationsEnabled()) {
+            return;
+        }
+
         $coordinates = $this->reportCoordinates($report);
 
         if ($coordinates === null || $report->organization_id === null) {
@@ -472,7 +478,7 @@ class IncidentReportNotificationService
 
         $coordinates = $this->reportCoordinates($report);
 
-        if ($coordinates !== null && $report->organization_id !== null) {
+        if ($coordinates !== null && $report->organization_id !== null && $this->nearbyReportNotificationsEnabled()) {
             $contexts = $contexts->merge(
                 IncidentReportNotificationContext::query()
                     ->where('context_type', 'nearby')
@@ -498,6 +504,14 @@ class IncidentReportNotificationService
         return $contexts
             ->unique('id')
             ->values();
+    }
+
+    private function nearbyReportNotificationsEnabled(): bool
+    {
+        return Feature::query()
+            ->where('code', self::NEARBY_REPORT_NOTIFICATIONS_FEATURE)
+            ->where('status', 'active')
+            ->exists();
     }
 
     private function notifyCommunityRecipients(

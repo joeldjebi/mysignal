@@ -26,12 +26,14 @@ class Application extends Model
         'accent_color',
         'status',
         'sort_order',
+        'requires_public_user_identifier',
     ];
 
     protected function casts(): array
     {
         return [
             'sort_order' => 'integer',
+            'requires_public_user_identifier' => 'boolean',
         ];
     }
 

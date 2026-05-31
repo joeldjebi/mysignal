@@ -72,6 +72,7 @@
                 <div class="d-flex flex-wrap gap-2 mb-3">
                     <span class="status-chip">{{ $application->status }}</span>
                     <span class="status-chip">Ordre {{ $application->sort_order }}</span>
+                    <span class="status-chip">{{ $application->requires_public_user_identifier ? 'Identifiant UP requis' : 'Identifiant UP facultatif' }}</span>
                 </div>
                 <div class="text-secondary small mb-4">{{ $application->tagline ?: 'Aucun slogan renseigne.' }}</div>
                 <div class="d-flex flex-wrap gap-2 mb-4">
@@ -123,6 +124,13 @@
                     <div class="col-md-4">
                         <label class="form-label">Ordre d'affichage</label>
                         <input type="number" min="1" max="999" name="sort_order" value="{{ old('sort_order', $application->sort_order) }}" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Identifiant UP</label>
+                        <select name="requires_public_user_identifier" class="form-select">
+                            <option value="0" @selected(! old('requires_public_user_identifier', $application->requires_public_user_identifier))>Facultatif</option>
+                            <option value="1" @selected(old('requires_public_user_identifier', $application->requires_public_user_identifier))>Obligatoire</option>
+                        </select>
                     </div>
                     <div class="col-12">
                         <label class="form-label">Description courte</label>

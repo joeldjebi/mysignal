@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web\SuperAdmin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Feature;
 use App\Services\Maintenance\DatabaseCleanupService;
 use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
@@ -13,6 +14,8 @@ use Illuminate\View\View;
 
 class MaintenanceCleanupController extends Controller
 {
+    private const PUBLIC_NEARBY_REPORT_NOTIFICATIONS_FEATURE = 'PUBLIC_NEARBY_REPORT_NOTIFICATIONS';
+
     public function index(DatabaseCleanupService $cleanupService): View
     {
         $profiles = collect($cleanupService->profiles())
@@ -29,7 +32,34 @@ class MaintenanceCleanupController extends Controller
             'tables' => $cleanupService->tables(),
             'cleanupEnabled' => (bool) config('app.maintenance_cleanup_enabled'),
             'confirmationText' => DatabaseCleanupService::CONFIRMATION,
+            'nearbyReportNotificationsFeature' => $this->nearbyReportNotificationsFeature(),
         ]);
+    }
+
+    public function toggleNearbyReportNotifications(Request $request, ActivityLogger $activityLogger): RedirectResponse
+    {
+        $feature = $this->nearbyReportNotificationsFeature();
+        $nextStatus = $feature->status === 'active' ? 'inactive' : 'active';
+
+        $feature->update([
+            'status' => $nextStatus,
+        ]);
+
+        $activityLogger->log(
+            'maintenance.feature.toggled',
+            'Statut de la fonctionnalite de notification UP de proximite modifie depuis la maintenance.',
+            'feature',
+            [
+                'feature_code' => self::PUBLIC_NEARBY_REPORT_NOTIFICATIONS_FEATURE,
+                'status' => $nextStatus,
+            ],
+            $request,
+            portal: 'super_admin',
+        );
+
+        return redirect()
+            ->route('super-admin.maintenance.cleanup.index')
+            ->with('success', 'La fonctionnalite de notification UP de proximite a ete '.($nextStatus === 'active' ? 'activee.' : 'desactivee.'));
     }
 
     public function destroy(Request $request, DatabaseCleanupService $cleanupService, ActivityLogger $activityLogger): RedirectResponse
@@ -128,5 +158,17 @@ class MaintenanceCleanupController extends Controller
         return redirect()
             ->route('super-admin.maintenance.cleanup.index')
             ->with('success', 'Nettoyage termine pour '.$result['table'].' : '.number_format($result['deleted_rows'], 0, ',', ' ').' ligne(s) supprimee(s) sur '.count($result['tables']).' table(s).');
+    }
+
+    private function nearbyReportNotificationsFeature(): Feature
+    {
+        return Feature::query()->firstOrCreate(
+            ['code' => self::PUBLIC_NEARBY_REPORT_NOTIFICATIONS_FEATURE],
+            [
+                'name' => 'Notifications UP de proximite',
+                'description' => 'Envoie une notification aux UP situes dans un rayon de 1 km lorsqu un signalement compatible est cree.',
+                'status' => 'active',
+            ],
+        );
     }
 }

@@ -210,6 +210,11 @@
                             </div>
                         </div>
 
+                        <div class="app-admin-label">Parametre UP</div>
+                        <div class="mb-3">
+                            <span class="status-chip">{{ $application->requires_public_user_identifier ? 'Identifiant UP requis' : 'Identifiant UP facultatif' }}</span>
+                        </div>
+
                         <div class="app-admin-label">Fonctionnalites</div>
                         @if ($application->features->isEmpty())
                             <div class="small text-secondary">Aucune fonctionnalite</div>
@@ -281,6 +286,13 @@
                         <div class="col-md-4">
                             <label class="form-label">Ordre d'affichage</label>
                             <input type="number" min="1" max="999" name="sort_order" class="form-control" value="1">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Identifiant UP</label>
+                            <select name="requires_public_user_identifier" class="form-select">
+                                <option value="0" selected>Facultatif</option>
+                                <option value="1">Obligatoire</option>
+                            </select>
                         </div>
                         <div class="col-12">
                             <label class="form-label">Description courte</label>

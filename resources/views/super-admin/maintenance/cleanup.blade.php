@@ -2,13 +2,35 @@
 
 @section('title', config('app.name').' | Maintenance')
 @section('page-title', 'Maintenance')
-@section('page-description', 'Vider les donnees de test avant le demarrage production avec des profils controles.')
+@section('page-description', 'Piloter les options sensibles et vider les donnees de test avant le demarrage production avec des profils controles.')
 
 @section('header-badges')
     <span class="badge-soft">{{ $cleanupEnabled ? 'Nettoyage active' : 'Nettoyage verrouille' }}</span>
 @endsection
 
 @section('content')
+    <section class="panel-card mb-4">
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
+            <div>
+                <div class="fw-bold mb-1">Notifications UP de proximite</div>
+                <div class="text-secondary small">
+                    Active ou desactive l envoi de notifications aux UP situes dans un rayon de 1 km lorsqu un signalement compatible est cree.
+                </div>
+                <code class="small d-inline-block mt-2">{{ $nearbyReportNotificationsFeature->code }}</code>
+            </div>
+            <div class="d-flex flex-column flex-sm-row gap-2 align-items-sm-center">
+                <span class="status-chip">{{ $nearbyReportNotificationsFeature->status === 'active' ? 'Active' : 'Inactive' }}</span>
+                <form method="POST" action="{{ route('super-admin.maintenance.nearby-report-notifications.toggle') }}">
+                    @csrf
+                    @method('PATCH')
+                    <button class="btn {{ $nearbyReportNotificationsFeature->status === 'active' ? 'btn-outline-warning' : 'btn-outline-success' }}">
+                        {{ $nearbyReportNotificationsFeature->status === 'active' ? 'Desactiver' : 'Activer' }}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
     <section class="panel-card mb-4">
         <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
             <div>
