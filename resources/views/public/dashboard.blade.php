@@ -1441,11 +1441,11 @@
                             <div id="meterFormWrap" class="collapse show mb-4">
                                 <form id="meterForm" class="row g-3">
                                     <div class="col-md-4">
-                                        <label class="form-label fw-semibold">Application</label>
+                                        <label class="form-label fw-semibold">Catégorie</label>
                                         <select class="form-select" id="meterApplicationId" required></select>
                                     </div>
                                     <div class="col-md-4">
-                                        <label class="form-label fw-semibold">Organisation</label>
+                                        <label class="form-label fw-semibold">Institution</label>
                                         <select class="form-select" id="meterOrganizationId" required></select>
                                     </div>
                                     <input type="hidden" name="network_type" id="meterNetworkType" required>
@@ -1588,7 +1588,7 @@
                                         </select>
                                     </div>
                                     <div class="col-md-4 col-lg-2">
-                                        <label class="form-label fw-semibold">Organisation</label>
+                                        <label class="form-label fw-semibold">Institution</label>
                                         <select class="form-select" id="reportOrganizationFilter">
                                             <option value="">Toutes</option>
                                         </select>
@@ -1755,7 +1755,7 @@
                                 <div class="row g-3 align-items-end">
                                     <div class="col-md-4">
                                         <label class="form-label small text-secondary">Recherche</label>
-                                        <input class="form-control" id="rexSearchFilter" placeholder="Référence, organisation, commentaire...">
+                                        <input class="form-control" id="rexSearchFilter" placeholder="Référence, institution, commentaire...">
                                     </div>
                                     <div class="col-md-3">
                                         <label class="form-label small text-secondary">Type</label>
@@ -1799,10 +1799,10 @@
                                 <div class="row g-3">
                                     <div class="col-lg-4">
                                         <label class="form-label fw-semibold">Recherche</label>
-                                        <input class="form-control" id="damageSearchFilter" placeholder="Référence, résumé, organisation...">
+                                        <input class="form-control" id="damageSearchFilter" placeholder="Référence, résumé, institution...">
                                     </div>
                                     <div class="col-md-4 col-lg-3">
-                                        <label class="form-label fw-semibold">Organisation</label>
+                                        <label class="form-label fw-semibold">Institution</label>
                                         <select class="form-select" id="damageOrganizationFilter">
                                             <option value="">Toutes</option>
                                         </select>
@@ -1900,9 +1900,9 @@
                             <div class="modal-body p-4 p-lg-4">
                         <form id="reportForm" class="row g-3">
                             <div class="col-md-4">
-                                <label class="form-label fw-semibold">Application concernée<span class="required-star">*</span></label>
+                                <label class="form-label fw-semibold">Catégorie concernée<span class="required-star">*</span></label>
                                 <div class="select-search-shell">
-                                    <input class="form-control select-search-input" style="display:block;width:100%;" type="search" data-search-select-target="reportApplicationId" autocomplete="off" placeholder="Rechercher une application">
+                                    <input class="form-control select-search-input" style="display:block;width:100%;" type="search" data-search-select-target="reportApplicationId" autocomplete="off" placeholder="Rechercher une catégorie">
                                     <button class="select-search-toggle" type="button" data-search-toggle-target="reportApplicationId" aria-label="Afficher les options"></button>
                                 </div>
                                 <div class="select-search-help">Champ de sélection avec recherche.</div>
@@ -1910,25 +1910,25 @@
                                 <div class="select-search-results" id="reportApplicationIdResults"></div>
                             </div>
                             <div class="col-md-4" id="reportOrganizationTypeFieldWrap">
-                                <label class="form-label fw-semibold">Type d'organisation<span class="required-star">*</span></label>
+                                <label class="form-label fw-semibold">Sous Catégorie<span class="required-star">*</span></label>
                                 <div class="select-search-shell">
-                                    <input class="form-control select-search-input" style="display:block;width:100%;" type="search" data-search-select-target="reportOrganizationTypeId" autocomplete="off" placeholder="Rechercher un type d'organisation">
+                                    <input class="form-control select-search-input" style="display:block;width:100%;" type="search" data-search-select-target="reportOrganizationTypeId" autocomplete="off" placeholder="Rechercher une sous catégorie">
                                     <button class="select-search-toggle" type="button" data-search-toggle-target="reportOrganizationTypeId" aria-label="Afficher les options"></button>
                                 </div>
-                                <div class="select-search-help">Type d'organisation requis selon l'application.</div>
+                                <div class="select-search-help">Sous catégorie requise selon la catégorie.</div>
                                 <select class="form-select d-none" id="reportOrganizationTypeId"></select>
                                 <div class="select-search-results" id="reportOrganizationTypeIdResults"></div>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label fw-semibold">Organisation concernée<span class="required-star">*</span></label>
+                                <label class="form-label fw-semibold">Institution concernée<span class="required-star">*</span></label>
                                 <div class="select-search-shell">
-                                    <input class="form-control select-search-input" style="display:block;width:100%;" type="search" data-search-select-target="reportOrganizationType" autocomplete="off" placeholder="Rechercher une organisation">
+                                    <input class="form-control select-search-input" style="display:block;width:100%;" type="search" data-search-select-target="reportOrganizationType" autocomplete="off" placeholder="Rechercher une institution">
                                     <button class="select-search-toggle" type="button" data-search-toggle-target="reportOrganizationType" aria-label="Afficher les options"></button>
                                 </div>
                                 <div class="select-search-help">Champ de sélection avec recherche.</div>
                                 <select class="form-select d-none" id="reportOrganizationType" required></select>
                                 <div class="select-search-results" id="reportOrganizationTypeResults"></div>
-                                <div class="location-search-hint">Choisissez d’abord l’application, puis l’organisation concernée, pour afficher uniquement les identifiants et types de signal compatibles.</div>
+                                <div class="location-search-hint">Choisissez d’abord la catégorie, puis l’institution concernée, pour afficher uniquement les identifiants et types de signal compatibles.</div>
                             </div>
                             <div class="col-md-4" id="reportMeterFieldWrap">
                                 <label class="form-label fw-semibold">identifiant<span class="required-star">*</span></label>
@@ -3421,11 +3421,11 @@
 
                     applicationSelect.innerHTML = serviceApplications.length
                         ? serviceApplications.map((application) => `<option value="${application.id}">${application.name}</option>`).join('')
-                        : '<option value="">Aucune application disponible</option>';
+                        : '<option value="">Aucune catégorie disponible</option>';
 
                     if (!serviceApplications.length) {
                         applicationSelect.value = '';
-                        organizationSelect.innerHTML = '<option value="">Aucune organisation disponible</option>';
+                        organizationSelect.innerHTML = '<option value="">Aucune institution disponible</option>';
                         organizationSelect.value = '';
                         return;
                     }
@@ -3450,7 +3450,7 @@
                     typeSelect.disabled = !requiresType;
 
                     if (!requiresType) {
-                        typeSelect.innerHTML = '<option value="">Type non requis</option>';
+                        typeSelect.innerHTML = '<option value="">Sous catégorie non requise</option>';
                         typeSelect.value = '';
                         refreshSearchableSelect('reportOrganizationTypeId');
                         return;
@@ -3458,7 +3458,7 @@
 
                     typeSelect.innerHTML = organizationTypes.length
                         ? organizationTypes.map((type) => `<option value="${type.id}">${type.name}</option>`).join('')
-                        : '<option value="">Aucun type disponible</option>';
+                        : '<option value="">Aucune sous catégorie disponible</option>';
 
                     if (!organizationTypes.length) {
                         typeSelect.value = '';
@@ -3477,7 +3477,7 @@
 
                     organizationSelect.innerHTML = organizations.length
                         ? organizations.map((organization) => `<option value="${organization.id}">${organization.name}</option>`).join('')
-                        : '<option value="">Aucune organisation disponible</option>';
+                        : '<option value="">Aucune institution disponible</option>';
 
                     if (!organizations.length) {
                         organizationSelect.value = '';
@@ -3494,7 +3494,7 @@
 
                     applicationSelect.innerHTML = serviceApplications.length
                         ? serviceApplications.map((application) => `<option value="${application.id}">${application.name}</option>`).join('')
-                        : '<option value="">Aucune application disponible</option>';
+                        : '<option value="">Aucune catégorie disponible</option>';
 
                     if (!serviceApplications.length) {
                         applicationSelect.value = '';
@@ -3519,7 +3519,7 @@
 
                     organizationSelect.innerHTML = organizations.length
                         ? organizations.map((organization) => `<option value="${organization.id}">${organization.name}</option>`).join('')
-                        : '<option value="">Aucune organisation disponible</option>';
+                        : '<option value="">Aucune institution disponible</option>';
 
                     if (!organizations.length) {
                         organizationSelect.value = '';
@@ -3950,7 +3950,7 @@
                                         ${meter.is_primary ? '<span class="status-pill">Principal</span>' : ''}
                                     </div>
                                 </div>
-                                <div class="muted-label mb-2">${meter.application_name || 'Application non définie'}</div>
+                                <div class="muted-label mb-2">${meter.application_name || 'Catégorie non définie'}</div>
                                 <div class="muted-label mb-3">${[meter.city, meter.commune, meter.neighborhood, meter.sub_neighborhood].filter(Boolean).join(' · ') || 'Localisation non renseignée'}${meter.address ? ' · ' + meter.address : ''}</div>
                                 <div class="muted-label mb-3">${meter.latitude && meter.longitude ? `GPS ${meter.latitude}, ${meter.longitude}` : 'Position GPS non renseignée'}</div>
                                 <button class="btn btn-ghost-premium w-100" type="button" onclick="window.AcepenPortal.prefillMeter(${meter.id})">Modifier</button>
@@ -4392,13 +4392,13 @@
                                                 <td>
                                                     <div class="report-ref">${report.reference}</div>
                                                     <div class="report-sub">${report.organization?.name || report.network_type} · ${report.signal_code}</div>
-                                                    <div class="report-sub">${report.application?.name || 'Application non définie'}</div>
+                                                    <div class="report-sub">${report.application?.name || 'Catégorie non définie'}</div>
                                                     <div class="report-sub">SLA ${report.target_sla_hours ?? '-'}h</div>
                                                 </td>
                                                 <td>
                                                     <div class="report-main">${report.signal_label || report.incident_type}</div>
                                                     <div class="report-sub">${report.description || 'Aucune description fournie.'}</div>
-                                                    <div class="report-sub mt-1">${report.organization?.name || report.organization_name || report.network_type || 'Organisation non définie'}</div>
+                                                    <div class="report-sub mt-1">${report.organization?.name || report.organization_name || report.network_type || 'Institution non définie'}</div>
                                                 </td>
                                                 <td>
                                                     <div class="report-main">${report.location.commune || '-'}</div>
@@ -4489,8 +4489,8 @@
                         submitted: 'Soumis',
                         under_review: 'En analyse',
                         awaiting_documents: 'Pieces requises',
-                        sent_to_organization: 'Transmis à l’organisation',
-                        organization_responded: 'Réponse organisation',
+                        sent_to_organization: 'Transmis à l’institution',
+                        organization_responded: 'Réponse institution',
                         awaiting_lawyer_assignment: 'En attente avocat',
                         lawyer_assigned: 'Avocat attribué',
                         judicial_in_progress: 'Procédure judiciaire',
@@ -4538,7 +4538,7 @@
                                     <tr>
                                         <th>Dossier</th>
                                         <th>Signalement</th>
-                                        <th>Organisation</th>
+                                        <th>Institution</th>
                                         <th>Statut</th>
                                         <th>Intervenants</th>
                                         <th class="text-end">Action</th>
@@ -4556,8 +4556,8 @@
                                             <div class="muted-label">${repairCase.incident_report?.signal_label || repairCase.incident_report?.signal_code || 'Signalement'}</div>
                                         </td>
                                         <td>
-                                            <div>${repairCase.incident_report?.organization_name || 'Organisation non définie'}</div>
-                                            <div class="muted-label">${repairCase.incident_report?.application_name || 'Application non définie'}</div>
+                                            <div>${repairCase.incident_report?.organization_name || 'Institution non définie'}</div>
+                                            <div class="muted-label">${repairCase.incident_report?.application_name || 'Catégorie non définie'}</div>
                                         </td>
                                         <td>
                                             <span class="status-pill ${getReparationCaseStatusClass(repairCase.status)}">${getReparationCaseStatusLabel(repairCase.status)}</span>
@@ -4618,9 +4618,9 @@
                                         <div class="muted-label">${repairCase.incident_report?.signal_label || repairCase.incident_report?.signal_code || 'Signalement'}</div>
                                     </div>
                                     <div class="soft-panel mb-3">
-                                        <div class="small text-secondary fw-semibold mb-1">Organisation</div>
-                                        <div class="fw-semibold">${repairCase.incident_report?.organization_name || 'Organisation non définie'}</div>
-                                        <div class="muted-label">${repairCase.incident_report?.application_name || 'Application non définie'}</div>
+                                        <div class="small text-secondary fw-semibold mb-1">Institution</div>
+                                        <div class="fw-semibold">${repairCase.incident_report?.organization_name || 'Institution non définie'}</div>
+                                        <div class="muted-label">${repairCase.incident_report?.application_name || 'Catégorie non définie'}</div>
                                     </div>
                                     <div class="soft-panel mb-3">
                                         <div class="small text-secondary fw-semibold mb-1">Intervenants</div>
@@ -4795,7 +4795,7 @@
                                     <thead>
                                         <tr>
                                             <th>Contexte</th>
-                                            <th>Organisation</th>
+                                            <th>Institution</th>
                                             <th>Notes</th>
                                             <th>Commentaire</th>
                                             <th>Date</th>
@@ -5044,7 +5044,7 @@
                                             <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-2">
                                                 <div>
                                                     <div class="fw-bold">${report.damage_declaration?.summary || 'Dommage déclaré'}</div>
-                                                    <div class="muted-label">${report.reference} · ${report.organization?.name || report.organization_name || report.network_type || 'Organisation non définie'}</div>
+                                                    <div class="muted-label">${report.reference} · ${report.organization?.name || report.organization_name || report.network_type || 'Institution non définie'}</div>
                                                 </div>
                                                 <span class="status-pill ${getDamageStatusClass(report.damage_declaration?.resolution_status)}">${getDamageStatusLabel(report.damage_declaration?.resolution_status)}</span>
                                             </div>
@@ -5931,7 +5931,7 @@
                                         <div class="fw-semibold">${getPublicStatusLabel(report.status)}</div>
                                     </div>
                                     <div class="soft-panel mb-3">
-                                        <div class="small text-secondary fw-semibold mb-1">Application</div>
+                                        <div class="small text-secondary fw-semibold mb-1">Catégorie</div>
                                         <div class="fw-semibold">${report.application?.name || '-'}</div>
                                         <div class="muted-label">${report.application?.code || 'Aucun univers métier défini'}</div>
                                     </div>

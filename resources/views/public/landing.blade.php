@@ -1988,7 +1988,7 @@
       @empty
         <div class="col-12">
           <div class="alert alert-light border-0 shadow-sm rounded-4 text-center mb-0">
-            Aucune application active n’est disponible pour le moment.
+            Aucune catégorie active n’est disponible pour le moment.
           </div>
         </div>
       @endforelse

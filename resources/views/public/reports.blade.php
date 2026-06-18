@@ -378,7 +378,7 @@
           <form method="GET" action="{{ route('public.reports') }}" class="search-form">
             <div>
               <label for="search">Recherche</label>
-              <input id="search" type="search" name="search" value="{{ request('search') }}" class="form-control" placeholder="Reference, type, statut, application, organisation, commune...">
+              <input id="search" type="search" name="search" value="{{ request('search') }}" class="form-control" placeholder="Reference, type, statut, catégorie, institution, commune...">
             </div>
             <div>
               <label for="status">Statut</label>
@@ -390,7 +390,7 @@
               </select>
             </div>
             <div>
-              <label for="application_id">Application</label>
+              <label for="application_id">Catégorie</label>
               <select id="application_id" name="application_id" class="form-select">
                 <option value="">Toutes</option>
                 @foreach ($applications as $application)
@@ -399,7 +399,7 @@
               </select>
             </div>
             <div>
-              <label for="organization_id">Organisation</label>
+              <label for="organization_id">Institution</label>
               <select id="organization_id" name="organization_id" class="form-select">
                 <option value="">Toutes</option>
                 @foreach ($organizations as $organization)
@@ -444,8 +444,8 @@
                 <tr>
                   <th>Signalement</th>
                   <th>Type</th>
-                  <th>Application</th>
-                  <th>Organisation</th>
+                  <th>Catégorie</th>
+                  <th>Institution</th>
                   <th>Commune</th>
                   <th>Statut</th>
                   <th>Dommage</th>

@@ -29,4 +29,16 @@ class StoreIncidentReportRequest extends FormRequest
             'signal_attachment' => ['nullable', 'file', 'max:51200', 'mimetypes:image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif,video/mp4,video/quicktime,video/x-msvideo,video/mpeg'],
         ];
     }
+
+    public function attributes(): array
+    {
+        return [
+            'application_id' => 'catégorie',
+            'organization_type_id' => 'sous catégorie',
+            'organization_id' => 'institution',
+            'meter_id' => 'identifiant',
+            'signal_code' => 'type de signal',
+            'signal_sub_type_code' => 'sous-type de signal',
+        ];
+    }
 }

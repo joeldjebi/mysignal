@@ -82,11 +82,15 @@ Autres statuts importants :
 
 ### 1. Catalogues publics
 Avant authentification, l application mobile peut charger :
+- `GET /v1/public/applications`
+- `GET /v1/public/application-types?application_id={id}`
+- `GET /v1/public/organizations?application_id={id}&organization_type_id={id}`
 - `GET /v1/public/locations`
 - `GET /v1/public/business-sectors`
 - `GET /v1/public/signal-types`
 
 Ces endpoints servent a alimenter :
+- categories, sous categories et institutions
 - pays, villes, communes, quartiers
 - secteurs d activite pour les profils UPE/UPTI
 - types de signaux
@@ -506,20 +510,24 @@ Liste les signalements du compte.
 #### POST `/v1/public/reports`
 Initialise le paiement FineoPay d un signalement. Le signalement n est cree en base qu apres callback FineoPay avec `status: success`.
 
-Avant de creer un signalement, l app mobile doit appeler `GET /v1/public/signal-types`, puis filtrer les types de signaux compatibles avec le compteur selectionne.
+Avant de creer un signalement, l app mobile doit appeler les catalogues publics, puis filtrer les types de signaux compatibles avec la catégorie, la sous catégorie, l institution et/ou l identifiant selectionne.
 
-L app mobile ne doit plus envoyer `country_id`, `city_id`, `commune_id` ni `address` lors de la creation d un signalement. Le backend recupere automatiquement le pays, la ville, la commune et l adresse depuis l identifiant selectionne (`meter_id`). Si l identifiant ne contient pas de commune exploitable, l API retourne `422` sur `meter_id`.
+L app mobile ne doit plus envoyer `country_id`, `city_id`, `commune_id` ni `address` lors de la creation d un signalement. Le backend recupere automatiquement le pays, la ville, la commune et l adresse depuis l identifiant selectionne (`meter_id`) ou le profil UP. Si l identifiant ne contient pas de commune exploitable, l API retourne `422` sur `meter_id`.
 
 Compatibilite d un type de signal avec un compteur :
-- `application_id` du type de signal doit correspondre a l `application_id` du compteur
-- si le type de signal a un `organization_id`, il doit correspondre a l `organization_id` du compteur
-- si le type de signal a `organization_id: null`, il sert de type generique pour l application
+- `application_id` du type de signal doit correspondre a la catégorie choisie ou a l `application_id` du compteur
+- si le type de signal retourne `organization_ids`, l institution choisie ou celle du compteur doit faire partie de cette liste
+- si le type de signal a `organization_id: null` et `organization_ids: []`, il sert de type generique pour la catégorie
+- `organization_type_id` correspond a la Sous Catégorie. Il devient obligatoire pour les categories qui retournent `requires_organization_type_on_report: true` dans `GET /v1/public/applications`
 
 Payload attendu sans fichier :
 
 | Champ | Obligatoire | Description |
 | --- | --- | --- |
-| `meter_id` | oui | Identifiant rattache au UP. |
+| `meter_id` | conditionnel | Identifiant rattache au UP. Obligatoire si la catégorie retourne `requires_public_user_identifier: true`. |
+| `application_id` | conditionnel | Catégorie concernée. Requis si `meter_id` n est pas envoye. |
+| `organization_type_id` | conditionnel | Sous Catégorie concernée, anciennement Type d organisation. Obligatoire si la catégorie retourne `requires_organization_type_on_report: true` et si `meter_id` n est pas envoye. |
+| `organization_id` | conditionnel | Institution concernée. Requise quand le parcours UP demande une institution ou pour filtrer les types de signaux institutionnels. |
 | `signal_code` | oui | Code du type retourne par `GET /v1/public/signal-types`, compatible avec le compteur choisi. |
 | `signal_sub_type_code` | conditionnel | Obligatoire quand le type choisi retourne `requires_sub_type: true`. Envoyer le code d un sous-type actif ou `OTHER` pour Autre. |
 | `description` | non | Detail libre saisi par le UP. |
@@ -537,6 +545,22 @@ Body JSON sans sous-type, quand `requires_sub_type: false` :
   "signal_code": "EL-01",
   "description": "Coupure depuis 2 heures",
   "occurred_at": "2026-04-10T12:00:00Z",
+  "latitude": 5.348,
+  "longitude": -4.001,
+  "location_accuracy": 20,
+  "location_source": "gps"
+}
+```
+
+Body JSON sans identifiant, avec Sous Catégorie et Institution :
+```json
+{
+  "application_id": 9,
+  "organization_type_id": 3,
+  "organization_id": 12,
+  "signal_code": "EDUCATION_ET_FORMATION_01",
+  "description": "Demande de prise en charge",
+  "occurred_at": "2026-06-18T12:00:00Z",
   "latitude": 5.348,
   "longitude": -4.001,
   "location_accuracy": 20,
@@ -566,6 +590,9 @@ Accept: application/json
 Content-Type: multipart/form-data
 
 meter_id=1
+application_id=9
+organization_type_id=3
+organization_id=12
 signal_code=EL-01
 description=Coupure depuis 2 heures
 occurred_at=2026-04-10T12:00:00Z
@@ -577,6 +604,8 @@ signal_attachment=@preuve.jpg
 ```
 
 Ajouter `signal_sub_type_code=OTHER` ou le code du sous-type selectionne uniquement si le type de signal retourne `requires_sub_type: true`.
+
+Si `meter_id` est envoye, l API peut deduire la catégorie et l institution depuis l identifiant. Si `meter_id` n est pas envoye, envoyer `application_id`, `organization_type_id` si requis, et `organization_id`.
 
 `signal_attachment` est optionnel. Formats acceptes : images `jpeg`, `png`, `webp`, `gif`, `heic`, `heif` et videos `mp4`, `mov/quicktime`, `avi`, `mpeg`. Taille max : 50 Mo.
 

@@ -99,13 +99,13 @@ class CreateIncidentReportAction
 
         if (! $application instanceof Application) {
             throw ValidationException::withMessages([
-                'application_id' => ['L application selectionnee est invalide.'],
+                'application_id' => ['La catégorie selectionnee est invalide.'],
             ]);
         }
 
         if ($application->requires_public_user_identifier && $meter === null) {
             throw ValidationException::withMessages([
-                'meter_id' => ['Un identifiant est obligatoire pour cette application.'],
+                'meter_id' => ['Un identifiant est obligatoire pour cette catégorie.'],
             ]);
         }
 
@@ -120,7 +120,7 @@ class CreateIncidentReportAction
 
             if (! $organizationType instanceof OrganizationType) {
                 throw ValidationException::withMessages([
-                    'organization_type_id' => ['Le type d organisation selectionne est invalide.'],
+                    'organization_type_id' => ['La sous catégorie selectionnee est invalide.'],
                 ]);
             }
         }
@@ -135,19 +135,19 @@ class CreateIncidentReportAction
 
         if (! empty($payload['organization_id']) && ! $organization instanceof Organization) {
             throw ValidationException::withMessages([
-                'organization_id' => ['L organisation selectionnee est invalide pour cette application.'],
+                'organization_id' => ['L institution selectionnee est invalide pour cette catégorie.'],
             ]);
         }
 
         if ($meter?->organization instanceof Organization && $organizationType instanceof OrganizationType && (int) $meter->organization->organization_type_id !== (int) $organizationType->id) {
             throw ValidationException::withMessages([
-                'organization_type_id' => ['Le type d organisation selectionne ne correspond pas a l identifiant choisi.'],
+                'organization_type_id' => ['La sous catégorie selectionnee ne correspond pas a l identifiant choisi.'],
             ]);
         }
 
         if ($organization instanceof Organization && $organizationType instanceof OrganizationType && (int) $organization->organization_type_id !== (int) $organizationType->id) {
             throw ValidationException::withMessages([
-                'organization_id' => ['L organisation selectionnee ne correspond pas au type d organisation choisi.'],
+                'organization_id' => ['L institution selectionnee ne correspond pas a la sous catégorie choisie.'],
             ]);
         }
 
@@ -161,7 +161,7 @@ class CreateIncidentReportAction
 
         if ($application->requires_organization_type_on_report && $meter === null && ! $organizationType instanceof OrganizationType) {
             throw ValidationException::withMessages([
-                'organization_type_id' => ['Le type d organisation est obligatoire pour cette application.'],
+                'organization_type_id' => ['La sous catégorie est obligatoire pour cette catégorie.'],
             ]);
         }
 
@@ -174,7 +174,7 @@ class CreateIncidentReportAction
 
             if (! $hasOrganizationForType) {
                 throw ValidationException::withMessages([
-                    'organization_type_id' => ['Aucune organisation active ne correspond a ce type pour cette application.'],
+                    'organization_type_id' => ['Aucune institution active ne correspond a cette sous catégorie pour cette catégorie.'],
                 ]);
             }
         }
