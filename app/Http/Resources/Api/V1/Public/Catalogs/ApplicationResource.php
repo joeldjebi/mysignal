@@ -22,6 +22,21 @@ class ApplicationResource extends JsonResource
             'accent_color' => $this->accent_color,
             'sort_order' => $this->sort_order,
             'requires_public_user_identifier' => (bool) $this->requires_public_user_identifier,
+            'requires_organization_type_on_report' => (bool) $this->requires_organization_type_on_report,
+            'organization_types' => $this->whenLoaded('organizations', function () {
+                return $this->organizations
+                    ->pluck('organizationType')
+                    ->filter()
+                    ->unique('id')
+                    ->sortBy('name')
+                    ->values()
+                    ->map(fn ($type) => [
+                        'id' => $type->id,
+                        'code' => $type->code,
+                        'name' => $type->name,
+                        'description' => $type->description,
+                    ]);
+            }),
         ];
     }
 }

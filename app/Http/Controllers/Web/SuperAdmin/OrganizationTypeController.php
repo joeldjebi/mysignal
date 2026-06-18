@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\OrganizationType;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class OrganizationTypeController extends Controller
@@ -35,20 +36,19 @@ class OrganizationTypeController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $attributes = $request->validate([
-            'code' => ['required', 'string', 'max:60', 'unique:organization_types,code'],
             'name' => ['required', 'string', 'max:180'],
             'description' => ['nullable', 'string'],
         ]);
 
         OrganizationType::query()->create([
-            'code' => strtoupper($attributes['code']),
+            'code' => $this->codeFromName($attributes['name']),
             'name' => $attributes['name'],
             'description' => $attributes['description'] ?? null,
             'status' => 'active',
         ]);
 
         return redirect()->route('super-admin.client-types.index')
-            ->with('success', 'Le type de client a ete cree.');
+            ->with('success', 'La sous catégorie a ete creee.');
     }
 
     public function edit(OrganizationType $clientType): View
@@ -61,19 +61,18 @@ class OrganizationTypeController extends Controller
     public function update(Request $request, OrganizationType $clientType): RedirectResponse
     {
         $attributes = $request->validate([
-            'code' => ['required', 'string', 'max:60', 'unique:organization_types,code,'.$clientType->id],
             'name' => ['required', 'string', 'max:180'],
             'description' => ['nullable', 'string'],
         ]);
 
         $clientType->update([
-            'code' => strtoupper($attributes['code']),
+            'code' => $this->codeFromName($attributes['name'], $clientType),
             'name' => $attributes['name'],
             'description' => $attributes['description'] ?? null,
         ]);
 
         return redirect()->route('super-admin.client-types.index')
-            ->with('success', 'Le type de client a ete mis a jour.');
+            ->with('success', 'La sous catégorie a ete mise a jour.');
     }
 
     public function destroy(OrganizationType $clientType): RedirectResponse
@@ -91,5 +90,31 @@ class OrganizationTypeController extends Controller
         ]);
 
         return back()->with('success', 'Le statut du type de client a ete mis a jour.');
+    }
+
+    private function codeFromName(string $name, ?OrganizationType $organizationType = null): string
+    {
+        $baseCode = Str::limit((string) Str::of($name)
+            ->ascii()
+            ->upper()
+            ->replaceMatches('/[^A-Z0-9]+/', '_')
+            ->trim('_'), 54, '');
+
+        if ($baseCode === '') {
+            $baseCode = 'SOUS_CATEGORIE';
+        }
+
+        $code = $baseCode;
+        $suffix = 2;
+
+        while (OrganizationType::query()
+            ->where('code', $code)
+            ->when($organizationType, fn ($query) => $query->whereKeyNot($organizationType->id))
+            ->exists()) {
+            $suffixText = '_'.$suffix++;
+            $code = Str::limit($baseCode, 60 - strlen($suffixText), '').$suffixText;
+        }
+
+        return $code;
     }
 }

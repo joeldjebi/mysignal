@@ -1,8 +1,8 @@
 @extends('super-admin.layouts.app')
 
-@section('title', config('app.name').' | Modifier une application')
-@section('page-title', 'Modifier une application')
-@section('page-description', 'Ajuster l identite, les textes et le positionnement d une application metier.')
+@section('title', config('app.name').' | Modifier une catégorie')
+@section('page-title', 'Modifier une catégorie')
+@section('page-description', 'Ajuster l identité, les textes et le positionnement d une catégorie métier.')
 
 @section('content')
     <style>
@@ -47,6 +47,11 @@
             letter-spacing: .03em;
             margin-top: .2rem;
         }
+        .required-star {
+            color: #dc3545;
+            font-weight: 800;
+            margin-left: .2rem;
+        }
         @media (max-width: 1199.98px) {
             .feature-picker-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -61,7 +66,7 @@
     <div class="row g-4">
         <div class="col-lg-4">
             <section class="panel-card h-100">
-                <div class="small text-secondary fw-semibold mb-2">Application</div>
+                <div class="small text-secondary fw-semibold mb-2">Catégorie</div>
                 <div class="d-flex align-items-center gap-3 mb-3">
                     <img src="{{ $application->logoUrl() ?: asset('image/logo/logo-my-signal.png') }}" alt="Logo {{ $application->name }}" style="width:52px;height:52px;border-radius:16px;object-fit:contain;background:#fff;padding:.35rem;box-shadow:0 12px 24px rgba(16,42,67,.08);">
                     <div>
@@ -73,6 +78,7 @@
                     <span class="status-chip">{{ $application->status }}</span>
                     <span class="status-chip">Ordre {{ $application->sort_order }}</span>
                     <span class="status-chip">{{ $application->requires_public_user_identifier ? 'Identifiant UP requis' : 'Identifiant UP facultatif' }}</span>
+                    <span class="status-chip">{{ $application->requires_organization_type_on_report ? 'Type d organisation requis' : 'Type d organisation masque' }}</span>
                 </div>
                 <div class="text-secondary small mb-4">{{ $application->tagline ?: 'Aucun slogan renseigne.' }}</div>
                 <div class="d-flex flex-wrap gap-2 mb-4">
@@ -101,29 +107,13 @@
         </div>
         <div class="col-lg-8">
             <section class="panel-card">
-                <div class="fw-bold mb-3">Edition de l'application</div>
+                <div class="fw-bold mb-3">Edition de la catégorie</div>
                 <form method="POST" action="{{ route('super-admin.applications.update', $application) }}" class="row g-3" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
                     <div class="col-md-4">
-                        <label class="form-label">Code</label>
-                        <input type="text" name="code" value="{{ old('code', $application->code) }}" class="form-control" required>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Nom</label>
+                        <label class="form-label">Nom<span class="required-star">*</span></label>
                         <input type="text" name="name" value="{{ old('name', $application->name) }}" class="form-control" required>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Slug</label>
-                        <input type="text" name="slug" value="{{ old('slug', $application->slug) }}" class="form-control" required>
-                    </div>
-                    <div class="col-md-8">
-                        <label class="form-label">Slogan</label>
-                        <input type="text" name="tagline" value="{{ old('tagline', $application->tagline) }}" class="form-control">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Ordre d'affichage</label>
-                        <input type="number" min="1" max="999" name="sort_order" value="{{ old('sort_order', $application->sort_order) }}" class="form-control">
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Identifiant UP</label>
@@ -131,6 +121,14 @@
                             <option value="0" @selected(! old('requires_public_user_identifier', $application->requires_public_user_identifier))>Facultatif</option>
                             <option value="1" @selected(old('requires_public_user_identifier', $application->requires_public_user_identifier))>Obligatoire</option>
                         </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Sous Catégorie au signalement</label>
+                        <select name="requires_organization_type_on_report" class="form-select">
+                            <option value="0" @selected(! old('requires_organization_type_on_report', $application->requires_organization_type_on_report))>Ne pas afficher</option>
+                            <option value="1" @selected(old('requires_organization_type_on_report', $application->requires_organization_type_on_report))>Afficher et rendre obligatoire</option>
+                        </select>
+                        <div class="small text-secondary mt-2">Chez le UP, ce choix filtre les institutions par sous catégorie selectionnee.</div>
                     </div>
                     <div class="col-12">
                         <label class="form-label">Description courte</label>
@@ -183,8 +181,8 @@
                         <input type="text" name="accent_color" value="{{ old('accent_color', $application->accent_color) }}" class="form-control">
                     </div>
                     <div class="col-12">
-                        <label class="form-label">Fonctionnalites par defaut de l'application</label>
-                        <div class="small text-secondary mb-3">Ces fonctionnalites sont automatiquement ouvertes aux organisations de cette application, sauf desactivation explicite au niveau d'une organisation.</div>
+                        <label class="form-label">Fonctionnalités par défaut de la catégorie</label>
+                        <div class="small text-secondary mb-3">Ces fonctionnalités sont automatiquement ouvertes aux organisations de cette catégorie, sauf désactivation explicite au niveau d'une organisation.</div>
                         <div class="feature-picker">
                             @foreach ($groupedFeatures as $groupLabel => $groupFeatures)
                                 <section class="feature-picker-group">

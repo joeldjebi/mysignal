@@ -1,24 +1,31 @@
 @extends('super-admin.layouts.app')
 
-@section('title', config('app.name').' | Types de client')
-@section('page-title', 'Type de client')
-@section('page-description', 'Creer et piloter les types d organisations clientes.')
+@section('title', config('app.name').' | Sous Catégories')
+@section('page-title', 'Sous Catégorie')
+@section('page-description', 'Créer et piloter les sous catégories.')
 
 @section('header-badges')
-    <span class="badge-soft">{{ $organizationTypes->total() }} types</span>
+    <span class="badge-soft">{{ $organizationTypes->total() }} sous catégories</span>
     <button
         type="button"
         class="btn btn-dark"
         data-bs-toggle="modal"
         data-bs-target="#clientTypeCreateModal"
     >
-        Nouveau type
+        Nouvelle sous catégorie
     </button>
 @endsection
 
 @section('content')
+    <style>
+        .required-star {
+            color: #dc3545;
+            font-weight: 800;
+            margin-left: .2rem;
+        }
+    </style>
     <section class="panel-card">
-        <div class="fw-bold mb-3">Liste des types de client</div>
+        <div class="fw-bold mb-3">Liste des sous catégories</div>
         <form method="GET" class="filter-bar">
             <div class="row g-2 align-items-end">
                 <div class="col-md-7">
@@ -75,7 +82,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="4" class="text-center text-secondary">Aucun type de client enregistre.</td></tr>
+                        <tr><td colspan="4" class="text-center text-secondary">Aucune sous catégorie enregistrée.</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -91,8 +98,8 @@
             <div class="modal-content">
                 <div class="modal-header border-0 pb-0">
                     <div>
-                        <h5 class="modal-title" id="clientTypeCreateModalLabel">Nouveau type de client</h5>
-                        <div class="text-secondary small">Ajoutez un type d'organisation cliente utilisable dans les parametrages.</div>
+                        <h5 class="modal-title" id="clientTypeCreateModalLabel">Nouvelle sous catégorie</h5>
+                        <div class="text-secondary small">Ajoutez une sous catégorie utilisable dans les paramétrages.</div>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -101,22 +108,18 @@
                     <div class="modal-body pt-3">
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label">Code</label>
-                                <input type="text" name="code" class="form-control" placeholder="ENTREPRISE_GO" value="{{ old('code') }}" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Nom</label>
+                                <label class="form-label">Nom<span class="required-star">*</span></label>
                                 <input type="text" name="name" class="form-control" placeholder="ENTREPRISE GO" value="{{ old('name') }}" required>
                             </div>
                             <div class="col-12">
                                 <label class="form-label">Description</label>
-                                <textarea name="description" class="form-control" rows="4" placeholder="Expliquez a quoi correspond ce type de client.">{{ old('description') }}</textarea>
+                                <textarea name="description" class="form-control" rows="4" placeholder="Expliquez à quoi correspond cette sous catégorie.">{{ old('description') }}</textarea>
                             </div>
                         </div>
                     </div>
                     <div class="modal-footer border-0 pt-0">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
-                        <button type="submit" class="btn btn-dark">Creer le type</button>
+                        <button type="submit" class="btn btn-dark">Créer la sous catégorie</button>
                     </div>
                 </form>
             </div>

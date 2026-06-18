@@ -8,6 +8,7 @@ use App\Models\Commune;
 use App\Models\IncidentReport;
 use App\Models\Meter;
 use App\Models\Organization;
+use App\Models\OrganizationType;
 use App\Models\OrganizationTypeSignalSla;
 use App\Models\PublicUser;
 use App\Models\SignalSubType;
@@ -109,6 +110,20 @@ class CreateIncidentReportAction
         }
 
         $organization = $meter?->organization;
+        $organizationType = null;
+
+        if (! empty($payload['organization_type_id'])) {
+            $organizationType = OrganizationType::query()
+                ->whereKey($payload['organization_type_id'])
+                ->where('status', 'active')
+                ->first();
+
+            if (! $organizationType instanceof OrganizationType) {
+                throw ValidationException::withMessages([
+                    'organization_type_id' => ['Le type d organisation selectionne est invalide.'],
+                ]);
+            }
+        }
 
         if (! $organization instanceof Organization && ! empty($payload['organization_id'])) {
             $organization = Organization::query()
@@ -124,6 +139,46 @@ class CreateIncidentReportAction
             ]);
         }
 
+        if ($meter?->organization instanceof Organization && $organizationType instanceof OrganizationType && (int) $meter->organization->organization_type_id !== (int) $organizationType->id) {
+            throw ValidationException::withMessages([
+                'organization_type_id' => ['Le type d organisation selectionne ne correspond pas a l identifiant choisi.'],
+            ]);
+        }
+
+        if ($organization instanceof Organization && $organizationType instanceof OrganizationType && (int) $organization->organization_type_id !== (int) $organizationType->id) {
+            throw ValidationException::withMessages([
+                'organization_id' => ['L organisation selectionnee ne correspond pas au type d organisation choisi.'],
+            ]);
+        }
+
+        if (! $organizationType instanceof OrganizationType && $organization instanceof Organization && $organization->organization_type_id !== null) {
+            $organizationType = $organization->organizationType;
+        }
+
+        if (! $organizationType instanceof OrganizationType && $meter?->organization instanceof Organization && $meter->organization->organization_type_id !== null) {
+            $organizationType = $meter->organization->organizationType;
+        }
+
+        if ($application->requires_organization_type_on_report && $meter === null && ! $organizationType instanceof OrganizationType) {
+            throw ValidationException::withMessages([
+                'organization_type_id' => ['Le type d organisation est obligatoire pour cette application.'],
+            ]);
+        }
+
+        if ($organizationType instanceof OrganizationType) {
+            $hasOrganizationForType = Organization::query()
+                ->where('application_id', $application->id)
+                ->where('organization_type_id', $organizationType->id)
+                ->where('status', 'active')
+                ->exists();
+
+            if (! $hasOrganizationForType) {
+                throw ValidationException::withMessages([
+                    'organization_type_id' => ['Aucune organisation active ne correspond a ce type pour cette application.'],
+                ]);
+            }
+        }
+
         [$country, $city, $commune] = $meter
             ? $this->resolveLocationFromMeter($user, $meter)
             : $this->resolveLocationFromProfile($user);
@@ -133,13 +188,24 @@ class CreateIncidentReportAction
             ->where('code', strtoupper($payload['signal_code']))
             ->where('application_id', $application->id)
             ->where(function ($query) use ($organization): void {
-                $query->whereNull('organization_id');
+                $query->where(function ($globalQuery): void {
+                    $globalQuery->whereNull('organization_id')
+                        ->whereDoesntHave('organizations');
+                });
 
                 if ($organization?->id !== null) {
-                    $query->orWhere('organization_id', $organization->id);
+                    $query->orWhere('organization_id', $organization->id)
+                        ->orWhereHas('organizations', fn ($organizationQuery) => $organizationQuery->whereKey($organization->id));
                 }
             })
-            ->orderByRaw('CASE WHEN organization_id IS NULL THEN 1 ELSE 0 END')
+            ->when(
+                $organization?->id !== null,
+                fn ($query) => $query->orderByRaw(
+                    'CASE WHEN organization_id = ? OR EXISTS (SELECT 1 FROM organization_signal_type WHERE organization_signal_type.signal_type_id = signal_types.id AND organization_signal_type.organization_id = ?) THEN 0 ELSE 1 END',
+                    [$organization->id, $organization->id]
+                ),
+                fn ($query) => $query->orderBy('organization_id')
+            )
             ->first();
 
         if ($signalType === null) {
@@ -150,12 +216,7 @@ class CreateIncidentReportAction
 
         [$signalSubType, $signalSubTypeCode, $signalSubTypeLabel] = $this->resolveSignalSubType($signalType, $payload);
 
-        $organizationTypeId = $meter?->organization_id
-            ? Organization::query()
-                ->whereKey($meter->organization_id)
-                ->where('status', 'active')
-                ->value('organization_type_id')
-            : $organization?->organization_type_id;
+        $organizationTypeId = $organizationType?->id;
         $slaNetworkTypes = collect([
             $signalType->organization?->code,
             $application->code,

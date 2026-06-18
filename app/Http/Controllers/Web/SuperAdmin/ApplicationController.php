@@ -10,6 +10,7 @@ use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class ApplicationController extends Controller
@@ -60,7 +61,7 @@ class ApplicationController extends Controller
         );
 
         return redirect()->route('super-admin.applications.index')
-            ->with('success', 'L application a ete creee.');
+            ->with('success', 'La catégorie a ete creee.');
     }
 
     public function edit(Application $application): View
@@ -105,7 +106,7 @@ class ApplicationController extends Controller
         );
 
         return redirect()->route('super-admin.applications.index')
-            ->with('success', 'L application a ete mise a jour.');
+            ->with('success', 'La catégorie a ete mise a jour.');
     }
 
     public function destroy(Request $request, Application $application, ActivityLogger $activityLogger): RedirectResponse
@@ -147,10 +148,7 @@ class ApplicationController extends Controller
     private function validatedPayload(Request $request, ?Application $application = null, ?WasabiService $wasabiService = null): array
     {
         $attributes = $request->validate([
-            'code' => ['required', 'string', 'max:40', 'unique:applications,code,'.($application?->id ?? 'NULL')],
             'name' => ['required', 'string', 'max:120'],
-            'slug' => ['required', 'string', 'max:120', 'unique:applications,slug,'.($application?->id ?? 'NULL')],
-            'tagline' => ['nullable', 'string', 'max:255'],
             'short_description' => ['nullable', 'string', 'max:255'],
             'long_description' => ['nullable', 'string'],
             'logo_file' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
@@ -159,8 +157,8 @@ class ApplicationController extends Controller
             'primary_color' => ['nullable', 'string', 'max:20'],
             'secondary_color' => ['nullable', 'string', 'max:20'],
             'accent_color' => ['nullable', 'string', 'max:20'],
-            'sort_order' => ['nullable', 'integer', 'min:1', 'max:999'],
             'requires_public_user_identifier' => ['nullable', 'boolean'],
+            'requires_organization_type_on_report' => ['nullable', 'boolean'],
             'feature_ids' => ['nullable', 'array'],
             'feature_ids.*' => ['integer', 'exists:features,id'],
         ]);
@@ -206,10 +204,10 @@ class ApplicationController extends Controller
         }
 
         return [[
-            'code' => strtoupper((string) $attributes['code']),
+            'code' => $this->codeFromName($attributes['name'], $application),
             'name' => $attributes['name'],
-            'slug' => strtolower((string) $attributes['slug']),
-            'tagline' => $attributes['tagline'] ?? null,
+            'slug' => $this->slugFromName($attributes['name'], $application),
+            'tagline' => $application?->tagline,
             'short_description' => $attributes['short_description'] ?? null,
             'long_description' => $attributes['long_description'] ?? null,
             'logo_path' => $logoPath,
@@ -218,10 +216,64 @@ class ApplicationController extends Controller
             'primary_color' => $attributes['primary_color'] ?? null,
             'secondary_color' => $attributes['secondary_color'] ?? null,
             'accent_color' => $attributes['accent_color'] ?? null,
-            'sort_order' => $attributes['sort_order'] ?? 1,
+            'sort_order' => $application?->sort_order ?? $this->nextSortOrder(),
             'requires_public_user_identifier' => (bool) ($attributes['requires_public_user_identifier'] ?? false),
+            'requires_organization_type_on_report' => (bool) ($attributes['requires_organization_type_on_report'] ?? false),
             'status' => $application?->status ?? 'active',
         ], $attributes['feature_ids'] ?? []];
+    }
+
+    private function codeFromName(string $name, ?Application $application = null): string
+    {
+        $baseCode = Str::limit((string) Str::of($name)
+            ->ascii()
+            ->upper()
+            ->replaceMatches('/[^A-Z0-9]+/', '_')
+            ->trim('_'), 34, '');
+
+        if ($baseCode === '') {
+            $baseCode = 'CATEGORIE';
+        }
+
+        $code = $baseCode;
+        $suffix = 2;
+
+        while (Application::query()
+            ->where('code', $code)
+            ->when($application, fn ($query) => $query->whereKeyNot($application->id))
+            ->exists()) {
+            $suffixText = '_'.$suffix++;
+            $code = Str::limit($baseCode, 40 - strlen($suffixText), '').$suffixText;
+        }
+
+        return $code;
+    }
+
+    private function slugFromName(string $name, ?Application $application = null): string
+    {
+        $baseSlug = Str::limit(Str::slug($name), 110, '');
+
+        if ($baseSlug === '') {
+            $baseSlug = 'categorie';
+        }
+
+        $slug = $baseSlug;
+        $suffix = 2;
+
+        while (Application::query()
+            ->where('slug', $slug)
+            ->when($application, fn ($query) => $query->whereKeyNot($application->id))
+            ->exists()) {
+            $suffixText = '-'.$suffix++;
+            $slug = Str::limit($baseSlug, 120 - strlen($suffixText), '').$suffixText;
+        }
+
+        return $slug;
+    }
+
+    private function nextSortOrder(): int
+    {
+        return ((int) Application::query()->max('sort_order')) + 1;
     }
 
     private function groupFeatures(Collection $features): Collection

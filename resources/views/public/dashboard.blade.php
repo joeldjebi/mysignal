@@ -1909,6 +1909,16 @@
                                 <select class="form-select d-none" id="reportApplicationId" required></select>
                                 <div class="select-search-results" id="reportApplicationIdResults"></div>
                             </div>
+                            <div class="col-md-4" id="reportOrganizationTypeFieldWrap">
+                                <label class="form-label fw-semibold">Type d'organisation<span class="required-star">*</span></label>
+                                <div class="select-search-shell">
+                                    <input class="form-control select-search-input" style="display:block;width:100%;" type="search" data-search-select-target="reportOrganizationTypeId" autocomplete="off" placeholder="Rechercher un type d'organisation">
+                                    <button class="select-search-toggle" type="button" data-search-toggle-target="reportOrganizationTypeId" aria-label="Afficher les options"></button>
+                                </div>
+                                <div class="select-search-help">Type d'organisation requis selon l'application.</div>
+                                <select class="form-select d-none" id="reportOrganizationTypeId"></select>
+                                <div class="select-search-results" id="reportOrganizationTypeIdResults"></div>
+                            </div>
                             <div class="col-md-4">
                                 <label class="form-label fw-semibold">Organisation concernée<span class="required-star">*</span></label>
                                 <div class="select-search-shell">
@@ -3340,9 +3350,15 @@
 
                 function getAvailableReportOrganizations() {
                     const applicationId = String(document.getElementById('reportApplicationId')?.value || '');
+                    const organizationTypeId = String(document.getElementById('reportOrganizationTypeId')?.value || '');
                     const application = serviceApplications.find((item) => String(item.id) === applicationId);
+                    const organizations = application?.organizations || [];
 
-                    return application?.organizations || [];
+                    if (!reportRequiresOrganizationType() || !organizationTypeId) {
+                        return organizations;
+                    }
+
+                    return organizations.filter((organization) => String(organization.organization_type_id || '') === organizationTypeId);
                 }
 
                 function getSelectedReportApplication() {
@@ -3357,8 +3373,18 @@
                     return application ? application.requires_public_user_identifier !== false : true;
                 }
 
+                function reportRequiresOrganizationType() {
+                    const application = getSelectedReportApplication();
+
+                    return application?.requires_organization_type_on_report === true;
+                }
+
                 function getSelectedReportOrganizationId() {
                     return document.getElementById('reportOrganizationType').value || '';
+                }
+
+                function getSelectedReportOrganizationTypeId() {
+                    return document.getElementById('reportOrganizationTypeId')?.value || '';
                 }
 
                 function getSelectedReportNetwork() {
@@ -3408,7 +3434,41 @@
                     applicationSelect.value = String(preferredApplication?.id || serviceApplications[0]?.id || '');
                     refreshSearchableSelect('reportApplicationId');
 
+                    renderReportOrganizationTypeOptions();
                     renderReportOrganizationOptions();
+                }
+
+                function renderReportOrganizationTypeOptions(preferredOrganizationTypeId = null) {
+                    const typeWrap = document.getElementById('reportOrganizationTypeFieldWrap');
+                    const typeSelect = document.getElementById('reportOrganizationTypeId');
+                    const application = getSelectedReportApplication();
+                    const requiresType = reportRequiresOrganizationType();
+                    const organizationTypes = application?.organization_types || [];
+
+                    typeWrap.classList.toggle('d-none', !requiresType);
+                    typeSelect.required = requiresType;
+                    typeSelect.disabled = !requiresType;
+
+                    if (!requiresType) {
+                        typeSelect.innerHTML = '<option value="">Type non requis</option>';
+                        typeSelect.value = '';
+                        refreshSearchableSelect('reportOrganizationTypeId');
+                        return;
+                    }
+
+                    typeSelect.innerHTML = organizationTypes.length
+                        ? organizationTypes.map((type) => `<option value="${type.id}">${type.name}</option>`).join('')
+                        : '<option value="">Aucun type disponible</option>';
+
+                    if (!organizationTypes.length) {
+                        typeSelect.value = '';
+                        refreshSearchableSelect('reportOrganizationTypeId');
+                        return;
+                    }
+
+                    const preferredExists = preferredOrganizationTypeId && organizationTypes.some((type) => String(type.id) === String(preferredOrganizationTypeId));
+                    typeSelect.value = preferredExists ? String(preferredOrganizationTypeId) : String(organizationTypes[0]?.id || '');
+                    refreshSearchableSelect('reportOrganizationTypeId');
                 }
 
                 function renderReportOrganizationOptions(preferredOrganizationId = null) {
@@ -3538,11 +3598,20 @@
                             return false;
                         }
 
-                        if (type.organization_id === null || type.organization_id === undefined || type.organization_id === '') {
+                        const selectedOrganizationId = meter?.organization_id || organizationId;
+                        const scopedOrganizationIds = Array.isArray(type.organization_ids)
+                            ? type.organization_ids.map((id) => String(id))
+                            : [];
+
+                        if (
+                            scopedOrganizationIds.length === 0 &&
+                            (type.organization_id === null || type.organization_id === undefined || type.organization_id === '')
+                        ) {
                             return true;
                         }
 
-                        return String(type.organization_id) === String(meter?.organization_id || organizationId);
+                        return scopedOrganizationIds.includes(String(selectedOrganizationId)) ||
+                            String(type.organization_id) === String(selectedOrganizationId);
                     });
 
                     const deduplicatedTypes = new Map();
@@ -3555,8 +3624,8 @@
                             return;
                         }
 
-                        const currentSpecificity = type.organization_id ? 1 : 0;
-                        const existingSpecificity = existing.organization_id ? 1 : 0;
+                        const currentSpecificity = (type.organization_id || (type.organization_ids || []).length) ? 1 : 0;
+                        const existingSpecificity = (existing.organization_id || (existing.organization_ids || []).length) ? 1 : 0;
 
                         if (currentSpecificity >= existingSpecificity) {
                             deduplicatedTypes.set(type.code, type);
@@ -6607,6 +6676,13 @@
                 document.getElementById('meterApplicationId').addEventListener('change', () => populateMeterOrganizationOptions());
                 document.getElementById('meterOrganizationId').addEventListener('change', () => populateMeterOrganizationOptions(document.getElementById('meterOrganizationId').value));
                 document.getElementById('reportApplicationId').addEventListener('change', () => {
+                    renderReportOrganizationTypeOptions();
+                    renderReportOrganizationOptions();
+                    renderReportMeterOptions();
+                    renderSignalOptions();
+                    applyReportMeterLocationIfAvailable(true);
+                });
+                document.getElementById('reportOrganizationTypeId').addEventListener('change', () => {
                     renderReportOrganizationOptions();
                     renderReportMeterOptions();
                     renderSignalOptions();
@@ -6879,6 +6955,9 @@
                         });
 
                         payload.append('application_id', document.getElementById('reportApplicationId').value);
+                        if (document.getElementById('reportOrganizationTypeId')?.value) {
+                            payload.append('organization_type_id', document.getElementById('reportOrganizationTypeId').value);
+                        }
                         payload.append('organization_id', document.getElementById('reportOrganizationType').value);
 
                         const signalAttachment = rawFormData.get('signal_attachment');

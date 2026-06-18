@@ -10,7 +10,7 @@ use App\Models\SignalType;
 use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -18,7 +18,7 @@ class SignalTypeController extends Controller
 {
     public function index(): View
     {
-        $query = SignalType::query()->with(['application', 'organization']);
+        $query = SignalType::query()->with(['application', 'organization', 'organizations']);
 
         if (filled(request('search'))) {
             $search = trim((string) request('search'));
@@ -39,7 +39,11 @@ class SignalTypeController extends Controller
         }
 
         if (filled(request('organization_id'))) {
-            $query->where('organization_id', request('organization_id'));
+            $organizationId = (int) request('organization_id');
+            $query->where(function ($query) use ($organizationId): void {
+                $query->where('organization_id', $organizationId)
+                    ->orWhereHas('organizations', fn ($organizationQuery) => $organizationQuery->whereKey($organizationId));
+            });
         }
 
         return view('super-admin.signal-types.index', [
@@ -50,13 +54,17 @@ class SignalTypeController extends Controller
                 ->orderBy('sort_order')
                 ->orderBy('name')
                 ->get(),
-            'existingSignalTypeCodes' => SignalType::query()->pluck('code')->values(),
         ]);
     }
 
     public function store(Request $request, ActivityLogger $activityLogger): RedirectResponse
     {
-        $signalType = SignalType::query()->create($this->validatedAttributes($request));
+        $attributes = $this->validatedAttributes($request);
+        $organizationIds = $attributes['organization_ids'];
+        unset($attributes['organization_ids']);
+
+        $signalType = SignalType::query()->create($attributes);
+        $signalType->organizations()->sync($organizationIds);
 
         $activityLogger->log(
             'signal_type.created',
@@ -66,7 +74,7 @@ class SignalTypeController extends Controller
                 'code' => $signalType->code,
                 'label' => $signalType->label,
                 'application_id' => $signalType->application_id,
-                'organization_id' => $signalType->organization_id,
+                'organization_ids' => $organizationIds,
                 'status' => $signalType->status,
             ],
             $request
@@ -79,17 +87,16 @@ class SignalTypeController extends Controller
     public function edit(SignalType $signalType): View
     {
         return view('super-admin.signal-types.edit', [
-            'signalType' => $signalType->load(['subTypes' => fn ($query) => $query->orderBy('sort_order')->orderBy('label')]),
+            'signalType' => $signalType->load([
+                'organizations',
+                'subTypes' => fn ($query) => $query->orderBy('sort_order')->orderBy('label'),
+            ]),
             'applications' => Application::query()
                 ->with(['organizations' => fn ($query) => $query->where('status', 'active')->orderBy('name')])
                 ->where('status', 'active')
                 ->orderBy('sort_order')
                 ->orderBy('name')
                 ->get(),
-            'existingSignalTypeCodes' => SignalType::query()
-                ->where('id', '!=', $signalType->id)
-                ->pluck('code')
-                ->values(),
         ]);
     }
 
@@ -131,7 +138,7 @@ class SignalTypeController extends Controller
                 ->paginate(15)
                 ->withQueryString(),
             'signalTypes' => SignalType::query()
-                ->with(['application', 'organization'])
+                ->with(['application', 'organization', 'organizations'])
                 ->orderBy('application_id')
                 ->orderBy('organization_id')
                 ->orderBy('code')
@@ -144,7 +151,12 @@ class SignalTypeController extends Controller
         $before = $signalType->only([
             'code', 'label', 'application_id', 'organization_id', 'default_sla_hours', 'description', 'status',
         ]);
-        $signalType->update($this->validatedAttributes($request, $signalType));
+        $attributes = $this->validatedAttributes($request, $signalType);
+        $organizationIds = $attributes['organization_ids'];
+        unset($attributes['organization_ids']);
+
+        $signalType->update($attributes);
+        $signalType->organizations()->sync($organizationIds);
 
         $activityLogger->log(
             'signal_type.updated',
@@ -155,6 +167,7 @@ class SignalTypeController extends Controller
                 'after' => $signalType->only([
                     'code', 'label', 'application_id', 'organization_id', 'default_sla_hours', 'description', 'status',
                 ]),
+                'organization_ids' => $organizationIds,
             ],
             $request
         );
@@ -288,53 +301,44 @@ class SignalTypeController extends Controller
     {
         $attributes = $request->validate([
             'application_id' => ['required', 'exists:applications,id'],
-            'organization_id' => ['nullable', 'exists:organizations,id'],
-            'code' => [
-                'required',
-                'string',
-                'max:30',
-                Rule::unique('signal_types', 'code')
-                    ->where(function ($query) use ($request) {
-                        $applicationId = (int) $request->input('application_id');
-                        $organizationId = $request->filled('organization_id') ? (int) $request->input('organization_id') : null;
-
-                        $query->where('application_id', $applicationId);
-
-                        if ($organizationId === null) {
-                            $query->whereNull('organization_id');
-                        } else {
-                            $query->where('organization_id', $organizationId);
-                        }
-                    })
-                    ->ignore($signalType?->id),
-            ],
+            'organization_ids' => ['nullable', 'array'],
+            'organization_ids.*' => ['integer', 'exists:organizations,id'],
             'label' => ['required', 'string', 'max:180'],
             'default_sla_hours' => ['nullable', 'integer', 'min:1', 'max:999'],
             'description' => ['nullable', 'string'],
         ]);
 
         $application = Application::query()->whereKey($attributes['application_id'])->where('status', 'active')->firstOrFail();
-        $organization = null;
+        $organizationIds = collect($attributes['organization_ids'] ?? [])
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn (int $id) => $id > 0)
+            ->unique()
+            ->values();
 
-        if (! empty($attributes['organization_id'])) {
-            $organization = Organization::query()
-                ->whereKey($attributes['organization_id'])
+        $organizations = collect();
+
+        if ($organizationIds->isNotEmpty()) {
+            $organizations = Organization::query()
+                ->whereIn('id', $organizationIds)
                 ->where('application_id', $application->id)
                 ->where('status', 'active')
-                ->first();
+                ->get();
 
-            if ($organization === null) {
+            if ($organizations->count() !== $organizationIds->count()) {
                 throw ValidationException::withMessages([
-                    'organization_id' => ['L organisation selectionnee n appartient pas a l application choisie.'],
+                    'organization_ids' => ['Une ou plusieurs institutions selectionnees n appartiennent pas a la catégorie choisie.'],
                 ]);
             }
         }
 
+        $legacyOrganization = $organizations->count() === 1 ? $organizations->first() : null;
+
         return [
             'application_id' => $application->id,
-            'organization_id' => $organization?->id,
-            'network_type' => strtoupper((string) ($organization?->code ?: $application->code)),
-            'code' => strtoupper($attributes['code']),
+            'organization_id' => $legacyOrganization?->id,
+            'organization_ids' => $organizationIds->all(),
+            'network_type' => strtoupper((string) ($legacyOrganization?->code ?: $application->code)),
+            'code' => $this->uniqueSignalTypeCode($application, $signalType),
             'label' => $attributes['label'],
             'default_sla_hours' => $attributes['default_sla_hours'] ?? null,
             'description' => $attributes['description'] ?? null,
@@ -344,27 +348,85 @@ class SignalTypeController extends Controller
     private function validatedSubTypeAttributes(Request $request, SignalType $signalType, ?SignalSubType $subType = null): array
     {
         $attributes = $request->validate([
-            'code' => [
-                'required',
-                'string',
-                'max:60',
-                Rule::unique('signal_sub_types', 'code')
-                    ->where('signal_type_id', $signalType->id)
-                    ->ignore($subType?->id),
-                Rule::notIn(['OTHER', 'other', 'Other']),
-            ],
             'label' => ['required', 'string', 'max:180'],
             'description' => ['nullable', 'string'],
-            'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
         ]);
 
         return [
-            'code' => strtoupper($attributes['code']),
+            'code' => $this->uniqueSignalSubTypeCode($signalType, $attributes['label'], $subType),
             'label' => $attributes['label'],
             'description' => $attributes['description'] ?? null,
-            'sort_order' => $attributes['sort_order'] ?? 0,
+            'sort_order' => $subType?->sort_order ?? $this->nextSubTypeSortOrder($signalType),
             'status' => $subType?->status ?? 'active',
         ];
+    }
+
+    private function uniqueSignalTypeCode(Application $application, ?SignalType $signalType = null): string
+    {
+        $base = collect([$application->code])
+            ->filter()
+            ->map(fn (string $part): string => $this->codePart($part))
+            ->filter()
+            ->implode('_') ?: 'SIGNAL';
+        $sequence = 1;
+
+        do {
+            $suffix = '_'.str_pad((string) $sequence, 2, '0', STR_PAD_LEFT);
+            $candidate = Str::limit($base, 30 - strlen($suffix), '').$suffix;
+            $exists = SignalType::query()
+                ->where('application_id', $application->id)
+                ->where('code', $candidate)
+                ->when($signalType, fn ($query) => $query->whereKeyNot($signalType->id))
+                ->exists();
+            $sequence++;
+        } while ($exists);
+
+        return $candidate;
+    }
+
+    private function uniqueSignalSubTypeCode(SignalType $signalType, string $label, ?SignalSubType $subType = null): string
+    {
+        $base = Str::of($label)
+            ->ascii()
+            ->upper()
+            ->replaceMatches('/[^A-Z0-9]+/', '_')
+            ->trim('_')
+            ->limit(50, '')
+            ->toString() ?: 'SOUS_TYPE';
+
+        if (in_array($base, ['OTHER', 'AUTRE'], true)) {
+            $base = 'SOUS_TYPE_'.$base;
+        }
+
+        $candidate = $base;
+        $sequence = 2;
+
+        while (SignalSubType::query()
+            ->where('signal_type_id', $signalType->id)
+            ->where('code', $candidate)
+            ->when($subType, fn ($query) => $query->whereKeyNot($subType->id))
+            ->exists()) {
+            $suffix = '_'.$sequence;
+            $candidate = Str::limit($base, 60 - strlen($suffix), '').$suffix;
+            $sequence++;
+        }
+
+        return $candidate;
+    }
+
+    private function nextSubTypeSortOrder(SignalType $signalType): int
+    {
+        return ((int) $signalType->subTypes()->max('sort_order')) + 1;
+    }
+
+    private function codePart(string $value): string
+    {
+        return Str::of($value)
+            ->ascii()
+            ->upper()
+            ->replaceMatches('/[^A-Z0-9]+/', '_')
+            ->trim('_')
+            ->toString();
     }
 
     private function ensureSubTypeBelongsToSignalType(SignalType $signalType, SignalSubType $subType): void

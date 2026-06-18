@@ -1,21 +1,24 @@
 @extends('super-admin.layouts.app')
 
-@section('title', config('app.name').' | Modifier un type de client')
-@section('page-title', 'Modifier un type de client')
-@section('page-description', 'Mettre a jour un type d organisation.')
+@section('title', config('app.name').' | Modifier une sous catégorie')
+@section('page-title', 'Modifier une sous catégorie')
+@section('page-description', 'Mettre à jour une sous catégorie.')
 
 @section('content')
+    <style>
+        .required-star {
+            color: #dc3545;
+            font-weight: 800;
+            margin-left: .2rem;
+        }
+    </style>
     <section class="panel-card">
         <div class="fw-bold mb-3">Edition de {{ $organizationType->name }}</div>
         <form method="POST" action="{{ route('super-admin.client-types.update', $organizationType) }}" class="row g-3">
             @csrf
             @method('PUT')
-            <div class="col-md-3">
-                <label class="form-label">Code</label>
-                <input type="text" name="code" value="{{ old('code', $organizationType->code) }}" class="form-control" required>
-            </div>
             <div class="col-md-5">
-                <label class="form-label">Nom</label>
+                <label class="form-label">Nom<span class="required-star">*</span></label>
                 <input type="text" name="name" value="{{ old('name', $organizationType->name) }}" class="form-control" required>
             </div>
             <div class="col-md-12">

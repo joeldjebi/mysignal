@@ -61,6 +61,12 @@ class Organization extends Model
             ->withTimestamps();
     }
 
+    public function signalTypes(): BelongsToMany
+    {
+        return $this->belongsToMany(SignalType::class)
+            ->withTimestamps();
+    }
+
     public function resolvedFeatures(): Collection
     {
         $applicationFeatures = $this->application?->relationLoaded('features')

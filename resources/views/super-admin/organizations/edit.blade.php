@@ -1,8 +1,8 @@
 @extends('super-admin.layouts.app')
 
-@section('title', config('app.name').' | Modifier une organisation')
-@section('page-title', 'Modifier une organisation')
-@section('page-description', 'Mettre a jour le portail et les informations d une organisation.')
+@section('title', config('app.name').' | Modifier une institution')
+@section('page-title', 'Modifier une institution')
+@section('page-description', 'Mettre à jour le portail et les informations d une institution.')
 
 @section('content')
     <style>
@@ -60,6 +60,11 @@
             display: grid;
             gap: 1.2rem;
         }
+        .required-star {
+            color: #dc3545;
+            font-weight: 800;
+            margin-left: .2rem;
+        }
         @media (max-width: 1199.98px) {
             .feature-picker-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -78,35 +83,26 @@
             @method('PUT')
             <div class="row g-3">
                 <div class="col-md-4">
-                    <label class="form-label">Application</label>
-                    <select name="application_id" class="form-select">
-                        <option value="">Aucune application liee</option>
+                    <label class="form-label">Catégorie<span class="required-star">*</span></label>
+                    <select name="application_id" class="form-select" required>
                         @foreach ($applications as $application)
                             <option value="{{ $application->id }}" @selected(old('application_id', $organization->application_id) == $application->id)>{{ $application->name }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label">Type d'organisation</label>
+                    <label class="form-label">Sous Catégorie<span class="required-star">*</span></label>
                     <select name="organization_type_id" class="form-select" required>
                         @foreach ($organizationTypes as $organizationType)
                             <option value="{{ $organizationType->id }}" @selected(old('organization_type_id', $organization->organization_type_id) == $organizationType->id)>{{ $organizationType->name }}</option>
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <label class="form-label">Code</label>
-                    <input type="text" name="code" value="{{ old('code', $organization->code) }}" class="form-control" required>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Cle portail</label>
-                    <input type="text" name="portal_key" value="{{ old('portal_key', $organization->portal_key) }}" class="form-control">
-                </div>
                 <div class="col-md-3">
                     @include('partials.phone-field', ['value' => old('phone', $organization->phone), 'placeholder' => '0700000000'])
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label">Nom</label>
+                    <label class="form-label">Nom<span class="required-star">*</span></label>
                     <input type="text" name="name" value="{{ old('name', $organization->name) }}" class="form-control" required>
                 </div>
                 <div class="col-md-6">
@@ -128,7 +124,7 @@
             </div>
             <div>
                 <label class="form-label">Fonctionnalites de l'institution</label>
-                <div class="small text-secondary mb-3">Les fonctionnalites heritees de l'application peuvent etre laissees actives ou desactivees pour cette institution precisement.</div>
+                <div class="small text-secondary mb-3">Les fonctionnalites heritees de la catégorie peuvent etre laissees actives ou desactivees pour cette institution precisement.</div>
                 <div class="feature-picker">
                     @foreach ($groupedFeatures as $groupLabel => $groupFeatures)
                         <section class="feature-picker-group">

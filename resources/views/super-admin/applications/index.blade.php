@@ -1,13 +1,13 @@
 @extends('super-admin.layouts.app')
 
-@section('title', config('app.name').' | Applications')
-@section('page-title', 'Applications')
-@section('page-description', 'Parametrer les univers metier de la plateforme et leur identite.')
+@section('title', config('app.name').' | Catégories')
+@section('page-title', 'Catégories')
+@section('page-description', 'Paramétrer les catégories métier de la plateforme et leur identité.')
 
 @section('header-badges')
-    <span class="badge-soft">{{ $applications->total() }} applications</span>
+    <span class="badge-soft">{{ $applications->total() }} catégories</span>
     <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#createApplicationModal">
-        Nouvelle application
+        Nouvelle catégorie
     </button>
 @endsection
 
@@ -137,6 +137,11 @@
             letter-spacing: .03em;
             margin-top: .15rem;
         }
+        .required-star {
+            color: #dc3545;
+            font-weight: 800;
+            margin-left: .2rem;
+        }
         @media (max-width: 767.98px) {
             .app-feature-chip-grid,
             .feature-picker-grid {
@@ -152,7 +157,7 @@
     </style>
 
     <section class="panel-card mb-4">
-        <div class="fw-bold mb-3">Catalogue des applications</div>
+        <div class="fw-bold mb-3">Catalogue des catégories</div>
         <form method="GET" class="filter-bar">
             <div class="row g-2 align-items-end">
                 <div class="col-md-7">
@@ -175,7 +180,7 @@
         </form>
 
         @if ($applications->isEmpty())
-            <div class="text-center text-secondary py-5">Aucune application enregistree.</div>
+            <div class="text-center text-secondary py-5">Aucune catégorie enregistrée.</div>
         @else
             <div class="app-admin-grid">
                 @foreach ($applications as $application)
@@ -218,6 +223,7 @@
                         <div class="app-admin-label">Parametre UP</div>
                         <div class="mb-3">
                             <span class="status-chip">{{ $application->requires_public_user_identifier ? 'Identifiant UP requis' : 'Identifiant UP facultatif' }}</span>
+                            <span class="status-chip">{{ $application->requires_organization_type_on_report ? 'Type d organisation requis' : 'Type d organisation masque' }}</span>
                         </div>
 
                         <div class="app-admin-label">Fonctionnalites</div>
@@ -264,8 +270,8 @@
             <div class="modal-content border-0" style="border-radius: 28px; overflow: hidden;">
                 <div class="modal-header px-4 py-3 border-0" style="background: linear-gradient(145deg, #0f2738, #1b4867); color: white;">
                     <div>
-                        <div class="small text-white-50 fw-semibold mb-1">Nouvelle application</div>
-                        <div class="h5 fw-bold mb-0">Creer un univers metier</div>
+                        <div class="small text-white-50 fw-semibold mb-1">Nouvelle catégorie</div>
+                        <div class="h5 fw-bold mb-0">Créer une catégorie métier</div>
                     </div>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -273,24 +279,8 @@
                     <form method="POST" action="{{ route('super-admin.applications.store') }}" class="row g-3" enctype="multipart/form-data">
                         @csrf
                         <div class="col-md-4">
-                            <label class="form-label">Code</label>
-                            <input type="text" name="code" class="form-control" placeholder="ÉLÈCTRICITÉ" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Nom</label>
+                            <label class="form-label">Nom<span class="required-star">*</span></label>
                             <input type="text" name="name" class="form-control" placeholder="MON NRJ" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Slug</label>
-                            <input type="text" name="slug" class="form-control" placeholder="mon-nrj" required>
-                        </div>
-                        <div class="col-md-8">
-                            <label class="form-label">Slogan</label>
-                            <input type="text" name="tagline" class="form-control" placeholder="Les griefs lies a l energie au meme endroit.">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Ordre d'affichage</label>
-                            <input type="number" min="1" max="999" name="sort_order" class="form-control" value="1">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Identifiant UP</label>
@@ -298,6 +288,14 @@
                                 <option value="0" selected>Facultatif</option>
                                 <option value="1">Obligatoire</option>
                             </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Sous Catégorie au signalement</label>
+                            <select name="requires_organization_type_on_report" class="form-select">
+                                <option value="0" selected>Ne pas afficher</option>
+                                <option value="1">Afficher et rendre obligatoire</option>
+                            </select>
+                            <div class="small text-secondary mt-2">Chez le UP, ce choix affiche la sous catégorie avant l'institution concernee.</div>
                         </div>
                         <div class="col-12">
                             <label class="form-label">Description courte</label>
@@ -335,8 +333,8 @@
                             <input type="text" name="accent_color" class="form-control" placeholder="#cb6f2c">
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Fonctionnalites par defaut de l'application</label>
-                            <div class="small text-secondary mb-3">Ces fonctionnalites seront preactivees dans toutes les organisations rattachees a cette application. Le SA pourra ensuite en desactiver localement sur une organisation precise.</div>
+                            <label class="form-label">Fonctionnalités par défaut de la catégorie</label>
+                            <div class="small text-secondary mb-3">Ces fonctionnalités seront préactivées dans toutes les organisations rattachées à cette catégorie. Le SA pourra ensuite en désactiver localement sur une organisation précise.</div>
                             <div class="feature-picker">
                                 @foreach ($groupedFeatures as $groupLabel => $groupFeatures)
                                     <section class="feature-picker-group">
@@ -362,7 +360,7 @@
                             </div>
                         </div>
                         <div class="col-12">
-                            <button type="submit" class="btn btn-dark">Creer l'application</button>
+                            <button type="submit" class="btn btn-dark">Créer la catégorie</button>
                         </div>
                     </form>
                 </div>

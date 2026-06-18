@@ -2,7 +2,7 @@
 
 @section('title', config('app.name').' | TCM cibles')
 @section('page-title', 'TCM cibles')
-@section('page-description', 'Programmer les TCM cibles selon le type d organisation et le type de signal.')
+@section('page-description', 'Programmer les TCM cibles selon la sous catégorie et le type de signal.')
 
 @section('header-badges')
     <span class="badge-soft">{{ $slaPolicies->total() }} regles TCM</span>
@@ -26,7 +26,7 @@
                     <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Code, libelle, reseau">
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label small text-secondary">Type d'organisation</label>
+                    <label class="form-label small text-secondary">Sous Catégorie</label>
                     <select name="organization_type_id" class="form-select">
                         <option value="">Tous</option>
                         @foreach ($organizationTypes as $organizationType)
@@ -117,7 +117,7 @@
                 <div class="modal-header border-0 pb-0">
                     <div>
                         <h5 class="modal-title" id="slaPolicyCreateModalLabel">Nouvelle regle TCM</h5>
-                        <div class="text-secondary small">Programmez un delai cible selon le type de client et le type de signal.</div>
+                        <div class="text-secondary small">Programmez un delai cible selon la sous catégorie et le type de signal.</div>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -126,7 +126,7 @@
                     <div class="modal-body pt-3">
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label">Type d'organisation</label>
+                                <label class="form-label">Sous Catégorie</label>
                                 <select name="organization_type_id" class="form-select" required>
                                     @foreach ($organizationTypes as $organizationType)
                                         <option value="{{ $organizationType->id }}" @selected((string) old('organization_type_id') === (string) $organizationType->id)>{{ $organizationType->name }}</option>

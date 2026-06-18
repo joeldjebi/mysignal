@@ -60,11 +60,9 @@ class OrganizationController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $attributes = $request->validate([
-            'application_id' => ['nullable', 'exists:applications,id'],
+            'application_id' => ['required', 'exists:applications,id'],
             'organization_type_id' => ['required', 'exists:organization_types,id'],
-            'code' => ['required', 'string', 'max:60', 'unique:organizations,code'],
             'name' => ['required', 'string', 'max:180'],
-            'portal_key' => ['nullable', 'string', 'max:60', 'unique:organizations,portal_key'],
             'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:30'],
             'commune' => ['nullable', 'string', 'max:120'],
@@ -75,11 +73,11 @@ class OrganizationController extends Controller
         ]);
 
         $organization = Organization::query()->create([
-            'application_id' => $attributes['application_id'] ?? null,
+            'application_id' => $attributes['application_id'],
             'organization_type_id' => $attributes['organization_type_id'],
-            'code' => strtoupper($attributes['code']),
+            'code' => $code = $this->uniqueOrganizationCode($attributes['name']),
             'name' => $attributes['name'],
-            'portal_key' => filled($attributes['portal_key'] ?? null) ? strtolower($attributes['portal_key']) : null,
+            'portal_key' => $this->uniquePortalKey($code),
             'email' => $attributes['email'] ?? null,
             'phone' => $attributes['phone'] ?? null,
             'commune' => $attributes['commune'] ?? null,
@@ -92,7 +90,7 @@ class OrganizationController extends Controller
         $this->syncOrganizationFeatures($organization, $attributes['feature_ids'] ?? []);
 
         return redirect()->route('super-admin.organizations.index')
-            ->with('success', 'L organisation a ete creee.');
+            ->with('success', 'L institution a ete creee.');
     }
 
     public function import(Request $request): RedirectResponse
@@ -117,7 +115,7 @@ class OrganizationController extends Controller
 
         if (! $hasOrganizationTypeInFile && blank($attributes['organization_type_id'] ?? null) && blank($attributes['organization_type_name'] ?? null)) {
             throw ValidationException::withMessages([
-                'organization_type_id' => ['Selectionnez un type d organisation, renseignez un nouveau type, ou utilisez une colonne Type_organisation dans le fichier.'],
+                'organization_type_id' => ['Selectionnez une sous catégorie, renseignez une nouvelle sous catégorie, ou utilisez une colonne Type_organisation dans le fichier.'],
             ]);
         }
 
@@ -275,11 +273,9 @@ class OrganizationController extends Controller
     public function update(Request $request, Organization $organization): RedirectResponse
     {
         $attributes = $request->validate([
-            'application_id' => ['nullable', 'exists:applications,id'],
+            'application_id' => ['required', 'exists:applications,id'],
             'organization_type_id' => ['required', 'exists:organization_types,id'],
-            'code' => ['required', 'string', 'max:60', 'unique:organizations,code,'.$organization->id],
             'name' => ['required', 'string', 'max:180'],
-            'portal_key' => ['nullable', 'string', 'max:60', 'unique:organizations,portal_key,'.$organization->id],
             'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:30'],
             'commune' => ['nullable', 'string', 'max:120'],
@@ -290,11 +286,11 @@ class OrganizationController extends Controller
         ]);
 
         $organization->update([
-            'application_id' => $attributes['application_id'] ?? null,
+            'application_id' => $attributes['application_id'],
             'organization_type_id' => $attributes['organization_type_id'],
-            'code' => strtoupper($attributes['code']),
+            'code' => $code = $this->uniqueOrganizationCode($attributes['name'], $organization),
             'name' => $attributes['name'],
-            'portal_key' => filled($attributes['portal_key'] ?? null) ? strtolower($attributes['portal_key']) : null,
+            'portal_key' => $this->uniquePortalKey($code, $organization),
             'email' => $attributes['email'] ?? null,
             'phone' => $attributes['phone'] ?? null,
             'commune' => $attributes['commune'] ?? null,
@@ -306,7 +302,7 @@ class OrganizationController extends Controller
         $this->syncOrganizationFeatures($organization, $attributes['feature_ids'] ?? []);
 
         return redirect()->route('super-admin.organizations.index')
-            ->with('success', 'L organisation a ete mise a jour.');
+            ->with('success', 'L institution a ete mise a jour.');
     }
 
     public function destroy(Organization $organization): RedirectResponse
@@ -314,7 +310,7 @@ class OrganizationController extends Controller
         $organization->delete();
 
         return redirect()->route('super-admin.organizations.index')
-            ->with('success', 'L organisation a ete supprimee.');
+            ->with('success', 'L institution a ete supprimee.');
     }
 
     public function toggleStatus(Organization $organization): RedirectResponse
@@ -323,7 +319,7 @@ class OrganizationController extends Controller
             'status' => $organization->status === 'active' ? 'inactive' : 'active',
         ]);
 
-        return back()->with('success', 'Le statut de l organisation a ete mis a jour.');
+        return back()->with('success', 'Le statut de l institution a ete mis a jour.');
     }
 
     private function groupFeatures($features)
@@ -687,7 +683,7 @@ class OrganizationController extends Controller
         return $text;
     }
 
-    private function uniqueOrganizationCode(string $name): string
+    private function uniqueOrganizationCode(string $name, ?Organization $organization = null): string
     {
         $base = Str::of($name)
             ->ascii()
@@ -697,7 +693,14 @@ class OrganizationController extends Controller
             ->limit(50, '')
             ->toString() ?: 'ORGANISATION';
 
-        return $this->uniqueValue($base, fn (string $candidate): bool => Organization::query()->where('code', $candidate)->exists(), 60);
+        return $this->uniqueValue(
+            $base,
+            fn (string $candidate): bool => Organization::query()
+                ->where('code', $candidate)
+                ->when($organization, fn ($query) => $query->whereKeyNot($organization->id))
+                ->exists(),
+            60
+        );
     }
 
     private function uniqueOrganizationTypeCode(string $name): string
@@ -713,7 +716,7 @@ class OrganizationController extends Controller
         return $this->uniqueValue($base, fn (string $candidate): bool => OrganizationType::query()->where('code', $candidate)->exists(), 60);
     }
 
-    private function uniquePortalKey(string $code): string
+    private function uniquePortalKey(string $code, ?Organization $organization = null): string
     {
         $base = Str::of($code)
             ->ascii()
@@ -724,7 +727,14 @@ class OrganizationController extends Controller
             ->limit(50, '')
             ->toString() ?: 'institution';
 
-        return $this->uniqueValue($base, fn (string $candidate): bool => Organization::query()->where('portal_key', $candidate)->exists(), 60);
+        return $this->uniqueValue(
+            $base,
+            fn (string $candidate): bool => Organization::query()
+                ->where('portal_key', $candidate)
+                ->when($organization, fn ($query) => $query->whereKeyNot($organization->id))
+                ->exists(),
+            60
+        );
     }
 
     private function uniqueAdminEmail(string $organizationName): string

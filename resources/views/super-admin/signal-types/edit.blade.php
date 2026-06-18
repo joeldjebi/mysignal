@@ -13,16 +13,49 @@
                 'name' => $organization->name,
             ])->values(),
         ]);
-        $applicationCodeByIdPayload = $applications->mapWithKeys(fn ($application) => [
-            $application->id => $application->code,
-        ]);
+        $signalTypeOrganizations = $signalType->organizations->isNotEmpty()
+            ? $signalType->organizations
+            : collect([$signalType->organization])->filter();
     @endphp
+    <style>
+        .institution-picker {
+            border: 1px solid rgba(16,42,67,.12);
+            border-radius: 14px;
+            background: rgba(248,250,252,.95);
+            max-height: 220px;
+            overflow: auto;
+            padding: .75rem;
+        }
+        .institution-picker-grid {
+            display: grid;
+            gap: .55rem;
+        }
+        .institution-picker-toolbar {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: .6rem;
+            margin-bottom: .65rem;
+        }
+        .institution-picker-option {
+            display: flex;
+            gap: .6rem;
+            align-items: flex-start;
+            border: 1px solid rgba(16,42,67,.08);
+            border-radius: 12px;
+            background: #fff;
+            padding: .65rem .75rem;
+            cursor: pointer;
+        }
+        .institution-picker-option .form-check-input {
+            margin-top: .2rem;
+        }
+    </style>
     <div class="row g-4">
         <div class="col-lg-4">
             <section class="panel-card h-100">
                 <div class="small text-secondary fw-semibold mb-2">Type de signal</div>
                 <div class="h5 fw-bold mb-1">{{ $signalType->label }}</div>
-                <div class="text-secondary small mb-4">{{ $signalType->code }} · {{ $signalType->application?->name ?: 'Sans application' }} · {{ $signalType->organization?->name ?: 'Type partage' }}</div>
+                <div class="text-secondary small mb-4">{{ $signalType->code }} · {{ $signalType->application?->name ?: 'Sans catégorie' }} · {{ $signalTypeOrganizations->isNotEmpty() ? $signalTypeOrganizations->pluck('name')->join(', ') : 'Type partage' }}</div>
                 <div class="d-flex flex-wrap gap-2 mb-3">
                     <span class="status-chip">{{ $signalType->status }}</span>
                     <span class="status-chip">{{ $signalType->default_sla_hours ? $signalType->default_sla_hours.' h' : 'SansTCM defaut' }}</span>
@@ -37,24 +70,24 @@
                     @csrf
                     @method('PUT')
                     <div class="col-md-4">
-                        <label class="form-label">Application</label>
+                        <label class="form-label">Catégorie</label>
                         <select name="application_id" class="form-select" id="saSignalTypeApplicationEdit" required>
-                            <option value="">Choisir une application</option>
+                            <option value="">Choisir une catégorie</option>
                             @foreach ($applications as $application)
                                 <option value="{{ $application->id }}" @selected(old('application_id', $signalType->application_id) == $application->id)>{{ $application->name }}</option>
                             @endforeach
                         </select>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">Organisation</label>
-                        <select name="organization_id" class="form-select" id="saSignalTypeOrganizationEdit">
-                            <option value="">Type partage a toute l application</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Code signal</label>
-                        <input type="text" name="code" value="{{ old('code', $signalType->code) }}" class="form-control" id="saSignalTypeCodeEdit" required>
-                        <div class="small text-secondary mt-2">Le code peut etre regenere automatiquement selon l application et l organisation, puis ajuste manuellement si besoin.</div>
+                        <label class="form-label">Institution concernée</label>
+                        <div class="institution-picker-toolbar">
+                            <input type="search" class="form-control" id="saSignalTypeOrganizationEditFilter" placeholder="Filtrer les institutions">
+                            <button type="button" class="btn btn-outline-dark" id="saSignalTypeOrganizationEditToggle">Tout sélectionner</button>
+                        </div>
+                        <div class="institution-picker">
+                            <div id="saSignalTypeOrganizationEdit" class="institution-picker-grid"></div>
+                        </div>
+                        <div class="small text-secondary mt-2" id="saSignalTypeOrganizationEditStatus">Aucune institution selectionnee : type partage a toute la catégorie.</div>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">SLA par defaut (heures)</label>
@@ -84,17 +117,8 @@
                 <form method="POST" action="{{ route('super-admin.signal-types.sub-types.store', $signalType) }}" class="vstack gap-3">
                     @csrf
                     <div>
-                        <label class="form-label">Code</label>
-                        <input type="text" name="code" value="{{ old('code') }}" class="form-control" placeholder="{{ $signalType->code }}_01" required>
-                        <div class="small text-secondary mt-2">Le code OTHER est reserve a l option Autre visible cote UP.</div>
-                    </div>
-                    <div>
                         <label class="form-label">Libelle</label>
                         <input type="text" name="label" value="{{ old('label') }}" class="form-control" placeholder="Cable arrache" required>
-                    </div>
-                    <div>
-                        <label class="form-label">Ordre</label>
-                        <input type="number" min="0" max="9999" name="sort_order" value="{{ old('sort_order', 0) }}" class="form-control">
                     </div>
                     <div>
                         <label class="form-label">Description</label>
@@ -127,32 +151,17 @@
                         <tbody>
                             @forelse ($signalType->subTypes as $subType)
                                 <tr>
-                                    <td style="width: 90px;">
-                                        <form method="POST" action="{{ route('super-admin.signal-types.sub-types.update', [$signalType, $subType]) }}" class="d-flex gap-2 align-items-center">
-                                            @csrf
-                                            @method('PUT')
-                                            <input type="hidden" name="code" value="{{ $subType->code }}">
-                                            <input type="hidden" name="label" value="{{ $subType->label }}">
-                                            <input type="hidden" name="description" value="{{ $subType->description }}">
-                                            <input class="form-control form-control-sm" type="number" min="0" max="9999" name="sort_order" value="{{ $subType->sort_order }}">
-                                            <button class="btn btn-sm btn-outline-dark">OK</button>
-                                        </form>
-                                    </td>
+                                    <td style="width: 90px;"><span class="status-chip">{{ $subType->sort_order }}</span></td>
                                     <td>{{ $subType->code }}</td>
                                     <td>
                                         <form method="POST" action="{{ route('super-admin.signal-types.sub-types.update', [$signalType, $subType]) }}" class="row g-2 align-items-end">
                                             @csrf
                                             @method('PUT')
-                                            <input type="hidden" name="sort_order" value="{{ $subType->sort_order }}">
-                                            <div class="col-md-4">
+                                            <div class="col-md-5">
                                                 <label class="form-label small text-secondary">Libelle</label>
                                                 <input class="form-control form-control-sm" name="label" value="{{ $subType->label }}" required>
                                             </div>
-                                            <div class="col-md-3">
-                                                <label class="form-label small text-secondary">Code</label>
-                                                <input class="form-control form-control-sm" name="code" value="{{ $subType->code }}" required>
-                                            </div>
-                                            <div class="col-md-4">
+                                            <div class="col-md-6">
                                                 <label class="form-label small text-secondary">Description</label>
                                                 <input class="form-control form-control-sm" name="description" value="{{ $subType->description }}">
                                             </div>
@@ -190,67 +199,93 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const organizationsByApplication = @json($organizationsByApplicationPayload);
-            const applicationCodes = @json($applicationCodeByIdPayload);
-            const existingCodes = @json($existingSignalTypeCodes);
-
             const applicationSelect = document.getElementById('saSignalTypeApplicationEdit');
-            const organizationSelect = document.getElementById('saSignalTypeOrganizationEdit');
-            const selectedOrganizationId = @json((string) old('organization_id', $signalType->organization_id));
-            const codeInput = document.getElementById('saSignalTypeCodeEdit');
+            const organizationPicker = document.getElementById('saSignalTypeOrganizationEdit');
+            const organizationStatus = document.getElementById('saSignalTypeOrganizationEditStatus');
+            const organizationFilter = document.getElementById('saSignalTypeOrganizationEditFilter');
+            const organizationToggle = document.getElementById('saSignalTypeOrganizationEditToggle');
+            const selectedOrganizationIds = @json(collect(old('organization_ids', $signalType->organizations->pluck('id')->when($signalType->organization_id !== null, fn ($ids) => $ids->push($signalType->organization_id))->unique()->values()->all()))->map(fn ($id) => (string) $id)->values());
 
-            const slugifyCodePart = (value) => String(value || '')
-                .normalize('NFD')
-                .replace(/[\u0300-\u036f]/g, '')
-                .replace(/[^A-Za-z0-9]+/g, '_')
-                .replace(/^_+|_+$/g, '')
-                .toUpperCase();
+            const escapeHtml = (value) => String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
 
-            const suggestCode = () => {
-                const applicationId = applicationSelect.value;
-                const organization = (organizationsByApplication[applicationId] || []).find((item) => String(item.id) === String(organizationSelect.value));
-                const applicationCode = slugifyCodePart(applicationCodes[applicationId] || 'SIGNAL');
-                const organizationCode = slugifyCodePart(organization?.code || '');
-                const base = [applicationCode, organizationCode].filter(Boolean).join('_');
+            const checkedOrganizationIds = () => Array.from(organizationPicker.querySelectorAll('input[name="organization_ids[]"]:checked'))
+                .map((input) => String(input.value));
 
-                if (!base) {
-                    return;
-                }
+            const visibleOrganizationOptions = () => Array.from(organizationPicker.querySelectorAll('.institution-picker-option'))
+                .filter((option) => !option.classList.contains('d-none'));
 
-                let sequence = 1;
-                let candidate = `${base}_${String(sequence).padStart(2, '0')}`;
+            const updateOrganizationStatus = () => {
+                const count = checkedOrganizationIds().length;
+                const visibleOptions = visibleOrganizationOptions();
+                const checkedVisibleCount = visibleOptions.filter((option) => option.querySelector('input')?.checked).length;
+                organizationStatus.textContent = count > 0
+                    ? `${count} institution${count > 1 ? 's' : ''} selectionnee${count > 1 ? 's' : ''}.`
+                    : 'Aucune institution selectionnee : type partage a toute la catégorie.';
+                organizationToggle.textContent = visibleOptions.length > 0 && checkedVisibleCount === visibleOptions.length
+                    ? 'Tout désélectionner'
+                    : 'Tout sélectionner';
+                organizationToggle.disabled = visibleOptions.length === 0;
+            };
 
-                while (existingCodes.includes(candidate)) {
-                    sequence += 1;
-                    candidate = `${base}_${String(sequence).padStart(2, '0')}`;
-                }
+            const applyOrganizationFilter = () => {
+                const query = String(organizationFilter.value || '').trim().toLowerCase();
 
-                if (!codeInput.value || codeInput.dataset.autoGenerated === '1') {
-                    codeInput.value = candidate;
-                    codeInput.dataset.autoGenerated = '1';
-                }
+                organizationPicker.querySelectorAll('.institution-picker-option').forEach((option) => {
+                    const haystack = String(option.dataset.search || '').toLowerCase();
+                    option.classList.toggle('d-none', query !== '' && !haystack.includes(query));
+                });
+
+                updateOrganizationStatus();
             };
 
             const syncOrganizations = () => {
                 const applicationId = applicationSelect.value;
                 const organizations = organizationsByApplication[applicationId] || [];
-                const currentValue = organizationSelect.dataset.currentValue || selectedOrganizationId;
+                const currentValues = checkedOrganizationIds();
+                const valuesToRestore = currentValues.length ? currentValues : selectedOrganizationIds;
 
-                organizationSelect.innerHTML = ['<option value="">Type partage a toute l application</option>']
-                    .concat(organizations.map((organization) => `<option value="${organization.id}">${organization.name}</option>`))
-                    .join('');
+                organizationPicker.innerHTML = organizations.length
+                    ? organizations.map((organization) => {
+                        const value = String(organization.id);
+                        const checked = valuesToRestore.includes(value) ? 'checked' : '';
+                        return `
+                            <label class="institution-picker-option" data-search="${escapeHtml(`${organization.name} ${organization.code || ''}`)}">
+                                <input class="form-check-input" type="checkbox" name="organization_ids[]" value="${escapeHtml(value)}" ${checked}>
+                                <span>
+                                    <span class="fw-semibold d-block">${escapeHtml(organization.name)}</span>
+                                    <span class="small text-secondary">${escapeHtml(organization.code || '')}</span>
+                                </span>
+                            </label>
+                        `;
+                    }).join('')
+                    : '<div class="small text-secondary">Selectionnez une catégorie pour afficher ses institutions.</div>';
 
-                if (organizations.some((organization) => String(organization.id) === String(currentValue))) {
-                    organizationSelect.value = String(currentValue);
-                }
-
-                suggestCode();
+                organizationPicker.querySelectorAll('input[name="organization_ids[]"]').forEach((input) => {
+                    input.addEventListener('change', updateOrganizationStatus);
+                });
+                applyOrganizationFilter();
             };
 
-            applicationSelect?.addEventListener('change', syncOrganizations);
-            organizationSelect?.addEventListener('change', suggestCode);
-            codeInput?.addEventListener('input', () => {
-                codeInput.dataset.autoGenerated = '0';
+            organizationFilter?.addEventListener('input', applyOrganizationFilter);
+            organizationToggle?.addEventListener('click', () => {
+                const visibleOptions = visibleOrganizationOptions();
+                const shouldSelect = visibleOptions.some((option) => !option.querySelector('input')?.checked);
+
+                visibleOptions.forEach((option) => {
+                    const input = option.querySelector('input');
+                    if (input) {
+                        input.checked = shouldSelect;
+                    }
+                });
+
+                updateOrganizationStatus();
             });
+            applicationSelect?.addEventListener('change', syncOrganizations);
             syncOrganizations();
         });
     </script>

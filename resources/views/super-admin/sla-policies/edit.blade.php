@@ -2,7 +2,7 @@
 
 @section('title', config('app.name').' | Modifier TCM')
 @section('page-title', 'Modifier une regle TCM')
-@section('page-description', 'Ajuster le TCM cible d un type d organisation pour un signal donne.')
+@section('page-description', 'Ajuster le TCM cible d une sous catégorie pour un signal donne.')
 
 @section('content')
     <section class="panel-card" style="max-width: 860px;">
@@ -10,7 +10,7 @@
             @csrf
             @method('PUT')
             <div class="col-md-6">
-                <label class="form-label">Type d'organisation</label>
+                <label class="form-label">Sous Catégorie</label>
                 <select name="organization_type_id" class="form-select" required>
                     @foreach ($organizationTypes as $organizationType)
                         <option value="{{ $organizationType->id }}" @selected(old('organization_type_id', $slaPolicy->organization_type_id) == $organizationType->id)>{{ $organizationType->name }}</option>

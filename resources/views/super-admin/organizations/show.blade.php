@@ -1,13 +1,13 @@
 @extends('super-admin.layouts.app')
 
-@section('title', config('app.name').' | Detail organisation')
+@section('title', config('app.name').' | Detail institution')
 @section('page-title', $organization->name)
-@section('page-description', 'Vue de synthese premium de l organisation, de ses acces et de son activite.')
+@section('page-description', 'Vue de synthese premium de l institution, de ses acces et de son activite.')
 
 @section('header-badges')
-    <span class="badge-soft">{{ $organization->application?->name ?: 'Sans application' }}</span>
-    <span class="badge-soft">{{ $organization->organizationType?->name ?: 'Sans type' }}</span>
-    <a href="{{ route('super-admin.organizations.edit', $organization) }}" class="btn btn-dark">Modifier l organisation</a>
+    <span class="badge-soft">{{ $organization->application?->name ?: 'Sans catégorie' }}</span>
+    <span class="badge-soft">{{ $organization->organizationType?->name ?: 'Sans sous catégorie' }}</span>
+    <a href="{{ route('super-admin.organizations.edit', $organization) }}" class="btn btn-dark">Modifier l institution</a>
 @endsection
 
 @section('content')
@@ -201,11 +201,11 @@
 
                 <div class="org-hero-meta">
                     <div class="org-hero-card">
-                        <div class="org-hero-label">Application</div>
+                        <div class="org-hero-label">Catégorie</div>
                         <div class="fw-semibold">{{ $organization->application?->name ?: '-' }}</div>
                     </div>
                     <div class="org-hero-card">
-                        <div class="org-hero-label">Type de client</div>
+                        <div class="org-hero-label">Sous Catégorie</div>
                         <div class="fw-semibold">{{ $organization->organizationType?->name ?: '-' }}</div>
                     </div>
                     <div class="org-hero-card">
@@ -275,7 +275,7 @@
             <article class="org-panel">
                 <div class="org-panel-title">Fonctionnalites actives</div>
                 @if ($featureGroups->isEmpty())
-                    <div class="text-secondary small">Aucune fonctionnalite active pour cette organisation.</div>
+                    <div class="text-secondary small">Aucune fonctionnalite active pour cette institution.</div>
                 @else
                     <div class="feature-group-stack">
                         @foreach ($featureGroups as $groupLabel => $features)
@@ -360,7 +360,7 @@
                     <span class="small text-secondary">{{ $recentReports->count() }} affiche(s)</span>
                 </div>
                 @if ($recentReports->isEmpty())
-                    <div class="text-secondary small">Aucun signalement pour cette organisation.</div>
+                    <div class="text-secondary small">Aucun signalement pour cette institution.</div>
                 @else
                     <div class="table-responsive">
                         <table class="table table-modern align-middle mb-0">

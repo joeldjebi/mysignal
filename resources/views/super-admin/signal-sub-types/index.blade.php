@@ -32,17 +32,8 @@
                         </select>
                     </div>
                     <div>
-                        <label class="form-label">Code</label>
-                        <input type="text" name="code" value="{{ old('code') }}" class="form-control" placeholder="PANNE_COMPTEUR" required>
-                        <div class="small text-secondary mt-2">Le code OTHER est reserve a l option Autre visible cote UP.</div>
-                    </div>
-                    <div>
                         <label class="form-label">Libelle</label>
                         <input type="text" name="label" value="{{ old('label') }}" class="form-control" placeholder="Panne compteur" required>
-                    </div>
-                    <div>
-                        <label class="form-label">Ordre</label>
-                        <input type="number" min="0" max="9999" name="sort_order" value="{{ old('sort_order', 0) }}" class="form-control">
                     </div>
                     <div>
                         <label class="form-label">Description</label>

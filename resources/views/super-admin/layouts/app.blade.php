@@ -341,7 +341,7 @@
                 @if ($canAccess('SA_ORGANIZATION_TYPES_VIEW') || $canAccess('SA_ORGANIZATION_TYPES_MANAGE'))
                     <a href="{{ route('super-admin.client-types.index') }}" class="nav-pill {{ request()->routeIs('super-admin.client-types.*') ? 'active' : '' }}">
                         <span class="nav-icon">TC</span>
-                        <span><span class="d-block fw-semibold">Types d'organisation</span><span class="small text-white-50">Classes d'institutions</span></span>
+                        <span><span class="d-block fw-semibold">Sous Catégorie</span><span class="small text-white-50">Classification métier</span></span>
                     </a>
                 @endif
                 @if ($canAccess('SA_FEATURES_VIEW') || $canAccess('SA_FEATURES_MANAGE'))
@@ -352,8 +352,8 @@
                 @endif
                 @if ($canAccess('SA_APPLICATIONS_VIEW') || $canAccess('SA_APPLICATIONS_MANAGE'))
                     <a href="{{ route('super-admin.applications.index') }}" class="nav-pill {{ request()->routeIs('super-admin.applications.*') ? 'active' : '' }}">
-                        <span class="nav-icon">AP</span>
-                        <span><span class="d-block fw-semibold">Applications</span><span class="small text-white-50">MON NRJ, MON EAU, etc.</span></span>
+                        <span class="nav-icon">CAT</span>
+                        <span><span class="d-block fw-semibold">Catégorie</span><span class="small text-white-50">MON NRJ, MON EAU, etc.</span></span>
                     </a>
                 @endif
                 @if ($canAccess('SA_SIGNAL_TYPES_VIEW') || $canAccess('SA_SIGNAL_TYPES_MANAGE'))
@@ -369,7 +369,7 @@
                 @if ($canAccess('SA_SLA_POLICIES_VIEW') || $canAccess('SA_SLA_POLICIES_MANAGE'))
                     <a href="{{ route('super-admin.sla-policies.index') }}" class="nav-pill {{ request()->routeIs('super-admin.sla-policies.*') ? 'active' : '' }}">
                         <span class="nav-icon">SL</span>
-                        <span><span class="d-block fw-semibold">TCM cibles</span><span class="small text-white-50">Par type d'organisation</span></span>
+                        <span><span class="d-block fw-semibold">TCM cibles</span><span class="small text-white-50">Par sous catégorie</span></span>
                     </a>
                 @endif
                 @if ($canAccess('SA_PRICING_MANAGE'))
@@ -445,15 +445,15 @@
                     </a>
                     <a href="{{ route('super-admin.reparation-cases.index') }}" class="nav-pill {{ request()->routeIs('super-admin.reparation-cases.*') ? 'active' : '' }}">
                         <span class="nav-icon">DC</span>
-                        <span><span class="d-block fw-semibold">Dossiers contentieux</span><span class="small text-white-50">Dossiers ouverts contre organisations</span></span>
+                        <span><span class="d-block fw-semibold">Dossiers contentieux</span><span class="small text-white-50">Dossiers ouverts contre institutions</span></span>
                     </a>
                 @endif
 
                 <div class="sidebar-label">Portails</div>
                 @if ($canAccess('SA_ORGANIZATIONS_VIEW') || $canAccess('SA_ORGANIZATIONS_MANAGE'))
                     <a href="{{ route('super-admin.organizations.index') }}" class="nav-pill {{ request()->routeIs('super-admin.organizations.*') ? 'active' : '' }}">
-                        <span class="nav-icon">OR</span>
-                        <span><span class="d-block fw-semibold">Organisations</span><span class="small text-white-50">CIE, SODECI, autres</span></span>
+                        <span class="nav-icon">IN</span>
+                        <span><span class="d-block fw-semibold">Institution</span><span class="small text-white-50">CIE, SODECI, autres</span></span>
                     </a>
                 @endif
                 @if ($canAccess('SA_INSTITUTION_ADMINS_VIEW') || $canAccess('SA_INSTITUTION_ADMINS_MANAGE'))
@@ -479,13 +479,13 @@
                 @if ($canAccess('SA_SYSTEM_USERS_VIEW') || $canAccess('SA_SYSTEM_USERS_MANAGE'))
                     <a href="{{ route('super-admin.system-users.index') }}" class="nav-pill {{ request()->routeIs('super-admin.system-users.*') ? 'active' : '' }}">
                         <span class="nav-icon">AI</span>
-                        <span><span class="d-block fw-semibold">Utilisateurs AI</span><span class="small text-white-50">Comptes rattaches aux organisations</span></span>
+                        <span><span class="d-block fw-semibold">Utilisateurs AI</span><span class="small text-white-50">Comptes rattaches aux institutions</span></span>
                     </a>
                 @endif
                 @if ($canAccess('SA_ROLES_VIEW') || $canAccess('SA_ROLES_MANAGE'))
                     <a href="{{ route('super-admin.roles.index') }}" class="nav-pill {{ request()->routeIs('super-admin.roles.*') ? 'active' : '' }}">
                         <span class="nav-icon">RA</span>
-                        <span><span class="d-block fw-semibold">Roles AI</span><span class="small text-white-50">Profils et droits des organisations</span></span>
+                        <span><span class="d-block fw-semibold">Roles AI</span><span class="small text-white-50">Profils et droits des institutions</span></span>
                     </a>
                 @endif
                 @if ($canAccess('SA_PERMISSIONS_VIEW') || $canAccess('SA_PERMISSIONS_MANAGE'))

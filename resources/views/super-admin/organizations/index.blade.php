@@ -1,11 +1,11 @@
 @extends('super-admin.layouts.app')
 
-@section('title', config('app.name').' | Organisations')
-@section('page-title', 'Organisations')
-@section('page-description', 'Creer les institutions et portails qui disposeront de leur propre administration locale.')
+@section('title', config('app.name').' | Institutions')
+@section('page-title', 'Institution')
+@section('page-description', 'Créer les institutions et portails qui disposeront de leur propre administration locale.')
 
 @section('header-badges')
-    <span class="badge-soft">{{ $organizations->total() }} organisations</span>
+    <span class="badge-soft">{{ $organizations->total() }} institutions</span>
     <button type="button" class="btn btn-outline-dark" data-bs-toggle="modal" data-bs-target="#importOrganizationsModal">
         Importer CSV
     </button>
@@ -151,6 +151,11 @@
             letter-spacing: .03em;
             margin-top: .15rem;
         }
+        .required-star {
+            color: #dc3545;
+            font-weight: 800;
+            margin-left: .2rem;
+        }
         @media (max-width: 767.98px) {
             .feature-picker-grid {
                 grid-template-columns: 1fr;
@@ -164,7 +169,7 @@
     </style>
 
     <section class="panel-card mb-4">
-        <div class="fw-bold mb-3">Liste des organisations</div>
+        <div class="fw-bold mb-3">Liste des institutions</div>
         <form method="GET" class="filter-bar">
             <div class="row g-2 align-items-end">
                 <div class="col-md-4">
@@ -172,7 +177,7 @@
                     <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Nom, code, portail, email">
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label small text-secondary">Application</label>
+                    <label class="form-label small text-secondary">Catégorie</label>
                     <select name="application_id" class="form-select">
                         <option value="">Toutes</option>
                         @foreach ($applications as $application)
@@ -181,7 +186,7 @@
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label small text-secondary">Type</label>
+                    <label class="form-label small text-secondary">Sous Catégorie</label>
                     <select name="organization_type_id" class="form-select">
                         <option value="">Tous</option>
                         @foreach ($organizationTypes as $organizationType)
@@ -208,15 +213,15 @@
         </div>
 
         @if ($organizations->isEmpty())
-            <div class="text-center text-secondary py-5">Aucune organisation enregistree.</div>
+            <div class="text-center text-secondary py-5">Aucune institution enregistrée.</div>
         @else
             <div class="table-card">
                 <div class="table-responsive">
                     <table class="table table-modern align-middle mb-0">
                         <thead>
                             <tr>
-                                <th>Organisation</th>
-                                <th>Application</th>
+                                <th>Institution</th>
+                                <th>Catégorie</th>
                                 <th>Type</th>
                                 <th>Portail</th>
                                 <th>Fonctionnalites</th>
@@ -342,19 +347,19 @@
                     <div class="modal-body">
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label">Application</label>
+                                <label class="form-label">Catégorie<span class="required-star">*</span></label>
                                 <select name="application_id" class="form-select" required>
                                     <option value="">Selectionner</option>
                                     @foreach ($applications as $application)
                                         <option value="{{ $application->id }}" @selected(old('application_id') == $application->id)>{{ $application->name }}</option>
                                     @endforeach
                                 </select>
-                                <div class="small text-secondary mt-2">Les fonctionnalites de cette application seront liees aux institutions importees.</div>
+                                <div class="small text-secondary mt-2">Les fonctionnalites de cette catégorie seront liees aux institutions importees.</div>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Type d'organisation</label>
+                                <label class="form-label">Sous Catégorie</label>
                                 <select name="organization_type_id" class="form-select">
-                                    <option value="">Selectionner un type existant</option>
+                                    <option value="">Selectionner une sous catégorie existante</option>
                                     @foreach ($organizationTypes as $organizationType)
                                         <option value="{{ $organizationType->id }}" @selected(old('organization_type_id') == $organizationType->id)>{{ $organizationType->name }}</option>
                                     @endforeach
@@ -362,9 +367,9 @@
                                 <div class="small text-secondary mt-2">Facultatif si le fichier contient une colonne Type_organisation.</div>
                             </div>
                             <div class="col-12">
-                                <label class="form-label">Nouveau type d'organisation</label>
+                                <label class="form-label">Nouvelle sous catégorie</label>
                                 <input type="text" name="organization_type_name" value="{{ old('organization_type_name') }}" class="form-control" placeholder="Ex : Institution publique">
-                                <div class="small text-secondary mt-2">Facultatif si vous choisissez un type existant ou si le fichier contient Type_organisation.</div>
+                                <div class="small text-secondary mt-2">Facultatif si vous choisissez une sous catégorie existante ou si le fichier contient Type_organisation.</div>
                             </div>
                             <div class="col-12">
                                 <label class="form-label">Modeles de fichier</label>
@@ -375,14 +380,14 @@
                                 <div class="small text-secondary mt-2">Telechargez un modele, renseignez les lignes, puis importez le fichier complete.</div>
                             </div>
                             <div class="col-12">
-                                <label class="form-label">Fichier CSV ou XLSX</label>
+                                <label class="form-label">Fichier CSV ou XLSX<span class="required-star">*</span></label>
                                 <input type="file" name="csv_file" class="form-control" accept=".csv,.xlsx,text/csv,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required>
                                 <div class="small text-secondary mt-2">Mobile peut etre vide ou absent. S il est vide ou trop court, un numero a 10 chiffres sera genere ou complete automatiquement.</div>
                             </div>
                             <div class="col-12">
                                 <div class="alert alert-light border mb-0">
                                     <div class="fw-semibold mb-1">Regles appliquees</div>
-                                    <div class="small text-secondary">Code institution depuis le nom, type d'organisation cree depuis Type_organisation si present, admin institutionnel cree avec email en @mysignal.pro et mot de passe par defaut 12345678.</div>
+                                    <div class="small text-secondary">Code institution et cle portail generes depuis le nom, sous catégorie creee depuis Type_organisation si present, admin institutionnel cree avec email en @mysignal.pro et mot de passe par defaut 12345678.</div>
                                 </div>
                             </div>
                         </div>
@@ -402,7 +407,7 @@
                 <div class="modal-header">
                     <div>
                         <h5 class="modal-title fw-bold" id="createOrganizationModalLabel">Nouvelle institution</h5>
-                        <div class="small text-secondary">Creer une organisation et lui attribuer ses modules des l'ouverture.</div>
+                        <div class="small text-secondary">Créer une institution et lui attribuer ses modules dès l'ouverture.</div>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
                 </div>
@@ -411,16 +416,16 @@
                     <div class="modal-body">
                         <div class="row g-3">
                             <div class="col-md-4">
-                                <label class="form-label">Application</label>
-                                <select name="application_id" class="form-select" id="organizationApplicationSelect">
-                                    <option value="">Aucune application liee</option>
+                                <label class="form-label">Catégorie<span class="required-star">*</span></label>
+                                <select name="application_id" class="form-select" id="organizationApplicationSelect" required>
+                                    <option value="">Selectionner</option>
                                     @foreach ($applications as $application)
                                         <option value="{{ $application->id }}" data-feature-ids="{{ $application->features->pluck('id')->implode(',') }}" @selected(old('application_id') == $application->id)>{{ $application->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label">Type d'organisation</label>
+                                <label class="form-label">Sous Catégorie<span class="required-star">*</span></label>
                                 <select name="organization_type_id" class="form-select" required>
                                     <option value="">Selectionner</option>
                                     @foreach ($organizationTypes as $organizationType)
@@ -428,16 +433,8 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Code</label>
-                                <input type="text" name="code" value="{{ old('code') }}" class="form-control" placeholder="CIE" required>
-                            </div>
-                            <div class="col-md-5">
-                                <label class="form-label">Cle portail</label>
-                                <input type="text" name="portal_key" value="{{ old('portal_key') }}" class="form-control" placeholder="portail-cie">
-                            </div>
                             <div class="col-md-6">
-                                <label class="form-label">Nom</label>
+                                <label class="form-label">Nom<span class="required-star">*</span></label>
                                 <input type="text" name="name" value="{{ old('name') }}" class="form-control" placeholder="Compagnie Ivoirienne d Electricite" required>
                             </div>
                             <div class="col-md-3">
@@ -461,7 +458,7 @@
                             </div>
                             <div class="col-12">
                                 <label class="form-label">Fonctionnalites de l'institution</label>
-                                <div class="small text-secondary mb-3">Les fonctionnalites de l'application sont preactivees. Vous pouvez desactiver localement celles que cette institution ne doit pas utiliser.</div>
+                                <div class="small text-secondary mb-3">Les fonctionnalites de la catégorie sont preactivees. Vous pouvez desactiver localement celles que cette institution ne doit pas utiliser.</div>
                                 <div class="feature-picker">
                                     @foreach ($groupedFeatures as $groupLabel => $groupFeatures)
                                         <section class="feature-picker-group">
@@ -512,7 +509,7 @@
             }
         </script>
     @endif
-    @if ($errors->any() && old('code'))
+    @if ($errors->any() && ! old('import_form'))
         <script>
             const createOrganizationModal = document.getElementById('createOrganizationModal');
 

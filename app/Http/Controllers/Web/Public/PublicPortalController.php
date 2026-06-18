@@ -271,7 +271,9 @@ class PublicPortalController extends Controller
             ->where('status', 'active')
             ->whereHas('organizations', fn ($query) => $query->where('status', 'active'))
             ->with(['organizations' => fn ($query) => $query
+                ->with('organizationType')
                 ->where('status', 'active')
+                ->whereHas('organizationType', fn ($typeQuery) => $typeQuery->where('status', 'active'))
                 ->orderBy('name')])
             ->orderBy('sort_order')
             ->orderBy('name')
@@ -285,6 +287,19 @@ class PublicPortalController extends Controller
                     'name' => $application->name,
                     'network_type' => $networkType,
                     'requires_public_user_identifier' => (bool) $application->requires_public_user_identifier,
+                    'requires_organization_type_on_report' => (bool) $application->requires_organization_type_on_report,
+                    'organization_types' => $application->organizations
+                        ->pluck('organizationType')
+                        ->filter()
+                        ->unique('id')
+                        ->sortBy('name')
+                        ->values()
+                        ->map(fn ($type) => [
+                            'id' => $type->id,
+                            'code' => $type->code,
+                            'name' => $type->name,
+                        ])
+                        ->all(),
                     'organizations' => $application->organizations->map(fn ($organization) => [
                         'id' => $organization->id,
                         'code' => $organization->code,

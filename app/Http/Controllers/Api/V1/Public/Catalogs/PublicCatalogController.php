@@ -25,6 +25,10 @@ class PublicCatalogController extends Controller
     public function applications()
     {
         $applications = Application::query()
+            ->with(['organizations' => fn ($query) => $query
+                ->with('organizationType')
+                ->where('status', 'active')
+                ->whereHas('organizationType', fn ($typeQuery) => $typeQuery->where('status', 'active'))])
             ->where('status', 'active')
             ->orderBy('sort_order')
             ->orderBy('name')
@@ -41,15 +45,25 @@ class PublicCatalogController extends Controller
         ]);
     }
 
-    public function applicationTypes()
+    public function applicationTypes(Request $request)
     {
-        return $this->organizationTypes('application_types');
+        return $this->organizationTypesResponse($request, 'application_types');
     }
 
-    public function organizationTypes(string $responseKey = 'organization_types')
+    public function organizationTypes(Request $request)
+    {
+        return $this->organizationTypesResponse($request);
+    }
+
+    private function organizationTypesResponse(Request $request, string $responseKey = 'organization_types')
     {
         $types = OrganizationType::query()
             ->where('status', 'active')
+            ->when($request->filled('application_id'), function ($query) use ($request): void {
+                $query->whereHas('organizations', fn ($organizationQuery) => $organizationQuery
+                    ->where('application_id', (int) $request->integer('application_id'))
+                    ->where('status', 'active'));
+            })
             ->orderBy('name')
             ->get();
 

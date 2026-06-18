@@ -28,6 +28,7 @@ class Application extends Model
         'status',
         'sort_order',
         'requires_public_user_identifier',
+        'requires_organization_type_on_report',
     ];
 
     protected function casts(): array
@@ -35,6 +36,7 @@ class Application extends Model
         return [
             'sort_order' => 'integer',
             'requires_public_user_identifier' => 'boolean',
+            'requires_organization_type_on_report' => 'boolean',
         ];
     }
 

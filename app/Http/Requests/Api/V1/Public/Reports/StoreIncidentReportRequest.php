@@ -16,6 +16,7 @@ class StoreIncidentReportRequest extends FormRequest
         return [
             'meter_id' => ['nullable', 'integer', 'exists:meters,id'],
             'application_id' => ['nullable', 'integer', 'exists:applications,id'],
+            'organization_type_id' => ['nullable', 'integer', 'exists:organization_types,id'],
             'organization_id' => ['nullable', 'integer', 'exists:organizations,id'],
             'signal_code' => ['required', 'string'],
             'signal_sub_type_code' => ['nullable', 'string', 'max:60'],

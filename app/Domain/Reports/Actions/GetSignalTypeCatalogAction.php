@@ -18,6 +18,7 @@ class GetSignalTypeCatalogAction
             ->with([
                 'application:id,code,name,slug',
                 'organization:id,code,name',
+                'organizations:id,code,name',
                 'subTypes' => fn ($query) => $query->where('status', 'active')->orderBy('sort_order')->orderBy('label'),
             ])
             ->where('status', 'active')
@@ -40,10 +41,22 @@ class GetSignalTypeCatalogAction
                     'code' => $signalType->code,
                     'application_id' => $signalType->application_id,
                     'organization_id' => $signalType->organization_id,
+                    'organization_ids' => $signalType->organizations->pluck('id')->when(
+                        $signalType->organization_id !== null,
+                        fn ($ids) => $ids->push($signalType->organization_id)
+                    )->unique()->values()->all(),
                     'application_code' => $signalType->application?->code,
                     'application_name' => $signalType->application?->name,
                     'organization_code' => $signalType->organization?->code,
                     'organization_name' => $signalType->organization?->name,
+                    'organizations' => $signalType->organizations
+                        ->map(fn ($organization): array => [
+                            'id' => $organization->id,
+                            'code' => $organization->code,
+                            'name' => $organization->name,
+                        ])
+                        ->values()
+                        ->all(),
                     'network_type' => $signalType->network_type,
                     'label' => $signalType->label,
                     'description' => $signalType->description,
