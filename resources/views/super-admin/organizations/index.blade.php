@@ -6,6 +6,11 @@
 
 @section('header-badges')
     <span class="badge-soft">{{ $organizations->total() }} institutions</span>
+    <form method="POST" action="{{ route('super-admin.organizations.clear') }}" onsubmit="return confirm('Vider toutes les institutions ? Cette action est irreversible.');">
+        @csrf
+        @method('DELETE')
+        <button type="submit" class="btn btn-outline-danger" @disabled($organizations->total() === 0)>Vider les institutions</button>
+    </form>
     <button type="button" class="btn btn-outline-dark" data-bs-toggle="modal" data-bs-target="#importOrganizationsModal">
         Importer CSV
     </button>

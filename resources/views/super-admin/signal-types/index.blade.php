@@ -6,6 +6,11 @@
 
 @section('header-badges')
     <span class="badge-soft">{{ $signalTypes->total() }} types</span>
+    <form method="POST" action="{{ route('super-admin.signal-types.clear') }}" onsubmit="return confirm('Vider tous les types de signaux ? Cette action est irreversible.');">
+        @csrf
+        @method('DELETE')
+        <button type="submit" class="btn btn-outline-danger" @disabled($signalTypes->total() === 0)>Vider les types</button>
+    </form>
     <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#createSignalTypeModal">Nouveau type de signal</button>
 @endsection
 

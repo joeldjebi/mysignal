@@ -372,6 +372,7 @@ Route::prefix('sa')->name('super-admin.')->group(function (): void {
         Route::patch('applications/{application}/toggle-status', [ApplicationController::class, 'toggleStatus'])->middleware('super_admin_permission:SA_APPLICATIONS_TOGGLE_STATUS,SA_APPLICATIONS_MANAGE')->name('applications.toggle-status');
         Route::get('signal-types', [SignalTypeController::class, 'index'])->middleware('super_admin_permission:SA_SIGNAL_TYPES_VIEW,SA_SIGNAL_TYPES_MANAGE')->name('signal-types.index');
         Route::post('signal-types', [SignalTypeController::class, 'store'])->middleware('super_admin_permission:SA_SIGNAL_TYPES_CREATE,SA_SIGNAL_TYPES_MANAGE')->name('signal-types.store');
+        Route::delete('signal-types/clear', [SignalTypeController::class, 'destroyAll'])->middleware('super_admin_permission:SA_SIGNAL_TYPES_DELETE,SA_SIGNAL_TYPES_MANAGE')->name('signal-types.clear');
         Route::get('signal-types/{signalType}/edit', [SignalTypeController::class, 'edit'])->middleware('super_admin_permission:SA_SIGNAL_TYPES_UPDATE,SA_SIGNAL_TYPES_MANAGE')->name('signal-types.edit');
         Route::put('signal-types/{signalType}', [SignalTypeController::class, 'update'])->middleware('super_admin_permission:SA_SIGNAL_TYPES_UPDATE,SA_SIGNAL_TYPES_MANAGE')->name('signal-types.update');
         Route::delete('signal-types/{signalType}', [SignalTypeController::class, 'destroy'])->middleware('super_admin_permission:SA_SIGNAL_TYPES_DELETE,SA_SIGNAL_TYPES_MANAGE')->name('signal-types.destroy');
@@ -393,6 +394,7 @@ Route::prefix('sa')->name('super-admin.')->group(function (): void {
         Route::post('organizations', [OrganizationController::class, 'store'])->middleware('super_admin_permission:SA_ORGANIZATIONS_CREATE,SA_ORGANIZATIONS_MANAGE')->name('organizations.store');
         Route::post('organizations/import', [OrganizationController::class, 'import'])->middleware('super_admin_permission:SA_ORGANIZATIONS_CREATE,SA_ORGANIZATIONS_MANAGE')->name('organizations.import');
         Route::get('organizations/import-template/{template}', [OrganizationController::class, 'downloadImportTemplate'])->middleware('super_admin_permission:SA_ORGANIZATIONS_VIEW,SA_ORGANIZATIONS_MANAGE')->name('organizations.import-template');
+        Route::delete('organizations/clear', [OrganizationController::class, 'destroyAll'])->middleware('super_admin_permission:SA_ORGANIZATIONS_DELETE,SA_ORGANIZATIONS_MANAGE')->name('organizations.clear');
         Route::get('organizations/{organization}', [OrganizationController::class, 'show'])->middleware('super_admin_permission:SA_ORGANIZATIONS_VIEW,SA_ORGANIZATIONS_MANAGE')->name('organizations.show');
         Route::get('organizations/{organization}/edit', [OrganizationController::class, 'edit'])->middleware('super_admin_permission:SA_ORGANIZATIONS_UPDATE,SA_ORGANIZATIONS_MANAGE')->name('organizations.edit');
         Route::put('organizations/{organization}', [OrganizationController::class, 'update'])->middleware('super_admin_permission:SA_ORGANIZATIONS_UPDATE,SA_ORGANIZATIONS_MANAGE')->name('organizations.update');

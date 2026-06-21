@@ -12,6 +12,7 @@ use App\Models\Payment;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -311,6 +312,21 @@ class OrganizationController extends Controller
 
         return redirect()->route('super-admin.organizations.index')
             ->with('success', 'L institution a ete supprimee.');
+    }
+
+    public function destroyAll(): RedirectResponse
+    {
+        $count = Organization::query()->count();
+
+        try {
+            Organization::query()->delete();
+        } catch (QueryException) {
+            return redirect()->route('super-admin.organizations.index')
+                ->with('error', 'Impossible de vider les institutions : certaines donnees liees bloquent la suppression.');
+        }
+
+        return redirect()->route('super-admin.organizations.index')
+            ->with('success', "{$count} institution(s) supprimee(s).");
     }
 
     public function toggleStatus(Organization $organization): RedirectResponse

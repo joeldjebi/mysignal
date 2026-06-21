@@ -193,6 +193,24 @@ class SignalTypeController extends Controller
             ->with('success', 'Le type de signal a ete supprime.');
     }
 
+    public function destroyAll(Request $request, ActivityLogger $activityLogger): RedirectResponse
+    {
+        $count = SignalType::query()->count();
+
+        SignalType::query()->delete();
+
+        $activityLogger->log(
+            'signal_type.cleared',
+            'Vidage du catalogue des types de signal.',
+            SignalType::class,
+            ['deleted_count' => $count],
+            $request
+        );
+
+        return redirect()->route('super-admin.signal-types.index')
+            ->with('success', "{$count} type(s) de signal supprime(s).");
+    }
+
     public function toggleStatus(Request $request, SignalType $signalType, ActivityLogger $activityLogger): RedirectResponse
     {
         $signalType->update([
