@@ -22,6 +22,9 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class OrganizationController extends Controller
 {
+    private const ORGANIZATION_COMMUNE_MAX_LENGTH = 255;
+    private const ORGANIZATION_ADDRESS_MAX_LENGTH = 500;
+
     public function index(): View
     {
         $query = Organization::query()->with(['application.features', 'organizationType', 'featureOverrides']);
@@ -66,8 +69,8 @@ class OrganizationController extends Controller
             'name' => ['required', 'string', 'max:180'],
             'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:30'],
-            'commune' => ['nullable', 'string', 'max:120'],
-            'address' => ['nullable', 'string', 'max:255'],
+            'commune' => ['nullable', 'string', 'max:'.self::ORGANIZATION_COMMUNE_MAX_LENGTH],
+            'address' => ['nullable', 'string', 'max:'.self::ORGANIZATION_ADDRESS_MAX_LENGTH],
             'description' => ['nullable', 'string'],
             'feature_ids' => ['nullable', 'array'],
             'feature_ids.*' => ['integer', 'exists:features,id'],
@@ -125,50 +128,61 @@ class OrganizationController extends Controller
         $createdOrganizations = 0;
         $createdAdmins = 0;
 
-        DB::transaction(function () use ($rows, $application, $globalOrganizationType, $request, &$createdOrganizations, &$createdAdmins, &$organizationTypeCache): void {
-            foreach ($rows as $index => $row) {
-                $name = trim((string) ($row['nom'] ?? ''));
+        try {
+            DB::transaction(function () use ($rows, $application, $globalOrganizationType, $request, &$createdOrganizations, &$createdAdmins, &$organizationTypeCache): void {
+                foreach ($rows as $index => $row) {
+                    $name = $this->normalizeImportedText($row['nom'] ?? null, 180);
 
-                if ($name === '') {
-                    throw ValidationException::withMessages([
-                        'csv_file' => ['La ligne '.($index + 2).' ne contient pas de nom.'],
+                    if ($name === '') {
+                        throw ValidationException::withMessages([
+                            'csv_file' => ['La ligne '.($index + 2).' ne contient pas de nom.'],
+                        ]);
+                    }
+
+                    $organizationType = $globalOrganizationType ?? $this->resolveOrganizationTypeFromRow($row, $index, $organizationTypeCache);
+                    $phone = $this->normalizeImportedPhone($row['mobile'] ?? null, $index);
+                    [$commune, $address] = $this->normalizeImportedLocation($row);
+                    $code = $this->uniqueOrganizationCode($name);
+                    $organization = Organization::query()->create([
+                        'application_id' => $application->id,
+                        'organization_type_id' => $organizationType->id,
+                        'code' => $code,
+                        'name' => $name,
+                        'portal_key' => $this->uniquePortalKey($code),
+                        'phone' => $phone,
+                        'commune' => $commune,
+                        'address' => $address,
+                        'description' => 'Import CSV SA',
+                        'status' => 'active',
                     ]);
+
+                    $organization->setRelation('application', $application);
+                    $this->syncOrganizationFeatures($organization, $application->features->pluck('id')->all());
+
+                    User::query()->create([
+                        'organization_id' => $organization->id,
+                        'name' => $name,
+                        'email' => $this->uniqueAdminEmail($name),
+                        'phone' => $phone,
+                        'password' => Hash::make('12345678'),
+                        'is_super_admin' => false,
+                        'status' => 'active',
+                        'created_by' => $request->user()?->id,
+                    ]);
+
+                    $createdOrganizations++;
+                    $createdAdmins++;
                 }
-
-                $organizationType = $globalOrganizationType ?? $this->resolveOrganizationTypeFromRow($row, $index, $organizationTypeCache);
-                $phone = $this->normalizeImportedPhone($row['mobile'] ?? null, $index);
-                $code = $this->uniqueOrganizationCode($name);
-                $organization = Organization::query()->create([
-                    'application_id' => $application->id,
-                    'organization_type_id' => $organizationType->id,
-                    'code' => $code,
-                    'name' => $name,
-                    'portal_key' => $this->uniquePortalKey($code),
-                    'phone' => $phone,
-                    'commune' => trim((string) ($row['commune'] ?? '')) ?: null,
-                    'address' => trim((string) ($row['adresse'] ?? $row['region_district'] ?? '')) ?: null,
-                    'description' => 'Import CSV SA',
-                    'status' => 'active',
+            });
+        } catch (QueryException $exception) {
+            if (($exception->errorInfo[0] ?? null) === '22001') {
+                throw ValidationException::withMessages([
+                    'csv_file' => ['Une valeur du fichier depasse la taille acceptee. Verifiez que les colonnes Nom, Commune, Adresse, Mobile ou Type_organisation, Nom, Commune, Region_District sont bien alignees.'],
                 ]);
-
-                $organization->setRelation('application', $application);
-                $this->syncOrganizationFeatures($organization, $application->features->pluck('id')->all());
-
-                User::query()->create([
-                    'organization_id' => $organization->id,
-                    'name' => $name,
-                    'email' => $this->uniqueAdminEmail($name),
-                    'phone' => $phone,
-                    'password' => Hash::make('12345678'),
-                    'is_super_admin' => false,
-                    'status' => 'active',
-                    'created_by' => $request->user()?->id,
-                ]);
-
-                $createdOrganizations++;
-                $createdAdmins++;
             }
-        });
+
+            throw $exception;
+        }
 
         return redirect()->route('super-admin.organizations.index')
             ->with('success', "{$createdOrganizations} institution(s) et {$createdAdmins} admin(s) institutionnel(s) ont ete crees.");
@@ -279,8 +293,8 @@ class OrganizationController extends Controller
             'name' => ['required', 'string', 'max:180'],
             'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:30'],
-            'commune' => ['nullable', 'string', 'max:120'],
-            'address' => ['nullable', 'string', 'max:255'],
+            'commune' => ['nullable', 'string', 'max:'.self::ORGANIZATION_COMMUNE_MAX_LENGTH],
+            'address' => ['nullable', 'string', 'max:'.self::ORGANIZATION_ADDRESS_MAX_LENGTH],
             'description' => ['nullable', 'string'],
             'feature_ids' => ['nullable', 'array'],
             'feature_ids.*' => ['integer', 'exists:features,id'],
@@ -395,7 +409,7 @@ class OrganizationController extends Controller
 
     private function resolveOrganizationTypeFromRow(array $row, int $rowIndex, array &$cache): OrganizationType
     {
-        $name = trim((string) ($row['type_organisation'] ?? ''));
+        $name = $this->normalizeImportedText($row['type_organisation'] ?? null, 180);
 
         if ($name === '') {
             throw ValidationException::withMessages([
@@ -410,6 +424,33 @@ class OrganizationController extends Controller
         }
 
         return $cache[$cacheKey];
+    }
+
+    private function normalizeImportedLocation(array $row): array
+    {
+        $rawCommune = $this->normalizeImportedText($row['commune'] ?? null);
+        $rawAddress = $this->normalizeImportedText($row['adresse'] ?? $row['region_district'] ?? null);
+
+        if ($rawCommune !== '' && mb_strlen($rawCommune) > self::ORGANIZATION_COMMUNE_MAX_LENGTH) {
+            $rawAddress = trim(implode(' - ', array_filter([$rawAddress, $rawCommune])));
+            $rawCommune = '';
+        }
+
+        return [
+            $this->normalizeImportedText($rawCommune, self::ORGANIZATION_COMMUNE_MAX_LENGTH) ?: null,
+            $this->normalizeImportedText($rawAddress, self::ORGANIZATION_ADDRESS_MAX_LENGTH) ?: null,
+        ];
+    }
+
+    private function normalizeImportedText(mixed $value, ?int $maxLength = null): string
+    {
+        $text = trim(preg_replace('/\s+/u', ' ', (string) ($value ?? '')) ?: '');
+
+        if ($text === '' || $maxLength === null || mb_strlen($text) <= $maxLength) {
+            return $text;
+        }
+
+        return mb_substr($text, 0, $maxLength);
     }
 
     private function findOrCreateOrganizationType(string $name): OrganizationType
