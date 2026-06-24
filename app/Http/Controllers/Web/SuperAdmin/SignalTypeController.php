@@ -10,9 +10,11 @@ use App\Models\SignalType;
 use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class SignalTypeController extends Controller
 {
@@ -82,6 +84,186 @@ class SignalTypeController extends Controller
 
         return redirect()->route('super-admin.signal-types.index')
             ->with('success', 'Le type de signal a ete creee.');
+    }
+
+    public function import(Request $request, ActivityLogger $activityLogger): RedirectResponse
+    {
+        $attributes = $request->validate([
+            'application_id' => ['required', 'exists:applications,id'],
+            'organization_ids' => ['nullable', 'array'],
+            'organization_ids.*' => ['integer', 'exists:organizations,id'],
+            'csv_file' => ['required', 'file', 'max:5120'],
+        ]);
+
+        $application = Application::query()
+            ->whereKey($attributes['application_id'])
+            ->where('status', 'active')
+            ->firstOrFail();
+        $organizationIds = collect($attributes['organization_ids'] ?? [])
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn (int $id) => $id > 0)
+            ->unique()
+            ->values();
+
+        $organizations = collect();
+
+        if ($organizationIds->isNotEmpty()) {
+            $organizations = Organization::query()
+                ->whereIn('id', $organizationIds)
+                ->where('application_id', $application->id)
+                ->where('status', 'active')
+                ->get();
+
+            if ($organizations->count() !== $organizationIds->count()) {
+                throw ValidationException::withMessages([
+                    'organization_ids' => ['Une ou plusieurs institutions selectionnees n appartiennent pas a la catégorie choisie.'],
+                ]);
+            }
+        }
+
+        $rows = $this->readSignalTypeImportRows($request->file('csv_file')->getRealPath());
+
+        if ($rows === []) {
+            throw ValidationException::withMessages([
+                'csv_file' => ['Le fichier ne contient aucune ligne exploitable.'],
+            ]);
+        }
+
+        $createdCount = 0;
+
+        DB::transaction(function () use ($rows, $application, $organizationIds, $organizations, &$createdCount): void {
+            foreach ($rows as $index => $row) {
+                $label = $this->normalizeImportedText($row['libelle'] ?? $row['label'] ?? $row['nom'] ?? null, 180);
+
+                if ($label === '') {
+                    throw ValidationException::withMessages([
+                        'csv_file' => ['La ligne '.($index + 2).' ne contient pas de libelle.'],
+                    ]);
+                }
+
+                $defaultSlaHours = $this->normalizeImportedSla($row['sla_defaut_heures'] ?? $row['default_sla_hours'] ?? $row['sla'] ?? null, $index);
+                $legacyOrganization = $organizations->count() === 1 ? $organizations->first() : null;
+                $signalType = SignalType::query()->create([
+                    'application_id' => $application->id,
+                    'organization_id' => $legacyOrganization?->id,
+                    'network_type' => strtoupper((string) ($legacyOrganization?->code ?: $application->code)),
+                    'code' => $this->uniqueSignalTypeCode($application),
+                    'label' => $label,
+                    'default_sla_hours' => $defaultSlaHours,
+                    'description' => $this->normalizeImportedText($row['description'] ?? null) ?: null,
+                    'status' => 'active',
+                ]);
+
+                $signalType->organizations()->sync($organizationIds->all());
+                $createdCount++;
+            }
+        });
+
+        $activityLogger->log(
+            'signal_type.imported',
+            'Import CSV de types de signal.',
+            SignalType::class,
+            [
+                'application_id' => $application->id,
+                'organization_ids' => $organizationIds->all(),
+                'rows_count' => count($rows),
+                'created_count' => $createdCount,
+            ],
+            $request
+        );
+
+        return redirect()->route('super-admin.signal-types.index', ['application_id' => $application->id])
+            ->with('success', "{$createdCount} type(s) de signal importe(s).");
+    }
+
+    public function downloadImportTemplate(): StreamedResponse
+    {
+        $response = new StreamedResponse(function (): void {
+            $output = fopen('php://output', 'wb');
+            fwrite($output, "\xEF\xBB\xBF");
+            fputcsv($output, ['Libelle', 'Description', 'SLA_defaut_heures'], ';');
+            fputcsv($output, ['Frais bancaires abusifs', 'Commissions injustifiees ou frais non annonces.', '24'], ';');
+            fclose($output);
+        }, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
+        $response->headers->set('Content-Disposition', $response->headers->makeDisposition('attachment', 'modele_import_types_de_signaux.csv'));
+
+        return $response;
+    }
+
+    public function importSubTypes(Request $request, ActivityLogger $activityLogger): RedirectResponse
+    {
+        $attributes = $request->validate([
+            'signal_type_id' => ['required', 'exists:signal_types,id'],
+            'csv_file' => ['required', 'file', 'max:5120'],
+        ]);
+
+        $signalType = SignalType::query()->findOrFail($attributes['signal_type_id']);
+        $rows = $this->readSignalTypeImportRows($request->file('csv_file')->getRealPath());
+
+        if ($rows === []) {
+            throw ValidationException::withMessages([
+                'csv_file' => ['Le fichier ne contient aucune ligne exploitable.'],
+            ]);
+        }
+
+        $createdCount = 0;
+
+        DB::transaction(function () use ($rows, $signalType, &$createdCount): void {
+            foreach ($rows as $index => $row) {
+                $label = $this->normalizeImportedText($row['libelle'] ?? $row['label'] ?? $row['nom'] ?? null, 180);
+
+                if ($label === '') {
+                    throw ValidationException::withMessages([
+                        'csv_file' => ['La ligne '.($index + 2).' ne contient pas de libelle.'],
+                    ]);
+                }
+
+                $sortOrder = $this->normalizeImportedSortOrder($row['ordre'] ?? $row['sort_order'] ?? null, $index);
+
+                $signalType->subTypes()->create([
+                    'code' => $this->uniqueSignalSubTypeCode($signalType, $label),
+                    'label' => $label,
+                    'description' => $this->normalizeImportedText($row['description'] ?? null) ?: null,
+                    'sort_order' => $sortOrder ?? $this->nextSubTypeSortOrder($signalType),
+                    'status' => 'active',
+                ]);
+
+                $createdCount++;
+            }
+        });
+
+        $activityLogger->log(
+            'signal_sub_type.imported',
+            'Import CSV de sous-types de signal.',
+            $signalType,
+            [
+                'signal_type_id' => $signalType->id,
+                'rows_count' => count($rows),
+                'created_count' => $createdCount,
+            ],
+            $request
+        );
+
+        return redirect()->route('super-admin.signal-sub-types.index', ['signal_type_id' => $signalType->id])
+            ->with('success', "{$createdCount} sous-type(s) de signal importe(s).");
+    }
+
+    public function downloadSubTypeImportTemplate(): StreamedResponse
+    {
+        $response = new StreamedResponse(function (): void {
+            $output = fopen('php://output', 'wb');
+            fwrite($output, "\xEF\xBB\xBF");
+            fputcsv($output, ['Libelle', 'Description', 'Ordre'], ';');
+            fputcsv($output, ['Carte bancaire bloquee', 'Carte desactivee ou indisponible sans raison.', '1'], ';');
+            fclose($output);
+        }, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
+        $response->headers->set('Content-Disposition', $response->headers->makeDisposition('attachment', 'modele_import_sous_types_de_signal.csv'));
+
+        return $response;
     }
 
     public function edit(SignalType $signalType): View
@@ -445,6 +627,170 @@ class SignalTypeController extends Controller
             ->replaceMatches('/[^A-Z0-9]+/', '_')
             ->trim('_')
             ->toString();
+    }
+
+    private function readSignalTypeImportRows(string $path): array
+    {
+        $delimiter = $this->detectCsvDelimiter($path);
+        $handle = fopen($path, 'rb');
+
+        if ($handle === false) {
+            throw ValidationException::withMessages([
+                'csv_file' => ['Impossible de lire le fichier CSV.'],
+            ]);
+        }
+
+        $headers = null;
+        $rows = [];
+
+        while (($data = fgetcsv($handle, 0, $delimiter)) !== false) {
+            $data = array_map(fn ($value) => $this->normalizeCsvValue($value), $data);
+
+            if ($data === [null] || collect($data)->every(fn ($value) => trim((string) $value) === '')) {
+                continue;
+            }
+
+            if ($headers === null) {
+                $headers = array_map(fn ($value) => $this->normalizeCsvHeader((string) $value), $data);
+                $this->validateImportHeaders($headers);
+                continue;
+            }
+
+            $row = [];
+
+            foreach ($headers as $key => $header) {
+                if ($header === '') {
+                    continue;
+                }
+
+                $row[$header] = $data[$key] ?? null;
+            }
+
+            if (collect($row)->every(fn ($value) => trim((string) $value) === '')) {
+                continue;
+            }
+
+            $rows[] = $row;
+        }
+
+        fclose($handle);
+
+        return $rows;
+    }
+
+    private function validateImportHeaders(array $headers): void
+    {
+        if (collect(['libelle', 'label', 'nom'])->intersect($headers)->isEmpty()) {
+            throw ValidationException::withMessages([
+                'csv_file' => ['Le fichier doit contenir une colonne Libelle. Colonnes optionnelles : Description, SLA_defaut_heures.'],
+            ]);
+        }
+    }
+
+    private function detectCsvDelimiter(string $path): string
+    {
+        $line = '';
+        $handle = fopen($path, 'rb');
+
+        if ($handle !== false) {
+            while (($currentLine = fgets($handle)) !== false) {
+                if (trim($currentLine) !== '') {
+                    $line = $currentLine;
+                    break;
+                }
+            }
+
+            fclose($handle);
+        }
+
+        $delimiters = [';' => substr_count($line, ';'), ',' => substr_count($line, ','), "\t" => substr_count($line, "\t")];
+        arsort($delimiters);
+
+        return (string) array_key_first($delimiters);
+    }
+
+    private function normalizeCsvHeader(string $header): string
+    {
+        return Str::of($this->normalizeCsvValue($header))
+            ->replace("\xEF\xBB\xBF", '')
+            ->ascii()
+            ->lower()
+            ->replaceMatches('/[^a-z0-9]+/', '_')
+            ->trim('_')
+            ->toString();
+    }
+
+    private function normalizeCsvValue(mixed $value): string
+    {
+        $text = str_replace("\xEF\xBB\xBF", '', (string) ($value ?? ''));
+
+        if (! mb_check_encoding($text, 'UTF-8')) {
+            $converted = mb_convert_encoding($text, 'UTF-8', 'Windows-1252,ISO-8859-1,UTF-8');
+            $text = $converted !== false ? $converted : iconv('Windows-1252', 'UTF-8//IGNORE', $text);
+        }
+
+        return trim($text);
+    }
+
+    private function normalizeImportedText(mixed $value, ?int $maxLength = null): string
+    {
+        $text = trim(preg_replace('/\s+/u', ' ', (string) ($value ?? '')) ?: '');
+
+        if ($text === '' || $maxLength === null || mb_strlen($text) <= $maxLength) {
+            return $text;
+        }
+
+        return mb_substr($text, 0, $maxLength);
+    }
+
+    private function normalizeImportedSla(mixed $value, int $rowIndex): ?int
+    {
+        $text = trim((string) ($value ?? ''));
+
+        if ($text === '') {
+            return null;
+        }
+
+        if (! ctype_digit($text)) {
+            throw ValidationException::withMessages([
+                'csv_file' => ['Le SLA de la ligne '.($rowIndex + 2).' doit etre un nombre entier en heures.'],
+            ]);
+        }
+
+        $sla = (int) $text;
+
+        if ($sla < 1 || $sla > 999) {
+            throw ValidationException::withMessages([
+                'csv_file' => ['Le SLA de la ligne '.($rowIndex + 2).' doit etre compris entre 1 et 999 heures.'],
+            ]);
+        }
+
+        return $sla;
+    }
+
+    private function normalizeImportedSortOrder(mixed $value, int $rowIndex): ?int
+    {
+        $text = trim((string) ($value ?? ''));
+
+        if ($text === '') {
+            return null;
+        }
+
+        if (! ctype_digit($text)) {
+            throw ValidationException::withMessages([
+                'csv_file' => ['L ordre de la ligne '.($rowIndex + 2).' doit etre un nombre entier.'],
+            ]);
+        }
+
+        $sortOrder = (int) $text;
+
+        if ($sortOrder < 0 || $sortOrder > 9999) {
+            throw ValidationException::withMessages([
+                'csv_file' => ['L ordre de la ligne '.($rowIndex + 2).' doit etre compris entre 0 et 9999.'],
+            ]);
+        }
+
+        return $sortOrder;
     }
 
     private function ensureSubTypeBelongsToSignalType(SignalType $signalType, SignalSubType $subType): void

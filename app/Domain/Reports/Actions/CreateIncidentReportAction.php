@@ -17,6 +17,7 @@ use App\Services\WasabiService;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class CreateIncidentReportAction
@@ -52,7 +53,7 @@ class CreateIncidentReportAction
                 'longitude' => $prepared['meter']?->longitude ?? ($payload['longitude'] ?? $user->longitude ?? null),
                 'location_accuracy' => $prepared['meter']?->location_accuracy ?? ($payload['location_accuracy'] ?? $user->location_accuracy ?? null),
                 'location_source' => $prepared['meter']?->location_source ?? ($payload['location_source'] ?? $user->location_source ?? null),
-                'network_type' => $prepared['meter']?->network_type ?: ($prepared['organization']?->code ?: $prepared['application']->code),
+                'network_type' => $this->normalizeNetworkType($prepared['meter']?->network_type ?: ($prepared['organization']?->code ?: $prepared['application']->code)),
                 'signal_code' => $prepared['signal_type']->code,
                 'signal_label' => $prepared['signal_type']->label,
                 'signal_sub_type_id' => $prepared['signal_sub_type']?->id,
@@ -223,7 +224,7 @@ class CreateIncidentReportAction
             $signalType->network_type,
             $meter?->network_type,
             $organization?->code,
-        ])->filter()->map(fn ($value) => strtoupper((string) $value))->unique()->values()->all();
+        ])->filter()->map(fn ($value) => $this->normalizeNetworkType((string) $value))->unique()->values()->all();
 
         $programmedSla = $organizationTypeId
             ? OrganizationTypeSignalSla::query()
@@ -247,6 +248,19 @@ class CreateIncidentReportAction
             'signal_sub_type_label' => $signalSubTypeLabel,
             'programmed_sla' => $programmedSla,
         ];
+    }
+
+    private function normalizeNetworkType(?string $value): string
+    {
+        $networkType = Str::of($value ?: 'GENERAL')
+            ->ascii()
+            ->upper()
+            ->replaceMatches('/[^A-Z0-9]+/', '_')
+            ->trim('_')
+            ->limit(60, '')
+            ->toString();
+
+        return $networkType !== '' ? $networkType : 'GENERAL';
     }
 
     private function resolveSignalSubType(SignalType $signalType, array $payload): array

@@ -6,6 +6,8 @@
 
 @section('header-badges')
     <span class="badge-soft">{{ $signalTypes->total() }} types</span>
+    <a href="{{ route('super-admin.signal-types.import-template') }}" class="btn btn-outline-dark">Modele CSV</a>
+    <button type="button" class="btn btn-outline-dark" data-bs-toggle="modal" data-bs-target="#importSignalTypesModal">Importer CSV</button>
     <form method="POST" action="{{ route('super-admin.signal-types.clear') }}" onsubmit="return confirm('Vider tous les types de signaux ? Cette action est irreversible.');">
         @csrf
         @method('DELETE')
@@ -175,6 +177,7 @@
                 <div class="modal-body p-4">
                     <form method="POST" action="{{ route('super-admin.signal-types.store') }}" class="vstack gap-3">
                         @csrf
+                        <input type="hidden" name="create_form" value="1">
                         <div>
                             <label class="form-label">Catégorie</label>
                             <select name="application_id" class="form-select" id="saSignalTypeApplicationCreate" required>
@@ -214,10 +217,57 @@
         </div>
     </div>
 
+    <div class="modal fade" id="importSignalTypesModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable modal-dialog-centered">
+            <div class="modal-content border-0" style="border-radius: 28px; overflow: hidden;">
+                <div class="modal-header px-4 py-3 border-0" style="background: linear-gradient(145deg, #0f2738, #1b4867); color: white;">
+                    <div>
+                        <div class="small text-white-50 fw-semibold mb-1">Import CSV</div>
+                        <div class="h5 fw-bold mb-0">Importer des types de signal</div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form method="POST" action="{{ route('super-admin.signal-types.import') }}" class="vstack gap-3" enctype="multipart/form-data">
+                        @csrf
+                        <input type="hidden" name="import_form" value="1">
+                        <div>
+                            <label class="form-label">Catégorie</label>
+                            <select name="application_id" class="form-select" id="saSignalTypeApplicationImport" required>
+                                <option value="">Choisir une catégorie</option>
+                                @foreach ($applications as $application)
+                                    <option value="{{ $application->id }}" @selected(old('import_form') && old('application_id') == $application->id)>{{ $application->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label">Institution concernée</label>
+                            <div class="institution-picker-toolbar">
+                                <input type="search" class="form-control" id="saSignalTypeOrganizationImportFilter" placeholder="Filtrer les institutions">
+                                <button type="button" class="btn btn-outline-dark" id="saSignalTypeOrganizationImportToggle">Tout sélectionner</button>
+                            </div>
+                            <div class="institution-picker">
+                                <div id="saSignalTypeOrganizationImport" class="institution-picker-grid"></div>
+                            </div>
+                            <div class="small text-secondary mt-2" id="saSignalTypeOrganizationImportStatus">Aucune institution selectionnee : type partage a toute la catégorie.</div>
+                        </div>
+                        <div>
+                            <label class="form-label">Fichier CSV</label>
+                            <input type="file" name="csv_file" class="form-control" accept=".csv,text/csv,text/plain" required>
+                            <div class="small text-secondary mt-2">Colonnes attendues : Libelle, Description, SLA_defaut_heures. Seul Libelle est obligatoire.</div>
+                        </div>
+                        <button type="submit" class="btn btn-dark">Importer</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     @if ($errors->any())
         <script>
             document.addEventListener('DOMContentLoaded', () => {
-                bootstrap.Modal.getOrCreateInstance(document.getElementById('createSignalTypeModal')).show();
+                const modalId = @json(old('import_form') ? 'importSignalTypesModal' : 'createSignalTypeModal');
+                bootstrap.Modal.getOrCreateInstance(document.getElementById(modalId)).show();
             });
         </script>
     @endif
@@ -225,12 +275,8 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const organizationsByApplication = @json($organizationsByApplicationPayload);
-            const applicationSelect = document.getElementById('saSignalTypeApplicationCreate');
-            const organizationPicker = document.getElementById('saSignalTypeOrganizationCreate');
-            const organizationStatus = document.getElementById('saSignalTypeOrganizationCreateStatus');
-            const organizationFilter = document.getElementById('saSignalTypeOrganizationCreateFilter');
-            const organizationToggle = document.getElementById('saSignalTypeOrganizationCreateToggle');
-            const oldOrganizationIds = @json(collect(old('organization_ids', []))->map(fn ($id) => (string) $id)->values());
+            const oldCreateOrganizationIds = @json(! old('import_form') ? collect(old('organization_ids', []))->map(fn ($id) => (string) $id)->values() : collect());
+            const oldImportOrganizationIds = @json(old('import_form') ? collect(old('organization_ids', []))->map(fn ($id) => (string) $id)->values() : collect());
 
             const escapeHtml = (value) => String(value || '')
                 .replace(/&/g, '&amp;')
@@ -239,80 +285,99 @@
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#039;');
 
-            const selectedOrganizationIds = () => Array.from(organizationPicker.querySelectorAll('input[name="organization_ids[]"]:checked'))
-                .map((input) => String(input.value));
+            const initInstitutionPicker = ({ applicationSelect, organizationPicker, organizationStatus, organizationFilter, organizationToggle, oldOrganizationIds }) => {
+                const selectedOrganizationIds = () => Array.from(organizationPicker.querySelectorAll('input[name="organization_ids[]"]:checked'))
+                    .map((input) => String(input.value));
 
-            const visibleOrganizationOptions = () => Array.from(organizationPicker.querySelectorAll('.institution-picker-option'))
-                .filter((option) => !option.classList.contains('d-none'));
+                const visibleOrganizationOptions = () => Array.from(organizationPicker.querySelectorAll('.institution-picker-option'))
+                    .filter((option) => !option.classList.contains('d-none'));
 
-            const updateOrganizationStatus = () => {
-                const count = selectedOrganizationIds().length;
-                const visibleOptions = visibleOrganizationOptions();
-                const checkedVisibleCount = visibleOptions.filter((option) => option.querySelector('input')?.checked).length;
-                organizationStatus.textContent = count > 0
-                    ? `${count} institution${count > 1 ? 's' : ''} selectionnee${count > 1 ? 's' : ''}.`
-                    : 'Aucune institution selectionnee : type partage a toute la catégorie.';
-                organizationToggle.textContent = visibleOptions.length > 0 && checkedVisibleCount === visibleOptions.length
-                    ? 'Tout désélectionner'
-                    : 'Tout sélectionner';
-                organizationToggle.disabled = visibleOptions.length === 0;
+                const updateOrganizationStatus = () => {
+                    const count = selectedOrganizationIds().length;
+                    const visibleOptions = visibleOrganizationOptions();
+                    const checkedVisibleCount = visibleOptions.filter((option) => option.querySelector('input')?.checked).length;
+                    organizationStatus.textContent = count > 0
+                        ? `${count} institution${count > 1 ? 's' : ''} selectionnee${count > 1 ? 's' : ''}.`
+                        : 'Aucune institution selectionnee : type partage a toute la catégorie.';
+                    organizationToggle.textContent = visibleOptions.length > 0 && checkedVisibleCount === visibleOptions.length
+                        ? 'Tout désélectionner'
+                        : 'Tout sélectionner';
+                    organizationToggle.disabled = visibleOptions.length === 0;
+                };
+
+                const applyOrganizationFilter = () => {
+                    const query = String(organizationFilter.value || '').trim().toLowerCase();
+
+                    organizationPicker.querySelectorAll('.institution-picker-option').forEach((option) => {
+                        const haystack = String(option.dataset.search || '').toLowerCase();
+                        option.classList.toggle('d-none', query !== '' && !haystack.includes(query));
+                    });
+
+                    updateOrganizationStatus();
+                };
+
+                const syncOrganizations = () => {
+                    const applicationId = applicationSelect.value;
+                    const organizations = organizationsByApplication[applicationId] || [];
+                    const currentValues = selectedOrganizationIds();
+                    const valuesToRestore = currentValues.length ? currentValues : oldOrganizationIds;
+
+                    organizationPicker.innerHTML = organizations.length
+                        ? organizations.map((organization) => {
+                            const value = String(organization.id);
+                            const checked = valuesToRestore.includes(value) ? 'checked' : '';
+                            return `
+                                <label class="institution-picker-option" data-search="${escapeHtml(`${organization.name} ${organization.code || ''}`)}">
+                                    <input class="form-check-input" type="checkbox" name="organization_ids[]" value="${escapeHtml(value)}" ${checked}>
+                                    <span>
+                                        <span class="fw-semibold d-block">${escapeHtml(organization.name)}</span>
+                                        <span class="small text-secondary">${escapeHtml(organization.code || '')}</span>
+                                    </span>
+                                </label>
+                            `;
+                        }).join('')
+                        : '<div class="small text-secondary">Selectionnez une catégorie pour afficher ses institutions.</div>';
+
+                    organizationPicker.querySelectorAll('input[name="organization_ids[]"]').forEach((input) => {
+                        input.addEventListener('change', updateOrganizationStatus);
+                    });
+                    applyOrganizationFilter();
+                };
+
+                organizationFilter?.addEventListener('input', applyOrganizationFilter);
+                organizationToggle?.addEventListener('click', () => {
+                    const visibleOptions = visibleOrganizationOptions();
+                    const shouldSelect = visibleOptions.some((option) => !option.querySelector('input')?.checked);
+
+                    visibleOptions.forEach((option) => {
+                        const input = option.querySelector('input');
+                        if (input) {
+                            input.checked = shouldSelect;
+                        }
+                    });
+
+                    updateOrganizationStatus();
+                });
+                applicationSelect?.addEventListener('change', syncOrganizations);
+                syncOrganizations();
             };
 
-            const applyOrganizationFilter = () => {
-                const query = String(organizationFilter.value || '').trim().toLowerCase();
-
-                organizationPicker.querySelectorAll('.institution-picker-option').forEach((option) => {
-                    const haystack = String(option.dataset.search || '').toLowerCase();
-                    option.classList.toggle('d-none', query !== '' && !haystack.includes(query));
-                });
-
-                updateOrganizationStatus();
-            };
-
-            const syncOrganizations = () => {
-                const applicationId = applicationSelect.value;
-                const organizations = organizationsByApplication[applicationId] || [];
-                const currentValues = selectedOrganizationIds();
-                const valuesToRestore = currentValues.length ? currentValues : oldOrganizationIds;
-
-                organizationPicker.innerHTML = organizations.length
-                    ? organizations.map((organization) => {
-                        const value = String(organization.id);
-                        const checked = valuesToRestore.includes(value) ? 'checked' : '';
-                        return `
-                            <label class="institution-picker-option" data-search="${escapeHtml(`${organization.name} ${organization.code || ''}`)}">
-                                <input class="form-check-input" type="checkbox" name="organization_ids[]" value="${escapeHtml(value)}" ${checked}>
-                                <span>
-                                    <span class="fw-semibold d-block">${escapeHtml(organization.name)}</span>
-                                    <span class="small text-secondary">${escapeHtml(organization.code || '')}</span>
-                                </span>
-                            </label>
-                        `;
-                    }).join('')
-                    : '<div class="small text-secondary">Selectionnez une catégorie pour afficher ses institutions.</div>';
-
-                organizationPicker.querySelectorAll('input[name="organization_ids[]"]').forEach((input) => {
-                    input.addEventListener('change', updateOrganizationStatus);
-                });
-                applyOrganizationFilter();
-            };
-
-            organizationFilter?.addEventListener('input', applyOrganizationFilter);
-            organizationToggle?.addEventListener('click', () => {
-                const visibleOptions = visibleOrganizationOptions();
-                const shouldSelect = visibleOptions.some((option) => !option.querySelector('input')?.checked);
-
-                visibleOptions.forEach((option) => {
-                    const input = option.querySelector('input');
-                    if (input) {
-                        input.checked = shouldSelect;
-                    }
-                });
-
-                updateOrganizationStatus();
+            initInstitutionPicker({
+                applicationSelect: document.getElementById('saSignalTypeApplicationCreate'),
+                organizationPicker: document.getElementById('saSignalTypeOrganizationCreate'),
+                organizationStatus: document.getElementById('saSignalTypeOrganizationCreateStatus'),
+                organizationFilter: document.getElementById('saSignalTypeOrganizationCreateFilter'),
+                organizationToggle: document.getElementById('saSignalTypeOrganizationCreateToggle'),
+                oldOrganizationIds: oldCreateOrganizationIds,
             });
-            applicationSelect?.addEventListener('change', syncOrganizations);
-            syncOrganizations();
+            initInstitutionPicker({
+                applicationSelect: document.getElementById('saSignalTypeApplicationImport'),
+                organizationPicker: document.getElementById('saSignalTypeOrganizationImport'),
+                organizationStatus: document.getElementById('saSignalTypeOrganizationImportStatus'),
+                organizationFilter: document.getElementById('saSignalTypeOrganizationImportFilter'),
+                organizationToggle: document.getElementById('saSignalTypeOrganizationImportToggle'),
+                oldOrganizationIds: oldImportOrganizationIds,
+            });
         });
     </script>
 @endsection

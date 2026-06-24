@@ -6,6 +6,8 @@
 
 @section('header-badges')
     <span class="badge-soft">{{ $subTypes->total() }} sous-types</span>
+    <a href="{{ route('super-admin.signal-sub-types.import-template') }}" class="btn btn-outline-dark">Modele CSV</a>
+    <button type="button" class="btn btn-outline-dark" data-bs-toggle="modal" data-bs-target="#importSignalSubTypesModal">Importer CSV</button>
 @endsection
 
 @section('content')
@@ -133,4 +135,54 @@
             </section>
         </div>
     </div>
+
+    <div class="modal fade" id="importSignalSubTypesModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
+            <div class="modal-content border-0" style="border-radius: 24px; overflow: hidden;">
+                <div class="modal-header px-4 py-3 border-0" style="background: linear-gradient(145deg, #0f2738, #1b4867); color: white;">
+                    <div>
+                        <div class="small text-white-50 fw-semibold mb-1">Import CSV</div>
+                        <div class="h5 fw-bold mb-0">Importer des sous-types de signal</div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form method="POST" action="{{ route('super-admin.signal-sub-types.import') }}" class="vstack gap-3" enctype="multipart/form-data">
+                        @csrf
+                        <input type="hidden" name="import_form" value="1">
+                        <div>
+                            <label class="form-label">Type de signal</label>
+                            <select name="signal_type_id" class="form-select" required>
+                                <option value="">Choisir un type de signal</option>
+                                @foreach ($signalTypes as $signalType)
+                                    <option value="{{ $signalType->id }}" @selected((string) old('signal_type_id', request('signal_type_id')) === (string) $signalType->id)>
+                                        {{ $signalType->code }} - {{ $signalType->label }}
+                                        @if ($signalType->organization)
+                                            ({{ $signalType->organization->name }})
+                                        @elseif ($signalType->application)
+                                            ({{ $signalType->application->name }})
+                                        @endif
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label">Fichier CSV</label>
+                            <input type="file" name="csv_file" class="form-control" accept=".csv,text/csv,text/plain" required>
+                            <div class="small text-secondary mt-2">Colonnes attendues : Libelle, Description, Ordre. Seul Libelle est obligatoire.</div>
+                        </div>
+                        <button type="submit" class="btn btn-dark">Importer</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if ($errors->any() && old('import_form'))
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('importSignalSubTypesModal')).show();
+            });
+        </script>
+    @endif
 @endsection
