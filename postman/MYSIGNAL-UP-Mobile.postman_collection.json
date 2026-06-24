@@ -980,6 +980,46 @@
           }
         },
         {
+          "name": "Create Test Report Without Payment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json?.data?.report?.id) pm.environment.set('reportId', json.data.report.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "application_id", "value": "{{applicationId}}", "type": "text", "description": "Obligatoire si meter_id est absent." },
+                { "key": "organization_id", "value": "{{organizationId}}", "type": "text", "description": "Institution concernee pour la categorie selectionnee." },
+                { "key": "meter_id", "value": "{{meterId}}", "type": "text", "description": "Obligatoire uniquement si la categorie retourne requires_public_user_identifier=true. Sinon retirer ce champ du payload." },
+                { "key": "signal_code", "value": "{{signalCode}}", "type": "text", "description": "Code retourne par GET /v1/public/signal-types et compatible avec la categorie/institution selectionnee." },
+                { "key": "signal_sub_type_code", "value": "{{signalSubTypeCode}}", "type": "text", "disabled": true, "description": "Facultatif. Activer uniquement si le type de signal retourne requires_sub_type=true." },
+                { "key": "description", "value": "Signalement de test sans paiement", "type": "text" },
+                { "key": "occurred_at", "value": "2026-06-24T12:00:00Z", "type": "text" },
+                { "key": "latitude", "value": "{{latitude}}", "type": "text" },
+                { "key": "longitude", "value": "{{longitude}}", "type": "text" },
+                { "key": "location_accuracy", "value": "{{locationAccuracy}}", "type": "text" },
+                { "key": "location_source", "value": "gps", "type": "text" },
+                { "key": "signal_attachment", "type": "file", "src": [], "disabled": true }
+              ]
+            },
+            "url": "{{baseUrl}}/v1/public/reports/test",
+            "description": "API de test: cree directement un signalement sans session FineoPay. Active automatiquement en local/testing ou avec PUBLIC_REPORT_TEST_ENDPOINT_ENABLED=true."
+          }
+        },
+        {
           "name": "Create Report With Sub Type",
           "event": [
             {

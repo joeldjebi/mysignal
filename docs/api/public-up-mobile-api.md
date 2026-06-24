@@ -636,6 +636,36 @@ L app mobile doit ouvrir `checkout_link`. Apres paiement reussi, FineoPay appell
 
 Comme FineoPay ne redirige pas encore vers l app mobile, l app doit conserver `payment_session.sync_ref`, puis verifier le statut lorsque l utilisateur revient dans l app.
 
+#### POST `/v1/public/reports/test`
+Crée directement un signalement de test sans initialiser de paiement FineoPay.
+
+Cet endpoint est reserve aux tests et reprend exactement le meme payload que `POST /v1/public/reports`, y compris le mode `multipart/form-data` avec `signal_attachment` si besoin.
+
+Activation backend :
+- actif automatiquement en environnement `local` ou `testing`
+- en production, activer explicitement `PUBLIC_REPORT_TEST_ENDPOINT_ENABLED=true`
+
+Reponse `201` :
+```json
+{
+  "success": true,
+  "message": "Signalement de test cree avec succes sans paiement.",
+  "data": {
+    "payment_bypassed": true,
+    "report": {
+      "id": 51,
+      "reference": "RPT-20260624102030-A1B2C3",
+      "signal_code": "EL-01",
+      "signal_label": "Coupure totale",
+      "status": "submitted",
+      "payment_status": "paid"
+    }
+  }
+}
+```
+
+Si l endpoint est desactive, l API retourne `403`.
+
 #### GET `/v1/public/payment-sessions/{syncRef}`
 Verifie le statut serveur d une session de paiement de signalement.
 

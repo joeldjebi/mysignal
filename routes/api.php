@@ -106,6 +106,7 @@ Route::prefix('v1/public')->group(function (): void {
 
         Route::get('reports', [PublicIncidentReportController::class, 'index']);
         Route::post('reports', [PublicIncidentReportController::class, 'store']);
+        Route::post('reports/test', [PublicIncidentReportController::class, 'storeTest']);
         Route::get('reports/{report}', [PublicIncidentReportController::class, 'show']);
         Route::post('reports/{report}/confirm-resolution', [PublicIncidentReportController::class, 'confirmResolution']);
         Route::post('reports/{report}/damages', [PublicIncidentReportController::class, 'storeDamage']);
