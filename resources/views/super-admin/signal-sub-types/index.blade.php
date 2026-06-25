@@ -141,6 +141,11 @@
             $selectedImportSignalTypeIds = collect(old('signal_type_ids', request('signal_type_id') ? [request('signal_type_id')] : []))
                 ->map(fn ($id) => (string) $id)
                 ->all();
+            $importSignalTypeApplications = $signalTypes
+                ->pluck('application')
+                ->filter()
+                ->unique('id')
+                ->sortBy('name');
         @endphp
         <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
             <div class="modal-content border-0" style="border-radius: 24px; overflow: hidden;">
@@ -156,10 +161,24 @@
                         @csrf
                         <input type="hidden" name="import_form" value="1">
                         <div>
+                            <label class="form-label">Categorie</label>
+                            <select class="form-select" id="importSignalSubTypesApplicationFilter">
+                                <option value="">Toutes les categories</option>
+                                @foreach ($importSignalTypeApplications as $application)
+                                    <option value="{{ $application->id }}">{{ $application->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
                             <label class="form-label">Types de signal</label>
-                            <div class="border rounded-4 p-3" style="max-height: 320px; overflow-y: auto; background: #f8fafc;">
+                            <div class="border rounded-4 p-3" id="importSignalSubTypesList" style="max-height: 320px; overflow-y: auto; background: #f8fafc;">
                                 @foreach ($signalTypes as $signalType)
-                                    <label class="d-flex gap-3 align-items-start bg-white border rounded-3 p-3 mb-2" style="cursor: pointer;">
+                                    <label
+                                        class="d-flex gap-3 align-items-start bg-white border rounded-3 p-3 mb-2"
+                                        data-signal-type-option
+                                        data-application-id="{{ $signalType->application_id }}"
+                                        style="cursor: pointer;"
+                                    >
                                         <input
                                             type="checkbox"
                                             name="signal_type_ids[]"
@@ -180,6 +199,7 @@
                                         </span>
                                     </label>
                                 @endforeach
+                                <div class="text-center text-secondary py-4 d-none" id="importSignalSubTypesEmptyState">Aucun type de signal pour cette categorie.</div>
                             </div>
                             <div class="small text-secondary mt-2">Chaque ligne du fichier sera creee comme sous-type pour tous les types selectionnes.</div>
                         </div>
@@ -194,6 +214,34 @@
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const categoryFilter = document.getElementById('importSignalSubTypesApplicationFilter');
+            const options = Array.from(document.querySelectorAll('[data-signal-type-option]'));
+            const emptyState = document.getElementById('importSignalSubTypesEmptyState');
+
+            if (!categoryFilter || options.length === 0) {
+                return;
+            }
+
+            const applyImportSignalTypeFilter = () => {
+                const applicationId = categoryFilter.value;
+                let visibleCount = 0;
+
+                options.forEach((option) => {
+                    const isVisible = applicationId === '' || option.dataset.applicationId === applicationId;
+                    option.classList.toggle('d-none', !isVisible);
+                    visibleCount += isVisible ? 1 : 0;
+                });
+
+                emptyState?.classList.toggle('d-none', visibleCount > 0);
+            };
+
+            categoryFilter.addEventListener('change', applyImportSignalTypeFilter);
+            applyImportSignalTypeFilter();
+        });
+    </script>
 
     @if ($errors->any() && old('import_form'))
         <script>
