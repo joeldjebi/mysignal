@@ -137,6 +137,11 @@
     </div>
 
     <div class="modal fade" id="importSignalSubTypesModal" tabindex="-1" aria-hidden="true">
+        @php
+            $selectedImportSignalTypeIds = collect(old('signal_type_ids', request('signal_type_id') ? [request('signal_type_id')] : []))
+                ->map(fn ($id) => (string) $id)
+                ->all();
+        @endphp
         <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
             <div class="modal-content border-0" style="border-radius: 24px; overflow: hidden;">
                 <div class="modal-header px-4 py-3 border-0" style="background: linear-gradient(145deg, #0f2738, #1b4867); color: white;">
@@ -151,20 +156,32 @@
                         @csrf
                         <input type="hidden" name="import_form" value="1">
                         <div>
-                            <label class="form-label">Type de signal</label>
-                            <select name="signal_type_id" class="form-select" required>
-                                <option value="">Choisir un type de signal</option>
+                            <label class="form-label">Types de signal</label>
+                            <div class="border rounded-4 p-3" style="max-height: 320px; overflow-y: auto; background: #f8fafc;">
                                 @foreach ($signalTypes as $signalType)
-                                    <option value="{{ $signalType->id }}" @selected((string) old('signal_type_id', request('signal_type_id')) === (string) $signalType->id)>
-                                        {{ $signalType->code }} - {{ $signalType->label }}
-                                        @if ($signalType->organization)
-                                            ({{ $signalType->organization->name }})
-                                        @elseif ($signalType->application)
-                                            ({{ $signalType->application->name }})
-                                        @endif
-                                    </option>
+                                    <label class="d-flex gap-3 align-items-start bg-white border rounded-3 p-3 mb-2" style="cursor: pointer;">
+                                        <input
+                                            type="checkbox"
+                                            name="signal_type_ids[]"
+                                            value="{{ $signalType->id }}"
+                                            class="form-check-input mt-1"
+                                            @checked(in_array((string) $signalType->id, $selectedImportSignalTypeIds, true))
+                                        >
+                                        <span class="d-block">
+                                            <span class="fw-semibold d-block">{{ $signalType->label }}</span>
+                                            <span class="small text-secondary">
+                                                {{ $signalType->code }}
+                                                @if ($signalType->organization)
+                                                    - {{ $signalType->organization->name }}
+                                                @elseif ($signalType->application)
+                                                    - {{ $signalType->application->name }}
+                                                @endif
+                                            </span>
+                                        </span>
+                                    </label>
                                 @endforeach
-                            </select>
+                            </div>
+                            <div class="small text-secondary mt-2">Chaque ligne du fichier sera creee comme sous-type pour tous les types selectionnes.</div>
                         </div>
                         <div>
                             <label class="form-label">Fichier CSV</label>

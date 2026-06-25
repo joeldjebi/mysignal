@@ -195,11 +195,22 @@ class SignalTypeController extends Controller
     public function importSubTypes(Request $request, ActivityLogger $activityLogger): RedirectResponse
     {
         $attributes = $request->validate([
-            'signal_type_id' => ['required', 'exists:signal_types,id'],
+            'signal_type_ids' => ['required', 'array', 'min:1'],
+            'signal_type_ids.*' => ['integer', 'exists:signal_types,id'],
             'csv_file' => ['required', 'file', 'max:5120'],
         ]);
 
-        $signalType = SignalType::query()->findOrFail($attributes['signal_type_id']);
+        $signalTypes = SignalType::query()
+            ->whereIn('id', $attributes['signal_type_ids'])
+            ->orderBy('label')
+            ->get();
+
+        if ($signalTypes->isEmpty()) {
+            throw ValidationException::withMessages([
+                'signal_type_ids' => ['Selectionnez au moins un type de signal.'],
+            ]);
+        }
+
         $rows = $this->readSignalTypeImportRows($request->file('csv_file')->getRealPath());
 
         if ($rows === []) {
@@ -210,44 +221,50 @@ class SignalTypeController extends Controller
 
         $createdCount = 0;
 
-        DB::transaction(function () use ($rows, $signalType, &$createdCount): void {
-            foreach ($rows as $index => $row) {
-                $label = $this->normalizeImportedText($row['libelle'] ?? $row['label'] ?? $row['nom'] ?? null, 180);
+        DB::transaction(function () use ($rows, $signalTypes, &$createdCount): void {
+            foreach ($signalTypes as $signalType) {
+                foreach ($rows as $index => $row) {
+                    $label = $this->normalizeImportedText($row['libelle'] ?? $row['label'] ?? $row['nom'] ?? null, 180);
 
-                if ($label === '') {
-                    throw ValidationException::withMessages([
-                        'csv_file' => ['La ligne '.($index + 2).' ne contient pas de libelle.'],
+                    if ($label === '') {
+                        throw ValidationException::withMessages([
+                            'csv_file' => ['La ligne '.($index + 2).' ne contient pas de libelle.'],
+                        ]);
+                    }
+
+                    $sortOrder = $this->normalizeImportedSortOrder($row['ordre'] ?? $row['sort_order'] ?? null, $index);
+
+                    $signalType->subTypes()->create([
+                        'code' => $this->uniqueSignalSubTypeCode($signalType, $label),
+                        'label' => $label,
+                        'description' => $this->normalizeImportedText($row['description'] ?? null) ?: null,
+                        'sort_order' => $sortOrder ?? $this->nextSubTypeSortOrder($signalType),
+                        'status' => 'active',
                     ]);
+
+                    $createdCount++;
                 }
-
-                $sortOrder = $this->normalizeImportedSortOrder($row['ordre'] ?? $row['sort_order'] ?? null, $index);
-
-                $signalType->subTypes()->create([
-                    'code' => $this->uniqueSignalSubTypeCode($signalType, $label),
-                    'label' => $label,
-                    'description' => $this->normalizeImportedText($row['description'] ?? null) ?: null,
-                    'sort_order' => $sortOrder ?? $this->nextSubTypeSortOrder($signalType),
-                    'status' => 'active',
-                ]);
-
-                $createdCount++;
             }
         });
+
+        $firstSignalType = $signalTypes->first();
 
         $activityLogger->log(
             'signal_sub_type.imported',
             'Import CSV de sous-types de signal.',
-            $signalType,
+            $firstSignalType,
             [
-                'signal_type_id' => $signalType->id,
+                'signal_type_ids' => $signalTypes->pluck('id')->values()->all(),
                 'rows_count' => count($rows),
                 'created_count' => $createdCount,
             ],
             $request
         );
 
-        return redirect()->route('super-admin.signal-sub-types.index', ['signal_type_id' => $signalType->id])
-            ->with('success', "{$createdCount} sous-type(s) de signal importe(s).");
+        $redirectParameters = $signalTypes->count() === 1 ? ['signal_type_id' => $firstSignalType?->id] : [];
+
+        return redirect()->route('super-admin.signal-sub-types.index', $redirectParameters)
+            ->with('success', "{$createdCount} sous-type(s) de signal importe(s) pour ".$signalTypes->count().' type(s) de signal.');
     }
 
     public function downloadSubTypeImportTemplate(): StreamedResponse
