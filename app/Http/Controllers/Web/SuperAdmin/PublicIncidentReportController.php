@@ -55,6 +55,26 @@ class PublicIncidentReportController extends Controller
             }
         }
 
+        if (filled(request('resolution_confirmation'))) {
+            if (request('resolution_confirmation') === 'ai_validated_and_confirmed') {
+                $query->where('resolution_confirmation_status', 'confirmed')
+                    ->where('resolution_confirmed_without_ai_validation', false);
+            }
+
+            if (request('resolution_confirmation') === 'confirmed_without_ai_validation') {
+                $query->where('resolution_confirmation_status', 'confirmed')
+                    ->where('resolution_confirmed_without_ai_validation', true);
+            }
+
+            if (request('resolution_confirmation') === 'waiting_up_confirmation') {
+                $query->where('status', 'resolved')
+                    ->where(function ($builder): void {
+                        $builder->whereNull('resolution_confirmation_status')
+                            ->orWhere('resolution_confirmation_status', '!=', 'confirmed');
+                    });
+            }
+        }
+
         if (filled(request('reparation_case'))) {
             if (request('reparation_case') === 'opened') {
                 $query->whereHas('reparationCase');

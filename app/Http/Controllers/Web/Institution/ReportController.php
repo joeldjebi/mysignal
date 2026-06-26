@@ -162,14 +162,17 @@ class ReportController extends Controller
             'official_response' => ['required', 'string', 'max:2000'],
         ]);
 
+        $wasConfirmedByPublicUser = $report->resolution_confirmation_status === 'confirmed';
+
         $report->update([
             'status' => IncidentReportStatus::Resolved->value,
             'assigned_to_user_id' => $request->user()->id,
             'taken_in_charge_at' => $report->taken_in_charge_at ?? now(),
             'resolved_at' => now(),
             'official_response' => $attributes['official_response'],
-            'resolution_confirmation_status' => 'pending',
-            'resolution_confirmed_at' => null,
+            'resolution_confirmation_status' => $wasConfirmedByPublicUser ? 'confirmed' : 'pending',
+            'resolution_confirmed_at' => $wasConfirmedByPublicUser ? $report->resolution_confirmed_at : null,
+            'resolution_confirmed_without_ai_validation' => false,
         ]);
 
         $activityLogger->log(
@@ -321,14 +324,17 @@ class ReportController extends Controller
         $resolvedAt = now();
 
         $nearbyReports->each(function (IncidentReport $nearbyReport) use ($officialResponse, $request, $notificationService, $resolvedAt): void {
+            $wasConfirmedByPublicUser = $nearbyReport->resolution_confirmation_status === 'confirmed';
+
             $nearbyReport->update([
                 'status' => IncidentReportStatus::Resolved->value,
                 'assigned_to_user_id' => $request->user()->id,
                 'taken_in_charge_at' => $nearbyReport->taken_in_charge_at ?? $resolvedAt,
                 'resolved_at' => $resolvedAt,
                 'official_response' => $officialResponse,
-                'resolution_confirmation_status' => 'pending',
-                'resolution_confirmed_at' => null,
+                'resolution_confirmation_status' => $wasConfirmedByPublicUser ? 'confirmed' : 'pending',
+                'resolution_confirmed_at' => $wasConfirmedByPublicUser ? $nearbyReport->resolution_confirmed_at : null,
+                'resolution_confirmed_without_ai_validation' => false,
             ]);
 
             $notificationService->notifyPublicReportAction(

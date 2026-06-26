@@ -152,12 +152,15 @@ class PublicIncidentReportController extends Controller
     public function confirmResolution(Request $request, IncidentReport $report, ActivityLogger $activityLogger)
     {
         abort_unless((int) $report->public_user_id === (int) $request->user('public_api')->id, 404);
-        abort_unless($report->status === IncidentReportStatus::Resolved->value, 422, 'Ce signalement n est pas encore marque comme resolu.');
+        abort_unless($report->status !== IncidentReportStatus::Rejected->value, 422, 'Ce signalement ne peut pas etre confirme car il a ete rejete.');
         abort_unless($report->resolution_confirmation_status !== 'confirmed', 422, 'La resolution de ce signalement a deja ete confirmee.');
+
+        $isValidatedByAi = $report->status === IncidentReportStatus::Resolved->value && $report->resolved_at !== null;
 
         $report->update([
             'resolution_confirmation_status' => 'confirmed',
             'resolution_confirmed_at' => now(),
+            'resolution_confirmed_without_ai_validation' => ! $isValidatedByAi,
         ]);
 
         $report->load(['application', 'organization', 'meter.organization', 'country', 'city', 'commune', 'purchaseReceipt', 'payments.pricingRule']);
@@ -170,6 +173,7 @@ class PublicIncidentReportController extends Controller
                 'reference' => $report->reference,
                 'status' => $report->status,
                 'resolution_confirmation_status' => $report->resolution_confirmation_status,
+                'resolution_confirmed_without_ai_validation' => $report->resolution_confirmed_without_ai_validation,
             ],
             $request
         );

@@ -12,6 +12,7 @@ class IncidentReportResource extends JsonResource
     public function toArray(Request $request): array
     {
         $damageDeclaration = $this->buildDamageDeclarationPayload();
+        $isAiValidated = $this->status === 'resolved' && $this->resolved_at !== null;
 
         return [
             'id' => $this->id,
@@ -49,7 +50,13 @@ class IncidentReportResource extends JsonResource
             'resolution_confirmation' => [
                 'status' => $this->resolution_confirmation_status,
                 'confirmed_at' => $this->resolution_confirmed_at?->toIso8601String(),
-                'can_confirm' => $this->status === 'resolved' && $this->resolution_confirmation_status !== 'confirmed',
+                'can_confirm' => in_array($this->status, ['submitted', 'in_progress', 'resolved'], true)
+                    && $this->resolution_confirmation_status !== 'confirmed',
+                'ai_validated' => $isAiValidated,
+                'confirmed_without_ai_validation' => (bool) $this->resolution_confirmed_without_ai_validation,
+                'flow' => $this->resolution_confirmation_status === 'confirmed'
+                    ? ((bool) $this->resolution_confirmed_without_ai_validation ? 'up_confirmed_without_ai_validation' : 'ai_validated_then_up_confirmed')
+                    : ($isAiValidated ? 'waiting_up_confirmation' : 'waiting_resolution'),
             ],
             'damage_declaration' => $damageDeclaration,
             'sla' => $this->buildSlaPayload(),

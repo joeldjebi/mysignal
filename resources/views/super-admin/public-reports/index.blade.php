@@ -53,6 +53,15 @@
                     </select>
                 </div>
                 <div class="col-md-3">
+                    <label class="form-label small text-secondary">Confirmation UP</label>
+                    <select name="resolution_confirmation" class="form-select">
+                        <option value="">Toutes</option>
+                        <option value="ai_validated_and_confirmed" @selected(request('resolution_confirmation') === 'ai_validated_and_confirmed')>Valide AI + confirme UP</option>
+                        <option value="confirmed_without_ai_validation" @selected(request('resolution_confirmation') === 'confirmed_without_ai_validation')>Confirme sans validation AI</option>
+                        <option value="waiting_up_confirmation" @selected(request('resolution_confirmation') === 'waiting_up_confirmation')>En attente confirmation UP</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
                     <label class="form-label small text-secondary">Dossier</label>
                     <select name="reparation_case" class="form-select">
                         <option value="">Tous</option>
@@ -91,6 +100,20 @@
                                 <div class="small text-secondary">{{ $report->signal_label ?: $report->signal_code ?: $report->incident_type }}</div>
                                 <div class="small text-secondary">{{ $report->created_at?->format('d/m/Y H:i') ?: '-' }}</div>
                                 <div class="mt-1"><span class="status-chip">{{ $report->status }}</span></div>
+                                <div class="mt-2">
+                                    @if ($report->resolution_confirmation_status === 'confirmed' && $report->resolution_confirmed_without_ai_validation)
+                                        <span class="status-chip bg-warning-subtle text-warning-emphasis">Confirme UP sans validation AI</span>
+                                    @elseif ($report->resolution_confirmation_status === 'confirmed')
+                                        <span class="status-chip bg-success-subtle text-success-emphasis">Valide AI + confirme UP</span>
+                                    @elseif ($report->status === 'resolved')
+                                        <span class="status-chip bg-info-subtle text-info-emphasis">En attente confirmation UP</span>
+                                    @else
+                                        <span class="status-chip bg-light text-secondary">Non confirme UP</span>
+                                    @endif
+                                </div>
+                                @if ($report->resolution_confirmed_at)
+                                    <div class="small text-secondary mt-1">Confirmation : {{ $report->resolution_confirmed_at?->format('d/m/Y H:i') }}</div>
+                                @endif
                             </td>
                             <td>
                                 <div class="fw-semibold">{{ trim(($report->publicUser?->first_name ?? '').' '.($report->publicUser?->last_name ?? '')) ?: '-' }}</div>

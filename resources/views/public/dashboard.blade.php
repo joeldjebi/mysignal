@@ -5821,6 +5821,10 @@
                         return 'Signalement non retenu';
                     }
 
+                    if (report.resolution_confirmation?.can_confirm) {
+                        return 'Confirmation possible';
+                    }
+
                     return 'Traitement en cours';
                 }
 
@@ -5851,6 +5855,10 @@
 
                     if (report.status === 'rejected') {
                         return report.official_response || 'L’institution n’a pas retenu ce signalement.';
+                    }
+
+                    if (report.resolution_confirmation?.can_confirm) {
+                        return 'Si le problème est déjà résolu sur le terrain, tu peux confirmer la résolution sans attendre la validation institutionnelle.';
                     }
 
                     return 'Ton signalement est toujours en cours de traitement par l’institution.';
