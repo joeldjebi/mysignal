@@ -158,6 +158,7 @@ class PublicIncidentReportController extends Controller
         $isValidatedByAi = $report->status === IncidentReportStatus::Resolved->value && $report->resolved_at !== null;
 
         $report->update([
+            'status' => IncidentReportStatus::Resolved->value,
             'resolution_confirmation_status' => 'confirmed',
             'resolution_confirmed_at' => now(),
             'resolution_confirmed_without_ai_validation' => ! $isValidatedByAi,
