@@ -388,6 +388,14 @@ class SignalTypeController extends Controller
             $request
         );
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Le type de signal a ete supprime.',
+                'deleted_id' => $signalType->id,
+            ]);
+        }
+
         return redirect()->route('super-admin.signal-types.index')
             ->with('success', 'Le type de signal a ete supprime.');
     }

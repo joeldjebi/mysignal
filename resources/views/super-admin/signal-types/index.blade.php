@@ -136,7 +136,7 @@
                         </thead>
                         <tbody>
                             @forelse ($signalTypes as $signalType)
-                                <tr>
+                                <tr data-signal-type-row="{{ $signalType->id }}">
                                     <td class="bulk-check-cell">
                                         <input
                                             class="form-check-input signal-type-bulk-checkbox"
@@ -171,7 +171,7 @@
                                                 @method('PATCH')
                                                 <button class="btn btn-sm btn-outline-warning">{{ $signalType->status === 'active' ? 'Desactiver' : 'Activer' }}</button>
                                             </form>
-                                            <form method="POST" action="{{ route('super-admin.signal-types.destroy', $signalType) }}">
+                                            <form method="POST" action="{{ route('super-admin.signal-types.destroy', $signalType) }}" class="ajax-delete-signal-type-form" data-signal-type-id="{{ $signalType->id }}">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button class="btn btn-sm btn-outline-danger">Supprimer</button>
@@ -304,9 +304,11 @@
             const bulkCheckboxes = Array.from(document.querySelectorAll('.signal-type-bulk-checkbox'));
             const bulkDeleteButton = document.getElementById('bulkDeleteSignalTypesButton');
             const selectAllCheckbox = document.getElementById('selectAllSignalTypesOnPage');
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
             const updateBulkDeleteState = () => {
-                const checkedCount = bulkCheckboxes.filter((checkbox) => checkbox.checked).length;
+                const activeCheckboxes = bulkCheckboxes.filter((checkbox) => checkbox.isConnected);
+                const checkedCount = activeCheckboxes.filter((checkbox) => checkbox.checked).length;
 
                 if (bulkDeleteButton) {
                     bulkDeleteButton.disabled = checkedCount === 0;
@@ -316,8 +318,18 @@
                 }
 
                 if (selectAllCheckbox) {
-                    selectAllCheckbox.checked = checkedCount > 0 && checkedCount === bulkCheckboxes.length;
-                    selectAllCheckbox.indeterminate = checkedCount > 0 && checkedCount < bulkCheckboxes.length;
+                    selectAllCheckbox.disabled = activeCheckboxes.length === 0;
+                    selectAllCheckbox.checked = checkedCount > 0 && checkedCount === activeCheckboxes.length;
+                    selectAllCheckbox.indeterminate = checkedCount > 0 && checkedCount < activeCheckboxes.length;
+                }
+            };
+
+            const ensureEmptySignalTypeRow = () => {
+                const tbody = document.querySelector('.table-modern tbody');
+                const remainingRows = tbody ? tbody.querySelectorAll('tr[data-signal-type-row]').length : 0;
+
+                if (tbody && remainingRows === 0 && !tbody.querySelector('[data-signal-type-empty-row]')) {
+                    tbody.innerHTML = '<tr data-signal-type-empty-row><td colspan="7" class="text-center text-secondary">Aucun type de signal enregistre.</td></tr>';
                 }
             };
 
@@ -325,12 +337,57 @@
                 checkbox.addEventListener('change', updateBulkDeleteState);
             });
             selectAllCheckbox?.addEventListener('change', () => {
-                bulkCheckboxes.forEach((checkbox) => {
+                bulkCheckboxes.filter((checkbox) => checkbox.isConnected).forEach((checkbox) => {
                     checkbox.checked = selectAllCheckbox.checked;
                 });
                 updateBulkDeleteState();
             });
             updateBulkDeleteState();
+
+            document.querySelectorAll('.ajax-delete-signal-type-form').forEach((form) => {
+                form.addEventListener('submit', async (event) => {
+                    event.preventDefault();
+
+                    if (!confirm('Supprimer ce type de signal ? Cette action est irreversible.')) {
+                        return;
+                    }
+
+                    const button = form.querySelector('button[type="submit"], button:not([type])');
+                    const originalText = button?.textContent || 'Supprimer';
+
+                    if (button) {
+                        button.disabled = true;
+                        button.textContent = 'Suppression...';
+                    }
+
+                    try {
+                        const response = await fetch(form.action, {
+                            method: 'DELETE',
+                            headers: {
+                                Accept: 'application/json',
+                                'X-CSRF-TOKEN': csrfToken,
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('delete_failed');
+                        }
+
+                        const row = form.closest('tr[data-signal-type-row]');
+                        row?.remove();
+                        updateBulkDeleteState();
+                        ensureEmptySignalTypeRow();
+                    } catch (error) {
+                        alert('La suppression a echoue. Veuillez reessayer.');
+
+                        if (button) {
+                            button.disabled = false;
+                            button.textContent = originalText;
+                        }
+                    }
+                });
+            });
 
             const organizationsByApplication = @json($organizationsByApplicationPayload);
             const oldCreateOrganizationIds = @json(! old('import_form') ? collect(old('organization_ids', []))->map(fn ($id) => (string) $id)->values() : collect());
