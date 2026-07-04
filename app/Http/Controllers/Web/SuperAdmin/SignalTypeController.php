@@ -8,6 +8,7 @@ use App\Models\Organization;
 use App\Models\SignalSubType;
 use App\Models\SignalType;
 use App\Support\Audit\ActivityLogger;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -375,7 +376,7 @@ class SignalTypeController extends Controller
             ->with('success', 'Le type de signal a ete mis a jour.');
     }
 
-    public function destroy(Request $request, SignalType $signalType, ActivityLogger $activityLogger): RedirectResponse
+    public function destroy(Request $request, SignalType $signalType, ActivityLogger $activityLogger): RedirectResponse|JsonResponse
     {
         $snapshot = $signalType->only(['id', 'code', 'label', 'application_id', 'organization_id', 'status']);
         $signalType->delete();
@@ -422,7 +423,7 @@ class SignalTypeController extends Controller
     {
         $attributes = $request->validate([
             'signal_type_ids' => ['required', 'array', 'min:1'],
-            'signal_type_ids.*' => ['integer', 'exists:signal_types,id'],
+            'signal_type_ids.*' => ['integer'],
         ]);
 
         $ids = collect($attributes['signal_type_ids'])
@@ -430,14 +431,26 @@ class SignalTypeController extends Controller
             ->unique()
             ->values();
 
-        $snapshots = SignalType::query()
+        $existingIds = SignalType::query()
             ->whereIn('id', $ids)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->values();
+
+        if ($existingIds->isEmpty()) {
+            throw ValidationException::withMessages([
+                'signal_type_ids' => ['Selectionnez au moins un type de signal valide.'],
+            ]);
+        }
+
+        $snapshots = SignalType::query()
+            ->whereIn('id', $existingIds)
             ->get(['id', 'code', 'label', 'application_id', 'organization_id', 'status'])
             ->map(fn (SignalType $signalType) => $signalType->toArray())
             ->all();
 
         $count = SignalType::query()
-            ->whereIn('id', $ids)
+            ->whereIn('id', $existingIds)
             ->delete();
 
         $activityLogger->log(
