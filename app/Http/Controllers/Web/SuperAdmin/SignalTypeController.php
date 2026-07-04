@@ -410,6 +410,43 @@ class SignalTypeController extends Controller
             ->with('success', "{$count} type(s) de signal supprime(s).");
     }
 
+    public function destroySelected(Request $request, ActivityLogger $activityLogger): RedirectResponse
+    {
+        $attributes = $request->validate([
+            'signal_type_ids' => ['required', 'array', 'min:1'],
+            'signal_type_ids.*' => ['integer', 'exists:signal_types,id'],
+        ]);
+
+        $ids = collect($attributes['signal_type_ids'])
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+
+        $snapshots = SignalType::query()
+            ->whereIn('id', $ids)
+            ->get(['id', 'code', 'label', 'application_id', 'organization_id', 'status'])
+            ->map(fn (SignalType $signalType) => $signalType->toArray())
+            ->all();
+
+        $count = SignalType::query()
+            ->whereIn('id', $ids)
+            ->delete();
+
+        $activityLogger->log(
+            'signal_type.bulk_deleted',
+            'Suppression groupée de types de signal.',
+            SignalType::class,
+            [
+                'deleted_count' => $count,
+                'items' => $snapshots,
+            ],
+            $request
+        );
+
+        return redirect()->route('super-admin.signal-types.index')
+            ->with('success', "{$count} type(s) de signal selectionne(s) supprime(s).");
+    }
+
     public function toggleStatus(Request $request, SignalType $signalType, ActivityLogger $activityLogger): RedirectResponse
     {
         $signalType->update([

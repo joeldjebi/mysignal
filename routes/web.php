@@ -375,6 +375,7 @@ Route::prefix('sa')->name('super-admin.')->group(function (): void {
         Route::post('signal-types/import', [SignalTypeController::class, 'import'])->middleware('super_admin_permission:SA_SIGNAL_TYPES_CREATE,SA_SIGNAL_TYPES_MANAGE')->name('signal-types.import');
         Route::get('signal-types/import-template', [SignalTypeController::class, 'downloadImportTemplate'])->middleware('super_admin_permission:SA_SIGNAL_TYPES_VIEW,SA_SIGNAL_TYPES_MANAGE')->name('signal-types.import-template');
         Route::delete('signal-types/clear', [SignalTypeController::class, 'destroyAll'])->middleware('super_admin_permission:SA_SIGNAL_TYPES_DELETE,SA_SIGNAL_TYPES_MANAGE')->name('signal-types.clear');
+        Route::delete('signal-types/selected', [SignalTypeController::class, 'destroySelected'])->middleware('super_admin_permission:SA_SIGNAL_TYPES_DELETE,SA_SIGNAL_TYPES_MANAGE')->name('signal-types.destroy-selected');
         Route::get('signal-types/{signalType}/edit', [SignalTypeController::class, 'edit'])->middleware('super_admin_permission:SA_SIGNAL_TYPES_UPDATE,SA_SIGNAL_TYPES_MANAGE')->name('signal-types.edit');
         Route::put('signal-types/{signalType}', [SignalTypeController::class, 'update'])->middleware('super_admin_permission:SA_SIGNAL_TYPES_UPDATE,SA_SIGNAL_TYPES_MANAGE')->name('signal-types.update');
         Route::delete('signal-types/{signalType}', [SignalTypeController::class, 'destroy'])->middleware('super_admin_permission:SA_SIGNAL_TYPES_DELETE,SA_SIGNAL_TYPES_MANAGE')->name('signal-types.destroy');

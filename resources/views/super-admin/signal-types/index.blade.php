@@ -58,6 +58,9 @@
         .institution-picker-option .form-check-input {
             margin-top: .2rem;
         }
+        .bulk-check-cell {
+            width: 44px;
+        }
     </style>
     <section class="panel-card">
         <div class="fw-bold mb-3">Catalogue des signaux</div>
@@ -102,12 +105,27 @@
                 </form>
                 <div class="table-toolbar">
                     <div class="table-meta">{{ $signalTypes->total() }} resultat{{ $signalTypes->total() > 1 ? 's' : '' }}</div>
-                    <a href="{{ route('super-admin.signal-types.index') }}" class="btn btn-outline-secondary btn-sm">RAZ</a>
+                    <div class="d-flex flex-wrap gap-2">
+                        <form
+                            method="POST"
+                            action="{{ route('super-admin.signal-types.destroy-selected') }}"
+                            id="bulkDeleteSignalTypesForm"
+                            onsubmit="return confirm('Supprimer les types de signaux selectionnes ? Cette action est irreversible.');"
+                        >
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-outline-danger btn-sm" id="bulkDeleteSignalTypesButton" disabled>Supprimer la sélection</button>
+                        </form>
+                        <a href="{{ route('super-admin.signal-types.index') }}" class="btn btn-outline-secondary btn-sm">RAZ</a>
+                    </div>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-modern align-middle">
                         <thead>
                             <tr>
+                                <th class="bulk-check-cell">
+                                    <input class="form-check-input" type="checkbox" id="selectAllSignalTypesOnPage" @disabled($signalTypes->count() === 0)>
+                                </th>
                                 <th>Catégorie</th>
                                 <th>Institution concernée</th>
                                 <th>Signal</th>
@@ -119,6 +137,15 @@
                         <tbody>
                             @forelse ($signalTypes as $signalType)
                                 <tr>
+                                    <td class="bulk-check-cell">
+                                        <input
+                                            class="form-check-input signal-type-bulk-checkbox"
+                                            type="checkbox"
+                                            name="signal_type_ids[]"
+                                            value="{{ $signalType->id }}"
+                                            form="bulkDeleteSignalTypesForm"
+                                        >
+                                    </td>
                                     <td>{{ $signalType->application?->name ?: '-' }}</td>
                                     <td>
                                         @php
@@ -153,7 +180,7 @@
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="6" class="text-center text-secondary">Aucun type de signal enregistre.</td></tr>
+                                <tr><td colspan="7" class="text-center text-secondary">Aucun type de signal enregistre.</td></tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -274,6 +301,37 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            const bulkCheckboxes = Array.from(document.querySelectorAll('.signal-type-bulk-checkbox'));
+            const bulkDeleteButton = document.getElementById('bulkDeleteSignalTypesButton');
+            const selectAllCheckbox = document.getElementById('selectAllSignalTypesOnPage');
+
+            const updateBulkDeleteState = () => {
+                const checkedCount = bulkCheckboxes.filter((checkbox) => checkbox.checked).length;
+
+                if (bulkDeleteButton) {
+                    bulkDeleteButton.disabled = checkedCount === 0;
+                    bulkDeleteButton.textContent = checkedCount > 0
+                        ? `Supprimer la sélection (${checkedCount})`
+                        : 'Supprimer la sélection';
+                }
+
+                if (selectAllCheckbox) {
+                    selectAllCheckbox.checked = checkedCount > 0 && checkedCount === bulkCheckboxes.length;
+                    selectAllCheckbox.indeterminate = checkedCount > 0 && checkedCount < bulkCheckboxes.length;
+                }
+            };
+
+            bulkCheckboxes.forEach((checkbox) => {
+                checkbox.addEventListener('change', updateBulkDeleteState);
+            });
+            selectAllCheckbox?.addEventListener('change', () => {
+                bulkCheckboxes.forEach((checkbox) => {
+                    checkbox.checked = selectAllCheckbox.checked;
+                });
+                updateBulkDeleteState();
+            });
+            updateBulkDeleteState();
+
             const organizationsByApplication = @json($organizationsByApplicationPayload);
             const oldCreateOrganizationIds = @json(! old('import_form') ? collect(old('organization_ids', []))->map(fn ($id) => (string) $id)->values() : collect());
             const oldImportOrganizationIds = @json(old('import_form') ? collect(old('organization_ids', []))->map(fn ($id) => (string) $id)->values() : collect());
