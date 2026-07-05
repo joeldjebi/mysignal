@@ -322,6 +322,12 @@ class SignalTypeController extends Controller
             $query->where('signal_type_id', request('signal_type_id'));
         }
 
+        if (filled(request('application_id'))) {
+            $query->whereHas('signalType', function ($signalTypeQuery): void {
+                $signalTypeQuery->where('application_id', request('application_id'));
+            });
+        }
+
         if (filled(request('status'))) {
             $query->where('status', request('status'));
         }
@@ -342,6 +348,11 @@ class SignalTypeController extends Controller
                 ->orderBy('application_id')
                 ->orderBy('organization_id')
                 ->orderBy('code')
+                ->get(),
+            'applications' => Application::query()
+                ->where('status', 'active')
+                ->orderBy('sort_order')
+                ->orderBy('name')
                 ->get(),
         ]);
     }

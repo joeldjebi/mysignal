@@ -50,9 +50,18 @@
                 <div class="fw-bold mb-3">Liste des sous-types</div>
                 <form method="GET" class="filter-bar">
                     <div class="row g-2 align-items-end">
-                        <div class="col-md-5">
+                        <div class="col-md-4">
                             <label class="form-label small text-secondary">Recherche</label>
                             <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Code, libelle, type de signal">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small text-secondary">Catégorie</label>
+                            <select name="application_id" class="form-select">
+                                <option value="">Toutes</option>
+                                @foreach ($applications as $application)
+                                    <option value="{{ $application->id }}" @selected((string) request('application_id') === (string) $application->id)>{{ $application->name }}</option>
+                                @endforeach
+                            </select>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label small text-secondary">Type de signal</label>
