@@ -56,7 +56,7 @@
                         </div>
                         <div class="col-md-3">
                             <label class="form-label small text-secondary">Catégorie</label>
-                            <select name="application_id" class="form-select">
+                            <select name="application_id" class="form-select" id="signalSubTypesApplicationFilter">
                                 <option value="">Toutes</option>
                                 @foreach ($applications as $application)
                                     <option value="{{ $application->id }}" @selected((string) request('application_id') === (string) $application->id)>{{ $application->name }}</option>
@@ -65,10 +65,16 @@
                         </div>
                         <div class="col-md-4">
                             <label class="form-label small text-secondary">Type de signal</label>
-                            <select name="signal_type_id" class="form-select">
+                            <select name="signal_type_id" class="form-select" id="signalSubTypesSignalTypeFilter">
                                 <option value="">Tous</option>
                                 @foreach ($signalTypes as $signalType)
-                                    <option value="{{ $signalType->id }}" @selected((string) request('signal_type_id') === (string) $signalType->id)>{{ $signalType->code }} - {{ $signalType->label }}</option>
+                                    <option
+                                        value="{{ $signalType->id }}"
+                                        data-application-id="{{ $signalType->application_id }}"
+                                        @selected((string) request('signal_type_id') === (string) $signalType->id)
+                                    >
+                                        {{ $signalType->code }} - {{ $signalType->label }}
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
@@ -226,29 +232,55 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            const listCategoryFilter = document.getElementById('signalSubTypesApplicationFilter');
+            const listSignalTypeFilter = document.getElementById('signalSubTypesSignalTypeFilter');
             const categoryFilter = document.getElementById('importSignalSubTypesApplicationFilter');
             const options = Array.from(document.querySelectorAll('[data-signal-type-option]'));
             const emptyState = document.getElementById('importSignalSubTypesEmptyState');
 
-            if (!categoryFilter || options.length === 0) {
-                return;
+            if (listCategoryFilter && listSignalTypeFilter) {
+                const signalTypeOptions = Array.from(listSignalTypeFilter.options).filter((option) => option.value !== '');
+
+                const applyListSignalTypeFilter = () => {
+                    const applicationId = listCategoryFilter.value;
+                    let selectedOptionIsVisible = listSignalTypeFilter.value === '';
+
+                    signalTypeOptions.forEach((option) => {
+                        const isVisible = applicationId === '' || option.dataset.applicationId === applicationId;
+                        option.hidden = !isVisible;
+                        option.disabled = !isVisible;
+
+                        if (option.selected && isVisible) {
+                            selectedOptionIsVisible = true;
+                        }
+                    });
+
+                    if (!selectedOptionIsVisible) {
+                        listSignalTypeFilter.value = '';
+                    }
+                };
+
+                listCategoryFilter.addEventListener('change', applyListSignalTypeFilter);
+                applyListSignalTypeFilter();
             }
 
-            const applyImportSignalTypeFilter = () => {
-                const applicationId = categoryFilter.value;
-                let visibleCount = 0;
+            if (categoryFilter && options.length > 0) {
+                const applyImportSignalTypeFilter = () => {
+                    const applicationId = categoryFilter.value;
+                    let visibleCount = 0;
 
-                options.forEach((option) => {
-                    const isVisible = applicationId === '' || option.dataset.applicationId === applicationId;
-                    option.classList.toggle('d-none', !isVisible);
-                    visibleCount += isVisible ? 1 : 0;
-                });
+                    options.forEach((option) => {
+                        const isVisible = applicationId === '' || option.dataset.applicationId === applicationId;
+                        option.classList.toggle('d-none', !isVisible);
+                        visibleCount += isVisible ? 1 : 0;
+                    });
 
-                emptyState?.classList.toggle('d-none', visibleCount > 0);
-            };
+                    emptyState?.classList.toggle('d-none', visibleCount > 0);
+                };
 
-            categoryFilter.addEventListener('change', applyImportSignalTypeFilter);
-            applyImportSignalTypeFilter();
+                categoryFilter.addEventListener('change', applyImportSignalTypeFilter);
+                applyImportSignalTypeFilter();
+            }
         });
     </script>
 
