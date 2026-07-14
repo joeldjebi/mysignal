@@ -95,6 +95,8 @@ Ces endpoints servent a alimenter :
 - secteurs d activite pour les profils UPE/UPTI
 - types de signaux
 
+`GET /v1/public/applications` retourne les categories dans l ordre d affichage configure par le SA (`sort_order`, puis `name`). Chaque categorie expose aussi `identifier_label`, a utiliser comme libelle du champ identifiant quand `requires_public_user_identifier` vaut `true` : par exemple `Identifiant`, `Police d'assurance`, etc.
+
 ### 2. OTP et creation de compte
 - `POST /v1/public/auth/request-otp`
 - `POST /v1/public/auth/verify-otp`
@@ -524,7 +526,7 @@ Payload attendu sans fichier :
 
 | Champ | Obligatoire | Description |
 | --- | --- | --- |
-| `meter_id` | conditionnel | Identifiant rattache au UP. Obligatoire si la catégorie retourne `requires_public_user_identifier: true`. |
+| `meter_id` | conditionnel | Identifiant rattache au UP. Obligatoire si la catégorie retourne `requires_public_user_identifier: true`. Afficher le libelle retourne dans `identifier_label`. |
 | `application_id` | conditionnel | Catégorie concernée. Requis si `meter_id` n est pas envoye. |
 | `organization_type_id` | conditionnel | Sous Catégorie concernée, anciennement Type d organisation. Obligatoire si la catégorie retourne `requires_organization_type_on_report: true` et si `meter_id` n est pas envoye. |
 | `organization_id` | conditionnel | Institution concernée. Requise quand le parcours UP demande une institution ou pour filtrer les types de signaux institutionnels. |

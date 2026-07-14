@@ -1931,9 +1931,9 @@
                                 <div class="location-search-hint">Choisissez d’abord la catégorie, puis l’institution concernée, pour afficher uniquement les identifiants et types de signal compatibles.</div>
                             </div>
                             <div class="col-md-4" id="reportMeterFieldWrap">
-                                <label class="form-label fw-semibold">identifiant<span class="required-star">*</span></label>
+                                <label class="form-label fw-semibold"><span id="reportMeterFieldLabel">Identifiant</span><span class="required-star">*</span></label>
                                 <div class="select-search-shell">
-                                    <input class="form-control select-search-input" style="display:block;width:100%;" type="search" data-search-select-target="reportMeterId" autocomplete="off" placeholder="Rechercher un identifiant">
+                                    <input class="form-control select-search-input" style="display:block;width:100%;" type="search" data-search-select-target="reportMeterId" autocomplete="off" placeholder="Rechercher un identifiant" id="reportMeterSearchInput">
                                     <button class="select-search-toggle" type="button" data-search-toggle-target="reportMeterId" aria-label="Afficher les options"></button>
                                 </div>
                                 <div class="select-search-help">Champ de sélection avec recherche.</div>
@@ -3539,16 +3539,27 @@
                     const noMeterHint = document.getElementById('reportNoMeterHint');
                     const locationHelp = document.getElementById('reportLocationHelp');
                     const requiresIdentifier = reportRequiresIdentifier();
+                    const identifierLabel = getSelectedReportApplication()?.identifier_label || 'Identifiant';
+                    const meterFieldLabel = document.getElementById('reportMeterFieldLabel');
+                    const meterSearchInput = document.getElementById('reportMeterSearchInput');
+
+                    if (meterFieldLabel) {
+                        meterFieldLabel.textContent = identifierLabel;
+                    }
+
+                    if (meterSearchInput) {
+                        meterSearchInput.placeholder = `Rechercher: ${identifierLabel.toLocaleLowerCase()}`;
+                    }
 
                     meterWrap.classList.toggle('d-none', !requiresIdentifier);
                     meterSelect.required = requiresIdentifier;
                     meterSelect.disabled = !requiresIdentifier;
                     locationHelp.textContent = requiresIdentifier
-                        ? 'Le pays, la ville, la commune et l’adresse sont récupérés automatiquement à partir de l’identifiant sélectionné.'
+                        ? `Le pays, la ville, la commune et l’adresse sont récupérés automatiquement à partir de la valeur sélectionnée dans ${identifierLabel.toLocaleLowerCase()}.`
                         : 'Le pays, la ville, la commune et l’adresse sont récupérés automatiquement à partir de votre profil.';
 
                     if (!requiresIdentifier) {
-                        meterSelect.innerHTML = '<option value="">Aucun identifiant requis</option>';
+                        meterSelect.innerHTML = `<option value="">Aucune valeur requise pour ${escapeHtml(identifierLabel.toLocaleLowerCase())}</option>`;
                         meterSelect.value = '';
                         noMeterHint.classList.add('d-none');
                         if (document.getElementById('reportLocationSource').value === 'meter_location') {
@@ -3567,7 +3578,7 @@
 
                     meterSelect.innerHTML = filteredMeters.length
                         ? filteredMeters.map((meter) => `<option value="${meter.id}">${meter.organization_name || meter.network_type} · ${meter.meter_number}${meter.label ? ' · ' + meter.label : ''} · ${meter.assignment_label || 'Compteur personnel'}</option>`).join('')
-                        : '<option value="">Aucun identifiant disponible</option>';
+                        : `<option value="">Aucune valeur disponible pour ${escapeHtml(identifierLabel.toLocaleLowerCase())}</option>`;
 
                     meterSelect.disabled = filteredMeters.length === 0;
                     noMeterHint.classList.toggle('d-none', filteredMeters.length > 0);

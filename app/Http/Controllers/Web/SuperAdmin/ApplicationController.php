@@ -26,6 +26,7 @@ class ApplicationController extends Controller
                 $builder->where('code', 'like', '%'.$search.'%')
                     ->orWhere('name', 'like', '%'.$search.'%')
                     ->orWhere('slug', 'like', '%'.$search.'%')
+                    ->orWhere('identifier_label', 'like', '%'.$search.'%')
                     ->orWhere('tagline', 'like', '%'.$search.'%');
             });
         }
@@ -157,7 +158,9 @@ class ApplicationController extends Controller
             'primary_color' => ['nullable', 'string', 'max:20'],
             'secondary_color' => ['nullable', 'string', 'max:20'],
             'accent_color' => ['nullable', 'string', 'max:20'],
+            'sort_order' => ['nullable', 'integer', 'min:1', 'max:999'],
             'requires_public_user_identifier' => ['nullable', 'boolean'],
+            'identifier_label' => ['nullable', 'string', 'max:120'],
             'requires_organization_type_on_report' => ['nullable', 'boolean'],
             'feature_ids' => ['nullable', 'array'],
             'feature_ids.*' => ['integer', 'exists:features,id'],
@@ -216,8 +219,9 @@ class ApplicationController extends Controller
             'primary_color' => $attributes['primary_color'] ?? null,
             'secondary_color' => $attributes['secondary_color'] ?? null,
             'accent_color' => $attributes['accent_color'] ?? null,
-            'sort_order' => $application?->sort_order ?? $this->nextSortOrder(),
+            'sort_order' => $attributes['sort_order'] ?? ($application?->sort_order ?? $this->nextSortOrder()),
             'requires_public_user_identifier' => (bool) ($attributes['requires_public_user_identifier'] ?? false),
+            'identifier_label' => ($attributes['identifier_label'] ?? null) ?: 'Identifiant',
             'requires_organization_type_on_report' => (bool) ($attributes['requires_organization_type_on_report'] ?? false),
             'status' => $application?->status ?? 'active',
         ], $attributes['feature_ids'] ?? []];

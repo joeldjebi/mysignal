@@ -22,6 +22,7 @@ class ApplicationResource extends JsonResource
             'accent_color' => $this->accent_color,
             'sort_order' => $this->sort_order,
             'requires_public_user_identifier' => (bool) $this->requires_public_user_identifier,
+            'identifier_label' => $this->identifier_label ?: 'Identifiant',
             'requires_organization_type_on_report' => (bool) $this->requires_organization_type_on_report,
             'organization_types' => $this->whenLoaded('organizations', function () {
                 return $this->organizations

@@ -28,6 +28,7 @@ class Application extends Model
         'status',
         'sort_order',
         'requires_public_user_identifier',
+        'identifier_label',
         'requires_organization_type_on_report',
     ];
 

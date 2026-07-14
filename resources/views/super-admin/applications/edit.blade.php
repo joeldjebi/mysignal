@@ -78,6 +78,7 @@
                     <span class="status-chip">{{ $application->status }}</span>
                     <span class="status-chip">Ordre {{ $application->sort_order }}</span>
                     <span class="status-chip">{{ $application->requires_public_user_identifier ? 'Identifiant UP requis' : 'Identifiant UP facultatif' }}</span>
+                    <span class="status-chip">{{ $application->identifier_label ?: 'Identifiant' }}</span>
                     <span class="status-chip">{{ $application->requires_organization_type_on_report ? 'Type d organisation requis' : 'Type d organisation masque' }}</span>
                 </div>
                 <div class="text-secondary small mb-4">{{ $application->tagline ?: 'Aucun slogan renseigne.' }}</div>
@@ -123,12 +124,21 @@
                         </select>
                     </div>
                     <div class="col-md-4">
+                        <label class="form-label">Libellé identifiant</label>
+                        <input type="text" name="identifier_label" value="{{ old('identifier_label', $application->identifier_label ?: 'Identifiant') }}" class="form-control" placeholder="Identifiant, Police d'assurance">
+                        <div class="small text-secondary mt-2">Libellé affiché au UP quand la catégorie demande un identifiant.</div>
+                    </div>
+                    <div class="col-md-4">
                         <label class="form-label">Sous Catégorie au signalement</label>
                         <select name="requires_organization_type_on_report" class="form-select">
                             <option value="0" @selected(! old('requires_organization_type_on_report', $application->requires_organization_type_on_report))>Ne pas afficher</option>
                             <option value="1" @selected(old('requires_organization_type_on_report', $application->requires_organization_type_on_report))>Afficher et rendre obligatoire</option>
                         </select>
                         <div class="small text-secondary mt-2">Chez le UP, ce choix filtre les institutions par sous catégorie selectionnee.</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Ordre d'affichage</label>
+                        <input type="number" min="1" max="999" name="sort_order" value="{{ old('sort_order', $application->sort_order) }}" class="form-control">
                     </div>
                     <div class="col-12">
                         <label class="form-label">Description courte</label>

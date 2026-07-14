@@ -162,7 +162,7 @@
             <div class="row g-2 align-items-end">
                 <div class="col-md-7">
                     <label class="form-label small text-secondary">Recherche</label>
-                    <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Nom, code, slug, slogan">
+                    <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Nom, code, slug, libellé identifiant">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label small text-secondary">Statut</label>
@@ -223,6 +223,7 @@
                         <div class="app-admin-label">Parametre UP</div>
                         <div class="mb-3">
                             <span class="status-chip">{{ $application->requires_public_user_identifier ? 'Identifiant UP requis' : 'Identifiant UP facultatif' }}</span>
+                            <span class="status-chip">{{ $application->identifier_label ?: 'Identifiant' }}</span>
                             <span class="status-chip">{{ $application->requires_organization_type_on_report ? 'Type d organisation requis' : 'Type d organisation masque' }}</span>
                         </div>
 
@@ -280,22 +281,31 @@
                         @csrf
                         <div class="col-md-4">
                             <label class="form-label">Nom<span class="required-star">*</span></label>
-                            <input type="text" name="name" class="form-control" placeholder="MON NRJ" required>
+                            <input type="text" name="name" value="{{ old('name') }}" class="form-control" placeholder="MON NRJ" required>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Identifiant UP</label>
                             <select name="requires_public_user_identifier" class="form-select">
-                                <option value="0" selected>Facultatif</option>
-                                <option value="1">Obligatoire</option>
+                                <option value="0" @selected(old('requires_public_user_identifier', '0') === '0')>Facultatif</option>
+                                <option value="1" @selected(old('requires_public_user_identifier') === '1')>Obligatoire</option>
                             </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Libellé identifiant</label>
+                            <input type="text" name="identifier_label" value="{{ old('identifier_label', 'Identifiant') }}" class="form-control" placeholder="Identifiant, Police d'assurance">
+                            <div class="small text-secondary mt-2">Libellé affiché au UP quand la catégorie demande un identifiant.</div>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Sous Catégorie au signalement</label>
                             <select name="requires_organization_type_on_report" class="form-select">
-                                <option value="0" selected>Ne pas afficher</option>
-                                <option value="1">Afficher et rendre obligatoire</option>
+                                <option value="0" @selected(old('requires_organization_type_on_report', '0') === '0')>Ne pas afficher</option>
+                                <option value="1" @selected(old('requires_organization_type_on_report') === '1')>Afficher et rendre obligatoire</option>
                             </select>
                             <div class="small text-secondary mt-2">Chez le UP, ce choix affiche la sous catégorie avant l'institution concernee.</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Ordre d'affichage</label>
+                            <input type="number" min="1" max="999" name="sort_order" value="{{ old('sort_order') }}" class="form-control" placeholder="Automatique">
                         </div>
                         <div class="col-12">
                             <label class="form-label">Description courte</label>

@@ -20,6 +20,7 @@ class OrganizationResource extends JsonResource
                 'code' => $this->application?->code,
                 'name' => $this->application?->name,
                 'requires_public_user_identifier' => (bool) $this->application?->requires_public_user_identifier,
+                'identifier_label' => $this->application?->identifier_label ?: 'Identifiant',
                 'requires_organization_type_on_report' => (bool) $this->application?->requires_organization_type_on_report,
             ]),
             'organization_type' => $this->whenLoaded('organizationType', fn () => [

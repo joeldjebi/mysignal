@@ -287,6 +287,7 @@ class PublicPortalController extends Controller
                     'name' => $application->name,
                     'network_type' => $networkType,
                     'requires_public_user_identifier' => (bool) $application->requires_public_user_identifier,
+                    'identifier_label' => $application->identifier_label ?: 'Identifiant',
                     'requires_organization_type_on_report' => (bool) $application->requires_organization_type_on_report,
                     'organization_types' => $application->organizations
                         ->pluck('organizationType')
