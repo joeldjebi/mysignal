@@ -115,6 +115,8 @@ class RoleSeeder extends Seeder
                     'PARTNER_ACCESS_PORTAL',
                     'PARTNER_DASHBOARD_VIEW',
                     'PARTNER_DISCOUNT_HISTORY_VIEW',
+                    'PARTNER_USERS_MANAGE',
+                    'PARTNER_USERS_CREATE',
                 ],
             ],
             [

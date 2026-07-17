@@ -42,8 +42,16 @@ class SystemUserController extends Controller
             $query->whereHas('roles', fn ($builder) => $builder->where('roles.id', $roleId));
         }
 
+        $systemUsers = $query->latest()->paginate(12)->withQueryString();
+        $systemUsers->getCollection()->each(function (User $systemUser): void {
+            $portal = $this->loginPortalFor($systemUser);
+
+            $systemUser->setAttribute('login_portal_url', $portal['url']);
+            $systemUser->setAttribute('login_portal_label', $portal['label']);
+        });
+
         return view('super-admin.system-users.index', [
-            'systemUsers' => $query->latest()->paginate(12)->withQueryString(),
+            'systemUsers' => $systemUsers,
             'roles' => Role::query()->whereNull('organization_id')->where('status', 'active')->orderBy('name')->get(),
             'visibleActivityUsers' => User::query()->whereNull('organization_id')->where('is_super_admin', false)->orderBy('name')->get(['id', 'name', 'email']),
         ]);
@@ -237,6 +245,40 @@ class SystemUserController extends Controller
     private function abortIfNotManageable(User $user): void
     {
         abort_if($user->is_super_admin || $user->organization_id !== null, 404);
+    }
+
+    private function loginPortalFor(User $user): array
+    {
+        $user->loadMissing(['roles.permissions']);
+
+        $permissions = $user->roles
+            ->flatMap(fn (Role $role) => $role->permissions)
+            ->unique('id');
+
+        $codes = $permissions->pluck('code');
+        $scopes = $permissions->pluck('profile_scope')->filter();
+
+        if ($codes->contains(fn (string $code) => str_starts_with($code, 'PARTNER_')) || $scopes->contains('partner')) {
+            return ['url' => route('partner.login'), 'label' => 'Login partenaire'];
+        }
+
+        if ($codes->contains(fn (string $code) => str_starts_with($code, 'INSTITUTION_')) || $scopes->contains('institution')) {
+            return ['url' => route('institution.login'), 'label' => 'Login institution'];
+        }
+
+        if (
+            $codes->contains('SA_ACCESS_PORTAL')
+            || $codes->contains(fn (string $code) => str_starts_with($code, 'BO_'))
+            || $scopes->intersect(['backoffice', 'huissier', 'aoda', 'avocat'])->isNotEmpty()
+        ) {
+            return ['url' => route('backoffice.login'), 'label' => 'Login backoffice'];
+        }
+
+        if ($codes->contains(fn (string $code) => str_starts_with($code, 'SA_')) || $scopes->contains('super_admin')) {
+            return ['url' => route('super-admin.login'), 'label' => 'Login SA'];
+        }
+
+        return ['url' => route('backoffice.login'), 'label' => 'Login backoffice'];
     }
 
     private function abortIfProfileAccessIsNotManageable(User $user): void

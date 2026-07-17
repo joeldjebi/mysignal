@@ -1,20 +1,22 @@
 @extends('partner.layouts.app')
 
 @section('title', config('app.name').' | Users partenaire')
-@section('page-title', 'Users partenaire')
-@section('page-description', 'Creez les admins, managers et agents mobiles qui accedent a l application de reduction.')
+@section('page-title', 'Utilisateurs partenaire')
+@section('page-description', 'Creez les admins, managers et agents de scan qui accedent a l application mobile partenaire.')
 
 @section('header-badges')
-    <span class="badge-soft">{{ $users->total() }} users</span>
+    <span class="badge-soft">{{ $users->total() }} utilisateurs</span>
     <span class="badge-soft">{{ $roles->count() }} roles</span>
-    <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#createUserModal">
-        Nouveau user
-    </button>
+    @if ($authorization['canCreateUsers'])
+        <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#createUserModal">
+            Nouvel agent de scan
+        </button>
+    @endif
 @endsection
 
 @section('content')
     <section class="panel-card">
-        <div class="fw-bold mb-3">Liste des users</div>
+        <div class="fw-bold mb-3">Liste des utilisateurs</div>
         <form method="GET" class="filter-bar">
             <div class="row g-2 align-items-end">
                 <div class="col-md-5">
@@ -54,7 +56,7 @@
                 <table class="table table-modern align-middle mb-0">
                     <thead>
                         <tr>
-                            <th>User</th>
+                            <th>Utilisateur</th>
                             <th>Role</th>
                             <th>Permissions</th>
                             <th>Statut</th>
@@ -76,8 +78,10 @@
                                 <td><span class="status-chip">{{ $user->status }}</span></td>
                                 <td class="text-end">
                                     <div class="report-actions">
-                                        <a href="{{ route('partner.users.edit', $user) }}" class="btn btn-sm btn-outline-dark">Modifier</a>
-                                        @if ($user->id !== auth()->id())
+                                        @if ($authorization['canUpdateUsers'])
+                                            <a href="{{ route('partner.users.edit', $user) }}" class="btn btn-sm btn-outline-dark">Modifier</a>
+                                        @endif
+                                        @if ($authorization['canToggleUsers'] && $user->id !== auth()->id())
                                             <form method="POST" action="{{ route('partner.users.toggle-status', $user) }}">
                                                 @csrf
                                                 @method('PATCH')
@@ -88,7 +92,7 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="5" class="text-center text-secondary">Aucun user partenaire enregistre.</td></tr>
+                            <tr><td colspan="5" class="text-center text-secondary">Aucun utilisateur partenaire enregistre.</td></tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -100,13 +104,14 @@
         </div>
     </section>
 
+    @if ($authorization['canCreateUsers'])
     <div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header border-0 pb-0">
                     <div>
-                        <h5 class="modal-title" id="createUserModalLabel">Nouveau user partenaire</h5>
-                        <div class="text-secondary small">Créez un admin, manager ou agent mobile pour votre établissement.</div>
+                        <h5 class="modal-title" id="createUserModalLabel">Nouvel agent de scan</h5>
+                        <div class="text-secondary small">Creez un compte pour l application mobile de scan partenaire.</div>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -134,7 +139,7 @@
                             <div>
                                 <label class="form-label">Role</label>
                                 <select name="role_code" class="form-select" required>
-                                    @foreach ($roles as $role)
+                                    @foreach ($assignableRoles as $role)
                                         <option value="{{ $role->code }}" @selected(old('role_code') === $role->code)>{{ $role->name }}</option>
                                     @endforeach
                                 </select>
@@ -149,10 +154,11 @@
             </div>
         </div>
     </div>
+    @endif
 @endsection
 
 @section('scripts')
-    @if ($errors->any())
+    @if ($authorization['canCreateUsers'] && $errors->any())
         <script>
             document.addEventListener('DOMContentLoaded', function () {
                 const modalElement = document.getElementById('createUserModal');

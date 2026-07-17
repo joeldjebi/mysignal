@@ -74,6 +74,7 @@
                             <td class="text-end">
                                 <div class="actions-wrap">
                                     <a href="{{ route('super-admin.system-users.show', $systemUser) }}" class="btn btn-sm btn-outline-secondary">Details</a>
+                                    <a href="{{ $systemUser->login_portal_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary">{{ $systemUser->login_portal_label }}</a>
                                     @if ($canManageSystemUsers)
                                         <a href="{{ route('super-admin.system-users.edit', $systemUser) }}" class="btn btn-sm btn-outline-dark">Modifier</a>
                                     @endif

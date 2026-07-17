@@ -52,6 +52,7 @@ class UserController extends Controller
             'authorization' => $this->partnerAuthorizationFlags(),
             'users' => $query->latest('id')->paginate(12)->withQueryString(),
             'roles' => $this->partnerRoles(),
+            'assignableRoles' => $this->assignablePartnerRoles($context['user']),
         ]);
     }
 
@@ -62,7 +63,7 @@ class UserController extends Controller
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'phone' => ['nullable', 'string', 'max:30'],
             'password' => ['required', 'string', 'min:8'],
-            'role_code' => ['required', Rule::in(['PARTNER_ADMIN', 'PARTNER_MANAGER', 'PARTNER_AGENT'])],
+            'role_code' => ['required', Rule::in($this->assignablePartnerRoleCodes($request->user()))],
         ]);
 
         $user = $action->handle($request->user(), $attributes);
@@ -146,5 +147,25 @@ class UserController extends Controller
         );
 
         return back()->with('success', 'Le statut de l utilisateur partenaire a ete mis a jour.');
+    }
+
+    private function assignablePartnerRoles(?User $actor)
+    {
+        $codes = $this->assignablePartnerRoleCodes($actor);
+
+        return $this->partnerRoles()
+            ->filter(fn ($role) => in_array($role->code, $codes, true))
+            ->values();
+    }
+
+    private function assignablePartnerRoleCodes(?User $actor): array
+    {
+        $context = $this->partnerContextFor($actor);
+
+        if ($context['is_partner_root_admin'] || $context['permission_codes']->contains('PARTNER_USERS_UPDATE')) {
+            return ['PARTNER_ADMIN', 'PARTNER_MANAGER', 'PARTNER_AGENT'];
+        }
+
+        return ['PARTNER_AGENT'];
     }
 }
