@@ -132,9 +132,12 @@
                                 <div class="small text-secondary">{{ $transaction->discount_type_snapshot ?: '-' }} {{ $transaction->discount_value_snapshot ?? '' }}</div>
                             </td>
                             <td>
-                                <div class="small">Initial: {{ $transaction->original_amount ?? '-' }}</div>
-                                <div class="small">Reduction: {{ $transaction->discount_amount ?? '-' }}</div>
-                                <div class="small">Final: {{ $transaction->final_amount ?? '-' }}</div>
+                                <div class="small">Initial: {{ $transaction->original_amount ?? 'Non saisi' }}</div>
+                                <div class="small">
+                                    Reduction:
+                                    {{ $transaction->discount_amount ?? ($transaction->discount_type_snapshot === 'fixed_amount' ? number_format((float) $transaction->discount_value_snapshot, 0, ',', ' ').' '.($transaction->privilegeCard?->type?->currency ?? $transaction->offer?->currency ?? 'FCFA') : number_format((float) $transaction->discount_value_snapshot, 0, ',', ' ').'%') }}
+                                </div>
+                                <div class="small">Final: {{ $transaction->final_amount ?? 'Non calculé' }}</div>
                             </td>
                             <td><span class="status-chip">{{ $transaction->status }}</span></td>
                         </tr>

@@ -293,9 +293,9 @@
                             </td>
                             <td>
                                 <div class="small">Initie: {{ $purchase->initiated_at?->format('d/m/Y H:i') ?: '-' }}</div>
-                                <div class="small">Payé: {{ $purchase->paid_at?->format('d/m/Y H:i') ?: '-' }}</div>
-                                <div class="small">Activé: {{ $purchase->card?->activated_at?->format('d/m/Y H:i') ?: '-' }}</div>
-                                <div class="small">Expire: {{ $purchase->card?->expires_at?->format('d/m/Y H:i') ?: '-' }}</div>
+                                <div class="small">Payé: {{ $purchase->paid_at?->format('d/m/Y H:i') ?: ($purchase->status === 'paid' ? 'Date inconnue' : 'En attente') }}</div>
+                                <div class="small">Activé: {{ $purchase->card?->activated_at?->format('d/m/Y H:i') ?: 'Carte non émise' }}</div>
+                                <div class="small">Expire: {{ $purchase->card?->expires_at?->format('d/m/Y H:i') ?: 'Carte non émise' }}</div>
                             </td>
                             <td>
                                 <span class="status-chip">{{ $purchase->status }}</span>
@@ -395,9 +395,12 @@
                                 </div>
                             </td>
                             <td>
-                                <div class="small">Initial: {{ $scan->original_amount ?? '-' }}</div>
-                                <div class="small">Réduction: {{ $scan->discount_amount ?? '-' }}</div>
-                                <div class="small">Final: {{ $scan->final_amount ?? '-' }}</div>
+                                <div class="small">Initial: {{ $scan->original_amount ?? 'Non saisi' }}</div>
+                                <div class="small">
+                                    Réduction:
+                                    {{ $scan->discount_amount ?? ($scan->discount_type_snapshot === 'fixed_amount' ? number_format((float) $scan->discount_value_snapshot, 0, ',', ' ').' '.($scan->privilegeCard?->type?->currency ?? 'FCFA') : number_format((float) $scan->discount_value_snapshot, 0, ',', ' ').'%') }}
+                                </div>
+                                <div class="small">Final: {{ $scan->final_amount ?? 'Non calculé' }}</div>
                             </td>
                             <td>
                                 <span class="status-chip">{{ $scan->status }}</span>
