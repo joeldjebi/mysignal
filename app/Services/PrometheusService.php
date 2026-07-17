@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Prometheus\CollectorRegistry;
+use Prometheus\Storage\InMemory;
 use Prometheus\Storage\Redis as RedisStorage;
 
 class PrometheusService
@@ -11,6 +12,12 @@ class PrometheusService
 
     public function __construct()
     {
+        if (! extension_loaded('redis')) {
+            $this->registry = new CollectorRegistry(new InMemory());
+
+            return;
+        }
+
         RedisStorage::setDefaultOptions([
             'host' => env('REDIS_HOST', '127.0.0.1'),
             'port' => (int) env('REDIS_PORT', 6379),
