@@ -49,7 +49,7 @@
     <div class="container login-shell d-flex align-items-center py-5">
         <div class="row g-4 align-items-center w-100">
             <div class="col-lg-6">
-                <span class="brand-badge mb-4">ACEPEN ALERTE · Backoffice</span>
+                <span class="brand-badge mb-4">My-Signal by UFC · Backoffice</span>
                 <h1 class="display-5 fw-bold text-white mb-3">Un acces dedie aux utilisateurs internes.</h1>
                 <p class="lead hero-copy mb-0">Ce portail est reserve aux profils operationnels autorises, comme les huissiers, avocats et autres intervenants internes disposant de permissions explicites.</p>
             </div>

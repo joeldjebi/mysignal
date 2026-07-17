@@ -21,6 +21,7 @@ class PublicUser extends Authenticatable implements JWTSubject
         'phone',
         'is_whatsapp_number',
         'email',
+        'profile_photo_path',
         'country_id',
         'city_id',
         'commune_id',
@@ -72,6 +73,23 @@ class PublicUser extends Authenticatable implements JWTSubject
             'guard' => 'public_api',
             'phone' => $this->phone,
         ];
+    }
+
+    public function profilePhotoUrl(): ?string
+    {
+        if (! filled($this->profile_photo_path)) {
+            return null;
+        }
+
+        if (filter_var((string) $this->profile_photo_path, FILTER_VALIDATE_URL)) {
+            return (string) $this->profile_photo_path;
+        }
+
+        if (str_starts_with((string) $this->profile_photo_path, 'public-users/')) {
+            return app(\App\Services\WasabiService::class)->temporaryUrl((string) $this->profile_photo_path);
+        }
+
+        return asset((string) $this->profile_photo_path);
     }
 
     public function meters(): BelongsToMany
@@ -129,6 +147,23 @@ class PublicUser extends Authenticatable implements JWTSubject
     public function discountCards(): HasMany
     {
         return $this->hasMany(UpDiscountCard::class);
+    }
+
+    public function privilegeCards(): HasMany
+    {
+        return $this->hasMany(PrivilegeCard::class);
+    }
+
+    public function activePrivilegeCard(): HasOne
+    {
+        return $this->hasOne(PrivilegeCard::class)
+            ->where('status', 'active')
+            ->latestOfMany();
+    }
+
+    public function privilegeCardPaymentSessions(): HasMany
+    {
+        return $this->hasMany(PrivilegeCardPaymentSession::class);
     }
 
     public function activeDiscountCard(): HasOne

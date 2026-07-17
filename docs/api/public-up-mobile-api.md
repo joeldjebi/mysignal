@@ -160,12 +160,14 @@ Reponse :
 Pour l inscription ou la mise a jour du profil, envoyer la valeur `name` dans `business_sector`.
 
 ### Paiement
-Le paiement actuellement implemente est `simulated`.
+Les signalements et les cartes privileges utilisent FineoPay avec des URLs separees.
 
 Impact :
 - `POST /reports/{report}/payments` initialise un paiement
 - `POST /payments/{payment}/confirm` le confirme cote API
 - `GET /payments/{payment}/receipt` telecharge un PDF si le paiement est `paid`
+- `POST /privilege-cards/{type}/payments` initialise un achat de carte privilege
+- `GET /privilege-card-payment-sessions/{syncRef}` verifie le paiement d une carte privilege
 
 ### Dommages
 Un dommage ne peut etre declare que si :
@@ -304,6 +306,17 @@ Met a jour le profil.
 
 Remarque :
 - `public_user_type_id` ne peut pas etre modifie depuis cette route
+
+#### POST `/v1/public/profile/photo`
+Met a jour la photo de profil UP.
+
+Format : `multipart/form-data`
+
+| Champ | Obligatoire | Description |
+| --- | --- | --- |
+| `profile_photo` | oui | Image JPG, PNG ou WEBP, taille max 4 Mo. |
+
+La reponse retourne `user.profile_photo_url`.
 
 ### Catalogues
 
@@ -719,6 +732,67 @@ Flux mobile recommande :
 - si `status = paid`, afficher le succes et ouvrir le detail du signalement
 - si `status = pending`, continuer ou proposer "Actualiser"
 - si `status = failed`, proposer de relancer le paiement
+
+### Cartes privileges
+
+#### GET `/v1/public/privilege-cards`
+Retourne les cartes privileges disponibles pour les UP, triees par ordre d affichage.
+
+Reponse :
+```json
+{
+  "success": true,
+  "data": {
+    "cards": [
+      {
+        "id": 1,
+        "code": "STANDARD",
+        "name": "Standard",
+        "price": 1000,
+        "currency": "FCFA",
+        "benefits": ["Acces aux avantages standards"],
+        "discount_type": "percentage",
+        "discount_value": 10,
+        "duration_months": 12,
+        "status": "active",
+        "sort_order": 1
+      }
+    ]
+  }
+}
+```
+
+`discount_type` vaut `percentage` pour une reduction en pourcentage ou `fixed_amount` pour une reduction en montant fixe.
+
+#### POST `/v1/public/privilege-cards/{type}/payments`
+Initialise l achat FineoPay d une carte privilege. `{type}` est l identifiant numerique retourne par `GET /v1/public/privilege-cards`.
+
+Reponse :
+```json
+{
+  "success": true,
+  "message": "Lien de paiement carte privilege genere avec succes.",
+  "data": {
+    "checkout_link": "https://dev.fineopay.com/pay/business123/abc123/checkout",
+    "payment_session": {
+      "sync_ref": "PVC-20260717103000-A1B2C3",
+      "amount": 1000,
+      "currency": "FCFA",
+      "status": "pending",
+      "provider": "fineopay",
+      "checkout_link": "https://dev.fineopay.com/pay/business123/abc123/checkout"
+    }
+  }
+}
+```
+
+#### GET `/v1/public/privilege-card-payment-sessions/{syncRef}`
+Verifie le statut serveur d un achat de carte privilege.
+
+Quand le paiement est confirme, `status` vaut `paid` et `card` contient la carte emise.
+
+#### GET `/v1/public/privilege-card`
+Retourne la derniere carte privilege du UP connecte, ou `null`.
 
 Exemple avec piece jointe optionnelle :
 ```json

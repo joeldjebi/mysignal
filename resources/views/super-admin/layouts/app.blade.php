@@ -60,24 +60,33 @@
             font-weight: 800;
             box-shadow: 0 16px 32px rgba(196,155,72,.28);
         }
+        .sidebar-brand .fw-bold,
+        .sidebar .fw-bold,
+        .sidebar .fw-semibold {
+            font-weight: 400 !important;
+        }
+        .sidebar-brand > .small,
+        .nav-pill .small {
+            display: none !important;
+        }
         .sidebar-label {
             color: rgba(255,255,255,.5);
             text-transform: uppercase;
-            letter-spacing: .08em;
-            font-size: .66rem;
-            font-weight: 700;
-            margin: .95rem 0 .55rem;
+            letter-spacing: .06em;
+            font-size: .64rem;
+            font-weight: 400;
+            margin: .8rem 0 .42rem;
         }
         .nav-pill {
             display: flex;
             align-items: center;
-            gap: .7rem;
+            gap: .62rem;
             text-decoration: none;
             color: rgba(255,255,255,.84);
-            padding: .68rem .78rem;
-            border-radius: 16px;
+            padding: .54rem .68rem;
+            border-radius: 14px;
             transition: .18s ease;
-            margin-bottom: .22rem;
+            margin-bottom: .16rem;
         }
         .nav-pill:hover { background: rgba(255,255,255,.08); color: #fff; }
         .nav-pill.active {
@@ -86,15 +95,15 @@
             border: 1px solid rgba(196,155,72,.24);
         }
         .nav-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: 10px;
+            width: 28px;
+            height: 28px;
+            border-radius: 9px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             background: rgba(255,255,255,.08);
-            font-size: .72rem;
-            font-weight: 800;
+            font-size: .68rem;
+            font-weight: 500;
         }
         .sidebar-footer {
             margin-top: auto;
@@ -261,7 +270,7 @@
                 <div class="d-flex align-items-center gap-3 mb-3">
                     <div class="brand-mark">SA</div>
                     <div>
-                        <div class="small text-white-50 fw-semibold">ACEPEN ALERTE</div>
+                        <div class="small text-white-50 fw-semibold">My-Signal by UFC</div>
                         <div class="fw-bold fs-5">{{ $portalTitle }}</div>
                     </div>
                 </div>
@@ -299,7 +308,7 @@
                     </a>
                 @endif
 
-                <div class="sidebar-label">Geographie</div>
+                <div class="sidebar-label">Référentiels</div>
                 @if ($canAccess('SA_COUNTRIES_VIEW') || $canAccess('SA_COUNTRIES_MANAGE'))
                     <a href="{{ route('super-admin.countries.index') }}" class="nav-pill {{ request()->routeIs('super-admin.countries.*') ? 'active' : '' }}">
                         <span class="nav-icon">PY</span>
@@ -336,8 +345,6 @@
                         <span><span class="d-block fw-semibold">Secteurs</span><span class="small text-white-50">Secteurs d activite</span></span>
                     </a>
                 @endif
-
-                <div class="sidebar-label">Metier</div>
                 @if ($canAccess('SA_ORGANIZATION_TYPES_VIEW') || $canAccess('SA_ORGANIZATION_TYPES_MANAGE'))
                     <a href="{{ route('super-admin.client-types.index') }}" class="nav-pill {{ request()->routeIs('super-admin.client-types.*') ? 'active' : '' }}">
                         <span class="nav-icon">TC</span>
@@ -372,6 +379,8 @@
                         <span><span class="d-block fw-semibold">TCM cibles</span><span class="small text-white-50">Par sous catégorie</span></span>
                     </a>
                 @endif
+
+                <div class="sidebar-label">Paiements & cartes</div>
                 @if ($canAccess('SA_PRICING_MANAGE'))
                     <a href="{{ route('super-admin.pricing.edit') }}" class="nav-pill {{ request()->routeIs('super-admin.pricing.*') ? 'active' : '' }}">
                         <span class="nav-icon">TR</span>
@@ -384,28 +393,16 @@
                         <span><span class="d-block fw-semibold">Plans abonnements</span><span class="small text-white-50">Abonnement annuel UP</span></span>
                     </a>
                 @endif
+                @if ($canAccess('SA_PRIVILEGE_CARD_TYPES_VIEW') || $canAccess('SA_PRIVILEGE_CARD_TYPES_MANAGE') || $canAccess('SA_SUBSCRIPTION_PLANS_VIEW') || $canAccess('SA_SUBSCRIPTION_PLANS_MANAGE'))
+                    <a href="{{ route('super-admin.privilege-card-types.index') }}" class="nav-pill {{ request()->routeIs('super-admin.privilege-card-types.*') ? 'active' : '' }}">
+                        <span class="nav-icon">CP</span>
+                        <span><span class="d-block fw-semibold">Cartes privilèges</span><span class="small text-white-50">Standard, Premium, Gold</span></span>
+                    </a>
+                @endif
                 @if ($canAccess('SA_UP_SUBSCRIPTIONS_VIEW'))
                     <a href="{{ route('super-admin.up-subscriptions.index') }}" class="nav-pill {{ request()->routeIs('super-admin.up-subscriptions.*') ? 'active' : '' }}">
                         <span class="nav-icon">HU</span>
                         <span><span class="d-block fw-semibold">Abonnements UP</span><span class="small text-white-50">Historique et statuts</span></span>
-                    </a>
-                @endif
-                @if ($canAccess('SA_PUBLIC_USER_TYPES_VIEW') || $canAccess('SA_PUBLIC_USER_TYPES_MANAGE'))
-                    <a href="{{ route('super-admin.public-user-types.index') }}" class="nav-pill {{ request()->routeIs('super-admin.public-user-types.*') ? 'active' : '' }}">
-                        <span class="nav-icon">UP</span>
-                        <span><span class="d-block fw-semibold">Types usagers publics</span><span class="small text-white-50">UP, UPE et futurs profils</span></span>
-                    </a>
-                @endif
-                @if ($canAccess('SA_PUBLIC_USERS_VIEW') || $canAccess('SA_PUBLIC_USERS_MANAGE'))
-                    <a href="{{ route('super-admin.public-users.index') }}" class="nav-pill {{ request()->routeIs('super-admin.public-users.*') ? 'active' : '' }}">
-                        <span class="nav-icon">PU</span>
-                        <span><span class="d-block fw-semibold">Usagers publics</span><span class="small text-white-50">UP et UPE</span></span>
-                    </a>
-                @endif
-                @if ($canAccess('SA_PUBLIC_REPORTS_VIEW'))
-                    <a href="{{ route('super-admin.public-reports.index') }}" class="nav-pill {{ request()->routeIs('super-admin.public-reports.*') ? 'active' : '' }}">
-                        <span class="nav-icon">SR</span>
-                        <span><span class="d-block fw-semibold">Signalements publics</span><span class="small text-white-50">Liste des signalements UP</span></span>
                     </a>
                 @endif
                 @if ($canAccess('SA_PAYMENTS_VIEW'))
@@ -424,6 +421,26 @@
                     <a href="{{ route('super-admin.discount-transactions.index') }}" class="nav-pill {{ request()->routeIs('super-admin.discount-transactions.*') ? 'active' : '' }}">
                         <span class="nav-icon">RD</span>
                         <span><span class="d-block fw-semibold">Reductions appliquees</span><span class="small text-white-50">Historique partenaire</span></span>
+                    </a>
+                @endif
+
+                <div class="sidebar-label">Usagers & signalements</div>
+                @if ($canAccess('SA_PUBLIC_USER_TYPES_VIEW') || $canAccess('SA_PUBLIC_USER_TYPES_MANAGE'))
+                    <a href="{{ route('super-admin.public-user-types.index') }}" class="nav-pill {{ request()->routeIs('super-admin.public-user-types.*') ? 'active' : '' }}">
+                        <span class="nav-icon">UP</span>
+                        <span><span class="d-block fw-semibold">Types usagers publics</span><span class="small text-white-50">UP, UPE et futurs profils</span></span>
+                    </a>
+                @endif
+                @if ($canAccess('SA_PUBLIC_USERS_VIEW') || $canAccess('SA_PUBLIC_USERS_MANAGE'))
+                    <a href="{{ route('super-admin.public-users.index') }}" class="nav-pill {{ request()->routeIs('super-admin.public-users.*') ? 'active' : '' }}">
+                        <span class="nav-icon">PU</span>
+                        <span><span class="d-block fw-semibold">Usagers publics</span><span class="small text-white-50">UP et UPE</span></span>
+                    </a>
+                @endif
+                @if ($canAccess('SA_PUBLIC_REPORTS_VIEW'))
+                    <a href="{{ route('super-admin.public-reports.index') }}" class="nav-pill {{ request()->routeIs('super-admin.public-reports.*') ? 'active' : '' }}">
+                        <span class="nav-icon">SR</span>
+                        <span><span class="d-block fw-semibold">Signalements publics</span><span class="small text-white-50">Liste des signalements UP</span></span>
                     </a>
                 @endif
                 @if ($authUser?->is_super_admin || $layoutPermissionCodes->contains('SA_ACTIVITY_LOGS_VIEW_SELF') || $layoutPermissionCodes->contains('SA_ACTIVITY_LOGS_VIEW_INSTITUTION') || $layoutPermissionCodes->contains('SA_ACTIVITY_LOGS_VIEW_PUBLIC') || $layoutPermissionCodes->contains('SA_ACTIVITY_LOGS_VIEW_INTERNAL'))
@@ -448,8 +465,7 @@
                         <span><span class="d-block fw-semibold">Dossiers contentieux</span><span class="small text-white-50">Dossiers ouverts contre institutions</span></span>
                     </a>
                 @endif
-
-                <div class="sidebar-label">Portails</div>
+                <div class="sidebar-label">Portails & accès</div>
                 @if ($canAccess('SA_ORGANIZATIONS_VIEW') || $canAccess('SA_ORGANIZATIONS_MANAGE'))
                     <a href="{{ route('super-admin.organizations.index') }}" class="nav-pill {{ request()->routeIs('super-admin.organizations.*') ? 'active' : '' }}">
                         <span class="nav-icon">IN</span>
@@ -462,8 +478,7 @@
                         <span><span class="d-block fw-semibold">Admins institutionnels</span><span class="small text-white-50">Admins racine des portails</span></span>
                     </a>
                 @endif
-
-                <div class="sidebar-label">Acces</div>
+                <div class="sidebar-label">Administration</div>
                 @if ($canAccess('SA_SCOPED_USERS_MANAGE'))
                     <a href="{{ route('super-admin.scoped-users.index') }}" class="nav-pill {{ request()->routeIs('super-admin.scoped-users.*') ? 'active' : '' }}">
                         <span class="nav-icon">SA</span>
@@ -513,7 +528,7 @@
                 <div>
                     <div class="small text-secondary fw-semibold mb-1">{{ $isInternalPortalUser ? 'Portail interne' : 'Back office central' }}</div>
                     <div class="h5 mb-1 fw-bold">@yield('page-title', $portalTitle)</div>
-                    <div class="text-secondary small">@yield('page-description', $isInternalPortalUser ? 'Suivi operationnel et traitement des dossiers ACEPEN ALERTE' : 'Parametrage global ACEPEN ALERTE')</div>
+                    <div class="text-secondary small">@yield('page-description', $isInternalPortalUser ? 'Suivi operationnel et traitement des dossiers My-Signal by UFC' : 'Parametrage global My-Signal by UFC')</div>
                 </div>
                 <div class="d-flex align-items-center gap-2 flex-wrap">
                     @yield('header-badges')
@@ -715,6 +730,7 @@
                 ['/sa/signal-sub-types', 'SA_SIGNAL_TYPES'],
                 ['/sa/sla-policies', 'SA_SLA_POLICIES'],
                 ['/sa/subscription-plans', 'SA_SUBSCRIPTION_PLANS'],
+                ['/sa/privilege-card-types', 'SA_PRIVILEGE_CARD_TYPES'],
                 ['/sa/public-user-types', 'SA_PUBLIC_USER_TYPES'],
                 ['/sa/organizations', 'SA_ORGANIZATIONS'],
                 ['/sa/institution-admins', 'SA_INSTITUTION_ADMINS'],

@@ -29,6 +29,7 @@ class PublicUserResource extends JsonResource
             'phone' => $this->phone,
             'is_whatsapp_number' => (bool) $this->is_whatsapp_number,
             'email' => $this->email,
+            'profile_photo_url' => $this->profilePhotoUrl(),
             'company_name' => $this->company_name,
             'company_registration_number' => $this->company_registration_number,
             'tax_identifier' => $this->tax_identifier,

@@ -60,6 +60,10 @@
     { "key": "paymentId", "value": "" },
     { "key": "subscriptionPaymentId", "value": "" },
     { "key": "discountCardId", "value": "" },
+    { "key": "profilePhotoPath", "value": "" },
+    { "key": "privilegeCardTypeId", "value": "" },
+    { "key": "privilegeCardPaymentSessionSyncRef", "value": "" },
+    { "key": "privilegeCardId", "value": "" },
     { "key": "householdId", "value": "" },
     { "key": "householdMemberId", "value": "" },
     { "key": "invitationId", "value": "" },
@@ -589,6 +593,23 @@
             "url": "{{baseUrl}}/v1/public/profile/password",
             "description": "Met a jour le mot de passe du UP connecte. Requiert le mot de passe actuel."
           }
+        },
+        {
+          "name": "Update Profile Photo",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "profile_photo", "type": "file", "src": "{{profilePhotoPath}}", "description": "Photo obligatoire au format jpg, jpeg, png ou webp. Taille max: 4 Mo." }
+              ]
+            },
+            "url": "{{baseUrl}}/v1/public/profile/photo",
+            "description": "Met a jour la photo de profil du UP connecte."
+          }
         }
       ]
     },
@@ -962,6 +983,7 @@
               "mode": "formdata",
               "formdata": [
                 { "key": "application_id", "value": "{{applicationId}}", "type": "text", "description": "Obligatoire si meter_id est absent. Utiliser requires_public_user_identifier du catalogue applications pour savoir si meter_id doit etre affiche/requis." },
+                { "key": "organization_type_id", "value": "{{organizationTypeId}}", "type": "text", "description": "Sous categorie. Obligatoire si la categorie retourne requires_organization_type_on_report=true et si meter_id est absent." },
                 { "key": "organization_id", "value": "{{organizationId}}", "type": "text", "description": "Organisation concernee pour l application selectionnee." },
                 { "key": "meter_id", "value": "{{meterId}}", "type": "text", "description": "Obligatoire uniquement si l application retourne requires_public_user_identifier=true. Sinon retirer ce champ du payload." },
                 { "key": "signal_code", "value": "{{signalCode}}", "type": "text", "description": "Code retourne par GET /v1/public/signal-types et compatible avec l application/organisation selectionnee." },
@@ -1002,6 +1024,7 @@
               "mode": "formdata",
               "formdata": [
                 { "key": "application_id", "value": "{{applicationId}}", "type": "text", "description": "Obligatoire si meter_id est absent." },
+                { "key": "organization_type_id", "value": "{{organizationTypeId}}", "type": "text", "description": "Sous categorie. Obligatoire si la categorie retourne requires_organization_type_on_report=true et si meter_id est absent." },
                 { "key": "organization_id", "value": "{{organizationId}}", "type": "text", "description": "Institution concernee pour la categorie selectionnee." },
                 { "key": "meter_id", "value": "{{meterId}}", "type": "text", "description": "Obligatoire uniquement si la categorie retourne requires_public_user_identifier=true. Sinon retirer ce champ du payload." },
                 { "key": "signal_code", "value": "{{signalCode}}", "type": "text", "description": "Code retourne par GET /v1/public/signal-types et compatible avec la categorie/institution selectionnee." },
@@ -1043,6 +1066,7 @@
               "mode": "formdata",
               "formdata": [
                 { "key": "application_id", "value": "{{applicationId}}", "type": "text", "description": "Obligatoire si meter_id est absent." },
+                { "key": "organization_type_id", "value": "{{organizationTypeId}}", "type": "text", "description": "Sous categorie. Obligatoire si la categorie retourne requires_organization_type_on_report=true et si meter_id est absent." },
                 { "key": "organization_id", "value": "{{organizationId}}", "type": "text", "description": "Organisation concernee pour l application selectionnee." },
                 { "key": "meter_id", "value": "{{meterId}}", "type": "text", "description": "Obligatoire uniquement si l application retourne requires_public_user_identifier=true. Sinon retirer ce champ du payload." },
                 { "key": "signal_code", "value": "{{signalCode}}", "type": "text", "description": "Code retourne par GET /v1/public/signal-types et compatible avec l application/organisation selectionnee." },
@@ -1544,7 +1568,108 @@
       ]
     },
     {
-      "name": "11 - Retours d experience",
+      "name": "11 - Cartes privileges",
+      "description": "Endpoints UP pour consulter les cartes privileges, acheter une carte via FineoPay et recuperer la carte du UP connecte.",
+      "item": [
+        {
+          "name": "List Privilege Cards",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "const first = json?.data?.cards?.[0];",
+                  "if (first?.id) pm.environment.set('privilegeCardTypeId', first.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/privilege-cards",
+            "description": "Retourne les types de cartes privileges disponibles pour les UP, tries par ordre d affichage puis prix. Chaque type contient prix, devise, avantages, reduction et duree."
+          }
+        },
+        {
+          "name": "Purchase Privilege Card",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "const session = json?.data?.payment_session;",
+                  "if (session?.sync_ref) pm.environment.set('privilegeCardPaymentSessionSyncRef', session.sync_ref);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": "{{baseUrl}}/v1/public/privilege-cards/{{privilegeCardTypeId}}/payments",
+            "description": "Initialise l achat FineoPay d une carte privilege. Le checkout_link est retourne dans data.checkout_link."
+          }
+        },
+        {
+          "name": "Show Privilege Card Payment Session",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "const card = json?.data?.payment_session?.card;",
+                  "if (card?.id) pm.environment.set('privilegeCardId', card.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/privilege-card-payment-sessions/{{privilegeCardPaymentSessionSyncRef}}",
+            "description": "Verifie le statut serveur d un achat de carte privilege. Quand le paiement est confirme, status vaut paid et card contient la carte emise."
+          }
+        },
+        {
+          "name": "Get My Privilege Card",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "const card = json?.data?.card;",
+                  "if (card?.id) pm.environment.set('privilegeCardId', card.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/privilege-card",
+            "description": "Retourne la derniere carte privilege du UP connecte, ou card: null si aucune carte n a encore ete achetee."
+          }
+        }
+      ]
+    },
+    {
+      "name": "12 - Retours d experience",
       "description": "REX mobile sur signalement, dommage ou dossier contentieux eligible.",
       "item": [
         {
@@ -1643,7 +1768,7 @@
       ]
     },
     {
-      "name": "12 - Notifications push",
+      "name": "13 - Notifications push",
       "description": "Enregistrement du token Firebase et consultation des notifications UP avec filtres mobile.",
       "item": [
         {

@@ -20,6 +20,8 @@ use App\Http\Controllers\Api\V1\Public\Meters\PublicMeterController;
 use App\Http\Controllers\Api\V1\Public\Payments\FineoPayCallbackController;
 use App\Http\Controllers\Api\V1\Public\Payments\PublicIncidentReportPaymentSessionController;
 use App\Http\Controllers\Api\V1\Public\Payments\PublicReportPaymentController;
+use App\Http\Controllers\Api\V1\Public\PrivilegeCards\PrivilegeCardFineoPayCallbackController;
+use App\Http\Controllers\Api\V1\Public\PrivilegeCards\PublicPrivilegeCardController;
 use App\Http\Controllers\Api\V1\Public\Profile\PublicProfileController;
 use App\Http\Controllers\Api\V1\Public\PurchaseReceipts\PublicPurchaseReceiptController;
 use App\Http\Controllers\Api\V1\Public\ReparationCases\PublicReparationCaseController;
@@ -34,6 +36,8 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('v1/public')->group(function (): void {
     Route::post('payments/fineopay/callback', FineoPayCallbackController::class)
         ->name('api.public.payments.fineopay.callback');
+    Route::post('privilege-card-payments/fineopay/callback', PrivilegeCardFineoPayCallbackController::class)
+        ->name('api.public.privilege-card-payments.fineopay.callback');
 
     Route::get('applications', [PublicCatalogController::class, 'applications']);
     Route::get('application-types', [PublicCatalogController::class, 'applicationTypes']);
@@ -75,6 +79,7 @@ Route::prefix('v1/public')->group(function (): void {
         Route::get('me', AuthenticatedPublicUserController::class);
         Route::get('profile', [PublicProfileController::class, 'show']);
         Route::put('profile', [PublicProfileController::class, 'update']);
+        Route::post('profile/photo', [PublicProfileController::class, 'updatePhoto']);
         Route::put('profile/password', [PublicProfileController::class, 'updatePassword']);
         Route::post('push-tokens', [DeviceTokenController::class, 'storePublic']);
         Route::delete('push-tokens', [DeviceTokenController::class, 'destroyPublic']);
@@ -130,6 +135,10 @@ Route::prefix('v1/public')->group(function (): void {
         Route::post('subscription/payments', [PublicUpSubscriptionPaymentController::class, 'store']);
         Route::post('subscription/payments/{payment}/confirm', [PublicUpSubscriptionPaymentController::class, 'confirm']);
         Route::get('discount-card', [PublicDiscountCardController::class, 'show']);
+        Route::get('privilege-cards', [PublicPrivilegeCardController::class, 'index']);
+        Route::get('privilege-card', [PublicPrivilegeCardController::class, 'mine']);
+        Route::post('privilege-cards/{type}/payments', [PublicPrivilegeCardController::class, 'purchase']);
+        Route::get('privilege-card-payment-sessions/{syncRef}', [PublicPrivilegeCardController::class, 'session']);
     });
 });
 

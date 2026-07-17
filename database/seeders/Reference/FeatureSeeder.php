@@ -154,6 +154,11 @@ class FeatureSeeder extends Seeder
                 'description' => 'Permet de gerer les comptes web et mobile des etablissements partenaires.',
             ],
             [
+                'code' => 'PRIVILEGE_CARDS_MANAGE',
+                'name' => 'Gestion des cartes privileges',
+                'description' => 'Permet aux acteurs autorises de creer et gerer les cartes privileges.',
+            ],
+            [
                 'code' => 'DISCOUNT_CARDS_MONITORING',
                 'name' => 'Supervision des cartes de reduction',
                 'description' => 'Expose le module de consultation des cartes de reduction creees pour les UP.',

@@ -9,6 +9,7 @@ use App\Http\Requests\Api\V1\Public\Profile\UpdatePublicProfileRequest;
 use App\Http\Resources\Api\V1\Public\Auth\PublicUserResource;
 use App\Support\Api\ApiResponse;
 use App\Support\Audit\ActivityLogger;
+use App\Services\WasabiService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
@@ -29,6 +30,33 @@ class PublicProfileController extends Controller
         return ApiResponse::success([
             'user' => new PublicUserResource($user->loadMissing(['publicUserType.pricingRule', 'countryReference', 'cityReference', 'communeReference'])),
         ], 'Profil mis a jour avec succes.');
+    }
+
+    public function updatePhoto(Request $request, WasabiService $wasabiService)
+    {
+        $attributes = $request->validate([
+            'profile_photo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+        ]);
+
+        $user = $request->user('public_api');
+
+        if (filled($user->profile_photo_path) && str_starts_with((string) $user->profile_photo_path, 'public-users/')) {
+            $wasabiService->deleteFile($user->profile_photo_path);
+        }
+
+        $path = $wasabiService->uploadFile(
+            $attributes['profile_photo'],
+            'public-users/profile-photos/'.$user->id,
+            'profile-photo'
+        );
+
+        $user->update([
+            'profile_photo_path' => $path,
+        ]);
+
+        return ApiResponse::success([
+            'user' => new PublicUserResource($user->fresh(['publicUserType.pricingRule', 'countryReference', 'cityReference', 'communeReference'])),
+        ], 'Photo de profil mise a jour avec succes.');
     }
 
     public function updatePassword(UpdatePublicPasswordRequest $request, ActivityLogger $activityLogger)
