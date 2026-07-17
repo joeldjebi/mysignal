@@ -67,7 +67,10 @@ use App\Http\Controllers\Web\SuperAdmin\UpSubscriptionController;
 use App\Http\Controllers\Web\SuperAdmin\AuthController as SuperAdminAuthController;
 use App\Http\Controllers\Web\SuperAdmin\DashboardController as SuperAdminDashboardController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Internal\MetricsController;
 
+Route::get('/internal/metrics', MetricsController::class)
+    ->name('internal.metrics');
 Route::get('/', [PublicPortalController::class, 'landing'])->name('public.landing');
 Route::get('/qui-sommes-nous', [PublicPortalController::class, 'landingPage'])->defaults('pageKey', 'page_about')->name('public.pages.about');
 Route::get('/my-signal-tv', [PublicPortalController::class, 'landingPage'])->defaults('pageKey', 'page_tv')->name('public.pages.tv');

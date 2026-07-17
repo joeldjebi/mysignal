@@ -2123,48 +2123,6 @@
 @endif
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-  // Smooth scroll
-  document.querySelectorAll('a[href^="#"]').forEach(a => {
-    a.addEventListener('click', e => {
-      const href = a.getAttribute('href');
-      if (!href || href === '#') {
-        return;
-      }
-      const target = document.querySelector(href);
-      if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth' }); }
-    });
-  });
-
-  // Navbar shrink on scroll
-  window.addEventListener('scroll', () => {
-    const nav = document.querySelector('.navbar');
-    nav.style.boxShadow = window.scrollY > 40
-      ? '0 4px 30px rgba(24,52,71,.15)'
-      : '0 2px 20px rgba(24,52,71,.08)';
-  });
-
-  // Counter animation
-  const counters = document.querySelectorAll('.stat-num, .num');
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const el = entry.target;
-        const text = el.textContent;
-        const num = parseFloat(text.replace(/[^0-9.]/g, ''));
-        const suffix = text.replace(/[0-9.]/g, '');
-        let start = 0;
-        const step = num / 40;
-        const timer = setInterval(() => {
-          start += step;
-          if (start >= num) { el.textContent = text; clearInterval(timer); }
-          else { el.textContent = (Number.isInteger(num) ? Math.floor(start) : start.toFixed(1)) + suffix; }
-        }, 30);
-        observer.unobserve(el);
-      }
-    });
-  }, { threshold: 0.5 });
-  counters.forEach(c => observer.observe(c));
-</script>
+<script src="/js/landing.js" defer></script>
 </body>
 </html>
