@@ -12,6 +12,8 @@ class PartnerDiscountTransaction extends Model
 
     protected $fillable = [
         'up_discount_card_id',
+        'privilege_card_id',
+        'card_source',
         'partner_discount_offer_id',
         'organization_id',
         'partner_user_id',
@@ -46,6 +48,11 @@ class PartnerDiscountTransaction extends Model
     public function discountCard(): BelongsTo
     {
         return $this->belongsTo(UpDiscountCard::class, 'up_discount_card_id');
+    }
+
+    public function privilegeCard(): BelongsTo
+    {
+        return $this->belongsTo(PrivilegeCard::class, 'privilege_card_id');
     }
 
     public function offer(): BelongsTo

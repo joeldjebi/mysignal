@@ -4,6 +4,8 @@ namespace App\Domain\Discounts\Actions;
 
 use App\Models\PartnerDiscountOffer;
 use App\Models\PartnerDiscountTransaction;
+use App\Models\PrivilegeCard;
+use App\Models\PrivilegeCardType;
 use App\Models\User;
 use App\Models\UpDiscountCard;
 use Carbon\CarbonImmutable;
@@ -23,8 +25,21 @@ class ApplyPartnerDiscountAction
         $verification = $this->verifyPartnerDiscountCardAction->handle(
             $partnerUser,
             (string) $payload['card_uuid'],
-            (int) $payload['offer_id'],
+            isset($payload['offer_id']) ? (int) $payload['offer_id'] : null,
         );
+
+        if (($verification['card_source'] ?? 'up_discount_card') === 'privilege_card') {
+            /** @var PrivilegeCard $card */
+            $card = $verification['card'];
+
+            return $this->applyPrivilegeCardDiscount($partnerUser, $payload, $card);
+        }
+
+        if (! isset($payload['offer_id'])) {
+            throw ValidationException::withMessages([
+                'offer_id' => ['Selectionnez une offre pour cette carte.'],
+            ]);
+        }
 
         /** @var UpDiscountCard $card */
         $card = $verification['card'];
@@ -45,6 +60,8 @@ class ApplyPartnerDiscountAction
 
             $transaction = PartnerDiscountTransaction::query()->create([
                 'up_discount_card_id' => $card->id,
+                'privilege_card_id' => null,
+                'card_source' => 'up_discount_card',
                 'partner_discount_offer_id' => $offer->id,
                 'organization_id' => $partnerUser->organization_id,
                 'partner_user_id' => $partnerUser->id,
@@ -67,6 +84,55 @@ class ApplyPartnerDiscountAction
             ]);
 
             return $transaction->load(['offer', 'discountCard', 'partnerUser', 'publicUser']);
+        });
+    }
+
+    private function applyPrivilegeCardDiscount(User $partnerUser, array $payload, PrivilegeCard $card): PartnerDiscountTransaction
+    {
+        return DB::transaction(function () use ($payload, $partnerUser, $card): PartnerDiscountTransaction {
+            $card = PrivilegeCard::query()
+                ->with(['type', 'publicUser'])
+                ->lockForUpdate()
+                ->findOrFail($card->id);
+
+            /** @var PrivilegeCardType $type */
+            $type = $card->type;
+
+            if ($type === null || $type->status !== 'active') {
+                throw ValidationException::withMessages([
+                    'card_uuid' => ['Le type de cette carte privilege n est pas actif.'],
+                ]);
+            }
+
+            $transaction = PartnerDiscountTransaction::query()->create([
+                'up_discount_card_id' => null,
+                'privilege_card_id' => $card->id,
+                'card_source' => 'privilege_card',
+                'partner_discount_offer_id' => null,
+                'organization_id' => $partnerUser->organization_id,
+                'partner_user_id' => $partnerUser->id,
+                'public_user_id' => $card->public_user_id,
+                'up_subscription_id' => null,
+                'scan_reference' => $this->generateScanReference(),
+                'verification_status' => 'verified',
+                'status' => 'validated',
+                'original_amount' => $payload['original_amount'] ?? null,
+                'discount_amount' => $payload['discount_amount'] ?? null,
+                'final_amount' => $payload['final_amount'] ?? null,
+                'discount_type_snapshot' => $type->discount_type,
+                'discount_value_snapshot' => $type->discount_value,
+                'applied_at' => CarbonImmutable::now(),
+                'metadata' => array_merge(is_array($payload['metadata'] ?? null) ? $payload['metadata'] : [], [
+                    'card_source' => 'privilege_card',
+                    'privilege_card_type_id' => $type->id,
+                ]),
+            ]);
+
+            $card->update([
+                'last_used_at' => $transaction->applied_at,
+            ]);
+
+            return $transaction->load(['privilegeCard.type', 'partnerUser', 'publicUser']);
         });
     }
 

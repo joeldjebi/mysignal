@@ -19,7 +19,7 @@ class PartnerDiscountTransactionController extends Controller
     public function index(Request $request)
     {
         $query = PartnerDiscountTransaction::query()
-            ->with(['offer', 'discountCard', 'partnerUser', 'publicUser'])
+            ->with(['offer', 'discountCard', 'privilegeCard.type', 'partnerUser', 'publicUser'])
             ->where('organization_id', $request->user('partner_api')->organization_id);
 
         if ($request->filled('partner_user_id')) {
@@ -70,6 +70,8 @@ class PartnerDiscountTransactionController extends Controller
                 'partner_user_id' => $transaction->partner_user_id,
                 'offer_id' => $transaction->partner_discount_offer_id,
                 'up_discount_card_id' => $transaction->up_discount_card_id,
+                'privilege_card_id' => $transaction->privilege_card_id,
+                'card_source' => $transaction->card_source,
                 'scan_reference' => $transaction->scan_reference,
             ],
             $request,
@@ -87,7 +89,7 @@ class PartnerDiscountTransactionController extends Controller
     public function mobileHistory(Request $request)
     {
         $transactions = PartnerDiscountTransaction::query()
-            ->with(['offer', 'discountCard', 'partnerUser', 'publicUser'])
+            ->with(['offer', 'discountCard', 'privilegeCard.type', 'partnerUser', 'publicUser'])
             ->where('partner_user_id', $request->user('partner_api')->id)
             ->latest('id')
             ->limit(20)
@@ -176,10 +178,10 @@ class PartnerDiscountTransactionController extends Controller
     private function sendDiscountNotifications(PartnerDiscountTransaction $transaction, User $partnerUser, PushNotificationDispatcher $notifications): void
     {
         try {
-            $transaction->loadMissing(['offer', 'discountCard', 'partnerUser', 'publicUser', 'organization']);
+            $transaction->loadMissing(['offer', 'discountCard', 'privilegeCard.type', 'partnerUser', 'publicUser', 'organization']);
 
-            $offerName = (string) ($transaction->offer?->name ?? 'remise partenaire');
-            $discountAmount = $this->formatAmount($transaction->discount_amount, $transaction->offer?->currency);
+            $offerName = (string) ($transaction->offer?->name ?? $transaction->privilegeCard?->type?->name ?? 'remise partenaire');
+            $discountAmount = $this->formatAmount($transaction->discount_amount, $transaction->offer?->currency ?? $transaction->privilegeCard?->type?->currency);
             $publicUserName = trim((string) ($transaction->publicUser?->first_name.' '.$transaction->publicUser?->last_name));
             $publicUserLabel = $publicUserName !== '' ? $publicUserName : 'UP';
 
@@ -192,12 +194,14 @@ class PartnerDiscountTransactionController extends Controller
                 'offer_id' => (string) $transaction->partner_discount_offer_id,
                 'offer_name' => $offerName,
                 'discount_card_id' => (string) $transaction->up_discount_card_id,
+                'privilege_card_id' => (string) $transaction->privilege_card_id,
+                'card_source' => (string) ($transaction->card_source ?? 'up_discount_card'),
                 'public_user_id' => (string) $transaction->public_user_id,
                 'organization_id' => (string) $transaction->organization_id,
                 'original_amount' => (string) ($transaction->original_amount ?? ''),
                 'discount_amount' => (string) ($transaction->discount_amount ?? ''),
                 'final_amount' => (string) ($transaction->final_amount ?? ''),
-                'currency' => (string) ($transaction->offer?->currency ?? ''),
+                'currency' => (string) ($transaction->offer?->currency ?? $transaction->privilegeCard?->type?->currency ?? ''),
             ];
 
             $notifications->notifyPartnerUser(

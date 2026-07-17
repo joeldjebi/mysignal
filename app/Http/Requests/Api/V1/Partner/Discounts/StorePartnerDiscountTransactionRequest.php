@@ -16,7 +16,7 @@ class StorePartnerDiscountTransactionRequest extends FormRequest
     {
         return [
             'card_uuid' => ['required', 'string', 'size:36'],
-            'offer_id' => ['required', 'integer', 'exists:partner_discount_offers,id'],
+            'offer_id' => ['nullable', 'integer', 'exists:partner_discount_offers,id'],
             'original_amount' => ['nullable', 'numeric', 'min:0'],
             'discount_amount' => ['nullable', 'numeric', 'min:0'],
             'final_amount' => ['nullable', 'numeric', 'min:0'],

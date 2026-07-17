@@ -3,6 +3,8 @@
 namespace App\Domain\Discounts\Actions;
 
 use App\Models\PartnerDiscountOffer;
+use App\Models\PrivilegeCard;
+use App\Models\PublicUser;
 use App\Models\UpDiscountCard;
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -20,12 +22,26 @@ class VerifyPartnerDiscountCardAction
             ->where('card_uuid', $cardUuid)
             ->first();
 
-        if ($card === null) {
-            throw ValidationException::withMessages([
-                'card_uuid' => ['Carte introuvable.'],
-            ]);
+        if ($card !== null) {
+            return $this->verifyUpDiscountCard($partnerUser, $card, $offerId);
         }
 
+        $privilegeCard = PrivilegeCard::query()
+            ->with(['publicUser', 'type'])
+            ->where('card_uuid', $cardUuid)
+            ->first();
+
+        if ($privilegeCard !== null) {
+            return $this->verifyPrivilegeCard($partnerUser, $privilegeCard);
+        }
+
+        throw ValidationException::withMessages([
+            'card_uuid' => ['Carte introuvable.'],
+        ]);
+    }
+
+    private function verifyUpDiscountCard(User $partnerUser, UpDiscountCard $card, ?int $offerId = null): array
+    {
         if ($card->status !== 'active') {
             throw ValidationException::withMessages([
                 'card_uuid' => ['Cette carte n est pas active.'],
@@ -82,8 +98,11 @@ class VerifyPartnerDiscountCardAction
         }
 
         return [
+            'card_source' => 'up_discount_card',
             'card' => $card,
             'offer' => $offer,
+            'privilege_card_type' => null,
+            'discount' => null,
             'member_display_name' => trim((string) ($card->publicUser?->first_name.' '.$card->publicUser?->last_name)),
             'subscription_status' => $subscription?->status ?? 'not_required',
             'message' => 'Carte valide.',
@@ -91,10 +110,58 @@ class VerifyPartnerDiscountCardAction
         ];
     }
 
+    private function verifyPrivilegeCard(User $partnerUser, PrivilegeCard $card): array
+    {
+        if ($card->status !== 'active') {
+            throw ValidationException::withMessages([
+                'card_uuid' => ['Cette carte privilege n est pas active.'],
+            ]);
+        }
+
+        if ($card->expires_at !== null && $card->expires_at->isPast()) {
+            throw ValidationException::withMessages([
+                'card_uuid' => ['Cette carte privilege a expire.'],
+            ]);
+        }
+
+        if ($card->type === null || $card->type->status !== 'active') {
+            throw ValidationException::withMessages([
+                'card_uuid' => ['Le type de cette carte privilege n est pas actif.'],
+            ]);
+        }
+
+        if ($this->isSelfPublicUserAttempt($partnerUser, $card->publicUser)) {
+            throw ValidationException::withMessages([
+                'card_uuid' => ['Un agent partenaire ne peut pas appliquer une reduction sur sa propre carte privilege.'],
+            ]);
+        }
+
+        $now = CarbonImmutable::now();
+
+        return [
+            'card_source' => 'privilege_card',
+            'card' => $card,
+            'offer' => null,
+            'privilege_card_type' => $card->type,
+            'discount' => [
+                'type' => $card->type->discount_type,
+                'value' => $card->type->discount_value !== null ? (float) $card->type->discount_value : null,
+                'currency' => $card->type->currency,
+            ],
+            'member_display_name' => trim((string) ($card->publicUser?->first_name.' '.$card->publicUser?->last_name)),
+            'subscription_status' => 'not_required',
+            'message' => 'Carte privilege valide.',
+            'verified_at' => $now->toIso8601String(),
+        ];
+    }
+
     private function isSelfDiscountAttempt(User $partnerUser, UpDiscountCard $card): bool
     {
-        $publicUser = $card->publicUser;
+        return $this->isSelfPublicUserAttempt($partnerUser, $card->publicUser);
+    }
 
+    private function isSelfPublicUserAttempt(User $partnerUser, ?PublicUser $publicUser): bool
+    {
         if ($publicUser === null) {
             return false;
         }

@@ -13,7 +13,7 @@ class DiscountTransactionController extends Controller
     public function index(): View
     {
         $query = PartnerDiscountTransaction::query()
-            ->with(['organization', 'partnerUser', 'offer', 'discountCard', 'publicUser.publicUserType', 'subscription.plan']);
+            ->with(['organization', 'partnerUser', 'offer', 'discountCard', 'privilegeCard.type', 'publicUser.publicUserType', 'subscription.plan']);
 
         if (filled(request('search'))) {
             $search = trim((string) request('search'));
@@ -21,6 +21,10 @@ class DiscountTransactionController extends Controller
             $query->where(function ($builder) use ($search): void {
                 $builder->where('scan_reference', 'like', '%'.$search.'%')
                     ->orWhereHas('discountCard', function ($cardQuery) use ($search): void {
+                        $cardQuery->where('card_number', 'like', '%'.$search.'%')
+                            ->orWhere('card_uuid', 'like', '%'.$search.'%');
+                    })
+                    ->orWhereHas('privilegeCard', function ($cardQuery) use ($search): void {
                         $cardQuery->where('card_number', 'like', '%'.$search.'%')
                             ->orWhere('card_uuid', 'like', '%'.$search.'%');
                     })
@@ -58,7 +62,11 @@ class DiscountTransactionController extends Controller
         }
 
         if (filled(request('offer_id'))) {
-            $query->where('partner_discount_offer_id', (int) request('offer_id'));
+            if (request('offer_id') === 'privilege_card') {
+                $query->where('card_source', 'privilege_card');
+            } else {
+                $query->where('partner_discount_offer_id', (int) request('offer_id'));
+            }
         }
 
         if (filled(request('public_user_type_id'))) {

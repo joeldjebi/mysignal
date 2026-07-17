@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web\SuperAdmin;
 
 use App\Http\Controllers\Controller;
+use App\Models\PartnerDiscountTransaction;
 use App\Models\PrivilegeCardPaymentSession;
 use App\Models\PrivilegeCardType;
 use App\Support\Audit\ActivityLogger;
@@ -19,6 +20,9 @@ class PrivilegeCardTypeController extends Controller
         $query = PrivilegeCardType::query()->withCount(['cards', 'paymentSessions']);
         $purchaseQuery = PrivilegeCardPaymentSession::query()
             ->with(['publicUser', 'type', 'card']);
+        $scanQuery = PartnerDiscountTransaction::query()
+            ->with(['privilegeCard.type', 'partnerUser', 'organization', 'publicUser'])
+            ->where('card_source', 'privilege_card');
 
         if (filled(request('search'))) {
             $search = trim((string) request('search'));
@@ -58,6 +62,41 @@ class PrivilegeCardTypeController extends Controller
             $purchaseQuery->where('privilege_card_type_id', request('purchase_type_id'));
         }
 
+        if (filled(request('scan_search'))) {
+            $search = trim((string) request('scan_search'));
+            $scanQuery->where(function ($builder) use ($search): void {
+                $builder->where('scan_reference', 'like', '%'.$search.'%')
+                    ->orWhereHas('privilegeCard', function ($cardQuery) use ($search): void {
+                        $cardQuery->where('card_number', 'like', '%'.$search.'%')
+                            ->orWhere('card_uuid', 'like', '%'.$search.'%');
+                    })
+                    ->orWhereHas('partnerUser', function ($userQuery) use ($search): void {
+                        $userQuery->where('name', 'like', '%'.$search.'%')
+                            ->orWhere('email', 'like', '%'.$search.'%')
+                            ->orWhere('phone', 'like', '%'.$search.'%');
+                    })
+                    ->orWhereHas('publicUser', function ($publicUserQuery) use ($search): void {
+                        $publicUserQuery->where('first_name', 'like', '%'.$search.'%')
+                            ->orWhere('last_name', 'like', '%'.$search.'%')
+                            ->orWhere('phone', 'like', '%'.$search.'%');
+                    })
+                    ->orWhereHas('organization', function ($organizationQuery) use ($search): void {
+                        $organizationQuery->where('name', 'like', '%'.$search.'%')
+                            ->orWhere('code', 'like', '%'.$search.'%');
+                    });
+            });
+        }
+
+        if (filled(request('scan_type_id'))) {
+            $scanQuery->whereHas('privilegeCard', function ($cardQuery): void {
+                $cardQuery->where('privilege_card_type_id', request('scan_type_id'));
+            });
+        }
+
+        if (filled(request('scan_status'))) {
+            $scanQuery->where('status', request('scan_status'));
+        }
+
         $cardTypes = PrivilegeCardType::query()
             ->orderBy('sort_order')
             ->orderBy('price')
@@ -66,6 +105,7 @@ class PrivilegeCardTypeController extends Controller
         return view('super-admin.privilege-card-types.index', [
             'types' => $query->orderBy('sort_order')->orderBy('price')->paginate(12, ['*'], 'types_page')->withQueryString(),
             'purchases' => $purchaseQuery->latest('id')->paginate(12, ['*'], 'purchases_page')->withQueryString(),
+            'scans' => $scanQuery->latest('applied_at')->latest('id')->paginate(12, ['*'], 'scans_page')->withQueryString(),
             'cardTypes' => $cardTypes,
         ]);
     }

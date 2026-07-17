@@ -34,7 +34,7 @@ class DashboardController extends Controller
 
         $statsQuery = clone $query;
         $transactions = (clone $query)
-            ->with(['offer', 'partnerUser', 'publicUser', 'discountCard'])
+            ->with(['offer', 'partnerUser', 'publicUser', 'discountCard', 'privilegeCard.type'])
             ->latest('id')
             ->take(10)
             ->get();

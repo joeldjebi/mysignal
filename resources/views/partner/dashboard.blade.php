@@ -97,11 +97,12 @@
                                             </div>
                                         </td>
                                         <td>{{ $transaction->partnerUser?->name ?? '-' }}</td>
-                                        <td>{{ $transaction->offer?->name ?? '-' }}</td>
+                                        <td>{{ $transaction->card_source === 'privilege_card' ? ($transaction->privilegeCard?->type?->name ?? 'Carte privilège') : ($transaction->offer?->name ?? '-') }}</td>
                                         <td>
                                             <div class="meta-stack">
                                                 <span class="meta-title">{{ trim(($transaction->publicUser?->first_name ?? '').' '.($transaction->publicUser?->last_name ?? '')) ?: '-' }}</span>
-                                                <span class="meta-subtitle">{{ $transaction->discountCard?->card_number ?? '-' }}</span>
+                                                <span class="meta-subtitle">{{ $transaction->card_source === 'privilege_card' ? ($transaction->privilegeCard?->card_number ?? '-') : ($transaction->discountCard?->card_number ?? '-') }}</span>
+                                                <span class="meta-subtitle font-monospace">{{ $transaction->card_source === 'privilege_card' ? ($transaction->privilegeCard?->card_uuid ?? '-') : ($transaction->discountCard?->card_uuid ?? '-') }}</span>
                                             </div>
                                         </td>
                                         <td>

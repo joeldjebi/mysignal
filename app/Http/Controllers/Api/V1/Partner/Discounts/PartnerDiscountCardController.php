@@ -24,13 +24,24 @@ class PartnerDiscountCardController extends Controller
             'verified_at' => $result['verified_at'],
             'subscription_status' => $result['subscription_status'],
             'member_display_name' => $result['member_display_name'],
+            'card_source' => $result['card_source'],
             'card' => [
                 'id' => $result['card']->id,
                 'card_number' => $result['card']->card_number,
                 'card_uuid' => $result['card']->card_uuid,
                 'status' => $result['card']->status,
                 'expires_at' => $result['card']->expires_at?->toIso8601String(),
+                'source' => $result['card_source'],
+                'type' => $result['privilege_card_type'] ? [
+                    'id' => $result['privilege_card_type']->id,
+                    'name' => $result['privilege_card_type']->name,
+                    'code' => $result['privilege_card_type']->code,
+                    'discount_type' => $result['privilege_card_type']->discount_type,
+                    'discount_value' => $result['privilege_card_type']->discount_value !== null ? (float) $result['privilege_card_type']->discount_value : null,
+                    'currency' => $result['privilege_card_type']->currency,
+                ] : null,
             ],
+            'discount' => $result['discount'],
             'offer' => $result['offer'] ? new PartnerDiscountOfferResource($result['offer']) : null,
         ]);
     }

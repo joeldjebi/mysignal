@@ -52,6 +52,7 @@
                         @foreach ($offers as $offer)
                             <option value="{{ $offer->id }}" @selected((string) request('offer_id') === (string) $offer->id)>{{ $offer->name }}</option>
                         @endforeach
+                        <option value="privilege_card" @selected(request('offer_id') === 'privilege_card')>Cartes privilèges</option>
                     </select>
                 </div>
             </div>
@@ -104,11 +105,15 @@
                             <td>
                                 <div class="fw-semibold">{{ trim(($transaction->publicUser?->first_name ?? '').' '.($transaction->publicUser?->last_name ?? '')) ?: '-' }}</div>
                                 <div class="small text-secondary">{{ $transaction->publicUser?->phone ?: '-' }}</div>
-                                <div class="small text-secondary">{{ $transaction->discountCard?->card_number ?: '-' }}</div>
+                                <div class="small text-secondary">{{ $transaction->card_source === 'privilege_card' ? ($transaction->privilegeCard?->card_number ?: '-') : ($transaction->discountCard?->card_number ?: '-') }}</div>
+                                <div class="small text-secondary">UUID scan: <span class="font-monospace">{{ $transaction->card_source === 'privilege_card' ? ($transaction->privilegeCard?->card_uuid ?: '-') : ($transaction->discountCard?->card_uuid ?: '-') }}</span></div>
+                                @if ($transaction->card_source === 'privilege_card')
+                                    <div class="small text-secondary">Statut CP: {{ $transaction->privilegeCard?->status ?: '-' }}</div>
+                                @endif
                             </td>
                             <td>
-                                <div class="fw-semibold">{{ $transaction->offer?->name ?: '-' }}</div>
-                                <div class="small text-secondary">{{ $transaction->offer?->code ?: '-' }}</div>
+                                <div class="fw-semibold">{{ $transaction->card_source === 'privilege_card' ? ($transaction->privilegeCard?->type?->name ?: 'Carte privilège') : ($transaction->offer?->name ?: '-') }}</div>
+                                <div class="small text-secondary">{{ $transaction->card_source === 'privilege_card' ? 'Carte privilège · '.$transaction->privilegeCard?->type?->code : ($transaction->offer?->code ?: '-') }}</div>
                             </td>
                             <td>
                                 <div class="small">Initial: {{ $transaction->original_amount ?? '-' }}</div>

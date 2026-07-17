@@ -20,22 +20,59 @@ class PartnerDiscountTransactionResource extends JsonResource
             'discount_type_snapshot' => $this->discount_type_snapshot,
             'discount_value_snapshot' => $this->discount_value_snapshot !== null ? (float) $this->discount_value_snapshot : null,
             'applied_at' => $this->applied_at?->toIso8601String(),
+            'card_source' => $this->card_source ?? 'up_discount_card',
             'partner_user' => $this->whenLoaded('partnerUser', fn () => [
                 'id' => $this->partnerUser?->id,
                 'name' => $this->partnerUser?->name,
                 'email' => $this->partnerUser?->email,
             ]),
-            'offer' => $this->whenLoaded('offer', fn () => new PartnerDiscountOfferResource($this->offer)),
-            'card' => $this->whenLoaded('discountCard', fn () => [
-                'id' => $this->discountCard?->id,
-                'card_number' => $this->discountCard?->card_number,
-                'card_uuid' => $this->discountCard?->card_uuid,
-            ]),
+            'offer' => $this->relationLoaded('offer') && $this->offer ? new PartnerDiscountOfferResource($this->offer) : null,
+            'card' => $this->cardPayload(),
             'public_user' => $this->whenLoaded('publicUser', fn () => [
                 'id' => $this->publicUser?->id,
                 'display_name' => trim((string) ($this->publicUser?->first_name.' '.$this->publicUser?->last_name)),
                 'phone' => $this->publicUser?->phone,
             ]),
+        ];
+    }
+
+    private function cardPayload(): ?array
+    {
+        if (($this->card_source ?? 'up_discount_card') === 'privilege_card') {
+            if (! $this->relationLoaded('privilegeCard') || $this->privilegeCard === null) {
+                return null;
+            }
+
+            $card = $this->privilegeCard;
+
+            return [
+                'id' => $card->id,
+                'card_number' => $card->card_number,
+                'card_uuid' => $card->card_uuid,
+                'source' => 'privilege_card',
+                'type' => $card->relationLoaded('type') && $card->type ? [
+                    'id' => $card->type->id,
+                    'name' => $card->type->name,
+                    'code' => $card->type->code,
+                    'discount_type' => $card->type->discount_type,
+                    'discount_value' => $card->type->discount_value !== null ? (float) $card->type->discount_value : null,
+                    'currency' => $card->type->currency,
+                ] : null,
+            ];
+        }
+
+        if (! $this->relationLoaded('discountCard') || $this->discountCard === null) {
+            return null;
+        }
+
+        $card = $this->discountCard;
+
+        return [
+            'id' => $card->id,
+            'card_number' => $card->card_number,
+            'card_uuid' => $card->card_uuid,
+            'source' => 'up_discount_card',
+            'type' => null,
         ];
     }
 }
