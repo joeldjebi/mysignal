@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Web\Public\PublicPortalController;
+use App\Http\Controllers\Web\MapTileController;
 use App\Http\Controllers\Web\Backoffice\DashboardController as BackofficeDashboardController;
 use App\Http\Controllers\Web\Backoffice\LegalCaseController as BackofficeLegalCaseController;
 use App\Http\Controllers\Web\Institution\AuthController as InstitutionAuthController;
@@ -71,6 +72,14 @@ use App\Http\Controllers\Internal\MetricsController;
 
 Route::get('/internal/metrics', MetricsController::class)
     ->name('internal.metrics');
+Route::get('/map-tiles/{server}/{zoom}/{x}/{y}.png', MapTileController::class)
+    ->where([
+        'server' => '[abc]',
+        'zoom' => '[0-9]+',
+        'x' => '[0-9]+',
+        'y' => '[0-9]+',
+    ])
+    ->name('map-tiles.show');
 Route::get('/', [PublicPortalController::class, 'landing'])->name('public.landing');
 Route::get('/qui-sommes-nous', [PublicPortalController::class, 'landingPage'])->defaults('pageKey', 'page_about')->name('public.pages.about');
 Route::get('/my-signal-tv', [PublicPortalController::class, 'landingPage'])->defaults('pageKey', 'page_tv')->name('public.pages.tv');

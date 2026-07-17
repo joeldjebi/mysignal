@@ -492,7 +492,7 @@
                 });
             };
 
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            L.tileLayer(@json(url('/map-tiles').'/{s}/{z}/{x}/{y}.png'), {
                 maxZoom: 19,
                 attribution: '&copy; OpenStreetMap'
             }).addTo(map);
