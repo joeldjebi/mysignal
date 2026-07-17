@@ -7,6 +7,7 @@ use App\Models\Organization;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
+use App\Models\UserAccess;
 use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -53,6 +54,7 @@ class SystemUserController extends Controller
         return view('super-admin.system-users.index', [
             'systemUsers' => $systemUsers,
             'roles' => Role::query()->whereNull('organization_id')->where('status', 'active')->orderBy('name')->get(),
+            'partnerOrganizations' => $this->partnerOrganizations(),
             'visibleActivityUsers' => User::query()->whereNull('organization_id')->where('is_super_admin', false)->orderBy('name')->get(['id', 'name', 'email']),
         ]);
     }
@@ -76,6 +78,7 @@ class SystemUserController extends Controller
 
             $createdUser->roles()->sync($attributes['role_ids'] ?? []);
             $createdUser->permissions()->sync([]);
+            $this->syncPartnerAccess($createdUser, $attributes, $request->user()->id);
             $createdUser->activityLogVisibleUsers()->sync($attributes['activity_visible_user_ids'] ?? []);
         });
 
@@ -102,8 +105,9 @@ class SystemUserController extends Controller
         $this->abortIfNotManageable($systemUser);
 
         return view('super-admin.system-users.edit', [
-            'systemUser' => $systemUser->load(['roles.permissions', 'activityLogVisibleUsers']),
+            'systemUser' => $systemUser->load(['roles.permissions', 'activityLogVisibleUsers', 'accesses.organization.organizationType']),
             'roles' => Role::query()->whereNull('organization_id')->where('status', 'active')->orderBy('name')->get(),
+            'partnerOrganizations' => $this->partnerOrganizations(),
             'visibleActivityUsers' => User::query()
                 ->whereNull('organization_id')
                 ->where('is_super_admin', false)
@@ -160,6 +164,7 @@ class SystemUserController extends Controller
             $systemUser->update($payload);
             $systemUser->roles()->sync($attributes['role_ids'] ?? []);
             $systemUser->permissions()->sync([]);
+            $this->syncPartnerAccess($systemUser, $attributes);
             $systemUser->activityLogVisibleUsers()->sync($attributes['activity_visible_user_ids'] ?? []);
         });
 
@@ -237,6 +242,16 @@ class SystemUserController extends Controller
             'password' => [$user ? 'nullable' : 'required', 'string', 'min:8'],
             'role_ids' => ['nullable', 'array'],
             'role_ids.*' => ['integer', 'exists:roles,id'],
+            'partner_organization_id' => [
+                Rule::requiredIf(fn () => $this->selectedRolesContainPartner($request->input('role_ids', []))),
+                'nullable',
+                'integer',
+                Rule::exists('organizations', 'id')->where(function ($query): void {
+                    $query->whereIn('organization_type_id', DB::table('organization_types')
+                        ->select('id')
+                        ->where('code', 'PARTNER_ESTABLISHMENT'));
+                }),
+            ],
             'activity_visible_user_ids' => ['nullable', 'array'],
             'activity_visible_user_ids.*' => ['integer', 'exists:users,id'],
         ]);
@@ -245,6 +260,60 @@ class SystemUserController extends Controller
     private function abortIfNotManageable(User $user): void
     {
         abort_if($user->is_super_admin || $user->organization_id !== null, 404);
+    }
+
+    private function syncPartnerAccess(User $user, array $attributes, ?int $createdBy = null): void
+    {
+        if (! $this->selectedRolesContainPartner($attributes['role_ids'] ?? [])) {
+            $user->accesses()->where('portal', 'partner')->update(['status' => 'inactive']);
+
+            return;
+        }
+
+        $organizationId = (int) $attributes['partner_organization_id'];
+
+        $access = $user->accesses()->where('portal', 'partner')->latest('id')->first();
+
+        if ($access instanceof UserAccess) {
+            $access->update([
+                'organization_id' => $organizationId,
+                'status' => 'active',
+            ]);
+
+            return;
+        }
+
+        UserAccess::query()->create([
+            'user_id' => $user->id,
+            'organization_id' => $organizationId,
+            'portal' => 'partner',
+            'status' => 'active',
+            'created_by' => $createdBy,
+        ]);
+    }
+
+    private function selectedRolesContainPartner(array $roleIds): bool
+    {
+        $roleIds = collect($roleIds)->filter()->map(fn ($roleId) => (int) $roleId)->all();
+
+        if ($roleIds === []) {
+            return false;
+        }
+
+        return Role::query()
+            ->whereIn('id', $roleIds)
+            ->where('code', 'like', 'PARTNER_%')
+            ->exists();
+    }
+
+    private function partnerOrganizations()
+    {
+        return Organization::query()
+            ->with('organizationType')
+            ->whereHas('organizationType', fn ($query) => $query->where('code', 'PARTNER_ESTABLISHMENT'))
+            ->where('status', 'active')
+            ->orderBy('name')
+            ->get(['id', 'name', 'code', 'organization_type_id']);
     }
 
     private function loginPortalFor(User $user): array

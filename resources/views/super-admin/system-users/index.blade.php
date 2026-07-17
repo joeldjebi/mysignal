@@ -164,6 +164,16 @@
                                     @endforelse
                                 </div>
                             </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Institution partenaire</label>
+                                <select name="partner_organization_id" class="form-select">
+                                    <option value="">Aucune</option>
+                                    @foreach ($partnerOrganizations as $organization)
+                                        <option value="{{ $organization->id }}" @selected((string) old('partner_organization_id') === (string) $organization->id)>{{ $organization->name }}</option>
+                                    @endforeach
+                                </select>
+                                <div class="small text-secondary mt-1">Obligatoire si tu attribues un role partenaire comme PARTNER_MANAGER ou PARTNER_AGENT.</div>
+                            </div>
                             <div class="col-12">
                                 <label class="form-label">Utilisateurs internes dont l activite est visible</label>
                                 <div class="small text-secondary mb-1">Ce parametre est utile si ce compte doit voir les activites de certains utilisateurs internes choisis par le super admin.</div>

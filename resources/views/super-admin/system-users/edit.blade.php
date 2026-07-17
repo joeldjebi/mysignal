@@ -6,6 +6,8 @@
 
 @section('content')
     @php
+        $partnerAccess = $systemUser->accesses
+            ->first(fn ($access) => $access->portal === 'partner' && $access->status === 'active');
         $inheritedPermissionGroups = $systemUser->roles
             ->flatMap(fn ($role) => $role->permissions)
             ->unique('id')
@@ -124,6 +126,16 @@
                         <div class="text-secondary small">Aucun role actif disponible.</div>
                     @endforelse
                 </div>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Institution partenaire</label>
+                <select name="partner_organization_id" class="form-select">
+                    <option value="">Aucune</option>
+                    @foreach ($partnerOrganizations as $organization)
+                        <option value="{{ $organization->id }}" @selected((string) old('partner_organization_id', $partnerAccess?->organization_id) === (string) $organization->id)>{{ $organization->name }}</option>
+                    @endforeach
+                </select>
+                <div class="small text-secondary mt-1">Obligatoire si ce compte a un role partenaire. Le profil d acces partenaire sera cree ou mis a jour automatiquement.</div>
             </div>
             <div class="col-12">
                 <label class="form-label">Utilisateurs internes dont l activite est visible</label>
