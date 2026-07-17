@@ -9,6 +9,19 @@
 @endsection
 
 @section('content')
+    <style>
+        .maintenance-cleanup-page .fw-bold {
+            font-weight: 600 !important;
+        }
+        .maintenance-cleanup-page .fw-semibold {
+            font-weight: 500 !important;
+        }
+        .maintenance-cleanup-page code {
+            font-weight: 400;
+        }
+    </style>
+
+    <div class="maintenance-cleanup-page">
     <section class="panel-card mb-4">
         <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
             <div>
@@ -16,7 +29,7 @@
                 <div class="text-secondary small">
                     Active ou desactive l envoi de notifications aux UP situes dans un rayon de 1 km lorsqu un signalement compatible est cree.
                 </div>
-                <code class="small d-inline-block mt-2">{{ $nearbyReportNotificationsFeature->code }}</code>
+                <div class="small text-secondary mt-2">{{ $nearbyReportNotificationsFeature->name }}</div>
             </div>
             <div class="d-flex flex-column flex-sm-row gap-2 align-items-sm-center">
                 <span class="status-chip">{{ $nearbyReportNotificationsFeature->status === 'active' ? 'Active' : 'Inactive' }}</span>
@@ -73,10 +86,13 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse ($profile['counts'] as $table => $count)
+                                @forelse ($profile['display_counts'] as $table)
                                     <tr>
-                                        <td><code>{{ $table }}</code></td>
-                                        <td class="text-end">{{ number_format($count, 0, ',', ' ') }}</td>
+                                        <td>
+                                            <div class="fw-semibold">{{ $table['label'] }}</div>
+                                            <div class="small text-secondary">{{ $table['name'] }}</div>
+                                        </td>
+                                        <td class="text-end">{{ number_format($table['count'], 0, ',', ' ') }}</td>
                                     </tr>
                                 @empty
                                     <tr>
@@ -133,7 +149,7 @@
                         <tr>
                             <td>
                                 <div class="fw-semibold">{{ $table['label'] }}</div>
-                                <code>{{ $table['name'] }}</code>
+                                <div class="small text-secondary">{{ $table['name'] }}</div>
                             </td>
                             <td>
                                 <div>{{ $table['role'] }}</div>
@@ -170,4 +186,5 @@
             Sans l option dependances, le nettoyage individuel est refuse si la table est encore referencee par des donnees non vides. Avec l option dependances, seules les tables metier/test autorisees sont incluses; les donnees systeme restent exclues.
         </div>
     </section>
+    </div>
 @endsection

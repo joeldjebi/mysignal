@@ -9,6 +9,7 @@ use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Illuminate\View\View;
 
@@ -21,6 +22,14 @@ class MaintenanceCleanupController extends Controller
         $profiles = collect($cleanupService->profiles())
             ->map(function (array $profile) use ($cleanupService): array {
                 $profile['counts'] = $cleanupService->countsForProfile($profile['code']);
+                $profile['display_counts'] = collect($profile['counts'])
+                    ->map(fn (int $count, string $table): array => [
+                        'name' => $table,
+                        'label' => $this->tableLabel($table, $cleanupService->tables()),
+                        'count' => $count,
+                    ])
+                    ->values()
+                    ->all();
                 $profile['rows_count'] = array_sum($profile['counts']);
 
                 return $profile;
@@ -34,6 +43,11 @@ class MaintenanceCleanupController extends Controller
             'confirmationText' => DatabaseCleanupService::CONFIRMATION,
             'nearbyReportNotificationsFeature' => $this->nearbyReportNotificationsFeature(),
         ]);
+    }
+
+    private function tableLabel(string $table, array $tables): string
+    {
+        return $tables[$table]['label'] ?? Str::of($table)->replace('_', ' ')->title()->toString();
     }
 
     public function toggleNearbyReportNotifications(Request $request, ActivityLogger $activityLogger): RedirectResponse

@@ -16,6 +16,7 @@ use App\Models\PublicUser;
 use App\Models\PublicUserType;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -175,7 +176,12 @@ class DashboardController extends Controller
             ->groupBy('signal_label', 'signal_code', 'incident_type')
             ->orderByDesc('total')
             ->limit(6)
-            ->get();
+            ->get()
+            ->map(function ($signal) {
+                $signal->label = $this->displayLabel($signal->label, 'Signal');
+
+                return $signal;
+            });
 
         $topCommunes = IncidentReport::query()
             ->leftJoin('communes', 'communes.id', '=', 'incident_reports.commune_id')
@@ -218,8 +224,7 @@ class DashboardController extends Controller
 
                 return [
                     'reference' => $report->reference,
-                    'signal_code' => $report->signal_code,
-                    'signal_label' => $report->signal_label,
+                    'signal_label' => $this->displayLabel($report->signal_label ?: $report->signal_code, 'Signal'),
                     'status' => $report->status,
                     'latitude' => (float) $latitude,
                     'longitude' => (float) $longitude,
@@ -232,7 +237,13 @@ class DashboardController extends Controller
             ->with(['commune', 'organization', 'application'])
             ->latest()
             ->take(8)
-            ->get();
+            ->get()
+            ->map(function (IncidentReport $report): IncidentReport {
+                $report->display_signal_label = $this->displayLabel($report->signal_label ?: $report->signal_code ?: $report->incident_type, 'Signal');
+                $report->display_payment_status = $this->displayStatus($report->payment_status);
+
+                return $report;
+            });
 
         return view('super-admin.dashboard', [
             'stats' => [
@@ -281,5 +292,39 @@ class DashboardController extends Controller
             'topCommunes' => $topCommunes,
             'mapReports' => $mapReports,
         ]);
+    }
+
+    private function displayLabel(?string $value, string $fallback = '-'): string
+    {
+        $value = trim((string) $value);
+
+        if ($value === '') {
+            return $fallback;
+        }
+
+        if (! str_contains($value, '_') && ! ctype_lower(str_replace(['-', ' '], '', $value))) {
+            return $value;
+        }
+
+        return Str::of($value)
+            ->replace(['_', '-'], ' ')
+            ->squish()
+            ->title()
+            ->toString();
+    }
+
+    private function displayStatus(?string $status): string
+    {
+        return match ($status) {
+            'pending' => 'En attente',
+            'paid' => 'Payé',
+            'failed' => 'Échoué',
+            'submitted' => 'Soumis',
+            'in_progress' => 'En cours',
+            'resolved' => 'Résolu',
+            'rejected' => 'Rejeté',
+            null, '' => '-',
+            default => $this->displayLabel($status),
+        };
     }
 }

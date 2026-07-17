@@ -29,7 +29,7 @@
         }
         .compact-sa-dashboard .metric-value {
             font-size: 1.45rem;
-            font-weight: 800;
+            font-weight: 650;
             line-height: 1.1;
             margin: .2rem 0 .15rem;
             color: var(--dash-text);
@@ -37,9 +37,18 @@
         .compact-sa-dashboard .metric-kicker {
             color: var(--dash-muted);
             font-size: .7rem;
-            font-weight: 700;
+            font-weight: 600;
             text-transform: uppercase;
             letter-spacing: .08em;
+        }
+        .compact-sa-dashboard .fw-bold {
+            font-weight: 600 !important;
+        }
+        .compact-sa-dashboard .fw-semibold {
+            font-weight: 500 !important;
+        }
+        .compact-sa-dashboard .h4 {
+            font-weight: 600 !important;
         }
         .compact-sa-dashboard .metric-card {
             border: 1px solid rgba(16,42,67,.08);
@@ -296,9 +305,9 @@
                                             <td class="fw-semibold">{{ $report->reference ?: '#'.$report->id }}</td>
                                             <td>{{ $report->application?->name ?: '-' }}</td>
                                             <td>{{ $report->organization?->name ?: '-' }}</td>
-                                            <td>{{ $report->signal_label ?? $report->incident_type }}</td>
+                                            <td>{{ $report->display_signal_label }}</td>
                                             <td>{{ $report->commune?->name ?: '-' }}</td>
-                                            <td><span class="status-chip">{{ $report->payment_status ?: '-' }}</span></td>
+                                            <td><span class="status-chip">{{ $report->display_payment_status }}</span></td>
                                         </tr>
                                     @endforeach
                                 </tbody>
@@ -353,7 +362,6 @@
                             @foreach ($pricingRules as $pricingRule)
                                 <div class="border rounded-4 p-3">
                                     <div class="fw-bold">{{ $pricingRule->label }}</div>
-                                    <div class="small text-secondary">{{ $pricingRule->code }}</div>
                                     <div class="mt-2 fw-semibold">{{ number_format($pricingRule->amount, 0, ',', ' ') }} {{ $pricingRule->currency }}</div>
                                 </div>
                             @endforeach
@@ -508,7 +516,7 @@
                     marker.bindPopup(`
                         <div style="min-width: 180px;">
                             <div style="font-weight: 700; margin-bottom: 4px;">${report.reference || '-'}</div>
-                            <div style="font-size: 12px; color: #5b6b7a;">${report.signal_code || '-'} · ${report.signal_label || ''}</div>
+                            <div style="font-size: 12px; color: #5b6b7a;">${report.signal_label || '-'}</div>
                             <div style="font-size: 12px; margin-top: 6px;">Statut: ${report.status || '-'}</div>
                         </div>
                     `);
