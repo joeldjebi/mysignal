@@ -2,9 +2,12 @@
 
 use App\Domain\Discounts\Actions\IssueUpDiscountCardAction;
 use App\Domain\Subscriptions\Enums\UpSubscriptionStatus;
+use App\Services\Wallet\GoogleWalletAuth;
+use App\Services\Wallet\WalletConfigurationException;
 use App\Models\UpSubscription;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Http;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
@@ -66,3 +69,51 @@ Artisan::command('discounts:backfill-cards {--dry-run : Simule la creation sans 
 
     return self::SUCCESS;
 })->purpose('Genere les cartes de reduction manquantes pour les abonnements UP deja actifs');
+
+Artisan::command('wallet:google:create-class', function (GoogleWalletAuth $googleWalletAuth) {
+    $classId = (string) config('wallet.google.class_id');
+
+    if ($classId === '') {
+        $this->error('GOOGLE_WALLET_CLASS_ID est manquant.');
+
+        return self::FAILURE;
+    }
+
+    try {
+        $token = $googleWalletAuth->accessToken();
+    } catch (WalletConfigurationException $exception) {
+        $this->error($exception->getMessage());
+
+        return self::FAILURE;
+    }
+
+    $payload = [
+        'id' => $classId,
+        'classTemplateInfo' => [
+            'cardTemplateOverride' => [
+                'cardRowTemplateInfos' => [],
+            ],
+        ],
+    ];
+
+    $response = Http::withToken($token)
+        ->acceptJson()
+        ->post('https://walletobjects.googleapis.com/walletobjects/v1/genericClass', $payload);
+
+    if ($response->status() === 409) {
+        $this->info('La classe Google Wallet existe deja: '.$classId);
+
+        return self::SUCCESS;
+    }
+
+    if (! $response->successful()) {
+        $this->error('Creation Google Wallet echouee: HTTP '.$response->status());
+        $this->line($response->body());
+
+        return self::FAILURE;
+    }
+
+    $this->info('Classe Google Wallet creee: '.$classId);
+
+    return self::SUCCESS;
+})->purpose('Cree la classe Google Wallet des cartes privileges');

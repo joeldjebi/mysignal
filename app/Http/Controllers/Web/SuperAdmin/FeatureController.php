@@ -48,7 +48,7 @@ class FeatureController extends Controller
         ]);
 
         return redirect()->route('super-admin.features.index')
-            ->with('success', 'La fonctionnalite a ete creee.');
+            ->with('success', 'La fonctionnalité a été créée.');
     }
 
     public function edit(Feature $feature): View
@@ -73,7 +73,7 @@ class FeatureController extends Controller
         ]);
 
         return redirect()->route('super-admin.features.index')
-            ->with('success', 'La fonctionnalite a ete mise a jour.');
+            ->with('success', 'La fonctionnalité a été mise à jour.');
     }
 
     public function destroy(Feature $feature): RedirectResponse
@@ -81,7 +81,7 @@ class FeatureController extends Controller
         $feature->delete();
 
         return redirect()->route('super-admin.features.index')
-            ->with('success', 'La fonctionnalite a ete supprimee.');
+            ->with('success', 'La fonctionnalité a été supprimée.');
     }
 
     public function toggleStatus(Feature $feature): RedirectResponse
@@ -90,6 +90,6 @@ class FeatureController extends Controller
             'status' => $feature->status === 'active' ? 'inactive' : 'active',
         ]);
 
-        return back()->with('success', 'Le statut de la fonctionnalite a ete mis a jour.');
+        return back()->with('success', 'L’état de la fonctionnalité a été mis à jour.');
     }
 }

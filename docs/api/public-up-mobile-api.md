@@ -167,7 +167,9 @@ Impact :
 - `POST /payments/{payment}/confirm` le confirme cote API
 - `GET /payments/{payment}/receipt` telecharge un PDF si le paiement est `paid`
 - `POST /privilege-cards/{type}/payments` initialise un achat de carte privilege
+- `GET /privilege-card-payment-sessions` retourne l historique des achats de cartes privileges
 - `GET /privilege-card-payment-sessions/{syncRef}` verifie le paiement d une carte privilege
+- `GET /privilege-cards/{card}/wallet-pass?platform=ios|android` genere le lien Wallet Apple ou Android
 
 ### Dommages
 Un dommage ne peut etre declare que si :
@@ -791,8 +793,64 @@ Verifie le statut serveur d un achat de carte privilege.
 
 Quand le paiement est confirme, `status` vaut `paid` et `card` contient la carte emise.
 
+#### GET `/v1/public/privilege-card-payment-sessions`
+Retourne l historique complet des achats de cartes privileges du UP connecte.
+
+Reponse :
+```json
+{
+  "success": true,
+  "data": {
+    "payment_sessions": [
+      {
+        "sync_ref": "PVC-20260717103000-A1B2C3",
+        "amount": 1000,
+        "currency": "FCFA",
+        "status": "paid",
+        "provider": "fineopay",
+        "paid_at": "2026-07-21T16:20:00+00:00",
+        "type": {
+          "id": 1,
+          "name": "Standard"
+        },
+        "card": {
+          "id": 4,
+          "card_uuid": "0d24899d-5a2b-44b3-9ad5-17f76887485d",
+          "card_number": "PVC-STA-260721-ABC123",
+          "status": "active",
+          "qr_payload": "0d24899d-5a2b-44b3-9ad5-17f76887485d"
+        }
+      }
+    ]
+  }
+}
+```
+
 #### GET `/v1/public/privilege-card`
 Retourne la derniere carte privilege du UP connecte, ou `null`.
+
+#### GET `/v1/public/privilege-cards/{card}/wallet-pass?platform=ios|android`
+Genere un lien d ajout Wallet pour une carte privilege active appartenant au UP connecte.
+
+Conditions obligatoires :
+- la carte appartient au UP connecte
+- la carte est liee a une session FineoPay `paid`
+- `status = active`
+- `expires_at` est vide ou dans le futur
+
+Parametres query :
+- `platform=ios` retourne une URL signee temporaire vers un fichier `.pkpass` Apple Wallet
+- `platform=android` retourne une URL Google Wallet `Save to Google Wallet`
+
+Reponse :
+```json
+{
+  "success": true,
+  "data": {
+    "url": "https://..."
+  }
+}
+```
 
 Exemple avec piece jointe optionnelle :
 ```json

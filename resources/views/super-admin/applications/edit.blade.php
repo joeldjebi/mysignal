@@ -2,7 +2,7 @@
 
 @section('title', config('app.name').' | Modifier une catégorie')
 @section('page-title', 'Modifier une catégorie')
-@section('page-description', 'Ajuster l identité, les textes et le positionnement d une catégorie métier.')
+@section('page-description', 'Ajuster l’identité, les textes et le positionnement d’une catégorie métier.')
 
 @section('content')
     <style>
@@ -40,13 +40,6 @@
             font-weight: 700;
             line-height: 1.3;
         }
-        .feature-option-code {
-            color: var(--acepen-blue);
-            font-size: .73rem;
-            font-weight: 800;
-            letter-spacing: .03em;
-            margin-top: .2rem;
-        }
         .required-star {
             color: #dc3545;
             font-weight: 800;
@@ -71,20 +64,19 @@
                     <img src="{{ $application->logoUrl() ?: asset('image/logo/logo-my-signal.png') }}" alt="Logo {{ $application->name }}" style="width:52px;height:52px;border-radius:16px;object-fit:contain;background:#fff;padding:.35rem;box-shadow:0 12px 24px rgba(16,42,67,.08);">
                     <div>
                         <div class="h5 fw-bold mb-1">{{ $application->name }}</div>
-                        <div class="text-secondary small">{{ $application->code }} · {{ $application->slug }}</div>
                     </div>
                 </div>
                 <div class="d-flex flex-wrap gap-2 mb-3">
-                    <span class="status-chip">{{ $application->status }}</span>
+                    <span class="status-chip">{{ $application->status === 'active' ? 'Active' : 'Inactive' }}</span>
                     <span class="status-chip">Ordre {{ $application->sort_order }}</span>
-                    <span class="status-chip">{{ $application->requires_public_user_identifier ? 'Identifiant UP requis' : 'Identifiant UP facultatif' }}</span>
+                    <span class="status-chip">{{ $application->requires_public_user_identifier ? 'Identifiant usager requis' : 'Identifiant usager facultatif' }}</span>
                     <span class="status-chip">{{ $application->identifier_label ?: 'Identifiant' }}</span>
-                    <span class="status-chip">{{ $application->requires_organization_type_on_report ? 'Type d organisation requis' : 'Type d organisation masque' }}</span>
+                    <span class="status-chip">{{ $application->requires_organization_type_on_report ? 'Sous-catégorie requise' : 'Sous-catégorie masquée' }}</span>
                 </div>
-                <div class="text-secondary small mb-4">{{ $application->tagline ?: 'Aucun slogan renseigne.' }}</div>
+                <div class="text-secondary small mb-4">{{ $application->tagline ?: 'Aucun texte court renseigné.' }}</div>
                 <div class="d-flex flex-wrap gap-2 mb-4">
                     <a href="{{ route('super-admin.signal-types.index', ['application_id' => $application->id]) }}" class="btn btn-sm btn-outline-dark">Voir les types de signaux</a>
-                    <a href="{{ route('super-admin.organizations.index', ['application_id' => $application->id]) }}" class="btn btn-sm btn-outline-dark">Voir les organisations</a>
+                    <a href="{{ route('super-admin.organizations.index', ['application_id' => $application->id]) }}" class="btn btn-sm btn-outline-dark">Voir les institutions</a>
                 </div>
                 <div class="vstack gap-3">
                     <div>
@@ -100,7 +92,7 @@
                         <div class="fw-semibold">{{ $application->incident_reports_count }}</div>
                     </div>
                     <div>
-                        <div class="small text-secondary">Fonctionnalites par defaut</div>
+                        <div class="small text-secondary">Fonctionnalités par défaut</div>
                         <div class="fw-semibold">{{ $application->features_count }}</div>
                     </div>
                 </div>
@@ -108,7 +100,7 @@
         </div>
         <div class="col-lg-8">
             <section class="panel-card">
-                <div class="fw-bold mb-3">Edition de la catégorie</div>
+                <div class="fw-bold mb-3">Édition de la catégorie</div>
                 <form method="POST" action="{{ route('super-admin.applications.update', $application) }}" class="row g-3" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
@@ -117,7 +109,7 @@
                         <input type="text" name="name" value="{{ old('name', $application->name) }}" class="form-control" required>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">Identifiant UP</label>
+                        <label class="form-label">Identifiant usager</label>
                         <select name="requires_public_user_identifier" class="form-select">
                             <option value="0" @selected(! old('requires_public_user_identifier', $application->requires_public_user_identifier))>Facultatif</option>
                             <option value="1" @selected(old('requires_public_user_identifier', $application->requires_public_user_identifier))>Obligatoire</option>
@@ -126,18 +118,18 @@
                     <div class="col-md-4">
                         <label class="form-label">Libellé identifiant</label>
                         <input type="text" name="identifier_label" value="{{ old('identifier_label', $application->identifier_label ?: 'Identifiant') }}" class="form-control" placeholder="Identifiant, Police d'assurance">
-                        <div class="small text-secondary mt-2">Libellé affiché au UP quand la catégorie demande un identifiant.</div>
+                        <div class="small text-secondary mt-2">Libellé affiché à l’usager quand la catégorie demande un identifiant.</div>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">Sous Catégorie au signalement</label>
+                        <label class="form-label">Sous-catégorie au signalement</label>
                         <select name="requires_organization_type_on_report" class="form-select">
                             <option value="0" @selected(! old('requires_organization_type_on_report', $application->requires_organization_type_on_report))>Ne pas afficher</option>
                             <option value="1" @selected(old('requires_organization_type_on_report', $application->requires_organization_type_on_report))>Afficher et rendre obligatoire</option>
                         </select>
-                        <div class="small text-secondary mt-2">Chez le UP, ce choix filtre les institutions par sous catégorie selectionnee.</div>
+                        <div class="small text-secondary mt-2">Chez l’usager, ce choix filtre les institutions par sous-catégorie sélectionnée.</div>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">Ordre d'affichage</label>
+                        <label class="form-label">Ordre d’affichage</label>
                         <input type="number" min="1" max="999" name="sort_order" value="{{ old('sort_order', $application->sort_order) }}" class="form-control">
                     </div>
                     <div class="col-12">
@@ -159,22 +151,22 @@
                         @endif
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Image hero</label>
+                        <label class="form-label">Image principale</label>
                         <input type="file" name="hero_image_file" class="form-control" accept=".jpg,.jpeg,.png,.webp">
-                        <div class="small text-secondary mt-2">Laisser vide pour conserver l image hero actuelle.</div>
+                        <div class="small text-secondary mt-2">Laisser vide pour conserver l’image principale actuelle.</div>
                         @if ($application->heroImageUrl())
                             <div class="mt-3">
-                                <img src="{{ $application->heroImageUrl() }}" alt="Hero actuel" style="max-width:100%;height:72px;border-radius:18px;object-fit:cover;box-shadow:0 12px 24px rgba(16,42,67,.08);">
+                                <img src="{{ $application->heroImageUrl() }}" alt="Image principale actuelle" style="max-width:100%;height:72px;border-radius:18px;object-fit:cover;box-shadow:0 12px 24px rgba(16,42,67,.08);">
                             </div>
                         @endif
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Icone mobile</label>
+                        <label class="form-label">Icône mobile</label>
                         <input type="file" name="icon_file" class="form-control" accept=".png,.svg,.jpg,.jpeg">
-                        <div class="small text-secondary mt-2">Laisser vide pour conserver l icone actuelle.</div>
+                        <div class="small text-secondary mt-2">Laisser vide pour conserver l’icône actuelle.</div>
                         @if ($application->iconUrl())
                             <div class="mt-3">
-                                <img src="{{ $application->iconUrl() }}" alt="Icone actuelle" style="width:72px;height:72px;border-radius:18px;object-fit:contain;background:#fff;padding:.35rem;box-shadow:0 12px 24px rgba(16,42,67,.08);">
+                                <img src="{{ $application->iconUrl() }}" alt="Icône actuelle" style="width:72px;height:72px;border-radius:18px;object-fit:contain;background:#fff;padding:.35rem;box-shadow:0 12px 24px rgba(16,42,67,.08);">
                             </div>
                         @endif
                     </div>
@@ -192,7 +184,7 @@
                     </div>
                     <div class="col-12">
                         <label class="form-label">Fonctionnalités par défaut de la catégorie</label>
-                        <div class="small text-secondary mb-3">Ces fonctionnalités sont automatiquement ouvertes aux organisations de cette catégorie, sauf désactivation explicite au niveau d'une organisation.</div>
+                        <div class="small text-secondary mb-3">Ces fonctionnalités sont automatiquement ouvertes aux institutions de cette catégorie, sauf désactivation explicite au niveau d’une institution.</div>
                         <div class="feature-picker">
                             @foreach ($groupedFeatures as $groupLabel => $groupFeatures)
                                 <section class="feature-picker-group">
@@ -204,7 +196,6 @@
                                                     <input class="form-check-input" type="checkbox" value="{{ $feature->id }}" name="feature_ids[]" id="application-feature-edit-{{ $feature->id }}" @checked(in_array($feature->id, old('feature_ids', $application->features->pluck('id')->all())))>
                                                     <span class="form-check-label">
                                                         <span class="feature-option-title d-block">{{ $feature->name }}</span>
-                                                        <span class="feature-option-code d-block">{{ $feature->code }}</span>
                                                         @if ($feature->description)
                                                             <span class="small text-secondary d-block mt-2">{{ $feature->description }}</span>
                                                         @endif

@@ -40,6 +40,19 @@ class PublicPrivilegeCardController extends Controller
         ]);
     }
 
+    public function sessions(Request $request)
+    {
+        $sessions = PrivilegeCardPaymentSession::query()
+            ->with(['type', 'card.type'])
+            ->where('public_user_id', $request->user('public_api')->id)
+            ->latest('id')
+            ->get();
+
+        return ApiResponse::success([
+            'payment_sessions' => PrivilegeCardPaymentSessionResource::collection($sessions),
+        ]);
+    }
+
     public function purchase(Request $request, PrivilegeCardType $type, InitiatePrivilegeCardFineoPaymentAction $action)
     {
         $session = $action->handle($request->user('public_api'), $type);

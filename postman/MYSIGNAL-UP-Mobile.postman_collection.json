@@ -1645,6 +1645,29 @@
           }
         },
         {
+          "name": "List Privilege Card Payment Sessions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "const session = json?.data?.payment_sessions?.[0];",
+                  "if (session?.sync_ref) pm.environment.set('privilegeCardPaymentSessionSyncRef', session.sync_ref);",
+                  "if (session?.card?.id) pm.environment.set('privilegeCardId', session.card.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/privilege-card-payment-sessions",
+            "description": "Retourne l historique complet des achats de cartes privileges du UP connecte."
+          }
+        },
+        {
           "name": "Get My Privilege Card",
           "event": [
             {
@@ -1664,6 +1687,24 @@
             "header": [{ "key": "Accept", "value": "application/json" }],
             "url": "{{baseUrl}}/v1/public/privilege-card",
             "description": "Retourne la derniere carte privilege du UP connecte, ou card: null si aucune carte n a encore ete achetee."
+          }
+        },
+        {
+          "name": "Add Privilege Card to Apple Wallet",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/privilege-cards/{{privilegeCardId}}/wallet-pass?platform=ios",
+            "description": "Genere une URL signee temporaire vers le fichier .pkpass Apple Wallet de la carte privilege active."
+          }
+        },
+        {
+          "name": "Add Privilege Card to Google Wallet",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/privilege-cards/{{privilegeCardId}}/wallet-pass?platform=android",
+            "description": "Genere l URL Save to Google Wallet de la carte privilege active."
           }
         }
       ]

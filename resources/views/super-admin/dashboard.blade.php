@@ -1,13 +1,13 @@
 @extends('super-admin.layouts.app')
 
-@section('title', config('app.name').' | Dashboard Super Admin')
-@section('page-title', 'Cockpit Super Admin')
-@section('page-description', 'Vue globale des applications, institutions, usagers, signalements, dommages, paiements et performance TCM.')
+@section('title', config('app.name').' | Tableau de bord Super Admin')
+@section('page-title', 'Tableau de bord Super Admin')
+@section('page-description', 'Vue globale des catégories, institutions, usagers, signalements, dommages, paiements et délais de traitement.')
 
 @section('header-badges')
-    <span class="badge-soft">{{ $stats['active_applications'] }} application{{ $stats['active_applications'] > 1 ? 's' : '' }} active{{ $stats['active_applications'] > 1 ? 's' : '' }}</span>
+    <span class="badge-soft">{{ $stats['active_applications'] }} catégorie{{ $stats['active_applications'] > 1 ? 's' : '' }} active{{ $stats['active_applications'] > 1 ? 's' : '' }}</span>
     <span class="badge-soft">{{ $stats['active_organizations'] }} institution{{ $stats['active_organizations'] > 1 ? 's' : '' }} active{{ $stats['active_organizations'] > 1 ? 's' : '' }}</span>
-    <span class="badge-soft">{{ number_format($stats['collected_amount'], 0, ',', ' ') }} FCFA collectes</span>
+    <span class="badge-soft">{{ number_format($stats['collected_amount'], 0, ',', ' ') }} FCFA collectés</span>
 @endsection
 
 @section('content')
@@ -97,7 +97,7 @@
         <section class="row g-2 mb-3">
             <div class="col-md-6 col-xl-3">
                 <div class="metric-card">
-                    <div class="metric-kicker">Utilisateurs publics</div>
+                    <div class="metric-kicker">Usagers publics</div>
                     <div class="metric-value">{{ $stats['public_users'] }}</div>
                     <div class="small text-secondary">{{ $stats['public_business_users'] }} comptes entreprise.</div>
                 </div>
@@ -106,26 +106,26 @@
                 <div class="metric-card">
                     <div class="metric-kicker">Signalements</div>
                     <div class="metric-value">{{ $stats['reports'] }}</div>
-                    <div class="small text-secondary">{{ $stats['report_resolution_rate'] }}% resolus.</div>
+                    <div class="small text-secondary">{{ $stats['report_resolution_rate'] }}% résolus.</div>
                 </div>
             </div>
             <div class="col-md-6 col-xl-3">
                 <div class="metric-card">
                     <div class="metric-kicker">Dommages</div>
                     <div class="metric-value">{{ $stats['damages'] }}</div>
-                    <div class="small text-secondary">{{ $stats['damage_resolution_rate'] }}% resolus.</div>
+                    <div class="small text-secondary">{{ $stats['damage_resolution_rate'] }}% résolus.</div>
                 </div>
             </div>
             <div class="col-md-6 col-xl-3">
                 <div class="metric-card">
                     <div class="metric-kicker">Paiements</div>
                     <div class="metric-value">{{ $stats['payments'] }}</div>
-                    <div class="small text-secondary">{{ $stats['paid_payments'] }} paiements confirmes.</div>
+                    <div class="small text-secondary">{{ $stats['paid_payments'] }} paiements confirmés.</div>
                 </div>
             </div>
             <div class="col-md-6 col-xl-3">
                 <div class="metric-card">
-                    <div class="metric-kicker">Applications</div>
+                    <div class="metric-kicker">Catégories</div>
                     <div class="metric-value">{{ $stats['applications'] }}</div>
                     <div class="small text-secondary">{{ $stats['active_applications'] }} actives dans la plateforme.</div>
                 </div>
@@ -141,14 +141,14 @@
                 <div class="metric-card">
                     <div class="metric-kicker">Compteurs</div>
                     <div class="metric-value">{{ $stats['meters'] }}</div>
-                    <div class="small text-secondary">Base terrain attachee aux usagers.</div>
+                    <div class="small text-secondary">Base terrain attachée aux usagers.</div>
                 </div>
             </div>
             <div class="col-md-6 col-xl-3">
                 <div class="metric-card">
-                    <div class="metric-kicker">Conformite TCM</div>
+                    <div class="metric-kicker">Respect des délais</div>
                     <div class="metric-value">{{ $stats['sla_compliance_rate'] }}%</div>
-                    <div class="small text-secondary">{{ $stats['sla_breached'] }} dossier(s) hors TCM.</div>
+                    <div class="small text-secondary">{{ $stats['sla_breached'] }} dossier(s) hors délai.</div>
                 </div>
             </div>
         </section>
@@ -156,42 +156,42 @@
         <section class="row g-3 mb-3">
             <div class="col-xl-6">
                 <div class="chart-card">
-                    <div class="fw-bold mb-1">Statuts des signalements</div>
-                    <div class="text-secondary small mb-3">Repartition globale des dossiers dans la plateforme.</div>
+                    <div class="fw-bold mb-1">État des signalements</div>
+                    <div class="text-secondary small mb-3">Répartition globale des dossiers dans la plateforme.</div>
                     <div id="saReportStatusChart" class="chart-frame"></div>
                 </div>
             </div>
             <div class="col-xl-6">
                 <div class="chart-card">
-                    <div class="fw-bold mb-1">Statuts des dommages</div>
-                    <div class="text-secondary small mb-3">Etat de traitement des dommages declares par les usagers.</div>
+                    <div class="fw-bold mb-1">État des dommages</div>
+                    <div class="text-secondary small mb-3">État de traitement des dommages déclarés par les usagers.</div>
                     <div id="saDamageStatusChart" class="chart-frame"></div>
                 </div>
             </div>
             <div class="col-xl-6">
                 <div class="chart-card">
-                    <div class="fw-bold mb-1">Statuts des paiements</div>
-                    <div class="text-secondary small mb-3">Vue globale des paiements probatoires.</div>
+                    <div class="fw-bold mb-1">État des paiements</div>
+                    <div class="text-secondary small mb-3">Vue globale des paiements enregistrés.</div>
                     <div id="saPaymentStatusChart" class="chart-frame"></div>
                 </div>
             </div>
             <div class="col-xl-6">
                 <div class="chart-card">
-                    <div class="fw-bold mb-1">Etat des TCM</div>
-                    <div class="text-secondary small mb-3">Conformite, risque et depassement sur l ensemble des dossiers.</div>
+                    <div class="fw-bold mb-1">Respect des délais</div>
+                    <div class="text-secondary small mb-3">Dossiers dans les délais, à surveiller ou en retard.</div>
                     <div id="saSlaStatusChart" class="chart-frame"></div>
                 </div>
             </div>
             <div class="col-xl-12">
                 <div class="chart-card">
-                    <div class="fw-bold mb-1">Performance par application</div>
-                    <div class="text-secondary small mb-3">Applications qui concentrent le plus de signalements.</div>
+                    <div class="fw-bold mb-1">Performance par catégorie</div>
+                    <div class="text-secondary small mb-3">Catégories qui concentrent le plus de signalements.</div>
                     <div id="saApplicationPerformanceChart" class="chart-frame"></div>
                     @if ($applicationPerformance->isNotEmpty())
                         <div class="d-flex flex-wrap gap-2 mt-3">
                             @foreach ($applicationPerformance as $applicationItem)
                                 <a href="{{ route('super-admin.organizations.index', ['application_id' => $applicationItem->id]) }}" class="btn btn-sm btn-outline-dark">
-                                    {{ $applicationItem->name }} · Voir les organisations
+                                    {{ $applicationItem->name }} · Voir les institutions
                                 </a>
                             @endforeach
                         </div>
@@ -210,7 +210,7 @@
                     <div class="d-flex align-items-center justify-content-between mb-3">
                         <div>
                             <div class="fw-bold mb-1">Carte des signalements</div>
-                            <div class="text-secondary small">Visualisation globale des points GPS disponibles sur la plateforme.</div>
+                            <div class="text-secondary small">Visualisation globale des positions disponibles sur la plateforme.</div>
                         </div>
                         <span class="status-chip">{{ count($mapReports) }} point(s)</span>
                     </div>
@@ -223,7 +223,7 @@
             <div class="col-xl-4">
                 <div class="panel-card h-100">
                     <div class="fw-bold mb-2">Top types de signaux</div>
-                    <div class="small text-secondary mb-3">Les incidents les plus frequemment declares.</div>
+                    <div class="small text-secondary mb-3">Les incidents les plus fréquemment déclarés.</div>
                     <div class="vstack gap-2">
                         @forelse ($topSignals as $signal)
                             <div class="d-flex justify-content-between align-items-center border rounded-4 p-3">
@@ -231,7 +231,7 @@
                                 <span class="status-chip">{{ $signal->total }}</span>
                             </div>
                         @empty
-                            <div class="text-secondary">Aucune donnee disponible.</div>
+                            <div class="text-secondary">Aucune donnée disponible.</div>
                         @endforelse
                     </div>
                 </div>
@@ -247,7 +247,7 @@
                                 <span class="status-chip">{{ $commune->total }}</span>
                             </div>
                         @empty
-                            <div class="text-secondary">Aucune donnee disponible.</div>
+                            <div class="text-secondary">Aucune donnée disponible.</div>
                         @endforelse
                     </div>
                 </div>
@@ -255,7 +255,7 @@
             <div class="col-xl-4">
                 <div class="panel-card h-100">
                     <div class="fw-bold mb-2">Usagers par type</div>
-                    <div class="small text-secondary mb-3">Repartition des comptes publics selon le type d usager.</div>
+                    <div class="small text-secondary mb-3">Répartition des comptes publics selon le type d’usager.</div>
                     <div class="vstack gap-2">
                         @forelse ($publicUserTypeBreakdown as $publicUserType)
                             <div class="d-flex justify-content-between align-items-center border rounded-4 p-3">
@@ -266,7 +266,7 @@
                                 <span class="status-chip">{{ $publicUserType->public_users_count }}</span>
                             </div>
                         @empty
-                            <div class="text-secondary">Aucun type d usager configure.</div>
+                            <div class="text-secondary">Aucun type d’usager configuré.</div>
                         @endforelse
                     </div>
                 </div>
@@ -279,21 +279,21 @@
                     <div class="d-flex align-items-center justify-content-between mb-2">
                         <div>
                             <div class="fw-bold">Derniers signalements</div>
-                            <div class="text-secondary small">Vue rapide sur les derniers incidents remontes dans la plateforme.</div>
+                            <div class="text-secondary small">Vue rapide sur les derniers incidents remontés dans la plateforme.</div>
                         </div>
                         <span class="status-chip">Supervision globale</span>
                     </div>
 
                     @if ($recentReports->isEmpty())
-                        <div class="text-secondary">Aucun signalement enregistre pour le moment.</div>
+                        <div class="text-secondary">Aucun signalement enregistré pour le moment.</div>
                     @else
                         <div class="table-responsive">
                             <table class="table table-modern align-middle mb-0">
                                 <thead>
                                     <tr>
-                                        <th>Reference</th>
-                                        <th>Application</th>
-                                        <th>Organisation</th>
+                                        <th>Numéro</th>
+                                        <th>Catégorie</th>
+                                        <th>Institution</th>
                                         <th>Signal</th>
                                         <th>Commune</th>
                                         <th>Paiement</th>
@@ -322,13 +322,13 @@
                     <div class="row g-2">
                         <div class="col-6">
                             <div class="border rounded-4 p-3">
-                                <div class="small text-secondary">AI</div>
+                                <div class="small text-secondary">Admins institutionnels</div>
                                 <div class="h4 mb-0 fw-bold">{{ $stats['institution_admins'] }}</div>
                             </div>
                         </div>
                         <div class="col-6">
                             <div class="border rounded-4 p-3">
-                                <div class="small text-secondary">Super Admins</div>
+                                <div class="small text-secondary">Super administrateurs</div>
                                 <div class="h4 mb-0 fw-bold">{{ $stats['super_admins'] }}</div>
                             </div>
                         </div>
@@ -356,7 +356,7 @@
                 <div class="panel-card">
                     <div class="fw-bold mb-2">Tarification active</div>
                     @if ($pricingRules->isEmpty())
-                        <div class="text-secondary">Aucune regle de tarification disponible.</div>
+                        <div class="text-secondary">Aucune règle de tarification disponible.</div>
                     @else
                         <div class="vstack gap-2">
                             @foreach ($pricingRules as $pricingRule)
@@ -391,7 +391,7 @@
         new ApexCharts(document.querySelector('#saReportStatusChart'), {
             chart: { type: 'donut', height: 300 },
             series: saReportStatusSeries,
-            labels: ['Soumis', 'En cours', 'Resolus', 'Rejetes'],
+            labels: ['Soumis', 'En cours', 'Résolus', 'Rejetés'],
             colors: ['#ffa117', '#6791ff', '#5bebaf', '#ff0068'],
             legend: { position: 'bottom', fontSize: '13px' },
             dataLabels: { enabled: false },
@@ -401,7 +401,7 @@
         new ApexCharts(document.querySelector('#saDamageStatusChart'), {
             chart: { type: 'donut', height: 300 },
             series: saDamageStatusSeries,
-            labels: ['Soumis', 'En cours', 'Resolus', 'Rejetes'],
+            labels: ['Soumis', 'En cours', 'Résolus', 'Rejetés'],
             colors: ['#ffa117', '#6791ff', '#5bebaf', '#ff0068'],
             legend: { position: 'bottom', fontSize: '13px' },
             dataLabels: { enabled: false },
@@ -411,7 +411,7 @@
         new ApexCharts(document.querySelector('#saPaymentStatusChart'), {
             chart: { type: 'donut', height: 300 },
             series: saPaymentStatusSeries,
-            labels: ['En attente', 'Payes', 'Echoues'],
+            labels: ['En attente', 'Payés', 'Échoués'],
             colors: ['#ffa117', '#5bebaf', '#ff0068'],
             legend: { position: 'bottom', fontSize: '13px' },
             dataLabels: { enabled: false },
@@ -421,7 +421,7 @@
         new ApexCharts(document.querySelector('#saSlaStatusChart'), {
             chart: { type: 'donut', height: 300 },
             series: saSlaSeries,
-            labels: ['Dans le TCM', 'A risque', 'Depasse', 'Sans configuration'],
+            labels: ['Dans le délai', 'À surveiller', 'En retard', 'Sans délai défini'],
             colors: ['#5bebaf', '#ffa117', '#ff0068', '#6791ff'],
             legend: { position: 'bottom', fontSize: '13px' },
             dataLabels: { enabled: false },
@@ -517,7 +517,7 @@
                         <div style="min-width: 180px;">
                             <div style="font-weight: 700; margin-bottom: 4px;">${report.reference || '-'}</div>
                             <div style="font-size: 12px; color: #5b6b7a;">${report.signal_label || '-'}</div>
-                            <div style="font-size: 12px; margin-top: 6px;">Statut: ${report.status || '-'}</div>
+                            <div style="font-size: 12px; margin-top: 6px;">État: ${report.status_label || '-'}</div>
                         </div>
                     `);
 

@@ -226,6 +226,7 @@ class DashboardController extends Controller
                     'reference' => $report->reference,
                     'signal_label' => $this->displayLabel($report->signal_label ?: $report->signal_code, 'Signal'),
                     'status' => $report->status,
+                    'status_label' => $this->displayStatus($report->status),
                     'latitude' => (float) $latitude,
                     'longitude' => (float) $longitude,
                 ];

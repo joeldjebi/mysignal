@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\V1\Public\Payments\FineoPayCallbackController;
 use App\Http\Controllers\Api\V1\Public\Payments\PublicIncidentReportPaymentSessionController;
 use App\Http\Controllers\Api\V1\Public\Payments\PublicReportPaymentController;
 use App\Http\Controllers\Api\V1\Public\PrivilegeCards\PrivilegeCardFineoPayCallbackController;
+use App\Http\Controllers\Api\V1\Public\PrivilegeCards\PrivilegeCardWalletPassController;
 use App\Http\Controllers\Api\V1\Public\PrivilegeCards\PublicPrivilegeCardController;
 use App\Http\Controllers\Api\V1\Public\Profile\PublicProfileController;
 use App\Http\Controllers\Api\V1\Public\PurchaseReceipts\PublicPurchaseReceiptController;
@@ -38,6 +39,9 @@ Route::prefix('v1/public')->group(function (): void {
         ->name('api.public.payments.fineopay.callback');
     Route::post('privilege-card-payments/fineopay/callback', PrivilegeCardFineoPayCallbackController::class)
         ->name('api.public.privilege-card-payments.fineopay.callback');
+    Route::get('privilege-cards/{card}/pass.pkpass', [PrivilegeCardWalletPassController::class, 'downloadApplePass'])
+        ->middleware('signed')
+        ->name('api.public.privilege-cards.pass.apple');
 
     Route::get('applications', [PublicCatalogController::class, 'applications']);
     Route::get('application-types', [PublicCatalogController::class, 'applicationTypes']);
@@ -137,7 +141,9 @@ Route::prefix('v1/public')->group(function (): void {
         Route::get('discount-card', [PublicDiscountCardController::class, 'show']);
         Route::get('privilege-cards', [PublicPrivilegeCardController::class, 'index']);
         Route::get('privilege-card', [PublicPrivilegeCardController::class, 'mine']);
+        Route::get('privilege-cards/{card}/wallet-pass', [PrivilegeCardWalletPassController::class, 'issueUrl']);
         Route::post('privilege-cards/{type}/payments', [PublicPrivilegeCardController::class, 'purchase']);
+        Route::get('privilege-card-payment-sessions', [PublicPrivilegeCardController::class, 'sessions']);
         Route::get('privilege-card-payment-sessions/{syncRef}', [PublicPrivilegeCardController::class, 'session']);
     });
 });

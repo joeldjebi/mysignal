@@ -4,11 +4,14 @@ namespace App\Http\Controllers\Web\SuperAdmin;
 
 use App\Http\Controllers\Controller;
 use App\Models\PartnerDiscountTransaction;
+use App\Models\PrivilegeCard;
 use App\Models\PrivilegeCardPaymentSession;
 use App\Models\PrivilegeCardType;
+use App\Models\PublicUser;
 use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -18,11 +21,6 @@ class PrivilegeCardTypeController extends Controller
     public function index(): View
     {
         $query = PrivilegeCardType::query()->withCount(['cards', 'paymentSessions']);
-        $purchaseQuery = PrivilegeCardPaymentSession::query()
-            ->with(['publicUser', 'type', 'card']);
-        $scanQuery = PartnerDiscountTransaction::query()
-            ->with(['privilegeCard.type', 'partnerUser', 'organization', 'publicUser'])
-            ->where('card_source', 'privilege_card');
 
         if (filled(request('search'))) {
             $search = trim((string) request('search'));
@@ -35,6 +33,52 @@ class PrivilegeCardTypeController extends Controller
         if (filled(request('status'))) {
             $query->where('status', request('status'));
         }
+
+        return view('super-admin.privilege-card-types.index', [
+            'types' => $query->orderBy('sort_order')->orderBy('price')->paginate(12)->withQueryString(),
+            ...$this->commonViewData(),
+            ...$this->issueFormViewData(),
+        ]);
+    }
+
+    public function issuedCards(): View
+    {
+        $issuedCardQuery = PrivilegeCard::query()
+            ->with(['publicUser', 'type']);
+
+        if (filled(request('issued_search'))) {
+            $search = trim((string) request('issued_search'));
+            $issuedCardQuery->where(function ($builder) use ($search): void {
+                $builder->where('card_number', 'like', '%'.$search.'%')
+                    ->orWhere('card_uuid', 'like', '%'.$search.'%')
+                    ->orWhereHas('publicUser', function ($userQuery) use ($search): void {
+                        $userQuery->where('first_name', 'like', '%'.$search.'%')
+                            ->orWhere('last_name', 'like', '%'.$search.'%')
+                            ->orWhere('phone', 'like', '%'.$search.'%')
+                            ->orWhere('email', 'like', '%'.$search.'%');
+                    });
+            });
+        }
+
+        if (filled(request('issued_type_id'))) {
+            $issuedCardQuery->where('privilege_card_type_id', request('issued_type_id'));
+        }
+
+        if (filled(request('issued_status'))) {
+            $issuedCardQuery->where('status', request('issued_status'));
+        }
+
+        return view('super-admin.privilege-card-types.issued-cards', [
+            'issuedCards' => $issuedCardQuery->latest('id')->paginate(12)->withQueryString(),
+            ...$this->commonViewData(),
+            ...$this->issueFormViewData(),
+        ]);
+    }
+
+    public function purchases(): View
+    {
+        $purchaseQuery = PrivilegeCardPaymentSession::query()
+            ->with(['publicUser', 'type', 'card']);
 
         if (filled(request('purchase_search'))) {
             $search = trim((string) request('purchase_search'));
@@ -61,6 +105,18 @@ class PrivilegeCardTypeController extends Controller
         if (filled(request('purchase_type_id'))) {
             $purchaseQuery->where('privilege_card_type_id', request('purchase_type_id'));
         }
+
+        return view('super-admin.privilege-card-types.purchases', [
+            'purchases' => $purchaseQuery->latest('id')->paginate(12)->withQueryString(),
+            ...$this->commonViewData(),
+        ]);
+    }
+
+    public function scans(): View
+    {
+        $scanQuery = PartnerDiscountTransaction::query()
+            ->with(['privilegeCard.type', 'partnerUser', 'organization', 'publicUser'])
+            ->where('card_source', 'privilege_card');
 
         if (filled(request('scan_search'))) {
             $search = trim((string) request('scan_search'));
@@ -97,17 +153,65 @@ class PrivilegeCardTypeController extends Controller
             $scanQuery->where('status', request('scan_status'));
         }
 
+        return view('super-admin.privilege-card-types.scans', [
+            'scans' => $scanQuery->latest('applied_at')->latest('id')->paginate(12)->withQueryString(),
+            ...$this->commonViewData(),
+        ]);
+    }
+
+    private function commonViewData(): array
+    {
         $cardTypes = PrivilegeCardType::query()
             ->orderBy('sort_order')
             ->orderBy('price')
             ->get(['id', 'name', 'code']);
-
-        return view('super-admin.privilege-card-types.index', [
-            'types' => $query->orderBy('sort_order')->orderBy('price')->paginate(12, ['*'], 'types_page')->withQueryString(),
-            'purchases' => $purchaseQuery->latest('id')->paginate(12, ['*'], 'purchases_page')->withQueryString(),
-            'scans' => $scanQuery->latest('applied_at')->latest('id')->paginate(12, ['*'], 'scans_page')->withQueryString(),
+        return [
             'cardTypes' => $cardTypes,
-        ]);
+            'cardStatusLabels' => [
+                'active' => 'Active',
+                'inactive' => 'Inactive',
+                'expired' => 'Expirée',
+                'suspended' => 'Suspendue',
+                'revoked' => 'Révoquée',
+            ],
+            'paymentStatusLabels' => [
+                'pending' => 'En attente',
+                'paid' => 'Payé',
+                'failed' => 'Échoué',
+                'cancelled' => 'Annulé',
+                'expired' => 'Expiré',
+            ],
+            'scanStatusLabels' => [
+                'validated' => 'Validé',
+                'cancelled' => 'Annulé',
+                'reversed' => 'Annulé après contrôle',
+                'rejected' => 'Rejeté',
+            ],
+            'verificationStatusLabels' => [
+                'verified' => 'Vérifié',
+                'valid' => 'Valide',
+                'pending' => 'En attente',
+                'failed' => 'Échoué',
+                'rejected' => 'Rejeté',
+            ],
+        ];
+    }
+
+    private function issueFormViewData(): array
+    {
+        return [
+            'activeCardTypes' => PrivilegeCardType::query()
+                ->where('status', 'active')
+                ->orderBy('sort_order')
+                ->orderBy('price')
+                ->get(['id', 'name', 'code', 'duration_months']),
+            'publicUsers' => PublicUser::query()
+                ->where('status', 'active')
+                ->orderBy('first_name')
+                ->orderBy('last_name')
+                ->orderBy('phone')
+                ->get(['id', 'first_name', 'last_name', 'phone', 'email']),
+        ];
     }
 
     public function store(Request $request, ActivityLogger $activityLogger): RedirectResponse
@@ -115,10 +219,57 @@ class PrivilegeCardTypeController extends Controller
         $attributes = $this->validatedAttributes($request);
         $type = PrivilegeCardType::query()->create($attributes);
 
-        $activityLogger->log('privilege_card_type.created', 'Creation d une carte privilege.', $type, $type->toArray(), $request);
+        $activityLogger->log('privilege_card_type.created', 'Création d’une carte privilège.', $type, $type->toArray(), $request);
 
         return redirect()->route('super-admin.privilege-card-types.index')
-            ->with('success', 'La carte privilege a ete creee.');
+            ->with('success', 'La carte privilège a été créée.');
+    }
+
+    public function issueCard(Request $request, ActivityLogger $activityLogger): RedirectResponse
+    {
+        $attributes = $request->validate([
+            'public_user_id' => ['required', 'integer', Rule::exists('public_users', 'id')],
+            'privilege_card_type_id' => ['required', 'integer', Rule::exists('privilege_card_types', 'id')],
+            'expires_at' => ['nullable', 'date', 'after:today'],
+        ]);
+
+        $publicUser = PublicUser::query()
+            ->whereKey($attributes['public_user_id'])
+            ->where('status', 'active')
+            ->firstOrFail();
+        $type = PrivilegeCardType::query()
+            ->whereKey($attributes['privilege_card_type_id'])
+            ->where('status', 'active')
+            ->firstOrFail();
+
+        $card = DB::transaction(function () use ($attributes, $publicUser, $type): PrivilegeCard {
+            return PrivilegeCard::query()->create([
+                'public_user_id' => $publicUser->id,
+                'privilege_card_type_id' => $type->id,
+                'card_uuid' => (string) Str::uuid(),
+                'card_number' => $this->generateCardNumber($type->code),
+                'status' => 'active',
+                'issued_at' => now(),
+                'activated_at' => now(),
+                'expires_at' => filled($attributes['expires_at'] ?? null)
+                    ? \Illuminate\Support\Carbon::parse($attributes['expires_at'])->endOfDay()
+                    : now()->addMonthsNoOverflow((int) $type->duration_months),
+                'metadata' => [
+                    'issued_by' => 'super_admin',
+                    'issued_from' => 'web',
+                ],
+            ]);
+        });
+
+        $activityLogger->log('privilege_card.issued_by_super_admin', 'Émission manuelle d’une carte privilège.', $card, [
+            'public_user_id' => $publicUser->id,
+            'privilege_card_type_id' => $type->id,
+            'card_number' => $card->card_number,
+            'card_uuid' => $card->card_uuid,
+        ], $request);
+
+        return redirect()->route('super-admin.privilege-card-types.issued-cards')
+            ->with('success', 'La carte privilège '.$card->card_number.' a été émise. Code à scanner: '.$card->card_uuid);
     }
 
     public function update(Request $request, PrivilegeCardType $privilegeCardType, ActivityLogger $activityLogger): RedirectResponse
@@ -126,28 +277,28 @@ class PrivilegeCardTypeController extends Controller
         $before = $privilegeCardType->toArray();
         $privilegeCardType->update($this->validatedAttributes($request, $privilegeCardType));
 
-        $activityLogger->log('privilege_card_type.updated', 'Mise a jour d une carte privilege.', $privilegeCardType, [
+        $activityLogger->log('privilege_card_type.updated', 'Mise à jour d’une carte privilège.', $privilegeCardType, [
             'before' => $before,
             'after' => $privilegeCardType->fresh()?->toArray(),
         ], $request);
 
         return redirect()->route('super-admin.privilege-card-types.index')
-            ->with('success', 'La carte privilege a ete mise a jour.');
+            ->with('success', 'La carte privilège a été mise à jour.');
     }
 
     public function destroy(Request $request, PrivilegeCardType $privilegeCardType, ActivityLogger $activityLogger): RedirectResponse
     {
         if ($privilegeCardType->cards()->exists() || $privilegeCardType->paymentSessions()->exists()) {
-            return back()->with('error', 'Impossible de supprimer une carte deja achetee ou liee a un paiement.');
+            return back()->with('error', 'Impossible de supprimer une carte déjà achetée ou liée à un paiement.');
         }
 
         $snapshot = $privilegeCardType->toArray();
         $privilegeCardType->delete();
 
-        $activityLogger->log('privilege_card_type.deleted', 'Suppression d une carte privilege.', PrivilegeCardType::class, $snapshot, $request);
+        $activityLogger->log('privilege_card_type.deleted', 'Suppression d’une carte privilège.', PrivilegeCardType::class, $snapshot, $request);
 
         return redirect()->route('super-admin.privilege-card-types.index')
-            ->with('success', 'La carte privilege a ete supprimee.');
+            ->with('success', 'La carte privilège a été supprimée.');
     }
 
     public function toggleStatus(Request $request, PrivilegeCardType $privilegeCardType, ActivityLogger $activityLogger): RedirectResponse
@@ -156,11 +307,11 @@ class PrivilegeCardTypeController extends Controller
             'status' => $privilegeCardType->status === 'active' ? 'inactive' : 'active',
         ]);
 
-        $activityLogger->log('privilege_card_type.status_toggled', 'Changement de statut d une carte privilege.', $privilegeCardType, [
+        $activityLogger->log('privilege_card_type.status_toggled', 'Changement d’état d’une carte privilège.', $privilegeCardType, [
             'status' => $privilegeCardType->status,
         ], $request);
 
-        return back()->with('success', 'Le statut de la carte privilege a ete mis a jour.');
+        return back()->with('success', 'L’état de la carte privilège a été mis à jour.');
     }
 
     private function validatedAttributes(Request $request, ?PrivilegeCardType $type = null): array
@@ -179,7 +330,7 @@ class PrivilegeCardTypeController extends Controller
 
         if ($attributes['discount_type'] === 'percentage' && (float) $attributes['discount_value'] > 100) {
             throw \Illuminate\Validation\ValidationException::withMessages([
-                'discount_value' => ['La reduction en pourcentage ne peut pas depasser 100%.'],
+                'discount_value' => ['La réduction en pourcentage ne peut pas dépasser 100%.'],
             ]);
         }
 
@@ -218,5 +369,17 @@ class PrivilegeCardTypeController extends Controller
     private function nextSortOrder(): int
     {
         return ((int) PrivilegeCardType::query()->max('sort_order')) + 1;
+    }
+
+    private function generateCardNumber(string $typeCode): string
+    {
+        $normalizedCode = preg_replace('/[^A-Z0-9]/', '', Str::upper($typeCode)) ?: 'CARD';
+        $prefix = Str::substr($normalizedCode, 0, 4);
+
+        do {
+            $number = 'PVC-'.$prefix.'-'.now()->format('ymd').'-'.Str::upper(Str::random(6));
+        } while (PrivilegeCard::query()->where('card_number', $number)->exists());
+
+        return $number;
     }
 }

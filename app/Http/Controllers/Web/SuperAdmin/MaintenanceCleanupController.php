@@ -61,7 +61,7 @@ class MaintenanceCleanupController extends Controller
 
         $activityLogger->log(
             'maintenance.feature.toggled',
-            'Statut de la fonctionnalite de notification UP de proximite modifie depuis la maintenance.',
+            'État de la fonctionnalité de notification de proximité modifié depuis la maintenance.',
             'feature',
             [
                 'feature_code' => self::PUBLIC_NEARBY_REPORT_NOTIFICATIONS_FEATURE,
@@ -73,7 +73,7 @@ class MaintenanceCleanupController extends Controller
 
         return redirect()
             ->route('super-admin.maintenance.cleanup.index')
-            ->with('success', 'La fonctionnalite de notification UP de proximite a ete '.($nextStatus === 'active' ? 'activee.' : 'desactivee.'));
+            ->with('success', 'La notification de proximité a été '.($nextStatus === 'active' ? 'activée.' : 'désactivée.'));
     }
 
     public function destroy(Request $request, DatabaseCleanupService $cleanupService, ActivityLogger $activityLogger): RedirectResponse
@@ -91,13 +91,13 @@ class MaintenanceCleanupController extends Controller
             report($exception);
 
             return back()->withErrors([
-                'cleanup' => 'Nettoyage impossible: certaines tables liees doivent etre videes avant.',
+                'cleanup' => 'Nettoyage impossible: certaines données liées doivent être vidées avant.',
             ]);
         }
 
         $activityLogger->log(
             'maintenance.cleanup.executed',
-            'Nettoyage de tables execute depuis le portail super admin.',
+            'Nettoyage de données exécuté depuis le portail Super Admin.',
             'maintenance_cleanup',
             [
                 'profile' => $result['profile']['code'],
@@ -113,7 +113,7 @@ class MaintenanceCleanupController extends Controller
 
         return redirect()
             ->route('super-admin.maintenance.cleanup.index')
-            ->with('success', number_format($result['deleted_rows'], 0, ',', ' ').' ligne(s) videe(s) pour le profil '.$result['profile']['label'].'.');
+            ->with('success', number_format($result['deleted_rows'], 0, ',', ' ').' ligne(s) vidée(s) pour le profil '.$result['profile']['label'].'.');
     }
 
     public function destroyTable(Request $request, DatabaseCleanupService $cleanupService, ActivityLogger $activityLogger): RedirectResponse
@@ -133,19 +133,19 @@ class MaintenanceCleanupController extends Controller
 
             return back()->withErrors([
                 'cleanup' => $dependentTables !== []
-                    ? 'Cette table ne peut pas etre videe seule. Cochez "Inclure les dependances" ou videz d abord les tables dependantes non vides: '.implode(', ', $dependentTables).'.'
+                    ? 'Ce groupe de données ne peut pas être vidé seul. Cochez "Inclure les données liées" ou videz d’abord les groupes liés non vides: '.implode(', ', $dependentTables).'.'
                     : $exception->getMessage(),
             ]);
         } catch (QueryException $exception) {
             report($exception);
 
             $dependentTables = $cleanupService->dependentTablesFor($attributes['table']);
-            $message = 'Cette table ne peut pas etre videe seule car elle est encore liee a d autres donnees.';
+            $message = 'Ce groupe de données ne peut pas être vidé seul car il est encore lié à d’autres données.';
 
             if ($dependentTables !== []) {
-                $message .= ' Videz d abord les tables dependantes: '.implode(', ', $dependentTables).'.';
+                $message .= ' Videz d’abord les groupes liés: '.implode(', ', $dependentTables).'.';
             } else {
-                $message .= ' Videz d abord les tables dependantes.';
+                $message .= ' Videz d’abord les groupes liés.';
             }
 
             return back()->withErrors([
@@ -155,7 +155,7 @@ class MaintenanceCleanupController extends Controller
 
         $activityLogger->log(
             'maintenance.cleanup.table_executed',
-            'Nettoyage individuel de table execute depuis le portail super admin.',
+            'Nettoyage individuel de données exécuté depuis le portail Super Admin.',
             'maintenance_cleanup',
             [
                 'table' => $result['table'],
@@ -171,7 +171,7 @@ class MaintenanceCleanupController extends Controller
 
         return redirect()
             ->route('super-admin.maintenance.cleanup.index')
-            ->with('success', 'Nettoyage termine pour '.$result['table'].' : '.number_format($result['deleted_rows'], 0, ',', ' ').' ligne(s) supprimee(s) sur '.count($result['tables']).' table(s).');
+            ->with('success', 'Nettoyage terminé: '.number_format($result['deleted_rows'], 0, ',', ' ').' ligne(s) supprimée(s).');
     }
 
     private function nearbyReportNotificationsFeature(): Feature
@@ -179,8 +179,8 @@ class MaintenanceCleanupController extends Controller
         return Feature::query()->firstOrCreate(
             ['code' => self::PUBLIC_NEARBY_REPORT_NOTIFICATIONS_FEATURE],
             [
-                'name' => 'Notifications UP de proximite',
-                'description' => 'Envoie une notification aux UP situes dans un rayon de 1 km lorsqu un signalement compatible est cree.',
+                'name' => 'Notifications de proximité',
+                'description' => 'Envoie une notification aux usagers situés dans un rayon de 1 km lorsqu’un signalement compatible est créé.',
                 'status' => 'active',
             ],
         );

@@ -2,14 +2,20 @@
 
 @section('title', config('app.name').' | Cartes privilèges')
 @section('page-title', 'Cartes privilèges')
-@section('page-description', 'Paramétrer les cartes privilèges disponibles à l achat pour les UP.')
+@section('page-description', 'Paramétrer les cartes privilèges disponibles à l’achat pour les usagers.')
 
 @section('header-badges')
     <span class="badge-soft">{{ $types->total() }} carte{{ $types->total() > 1 ? 's' : '' }}</span>
 @endsection
 
 @section('content')
-    <div class="row g-4">
+    <div class="d-flex justify-content-end mb-3">
+        <button class="btn btn-dark" type="button" data-bs-toggle="modal" data-bs-target="#issuePrivilegeCardModal">
+            Émettre une carte à un usager
+        </button>
+    </div>
+
+    <div class="row g-4" id="privilege-card-types">
         <div class="col-lg-4">
             <section class="panel-card sticky-form-card">
                 <div class="fw-bold mb-3">Nouvelle carte privilège</div>
@@ -20,8 +26,8 @@
                         <input class="form-control" name="name" value="{{ old('name') }}" placeholder="Standard, Premium, Gold" required>
                     </div>
                     <div>
-                        <label class="form-label">Code</label>
-                        <input class="form-control" name="code" value="{{ old('code') }}" placeholder="Automatique">
+                        <label class="form-label">Référence interne</label>
+                        <input class="form-control" name="code" value="{{ old('code') }}" placeholder="Générée automatiquement">
                     </div>
                     <div class="row g-2">
                         <div class="col-8">
@@ -66,15 +72,15 @@
         </div>
         <div class="col-lg-8">
             <section class="panel-card">
-                <div class="fw-bold mb-3">Liste des cartes privilèges</div>
+                <div class="fw-bold mb-3">Types de cartes privilèges</div>
                 <form method="GET" class="filter-bar">
                     <div class="row g-2 align-items-end">
                         <div class="col-md-6">
                             <label class="form-label small text-secondary">Recherche</label>
-                            <input class="form-control" name="search" value="{{ request('search') }}" placeholder="Nom ou code">
+                            <input class="form-control" name="search" value="{{ request('search') }}" placeholder="Nom de la carte">
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label small text-secondary">Statut</label>
+                            <label class="form-label small text-secondary">État</label>
                             <select class="form-select" name="status">
                                 <option value="">Tous</option>
                                 <option value="active" @selected(request('status') === 'active')>Actif</option>
@@ -83,7 +89,7 @@
                         </div>
                         <div class="col-md-3 d-flex gap-2">
                             <button class="btn btn-dark w-100">OK</button>
-                            <a href="{{ route('super-admin.privilege-card-types.index') }}" class="btn btn-outline-secondary">RAZ</a>
+                            <a href="{{ route('super-admin.privilege-card-types.index') }}" class="btn btn-outline-secondary">Réinitialiser</a>
                         </div>
                     </div>
                 </form>
@@ -97,7 +103,7 @@
                                 <th>Réduction</th>
                                 <th>Avantages</th>
                                 <th>Ventes</th>
-                                <th>Statut</th>
+                                <th>État</th>
                                 <th class="text-end">Actions</th>
                             </tr>
                         </thead>
@@ -106,7 +112,7 @@
                                 <tr>
                                     <td>
                                         <div class="fw-semibold">{{ $type->name }}</div>
-                                        <div class="small text-secondary">{{ $type->code }} · ordre {{ $type->sort_order }} · {{ $type->duration_months }} mois</div>
+                                        <div class="small text-secondary">Ordre {{ $type->sort_order }} · {{ $type->duration_months }} mois</div>
                                     </td>
                                     <td>{{ number_format((float) $type->price, 0, ',', ' ') }} {{ $type->currency }}</td>
                                     <td>
@@ -122,7 +128,7 @@
                                         @endforelse
                                     </td>
                                     <td><span class="status-chip">{{ $type->cards_count }}</span></td>
-                                    <td><span class="status-chip">{{ $type->status }}</span></td>
+                                    <td><span class="status-chip">{{ $cardStatusLabels[$type->status] ?? $type->status }}</span></td>
                                     <td class="text-end">
                                         <div class="actions-wrap">
                                             <button class="btn btn-sm btn-outline-dark" type="button" data-bs-toggle="modal" data-bs-target="#editPrivilegeCardType{{ $type->id }}">Modifier</button>
@@ -173,7 +179,7 @@
                                 <input class="form-control" name="name" value="{{ old('name', $type->name) }}" required>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Code</label>
+                                <label class="form-label">Référence interne</label>
                                 <input class="form-control" name="code" value="{{ old('code', $type->code) }}">
                             </div>
                             <div class="col-md-4">
@@ -217,205 +223,59 @@
         </div>
     @endforeach
 
-    <section class="panel-card mt-4">
-        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 mb-3">
-            <div>
-                <div class="fw-bold">Historique des achats CP</div>
-                <div class="small text-secondary">Suivi des achats de cartes privilèges, paiements FineoPay et cartes émises.</div>
-            </div>
-            <span class="badge-soft">{{ $purchases->total() }} achat{{ $purchases->total() > 1 ? 's' : '' }}</span>
-        </div>
-
-        <form method="GET" class="filter-bar">
-            <div class="row g-2 align-items-end">
-                <div class="col-md-4">
-                    <label class="form-label small text-secondary">Recherche</label>
-                    <input class="form-control" name="purchase_search" value="{{ request('purchase_search') }}" placeholder="UP, téléphone, référence, carte">
+    <div class="modal fade" id="issuePrivilegeCardModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0" style="border-radius: 24px; overflow: hidden;">
+                <div class="modal-header border-0 text-white" style="background: linear-gradient(145deg, #0f2738, #1b4867);">
+                    <div>
+                        <div class="small text-white-50 fw-semibold">Carte privilège</div>
+                        <div class="h5 mb-0 fw-bold">Émettre une carte à un usager</div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label small text-secondary">Carte</label>
-                    <select class="form-select" name="purchase_type_id">
-                        <option value="">Toutes</option>
-                        @foreach ($cardTypes as $cardType)
-                            <option value="{{ $cardType->id }}" @selected((string) request('purchase_type_id') === (string) $cardType->id)>{{ $cardType->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label small text-secondary">Statut paiement</label>
-                    <select class="form-select" name="purchase_status">
-                        <option value="">Tous</option>
-                        <option value="pending" @selected(request('purchase_status') === 'pending')>En attente</option>
-                        <option value="paid" @selected(request('purchase_status') === 'paid')>Payé</option>
-                        <option value="failed" @selected(request('purchase_status') === 'failed')>Échoué</option>
-                    </select>
-                </div>
-                <div class="col-md-2 d-flex gap-2">
-                    <button class="btn btn-dark w-100">OK</button>
-                    <a href="{{ route('super-admin.privilege-card-types.index') }}" class="btn btn-outline-secondary">RAZ</a>
-                </div>
-            </div>
-        </form>
-
-        <div class="table-responsive">
-            <table class="table table-modern align-middle">
-                <thead>
-                    <tr>
-                        <th>UP</th>
-                        <th>Carte</th>
-                        <th>Paiement</th>
-                        <th>Carte émise</th>
-                        <th>Dates</th>
-                        <th>Statut</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($purchases as $purchase)
-                        <tr>
-                            <td>
-                                <div class="fw-semibold">{{ trim(($purchase->publicUser?->first_name ?? '').' '.($purchase->publicUser?->last_name ?? '')) ?: '-' }}</div>
-                                <div class="small text-secondary">{{ $purchase->publicUser?->phone ?: '-' }}</div>
-                                <div class="small text-secondary">{{ $purchase->publicUser?->email ?: '-' }}</div>
-                            </td>
-                            <td>
-                                <div class="fw-semibold">{{ $purchase->type?->name ?: '-' }}</div>
-                                <div class="small text-secondary">{{ $purchase->type?->code ?: '-' }}</div>
-                            </td>
-                            <td>
-                                <div>{{ number_format((float) $purchase->amount, 0, ',', ' ') }} {{ $purchase->currency }}</div>
-                                <div class="small text-secondary">{{ $purchase->sync_ref }}</div>
-                                <div class="small text-secondary">{{ $purchase->provider_reference ?: '-' }}</div>
-                            </td>
-                            <td>
-                                <div class="fw-semibold">{{ $purchase->card?->card_number ?: '-' }}</div>
-                                <div class="small text-secondary">UUID scan: <span class="font-monospace">{{ $purchase->card?->card_uuid ?: '-' }}</span></div>
-                                <div class="small text-secondary">Statut CP: {{ $purchase->card?->status ?: '-' }}</div>
-                            </td>
-                            <td>
-                                <div class="small">Initie: {{ $purchase->initiated_at?->format('d/m/Y H:i') ?: '-' }}</div>
-                                <div class="small">Payé: {{ $purchase->paid_at?->format('d/m/Y H:i') ?: ($purchase->status === 'paid' ? 'Date inconnue' : 'En attente') }}</div>
-                                <div class="small">Activé: {{ $purchase->card?->activated_at?->format('d/m/Y H:i') ?: 'Carte non émise' }}</div>
-                                <div class="small">Expire: {{ $purchase->card?->expires_at?->format('d/m/Y H:i') ?: 'Carte non émise' }}</div>
-                            </td>
-                            <td>
-                                <span class="status-chip">{{ $purchase->status }}</span>
-                                @if ($purchase->card)
-                                    <span class="status-chip">{{ $purchase->card->status }}</span>
-                                @endif
-                            </td>
-                        </tr>
-                    @empty
-                        <tr><td colspan="6" class="text-center text-secondary">Aucun achat de carte privilège enregistré.</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-        <div class="d-flex justify-content-between align-items-center mt-3">
-            <div class="table-meta">Page {{ $purchases->currentPage() }} sur {{ $purchases->lastPage() }}</div>
-            {{ $purchases->links() }}
-        </div>
-    </section>
-
-    <section class="panel-card mt-4">
-        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 mb-3">
-            <div>
-                <div class="fw-bold">Historique des scans CP</div>
-                <div class="small text-secondary">Réductions appliquées par les agents partenaires avec les cartes privilèges.</div>
-            </div>
-            <span class="badge-soft">{{ $scans->total() }} scan{{ $scans->total() > 1 ? 's' : '' }}</span>
-        </div>
-
-        <form method="GET" class="filter-bar">
-            <div class="row g-2 align-items-end">
-                <div class="col-md-4">
-                    <label class="form-label small text-secondary">Recherche</label>
-                    <input class="form-control" name="scan_search" value="{{ request('scan_search') }}" placeholder="Référence, carte, UP, agent, institution">
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label small text-secondary">Carte</label>
-                    <select class="form-select" name="scan_type_id">
-                        <option value="">Toutes</option>
-                        @foreach ($cardTypes as $cardType)
-                            <option value="{{ $cardType->id }}" @selected((string) request('scan_type_id') === (string) $cardType->id)>{{ $cardType->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label small text-secondary">Statut</label>
-                    <select class="form-select" name="scan_status">
-                        <option value="">Tous</option>
-                        <option value="validated" @selected(request('scan_status') === 'validated')>Validé</option>
-                        <option value="cancelled" @selected(request('scan_status') === 'cancelled')>Annulé</option>
-                        <option value="reversed" @selected(request('scan_status') === 'reversed')>Extourné</option>
-                        <option value="rejected" @selected(request('scan_status') === 'rejected')>Rejeté</option>
-                    </select>
-                </div>
-                <div class="col-md-2 d-flex gap-2">
-                    <button class="btn btn-dark w-100">OK</button>
-                    <a href="{{ route('super-admin.privilege-card-types.index') }}" class="btn btn-outline-secondary">RAZ</a>
+                <div class="modal-body p-4">
+                    <div class="alert alert-info small mb-3">
+                        Les champs avec astérisque sont obligatoires. Le numéro de carte et le code à scanner sont générés automatiquement.
+                    </div>
+                    <form method="POST" action="{{ route('super-admin.privilege-card-types.issue-card') }}" class="row g-3">
+                        @csrf
+                        <div class="col-md-6">
+                            <label class="form-label">Usager <span class="text-danger">*</span></label>
+                            <select class="form-select" name="public_user_id" required>
+                                <option value="">Sélectionner un usager</option>
+                                @foreach ($publicUsers as $publicUser)
+                                    @php
+                                        $publicUserName = trim(($publicUser->first_name ?? '').' '.($publicUser->last_name ?? ''));
+                                    @endphp
+                                    <option value="{{ $publicUser->id }}" @selected((string) old('public_user_id') === (string) $publicUser->id)>
+                                        {{ $publicUserName ?: 'Usager #'.$publicUser->id }} · {{ $publicUser->phone ?: $publicUser->email ?: '-' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Carte privilège <span class="text-danger">*</span></label>
+                            <select class="form-select" name="privilege_card_type_id" required>
+                                <option value="">Sélectionner une carte</option>
+                                @foreach ($activeCardTypes as $cardType)
+                                    <option value="{{ $cardType->id }}" @selected((string) old('privilege_card_type_id') === (string) $cardType->id)>
+                                        {{ $cardType->name }} · {{ $cardType->duration_months }} mois
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Date d’expiration</label>
+                            <input class="form-control" type="date" name="expires_at" value="{{ old('expires_at') }}">
+                            <div class="small text-secondary mt-1">Laisser vide pour utiliser la durée configurée sur la carte.</div>
+                        </div>
+                        <div class="col-12">
+                            <button class="btn btn-dark">Émettre la carte</button>
+                        </div>
+                    </form>
                 </div>
             </div>
-        </form>
+        </div>
+    </div>
 
-        <div class="table-responsive">
-            <table class="table table-modern align-middle">
-                <thead>
-                    <tr>
-                        <th>Scan</th>
-                        <th>Agent / institution</th>
-                        <th>UP / carte</th>
-                        <th>Réduction</th>
-                        <th>Montants</th>
-                        <th>Statut</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($scans as $scan)
-                        <tr>
-                            <td>
-                                <div class="fw-semibold">{{ $scan->scan_reference }}</div>
-                                <div class="small text-secondary">{{ $scan->applied_at?->format('d/m/Y H:i') ?: '-' }}</div>
-                            </td>
-                            <td>
-                                <div class="fw-semibold">{{ $scan->partnerUser?->name ?: '-' }}</div>
-                                <div class="small text-secondary">{{ $scan->partnerUser?->email ?: '-' }}</div>
-                                <div class="small text-secondary">{{ $scan->organization?->name ?: '-' }}</div>
-                            </td>
-                            <td>
-                                <div class="fw-semibold">{{ trim(($scan->publicUser?->first_name ?? '').' '.($scan->publicUser?->last_name ?? '')) ?: '-' }}</div>
-                                <div class="small text-secondary">{{ $scan->publicUser?->phone ?: '-' }}</div>
-                                <div class="small text-secondary">{{ $scan->privilegeCard?->card_number ?: '-' }}</div>
-                                <div class="small text-secondary">UUID scan: <span class="font-monospace">{{ $scan->privilegeCard?->card_uuid ?: '-' }}</span></div>
-                                <div class="small text-secondary">Statut CP: {{ $scan->privilegeCard?->status ?: '-' }}</div>
-                            </td>
-                            <td>
-                                <div class="fw-semibold">{{ $scan->privilegeCard?->type?->name ?: '-' }}</div>
-                                <div class="small text-secondary">
-                                    {{ $scan->discount_type_snapshot === 'fixed_amount' ? number_format((float) $scan->discount_value_snapshot, 0, ',', ' ').' '.($scan->privilegeCard?->type?->currency ?? 'FCFA') : number_format((float) $scan->discount_value_snapshot, 0, ',', ' ').'%' }}
-                                </div>
-                            </td>
-                            <td>
-                                <div class="small">Initial: {{ $scan->original_amount ?? 'Non saisi' }}</div>
-                                <div class="small">
-                                    Réduction:
-                                    {{ $scan->discount_amount ?? ($scan->discount_type_snapshot === 'fixed_amount' ? number_format((float) $scan->discount_value_snapshot, 0, ',', ' ').' '.($scan->privilegeCard?->type?->currency ?? 'FCFA') : number_format((float) $scan->discount_value_snapshot, 0, ',', ' ').'%') }}
-                                </div>
-                                <div class="small">Final: {{ $scan->final_amount ?? 'Non calculé' }}</div>
-                            </td>
-                            <td>
-                                <span class="status-chip">{{ $scan->status }}</span>
-                                <div class="small text-secondary">{{ $scan->verification_status }}</div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr><td colspan="6" class="text-center text-secondary">Aucun scan de carte privilège enregistré.</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-        <div class="d-flex justify-content-between align-items-center mt-3">
-            <div class="table-meta">Page {{ $scans->currentPage() }} sur {{ $scans->lastPage() }}</div>
-            {{ $scans->links() }}
-        </div>
-    </section>
 @endsection

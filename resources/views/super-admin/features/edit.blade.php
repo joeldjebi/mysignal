@@ -1,17 +1,17 @@
 @extends('super-admin.layouts.app')
 
-@section('title', config('app.name').' | Modifier une fonctionnalite')
-@section('page-title', 'Modifier une fonctionnalite')
-@section('page-description', 'Mettre a jour une fonctionnalite activable.')
+@section('title', config('app.name').' | Modifier une fonctionnalité')
+@section('page-title', 'Modifier une fonctionnalité')
+@section('page-description', 'Mettre à jour une fonctionnalité activable.')
 
 @section('content')
     <section class="panel-card">
-        <div class="fw-bold mb-3">Edition de {{ $feature->name }}</div>
+        <div class="fw-bold mb-3">Édition de {{ $feature->name }}</div>
         <form method="POST" action="{{ route('super-admin.features.update', $feature) }}" class="row g-3">
             @csrf
             @method('PUT')
             <div class="col-md-3">
-                <label class="form-label">Code</label>
+                <label class="form-label">Référence interne</label>
                 <input type="text" name="code" value="{{ old('code', $feature->code) }}" class="form-control" required>
             </div>
             <div class="col-md-5">

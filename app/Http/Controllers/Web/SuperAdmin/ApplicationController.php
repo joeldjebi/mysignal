@@ -50,7 +50,7 @@ class ApplicationController extends Controller
 
         $activityLogger->log(
             'application.created',
-            'Creation d une application.',
+            'Création d’une catégorie.',
             $application,
             [
                 'code' => $application->code,
@@ -62,7 +62,7 @@ class ApplicationController extends Controller
         );
 
         return redirect()->route('super-admin.applications.index')
-            ->with('success', 'La catégorie a ete creee.');
+            ->with('success', 'La catégorie a été créée.');
     }
 
     public function edit(Application $application): View
@@ -85,7 +85,7 @@ class ApplicationController extends Controller
 
         $activityLogger->log(
             'application.updated',
-            'Mise a jour d une application.',
+            'Mise à jour d’une catégorie.',
             $application,
             [
                 'before' => [
@@ -107,7 +107,7 @@ class ApplicationController extends Controller
         );
 
         return redirect()->route('super-admin.applications.index')
-            ->with('success', 'La catégorie a ete mise a jour.');
+            ->with('success', 'La catégorie a été mise à jour.');
     }
 
     public function destroy(Request $request, Application $application, ActivityLogger $activityLogger): RedirectResponse
@@ -117,14 +117,14 @@ class ApplicationController extends Controller
 
         $activityLogger->log(
             'application.deleted',
-            'Suppression d une application.',
+            'Suppression d’une catégorie.',
             Application::class,
             $snapshot,
             $request
         );
 
         return redirect()->route('super-admin.applications.index')
-            ->with('success', 'L application a ete supprimee.');
+            ->with('success', 'La catégorie a été supprimée.');
     }
 
     public function toggleStatus(Request $request, Application $application, ActivityLogger $activityLogger): RedirectResponse
@@ -135,7 +135,7 @@ class ApplicationController extends Controller
 
         $activityLogger->log(
             'application.status_toggled',
-            'Changement de statut d une application.',
+            'Changement d’état d’une catégorie.',
             $application,
             [
                 'status' => $application->status,
@@ -143,7 +143,7 @@ class ApplicationController extends Controller
             $request
         );
 
-        return back()->with('success', 'Le statut de l application a ete mis a jour.');
+        return back()->with('success', 'L’état de la catégorie a été mis à jour.');
     }
 
     private function validatedPayload(Request $request, ?Application $application = null, ?WasabiService $wasabiService = null): array
@@ -288,7 +288,7 @@ class ApplicationController extends Controller
                     str_starts_with($feature->code, 'INSTITUTION_DASHBOARD_') => 'Dashboard institutionnel',
                     str_starts_with($feature->code, 'INSTITUTION_') => 'Acces institutionnels',
                     str_starts_with($feature->code, 'PUBLIC_') => 'Modules publics',
-                    default => 'Autres fonctionnalites',
+                    default => 'Autres fonctionnalités',
                 };
             })
             ->sortKeys();

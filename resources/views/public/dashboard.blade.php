@@ -1047,6 +1047,108 @@
                 font-weight: 800;
                 color: var(--acepen-navy);
             }
+            .privilege-premium-shell {
+                border-radius: 30px;
+                padding: clamp(1rem, 2vw, 1.35rem);
+                background:
+                    linear-gradient(135deg, rgba(24, 52, 71, 0.98), rgba(35, 72, 95, 0.96) 48%, rgba(19, 31, 43, 0.98)),
+                    linear-gradient(90deg, rgba(255, 161, 23, 0.18), rgba(255, 255, 255, 0));
+                color: #fff;
+                box-shadow: 0 30px 70px rgba(15, 39, 56, 0.18);
+                overflow: hidden;
+                position: relative;
+            }
+            .privilege-premium-shell::before {
+                content: "";
+                position: absolute;
+                inset: 0;
+                background:
+                    linear-gradient(110deg, transparent 0 52%, rgba(255, 255, 255, 0.08) 52% 53%, transparent 53%),
+                    linear-gradient(180deg, rgba(255, 255, 255, 0.1), transparent 46%);
+                pointer-events: none;
+            }
+            .privilege-premium-content {
+                position: relative;
+                z-index: 1;
+            }
+            .privilege-eyebrow {
+                color: rgba(255, 255, 255, 0.68);
+                font-size: 0.76rem;
+                font-weight: 900;
+                letter-spacing: 0.1em;
+                text-transform: uppercase;
+            }
+            .privilege-title {
+                font-size: clamp(1.7rem, 3vw, 2.6rem);
+                line-height: 1.05;
+                font-weight: 900;
+                letter-spacing: 0;
+            }
+            .privilege-copy {
+                color: rgba(255, 255, 255, 0.72);
+                max-width: 680px;
+            }
+            .privilege-active-card {
+                border: 1px solid rgba(255, 255, 255, 0.14);
+                border-radius: 24px;
+                padding: 1rem;
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(16px);
+            }
+            .privilege-active-number {
+                font-size: 1.08rem;
+                font-weight: 900;
+                letter-spacing: 0.08em;
+                overflow-wrap: anywhere;
+            }
+            .privilege-offer-card {
+                border: 1px solid rgba(24, 52, 71, 0.08);
+                border-radius: 26px;
+                padding: 1rem;
+                background:
+                    linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+                box-shadow: 0 22px 44px rgba(15, 39, 56, 0.07);
+                height: 100%;
+                position: relative;
+                overflow: hidden;
+            }
+            .privilege-offer-card::before {
+                content: "";
+                position: absolute;
+                inset: 0 0 auto 0;
+                height: 5px;
+                background: linear-gradient(90deg, var(--acepen-copper), var(--acepen-ocean));
+            }
+            .privilege-price {
+                font-size: 1.75rem;
+                font-weight: 900;
+                color: var(--acepen-navy);
+                letter-spacing: 0;
+            }
+            .privilege-benefit {
+                display: flex;
+                gap: 0.55rem;
+                color: var(--acepen-muted);
+                font-size: 0.88rem;
+                line-height: 1.45;
+            }
+            .privilege-benefit::before {
+                content: "";
+                width: 0.42rem;
+                height: 0.42rem;
+                border-radius: 999px;
+                background: var(--acepen-copper);
+                margin-top: 0.48rem;
+                flex-shrink: 0;
+            }
+            .privilege-wallet-disabled {
+                border-radius: 18px;
+                padding: 0.75rem 0.9rem;
+                background: rgba(255, 161, 23, 0.12);
+                color: #ffe2a3;
+                font-size: 0.84rem;
+                font-weight: 700;
+            }
             .summary-value {
                 font-size: 1.55rem;
                 font-weight: 800;
@@ -1179,7 +1281,7 @@
                         <button class="nav-pill" type="button" data-panel-target="rex">
                             <span class="nav-icon">RX</span>
                             <span>
-                                <span class="d-block fw-semibold">Mes REX</span>
+                                <span class="d-block fw-semibold">Mes avis</span>
                                 <span class="small text-white-50">Retours d’expérience</span>
                             </span>
                         </button>
@@ -1209,7 +1311,7 @@
                                 <span class="nav-icon">AB</span>
                                 <span>
                                     <span class="d-block fw-semibold">Mes abonnements</span>
-                                    <span class="small text-white-50">Plan et statut</span>
+                                    <span class="small text-white-50">Offre et état</span>
                                 </span>
                             </button>
                             <button class="nav-pill" type="button" data-panel-target="payments">
@@ -1217,6 +1319,13 @@
                                 <span>
                                     <span class="d-block fw-semibold">Mes paiements</span>
                                     <span class="small text-white-50">Historique et reçus</span>
+                                </span>
+                            </button>
+                            <button class="nav-pill" type="button" data-panel-target="privilege-cards">
+                                <span class="nav-icon">CP</span>
+                                <span>
+                                    <span class="d-block fw-semibold">Cartes privilèges</span>
+                                    <span class="small text-white-50">Achat et ajout au téléphone</span>
                                 </span>
                             </button>
                         </div>
@@ -1242,12 +1351,12 @@
                         </div>
                         <div class="topbar-session">
                             <div class="d-none" id="sidebarUserLocation">Localisation non renseignée</div>
-                            <div class="d-none" id="sidebarUserGps">GPS non renseigné</div>
-                            <button type="button" class="d-none" id="sidebarRequestGpsButton">Renseigner le GPS</button>
+                            <div class="d-none" id="sidebarUserGps">Position non renseignée</div>
+                            <button type="button" class="d-none" id="sidebarRequestGpsButton">Renseigner ma position</button>
                             <button id="topbarNotificationsButton" class="btn btn-sm btn-topbar-session notification-button" type="button" data-panel-target="notifications">
                                 Notifications <span class="notification-badge d-none ms-2" id="topbarNotificationBadge">0</span>
                             </button>
-                            <button id="logoutButton" class="btn btn-sm btn-topbar-session" type="button">Se deconnecter</button>
+                            <button id="logoutButton" class="btn btn-sm btn-topbar-session" type="button">Se déconnecter</button>
                         </div>
                     </header>
 
@@ -1262,6 +1371,7 @@
                                     <div class="simple-home-actions">
                                         <button class="btn btn-premium simple-home-main-action" type="button" data-panel-target="reports">Faire un signalement</button>
                                         <button class="simple-home-secondary" type="button" data-panel-target="meters">Ajouter un identifiant</button>
+                                        <button class="simple-home-secondary" type="button" data-panel-target="privilege-cards">Carte privilège</button>
                                         <button class="simple-home-secondary" type="button" data-panel-target="payments">Voir mes paiements</button>
                                     </div>
 
@@ -1292,7 +1402,7 @@
                                         <input class="form-control" id="notificationSearchFilter" placeholder="Titre, message...">
                                     </div>
                                     <div class="col-12 col-md-4 col-lg-2">
-                                        <label class="form-label fw-semibold">Statut</label>
+                                        <label class="form-label fw-semibold">État</label>
                                         <select class="form-select" id="notificationReadFilter">
                                             <option value="">Tous</option>
                                             <option value="unread">Non lus</option>
@@ -1306,7 +1416,7 @@
                                         </select>
                                     </div>
                                     <div class="col-12 col-md-4 col-lg-3">
-                                        <button class="btn btn-ghost-premium w-100" type="button" id="resetNotificationFiltersButton">Reset</button>
+                                        <button class="btn btn-ghost-premium w-100" type="button" id="resetNotificationFiltersButton">Effacer</button>
                                     </div>
                                 </div>
                             </div>
@@ -1362,7 +1472,7 @@
                                             <div class="row g-3">
                                                 <div class="col-md-6"><label class="form-label fw-semibold">Raison sociale</label><input class="form-control" name="company_name"></div>
                                                 <div class="col-md-6"><label class="form-label fw-semibold">RCCM / Immatriculation</label><input class="form-control" name="company_registration_number"></div>
-                                                <div class="col-md-6"><label class="form-label fw-semibold">Identifiant fiscal</label><input class="form-control" name="tax_identifier"></div>
+                                                <div class="col-md-6"><label class="form-label fw-semibold">Numéro fiscal</label><input class="form-control" name="tax_identifier"></div>
                                                 <div class="col-12"><label class="form-label fw-semibold">Adresse de l entreprise</label><input class="form-control" name="company_address"></div>
                                             </div>
                                         </div>
@@ -1370,7 +1480,7 @@
                                         <div class="col-12">
                                             <label class="form-label fw-semibold">Adresse</label>
                                             <input class="form-control" name="address" id="profileAddressSearch" placeholder="Rechercher une adresse ou laisser la position automatique">
-                                            <div class="location-search-hint">Si Google Places est configuré, ce champ propose des adresses et place automatiquement la position.</div>
+                                            <div class="location-search-hint">Si le service d’adresse est disponible, ce champ propose des adresses et place automatiquement la position.</div>
                                         </div>
                                         <div class="col-12">
                                             <div class="geo-box">
@@ -1385,9 +1495,9 @@
                                                     </div>
                                                 </div>
                                                 <div class="row g-3">
-                                                    <div class="col-md-4"><label class="form-label fw-semibold">Latitude</label><input class="form-control" name="latitude" id="profileLatitude" readonly></div>
-                                                    <div class="col-md-4"><label class="form-label fw-semibold">Longitude</label><input class="form-control" name="longitude" id="profileLongitude" readonly></div>
-                                                    <div class="col-md-4"><label class="form-label fw-semibold">Précision (m)</label><input class="form-control" name="location_accuracy" id="profileAccuracy" readonly></div>
+                                                    <div class="col-md-4"><label class="form-label fw-semibold">Position nord-sud</label><input class="form-control" name="latitude" id="profileLatitude" readonly></div>
+                                                    <div class="col-md-4"><label class="form-label fw-semibold">Position est-ouest</label><input class="form-control" name="longitude" id="profileLongitude" readonly></div>
+                                                    <div class="col-md-4"><label class="form-label fw-semibold">Qualité de position</label><input class="form-control" name="location_accuracy" id="profileAccuracy" readonly></div>
                                                 </div>
                                                 <div class="geo-help mt-2">Si le navigateur refuse la géolocalisation, vous pouvez choisir une adresse ou activer la saisie manuelle.</div>
                                                 <input type="hidden" name="location_source" id="profileLocationSource" value="">
@@ -1408,7 +1518,7 @@
                                         <div class="soft-panel mb-3">
                                             <div class="small text-secondary fw-semibold mb-1">Adresse actuelle</div>
                                             <div class="fw-semibold" id="profileAddressCard">-</div>
-                                            <div class="muted-label" id="profileGpsCard">Position GPS non renseignée</div>
+                                            <div class="muted-label" id="profileGpsCard">Position non renseignée</div>
                                         </div>
                                         <div class="soft-panel mb-3">
                                             <div class="small text-secondary fw-semibold mb-1">Type d’usager</div>
@@ -1419,7 +1529,7 @@
                                             <div class="fw-semibold" id="profileWhatsappCard">Non</div>
                                         </div>
                                         <div class="soft-panel">
-                                            <div class="small text-secondary fw-semibold mb-1">Statut du compte</div>
+                                            <div class="small text-secondary fw-semibold mb-1">État du compte</div>
                                             <div class="fw-semibold" id="profileStatusCard">-</div>
                                         </div>
                                         <div class="mt-3" id="memberWalletCardWrap"></div>
@@ -1450,7 +1560,7 @@
                                     </div>
                                     <input type="hidden" name="network_type" id="meterNetworkType" required>
                                     <div class="col-md-4"><label class="form-label fw-semibold">Mon identifiant</label><input class="form-control" name="meter_number" required></div>
-                                    <div class="col-md-4"><label class="form-label fw-semibold">Libelle</label><input class="form-control" name="label"></div>
+                                    <div class="col-md-4"><label class="form-label fw-semibold">Libellé</label><input class="form-control" name="label"></div>
                                     <div class="col-md-4"><label class="form-label fw-semibold">Ville</label><select class="form-select" name="city" id="meterCitySelect"></select></div>
                                     <div class="col-md-4"><label class="form-label fw-semibold">Commune</label><select class="form-select" name="commune" id="meterCommuneSelect"></select></div>
                                     <div class="col-md-4"><label class="form-label fw-semibold">Quartier</label><select class="form-select" name="neighborhood" id="meterNeighborhoodSelect"></select></div>
@@ -1458,7 +1568,7 @@
                                     <div class="col-md-12">
                                         <label class="form-label fw-semibold">Situation géographique</label>
                                         <input class="form-control" name="address" id="meterAddressSearch" placeholder="Ex: Abatta carrefour Ab Center">
-                                        <div class="location-search-hint">Une adresse Google peut remplir automatiquement la position et aider a retrouver la bonne commune.</div>
+                                        <div class="location-search-hint">Une adresse peut remplir automatiquement la position et aider à retrouver la bonne commune.</div>
                                     </div>
                                     <div class="col-12">
                                         <div class="soft-panel">
@@ -1470,7 +1580,7 @@
                                         <input type="hidden" name="location_accuracy" id="meterAccuracy">
                                         <input type="hidden" name="location_source" id="meterLocationSource" value="">
                                     </div>
-                                    <div class="col-12"><div class="form-check"><input class="form-check-input" type="checkbox" value="1" name="is_primary" id="isPrimaryMeter"><label class="form-check-label fw-semibold" for="isPrimaryMeter">Definir comme identifiant principal</label></div></div>
+                                    <div class="col-12"><div class="form-check"><input class="form-check-input" type="checkbox" value="1" name="is_primary" id="isPrimaryMeter"><label class="form-check-label fw-semibold" for="isPrimaryMeter">Définir comme identifiant principal</label></div></div>
                                     <div class="col-12"><button class="btn btn-premium" type="submit">Enregistrer</button></div>
                                 </form>
                             </div>
@@ -1567,10 +1677,10 @@
                                 <div class="row g-3">
                                     <div class="col-lg-4">
                                         <label class="form-label fw-semibold">Recherche</label>
-                                        <input class="form-control" id="reportSearchFilter" placeholder="Référence, type, commune...">
+                                        <input class="form-control" id="reportSearchFilter" placeholder="Numéro de suivi, type, commune...">
                                     </div>
                                     <div class="col-md-4 col-lg-2">
-                                        <label class="form-label fw-semibold">Statut</label>
+                                        <label class="form-label fw-semibold">État</label>
                                         <select class="form-select" id="reportStatusFilter">
                                             <option value="">Tous</option>
                                             <option value="submitted">Soumis</option>
@@ -1604,7 +1714,7 @@
                                         </select>
                                     </div>
                                     <div class="col-lg-1 d-flex align-items-end">
-                                        <button class="btn btn-ghost-premium w-100" type="button" id="resetReportFiltersButton">Reset</button>
+                                        <button class="btn btn-ghost-premium w-100" type="button" id="resetReportFiltersButton">Effacer</button>
                                     </div>
                                 </div>
                             </div>
@@ -1625,15 +1735,15 @@
                             <div class="mini-card mb-4">
                                 <div class="row g-4 align-items-center">
                                     <div class="col-lg-7">
-                                        <div class="small text-secondary fw-semibold mb-1">Référence de suivi</div>
+                                        <div class="small text-secondary fw-semibold mb-1">Numéro de suivi</div>
                                         <div class="fw-bold fs-4 mb-2" id="reportPaymentWaitingReference">-</div>
-                                        <div class="muted-label" id="reportPaymentWaitingMessage">Nous vérifions automatiquement la confirmation FineoPay.</div>
+                                        <div class="muted-label" id="reportPaymentWaitingMessage">Nous vérifions automatiquement la confirmation du paiement.</div>
                                     </div>
                                     <div class="col-lg-5">
                                         <div class="soft-panel">
                                             <div class="small text-secondary fw-semibold mb-1">Montant</div>
                                             <div class="fw-bold fs-4" id="reportPaymentWaitingAmount">-</div>
-                                            <div class="muted-label" id="reportPaymentWaitingProvider">FineoPay</div>
+                                            <div class="muted-label" id="reportPaymentWaitingProvider">Paiement sécurisé</div>
                                         </div>
                                     </div>
                                 </div>
@@ -1644,7 +1754,7 @@
                                     <div class="spinner-border text-primary" role="status" aria-hidden="true"></div>
                                     <div>
                                         <div class="fw-bold" id="reportPaymentWaitingLoaderTitle">Vérification du paiement en cours</div>
-                                        <div class="muted-label" id="reportPaymentWaitingLoaderText">Le signalement sera créé automatiquement dès que FineoPay confirme le paiement.</div>
+                                        <div class="muted-label" id="reportPaymentWaitingLoaderText">Le signalement sera créé automatiquement dès que le paiement est confirmé.</div>
                                     </div>
                                 </div>
                             </div>
@@ -1670,10 +1780,10 @@
                                 <div class="row g-3">
                                     <div class="col-lg-5">
                                         <label class="form-label fw-semibold">Recherche</label>
-                                        <input class="form-control" id="paymentSearchFilter" placeholder="Référence paiement, signalement, canal...">
+                                        <input class="form-control" id="paymentSearchFilter" placeholder="Numéro de paiement, signalement, mode...">
                                     </div>
                                     <div class="col-md-4 col-lg-3">
-                                        <label class="form-label fw-semibold">Statut</label>
+                                        <label class="form-label fw-semibold">État</label>
                                         <select class="form-select" id="paymentStatusFilter">
                                             <option value="">Tous</option>
                                             <option value="paid">Confirmés</option>
@@ -1690,11 +1800,48 @@
                                         </select>
                                     </div>
                                     <div class="col-md-4 col-lg-1 d-flex align-items-end">
-                                        <button class="btn btn-ghost-premium w-100" type="button" id="resetPaymentFiltersButton">Reset</button>
+                                        <button class="btn btn-ghost-premium w-100" type="button" id="resetPaymentFiltersButton">Effacer</button>
                                     </div>
                                 </div>
                             </div>
                             <div id="paymentsList"></div>
+                        </div>
+                    </section>
+
+                    <section class="public-panel" data-panel="privilege-cards">
+                        <div class="dashboard-card">
+                            <div class="privilege-premium-shell mb-4">
+                                <div class="privilege-premium-content">
+                                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+                                        <div>
+                                            <div class="privilege-eyebrow mb-2">Cartes privilèges</div>
+                                            <div class="privilege-title mb-2">Vos avantages, prêts à scanner.</div>
+                                            <div class="privilege-copy">Achetez une carte, suivez le paiement sécurisé et ajoutez la carte active au portefeuille de votre téléphone après confirmation.</div>
+                                        </div>
+                                        <button class="btn btn-premium px-4" type="button" id="refreshPrivilegeCardsButton">Actualiser</button>
+                                    </div>
+                                    <div class="privilege-active-card" id="activePrivilegeCardBox">
+                                        <div class="fw-bold mb-1">Carte active</div>
+                                        <div class="text-white-50">Votre carte active apparaîtra ici dès que le paiement est confirmé.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+                                <div>
+                                    <div class="section-title" style="font-size: 1rem;">Acheter une carte</div>
+                                    <div class="muted-label">Choisissez le niveau qui correspond à vos besoins.</div>
+                                </div>
+                            </div>
+                            <div class="row g-3 mb-4" id="privilegeCardTypesList"></div>
+
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+                                <div>
+                                    <div class="section-title" style="font-size: 1rem;">Historique d'achat</div>
+                                    <div class="muted-label">Suivez vos paiements et les cartes émises après confirmation.</div>
+                                </div>
+                            </div>
+                            <div id="privilegeCardPaymentsList"></div>
                         </div>
                     </section>
 
@@ -1703,7 +1850,7 @@
                             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
                                 <div>
                                     <div class="section-title">Historique des abonnements</div>
-                                    <div class="muted-label">Retrouve tes souscriptions annuelles, leurs statuts, leurs périodes et les paiements associés.</div>
+                                    <div class="muted-label">Retrouve tes souscriptions annuelles, leurs états, leurs périodes et les paiements associés.</div>
                                 </div>
                                 <button class="btn btn-premium px-4" type="button" id="openSubscriptionFromHistoryButton">Prendre un abonnement</button>
                             </div>
@@ -1714,7 +1861,7 @@
                                         <input class="form-control" id="subscriptionSearchFilter" placeholder="Plan, référence paiement, montant...">
                                     </div>
                                     <div class="col-md-4 col-lg-3">
-                                        <label class="form-label fw-semibold">Statut</label>
+                                        <label class="form-label fw-semibold">État</label>
                                         <select class="form-select" id="subscriptionStatusFilter">
                                             <option value="">Tous</option>
                                             <option value="active">Actifs</option>
@@ -1735,7 +1882,7 @@
                                         </select>
                                     </div>
                                     <div class="col-md-4 col-lg-1 d-flex align-items-end">
-                                        <button class="btn btn-ghost-premium w-100" type="button" id="resetSubscriptionFiltersButton">Reset</button>
+                                        <button class="btn btn-ghost-premium w-100" type="button" id="resetSubscriptionFiltersButton">Effacer</button>
                                     </div>
                                 </div>
                             </div>
@@ -1755,7 +1902,7 @@
                                 <div class="row g-3 align-items-end">
                                     <div class="col-md-4">
                                         <label class="form-label small text-secondary">Recherche</label>
-                                        <input class="form-control" id="rexSearchFilter" placeholder="Référence, institution, commentaire...">
+                                        <input class="form-control" id="rexSearchFilter" placeholder="Numéro de suivi, institution, commentaire...">
                                     </div>
                                     <div class="col-md-3">
                                         <label class="form-label small text-secondary">Type</label>
@@ -1778,7 +1925,7 @@
                                         </select>
                                     </div>
                                     <div class="col-md-2">
-                                        <button class="btn btn-ghost-premium w-100" type="button" id="resetRexFiltersButton">Reset</button>
+                                        <button class="btn btn-ghost-premium w-100" type="button" id="resetRexFiltersButton">Effacer</button>
                                     </div>
                                 </div>
                             </div>
@@ -1791,7 +1938,7 @@
                             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
                                 <div>
                                     <div class="section-title">Historique des dommages</div>
-                                    <div class="muted-label">Retrouvez les dommages déclarés après résolution, leur statut de traitement et leurs justificatifs.</div>
+                                    <div class="muted-label">Retrouvez les dommages déclarés après résolution, leur état de traitement et leurs justificatifs.</div>
                                 </div>
                                 <button class="btn btn-ghost-premium px-4" type="button" data-panel-target="reports">Voir les signalements</button>
                             </div>
@@ -1799,7 +1946,7 @@
                                 <div class="row g-3">
                                     <div class="col-lg-4">
                                         <label class="form-label fw-semibold">Recherche</label>
-                                        <input class="form-control" id="damageSearchFilter" placeholder="Référence, résumé, institution...">
+                                        <input class="form-control" id="damageSearchFilter" placeholder="Numéro de suivi, résumé, institution...">
                                     </div>
                                     <div class="col-md-4 col-lg-3">
                                         <label class="form-label fw-semibold">Institution</label>
@@ -1826,7 +1973,7 @@
                                         </select>
                                     </div>
                                     <div class="col-lg-1 d-flex align-items-end">
-                                        <button class="btn btn-ghost-premium w-100" type="button" id="resetDamageFiltersButton">Reset</button>
+                                        <button class="btn btn-ghost-premium w-100" type="button" id="resetDamageFiltersButton">Effacer</button>
                                     </div>
                                 </div>
                             </div>
@@ -2153,7 +2300,7 @@
                         <div class="mini-card mb-3">
                             <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
                                 <div>
-                                    <div class="small text-secondary fw-semibold mb-1">Statut actuel</div>
+                                    <div class="small text-secondary fw-semibold mb-1">État actuel</div>
                                     <div class="fw-bold fs-5" id="subscriptionPromptStatus">Abonnement non actif</div>
                                     <div class="muted-label" id="subscriptionPromptDetails">Souscris maintenant pour effectuer tes signalements.</div>
                                 </div>
@@ -2268,7 +2415,7 @@
                             </div>
                             <div class="col-12 d-flex justify-content-end gap-2">
                                 <button class="btn btn-ghost-premium px-4" type="button" data-bs-dismiss="modal">Annuler</button>
-                                <button class="btn btn-premium px-4" type="submit">Envoyer mon REX</button>
+                                <button class="btn btn-premium px-4" type="submit">Envoyer mon avis</button>
                             </div>
                         </form>
                     </div>
@@ -2328,6 +2475,9 @@
                     pendingReportPaymentAttempts: 0,
                     subscription: null,
                     discountCard: null,
+                    privilegeCardTypes: [],
+                    privilegeCard: null,
+                    privilegeCardPaymentSessions: [],
                     subscriptionHistory: [],
                     subscriptionPayments: [],
                     subscriptionHistoryPage: 1,
@@ -2998,20 +3148,6 @@
                     return data;
                 }
 
-                function debugFormDataPayload(formData) {
-                    return Array.from(formData.entries()).reduce((payload, [key, value]) => {
-                        payload[key] = value instanceof File
-                            ? {
-                                name: value.name,
-                                size: value.size,
-                                type: value.type,
-                            }
-                            : value;
-
-                        return payload;
-                    }, {});
-                }
-
                 function hasFirebaseWebConfig() {
                     return firebasePushEnabled
                         && firebaseWebVapidKey
@@ -3041,12 +3177,10 @@
                     }
 
                     if (!hasFirebaseWebConfig()) {
-                        console.info('[MYSIGNAL] Firebase Web Push non configure. Variables attendues: FIREBASE_WEB_API_KEY, FIREBASE_WEB_MESSAGING_SENDER_ID, FIREBASE_WEB_APP_ID, FIREBASE_WEB_VAPID_KEY.');
                         return;
                     }
 
                     if (!isPushSupportedInThisContext()) {
-                        console.info('[MYSIGNAL] Web Push non disponible sur ce navigateur ou ce contexte. Utilise HTTPS en production, ou localhost en local.');
                         return;
                     }
 
@@ -3054,7 +3188,6 @@
                         const permission = await Notification.requestPermission();
 
                         if (permission !== 'granted') {
-                            console.info('[MYSIGNAL] Autorisation notification refusee ou ignoree:', permission);
                             return;
                         }
 
@@ -3064,7 +3197,6 @@
                         ]);
 
                         if (!(await isSupported())) {
-                            console.info('[MYSIGNAL] Firebase Messaging non supporte par ce navigateur.');
                             return;
                         }
 
@@ -3073,7 +3205,6 @@
                         if (!state.pushMessageHandlerRegistered) {
                             state.pushMessageHandlerRegistered = true;
                             onMessage(messaging, (messagePayload) => {
-                                console.log('[MYSIGNAL] Firebase foreground payload', messagePayload);
                                 const notification = messagePayload.notification || {};
                                 const data = messagePayload.data || {};
                                 const title = notification.title || data.title || 'MYSIGNAL';
@@ -3100,7 +3231,6 @@
                         });
 
                         if (!token) {
-                            console.info('[MYSIGNAL] Aucun token Firebase retourne par le navigateur.');
                             return;
                         }
 
@@ -3111,16 +3241,12 @@
                             app_version: 'web-dashboard',
                         };
 
-                        console.log('[MYSIGNAL] Payload push-token UP', payload);
-
-                        const response = await apiFetch('/push-tokens', {
+                        await apiFetch('/push-tokens', {
                             method: 'POST',
                             body: JSON.stringify(payload),
                         });
-
-                        console.log('[MYSIGNAL] Reponse push-token UP', response);
                     } catch (error) {
-                        console.error('[MYSIGNAL] Impossible d enregistrer le token Firebase Web.', error);
+                        return;
                     }
                 }
 
@@ -3701,7 +3827,7 @@
                         signalDescriptionParts.push(signalDescription);
                     }
 
-                    signalDescriptionParts.push(slaLabel ? `SLA cible ${slaLabel}` : 'SLA cible non défini');
+                    signalDescriptionParts.push(slaLabel ? `Délai prévu ${slaLabel}` : 'Délai prévu non défini');
                     inlineDescription.textContent = signalDescriptionParts.join(' · ');
                     description.textContent = signalDescriptionParts.join(' · ');
                     container.innerHTML = '';
@@ -3723,8 +3849,8 @@
                     document.getElementById('sidebarUserLocation').textContent = [user.commune, user.address].filter(Boolean).join(' · ') || 'Localisation non renseignée';
                     const hasSidebarGps = !!(user.latitude && user.longitude);
                     document.getElementById('sidebarUserGps').textContent = hasSidebarGps
-                        ? `GPS ${user.latitude}, ${user.longitude}`
-                        : 'GPS non renseigné';
+                        ? `Position renseignée`
+                        : 'Position non renseignée';
                     document.getElementById('sidebarRequestGpsButton')?.classList.toggle('d-none', hasSidebarGps);
                     setTextIfExists('overviewUserName', `${user.first_name} ${user.last_name}`);
                     setTextIfExists('overviewProfileLine', [user.phone, user.commune].filter(Boolean).join(' · ') || 'Informations de profil à compléter');
@@ -3732,7 +3858,7 @@
                     document.getElementById('profilePhoneCard').textContent = user.phone || '-';
                     document.getElementById('profileCommuneCard').textContent = user.commune || '-';
                     document.getElementById('profileAddressCard').textContent = user.address || 'Adresse non renseignée';
-                    document.getElementById('profileGpsCard').textContent = user.latitude && user.longitude ? `GPS ${user.latitude}, ${user.longitude}` : 'Position GPS non renseignée';
+                    document.getElementById('profileGpsCard').textContent = user.latitude && user.longitude ? 'Position renseignée' : 'Position non renseignée';
                     document.getElementById('profileUserTypeCard').textContent = user.public_user_type?.name || '-';
                     document.getElementById('profileWhatsappCard').textContent = user.is_whatsapp_number ? 'Oui' : 'Non';
                     document.getElementById('profileStatusCard').textContent = user.status || '-';
@@ -3896,7 +4022,7 @@
                         <div class="member-wallet-card">
                             <div class="member-wallet-content">
                                 <div class="d-flex justify-content-between align-items-start gap-3">
-                                    <div class="member-wallet-brand">My-Signal Wallet</div>
+                                    <div class="member-wallet-brand">Carte My-Signal</div>
                                     <div class="member-wallet-brand">Reduction</div>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center gap-3">
@@ -3963,7 +4089,7 @@
                                 </div>
                                 <div class="muted-label mb-2">${meter.application_name || 'Catégorie non définie'}</div>
                                 <div class="muted-label mb-3">${[meter.city, meter.commune, meter.neighborhood, meter.sub_neighborhood].filter(Boolean).join(' · ') || 'Localisation non renseignée'}${meter.address ? ' · ' + meter.address : ''}</div>
-                                <div class="muted-label mb-3">${meter.latitude && meter.longitude ? `GPS ${meter.latitude}, ${meter.longitude}` : 'Position GPS non renseignée'}</div>
+                                <div class="muted-label mb-3">${meter.latitude && meter.longitude ? 'Position renseignée' : 'Position non renseignée'}</div>
                                 <button class="btn btn-ghost-premium w-100" type="button" onclick="window.AcepenPortal.prefillMeter(${meter.id})">Modifier</button>
                             </div>
                         </div>
@@ -4175,7 +4301,7 @@
                         list.innerHTML = `
                             <div class="overview-report-empty">
                                 <div class="fw-bold mb-1">Aucun signalement pour le moment</div>
-                                <div class="muted-label mb-3">Commence par faire un signalement. Tu pourras ensuite suivre son statut ici.</div>
+                                <div class="muted-label mb-3">Commence par faire un signalement. Tu pourras ensuite suivre son évolution ici.</div>
                                 <button class="btn btn-premium px-4" type="button" data-panel-target="reports">Faire un signalement</button>
                             </div>
                         `;
@@ -4389,7 +4515,7 @@
                                 <table class="report-table">
                                     <thead>
                                         <tr>
-                                            <th>Référence</th>
+                                            <th>Numéro de suivi</th>
                                             <th>Signal</th>
                                             <th>Localisation</th>
                                             <th>Paiement</th>
@@ -4404,7 +4530,7 @@
                                                     <div class="report-ref">${report.reference}</div>
                                                     <div class="report-sub">${report.organization?.name || report.network_type} · ${report.signal_code}</div>
                                                     <div class="report-sub">${report.application?.name || 'Catégorie non définie'}</div>
-                                                    <div class="report-sub">SLA ${report.target_sla_hours ?? '-'}h</div>
+                                                    <div class="report-sub">Délai prévu ${report.target_sla_hours ?? '-'}h</div>
                                                 </td>
                                                 <td>
                                                     <div class="report-main">${report.signal_label || report.incident_type}</div>
@@ -4415,7 +4541,7 @@
                                                     <div class="report-main">${report.location.commune || '-'}</div>
                                                     <div class="report-sub">${[report.location.country, report.location.city].filter(Boolean).join(' · ')}</div>
                                                     <div class="report-sub">${report.location.address || 'Adresse non renseignée'}</div>
-                                                    <div class="report-sub">${report.location.latitude && report.location.longitude ? `GPS ${report.location.latitude}, ${report.location.longitude}` : 'Position non renseignée'}</div>
+                                                    <div class="report-sub">${report.location.latitude && report.location.longitude ? 'Position renseignée' : 'Position non renseignée'}</div>
                                                 </td>
                                                 <td>
                                                     <div class="report-main">${report.payment_status === 'paid' ? 'Payé' : 'En attente'}</div>
@@ -4425,8 +4551,8 @@
                                                 <td>
                                                     <div class="report-main"><span class="status-pill ${getResolutionStatusClass(report)}">${getResolutionLabel(report)}</span></div>
                                                     <div class="report-sub">${getResolutionHelpText(report)}</div>
-                                                    <div class="report-sub">Temps de resolution: ${getResolutionDurationText(report)}</div>
-                                                    <div class="report-sub">SLA institution: ${getSlaText(report)} · ${getSlaRespectText(report)}</div>
+                                                    <div class="report-sub">Temps de résolution: ${getResolutionDurationText(report)}</div>
+                                                    <div class="report-sub">Délai de traitement: ${getSlaText(report)} · ${getSlaRespectText(report)}</div>
                                                     <div class="report-sub">${report.resolution_confirmation?.confirmed_at ? `Confirmée le ${new Date(report.resolution_confirmation.confirmed_at).toLocaleString()}` : ''}</div>
                                                 </td>
                                                 <td>
@@ -4438,7 +4564,7 @@
                                                         ${report.resolution_confirmation?.can_confirm
                                                             ? `<button class="btn btn-ghost-premium btn-sm px-3" type="button" onclick="window.AcepenPortal.confirmResolution(${report.id})">Confirmer</button>`
                                                             : ''}
-                                                        ${renderRexActionButton('incident_report', report.id, report.reference, 'REX signalement', canSubmitIncidentRex(report))}
+                                                        ${renderRexActionButton('incident_report', report.id, report.reference, 'Avis sur le signalement', canSubmitIncidentRex(report))}
                                                         <button
                                                             class="btn btn-premium btn-sm px-3"
                                                             type="button"
@@ -4451,7 +4577,7 @@
                                                         >
                                                             Dommage
                                                         </button>
-                                                        ${renderRexActionButton('damage_declaration', report.id, report.reference, 'REX dommage', canSubmitDamageRex(report))}
+                                                        ${renderRexActionButton('damage_declaration', report.id, report.reference, 'Avis sur le dommage', canSubmitDamageRex(report))}
                                                     </div>
                                                 </td>
                                             </tr>
@@ -4550,7 +4676,7 @@
                                         <th>Dossier</th>
                                         <th>Signalement</th>
                                         <th>Institution</th>
-                                        <th>Statut</th>
+                                        <th>État</th>
                                         <th>Intervenants</th>
                                         <th class="text-end">Action</th>
                                     </tr>
@@ -4580,7 +4706,7 @@
                                         <td class="text-end">
                                             <div class="d-flex justify-content-end gap-2 flex-wrap">
                                                 <button class="btn btn-ghost-premium btn-sm px-3" type="button" onclick="window.AcepenPortal.showReparationCaseDetails(${repairCase.id})">Détails</button>
-                                                ${renderRexActionButton('reparation_case', repairCase.id, repairCase.reference, 'REX', canSubmitCaseRex(repairCase), '')}
+                                                ${renderRexActionButton('reparation_case', repairCase.id, repairCase.reference, 'Donner mon avis', canSubmitCaseRex(repairCase), '')}
                                             </div>
                                         </td>
                                     </tr>
@@ -4744,7 +4870,7 @@
                     }
 
                     if (hasRexFeedback(contextType, contextId)) {
-                        return `<button class="btn btn-ghost-premium btn-sm px-3 ${extraClass}" type="button" disabled title="Un REX a déjà été envoyé pour cet élément.">REX déjà envoyé</button>`;
+                        return `<button class="btn btn-ghost-premium btn-sm px-3 ${extraClass}" type="button" disabled title="Un avis a déjà été envoyé pour cet élément.">Avis déjà envoyé</button>`;
                     }
 
                     const encodedTitle = encodeURIComponent(title || '');
@@ -4782,7 +4908,7 @@
                     }
 
                     if (!state.rexFeedbacks.length) {
-                        list.innerHTML = '<div class="mini-card"><div class="fw-bold mb-1">Aucun REX envoyé</div><div class="muted-label">Tes retours d’expérience apparaîtront ici après soumission.</div></div>';
+                        list.innerHTML = '<div class="mini-card"><div class="fw-bold mb-1">Aucun avis envoyé</div><div class="muted-label">Tes retours d’expérience apparaîtront ici après soumission.</div></div>';
                         return;
                     }
 
@@ -4791,7 +4917,7 @@
                     state.rexFeedbacksPage = Math.min(state.rexFeedbacksPage, totalPages);
 
                     if (!filteredFeedbacks.length) {
-                        list.innerHTML = '<div class="mini-card"><div class="fw-bold mb-1">Aucun REX ne correspond aux filtres</div><div class="muted-label">Ajuste la recherche, le type ou la note globale.</div></div>';
+                        list.innerHTML = '<div class="mini-card"><div class="fw-bold mb-1">Aucun avis ne correspond aux filtres</div><div class="muted-label">Ajuste la recherche, le type ou la note globale.</div></div>';
                         return;
                     }
 
@@ -4839,7 +4965,7 @@
                                 </table>
                             </div>
                             <div class="pagination-shell">
-                                <div class="pagination-info">Affichage ${start + 1} à ${end} sur ${filteredFeedbacks.length} REX</div>
+                                <div class="pagination-info">Affichage ${start + 1} à ${end} sur ${filteredFeedbacks.length} avis</div>
                                 <div class="pagination-actions">
                                     <button class="pagination-chip" type="button" ${state.rexFeedbacksPage === 1 ? 'disabled' : ''} onclick="window.AcepenPortal.changeRexFeedbacksPage(${state.rexFeedbacksPage - 1})">‹</button>
                                     <div class="small fw-semibold text-secondary">Page ${state.rexFeedbacksPage} / ${totalPages}</div>
@@ -4882,12 +5008,12 @@
                                     <table class="payment-table">
                                         <thead>
                                             <tr>
-                                                <th>Référence</th>
+                                                <th>Numéro de paiement</th>
                                                 <th>Montant</th>
                                                 <th>Signalement</th>
-                                                <th>Canal</th>
+                                                <th>Mode</th>
                                                 <th>Dates</th>
-                                                <th>Statut</th>
+                                                <th>État</th>
                                                 <th class="text-end">Actions</th>
                                             </tr>
                                         </thead>
@@ -4904,14 +5030,14 @@
                                                     </td>
                                                     <td>
                                                         <div class="payment-ref">${payment.incident_report?.reference || '-'}</div>
-                                                        <div class="payment-sub">${[payment.incident_report?.signal_code, payment.incident_report?.signal_label].filter(Boolean).join(' · ') || 'Aucune information supplementaire'}</div>
+                                                        <div class="payment-sub">${payment.incident_report?.signal_label || payment.incident_report?.signal_code || 'Aucune information supplémentaire'}</div>
                                                     </td>
                                                     <td>
-                                                        <div class="payment-ref">${payment.provider || '-'}</div>
-                                                        <div class="payment-sub">${payment.provider_reference || 'Référence fournisseur indisponible'}</div>
+                                                        <div class="payment-ref">${formatPaymentProvider(payment.provider)}</div>
+                                                        <div class="payment-sub">${payment.provider_reference || 'Confirmation en attente'}</div>
                                                     </td>
                                                     <td>
-                                                        <div class="payment-sub"><strong>Initie:</strong> ${formatDateTime(payment.initiated_at)}</div>
+                                                        <div class="payment-sub"><strong>Initié:</strong> ${formatDateTime(payment.initiated_at)}</div>
                                                         <div class="payment-sub"><strong>Confirmé:</strong> ${formatDateTime(payment.paid_at)}</div>
                                                     </td>
                                                     <td><span class="status-pill ${getPaymentStatusClass(payment.status)}">${getPaymentStatusLabel(payment.status)}</span></td>
@@ -5145,7 +5271,7 @@
                                             <div class="fs-3 fw-bold">Reçu de paiement</div>
                                         </div>
                                         <div class="text-lg-end">
-                                            <div class="small text-white-50 fw-semibold">Référence</div>
+                                            <div class="small text-white-50 fw-semibold">Numéro de paiement</div>
                                             <div class="fw-bold fs-5">${payment.reference}</div>
                                         </div>
                                     </div>
@@ -5160,7 +5286,7 @@
                                         <div class="col-md-6">
                                             <div class="small text-secondary fw-semibold mb-1">Montant</div>
                                             <div class="fw-bold fs-4">${formatMoney(payment.amount, payment.currency)}</div>
-                                            <div class="muted-label">Statut: ${getPaymentStatusLabel(payment.status)}</div>
+                                            <div class="muted-label">État: ${getPaymentStatusLabel(payment.status)}</div>
                                         </div>
                                     </div>
                                     <div class="row g-3 mb-4">
@@ -5173,9 +5299,9 @@
                                         </div>
                                         <div class="col-md-6">
                                             <div class="soft-panel h-100">
-                                                <div class="small text-secondary fw-semibold mb-1">Canal de paiement</div>
-                                                <div class="fw-bold">${payment.provider || '-'}</div>
-                                                <div class="muted-label">${payment.provider_reference || 'Référence fournisseur indisponible'}</div>
+                                                <div class="small text-secondary fw-semibold mb-1">Mode de paiement</div>
+                                                <div class="fw-bold">${formatPaymentProvider(payment.provider)}</div>
+                                                <div class="muted-label">${payment.provider_reference || 'Confirmation en attente'}</div>
                                             </div>
                                         </div>
                                     </div>
@@ -5240,6 +5366,214 @@
                     return `${Number(value).toLocaleString()} ${currency}`;
                 }
 
+                function formatPaymentProvider(value) {
+                    if (!value || String(value).toLowerCase() === 'fineopay') {
+                        return 'Paiement sécurisé';
+                    }
+
+                    return String(value);
+                }
+
+                function getPrivilegeDiscountLabel(type) {
+                    if (!type) {
+                        return 'Avantages carte privilège';
+                    }
+
+                    if (type.discount_type === 'fixed_amount') {
+                        return formatAmount(type.discount_value, type.currency || 'FCFA');
+                    }
+
+                    return `${Number(type.discount_value || 0).toLocaleString()}%`;
+                }
+
+                function isFutureDate(value) {
+                    return !value || new Date(value).getTime() > Date.now();
+                }
+
+                function hasPaidPrivilegeCardSession(card) {
+                    if (!card?.id) {
+                        return false;
+                    }
+
+                    return state.privilegeCardPaymentSessions.some((session) => (
+                        session.status === 'paid'
+                        && Number(session.card?.id || 0) === Number(card.id)
+                    ));
+                }
+
+                function isPrivilegeCardWalletEligible(card) {
+                    return Boolean(card)
+                        && card.status === 'active'
+                        && isFutureDate(card.expires_at)
+                        && hasPaidPrivilegeCardSession(card);
+                }
+
+                function renderPrivilegeCards() {
+                    renderActivePrivilegeCard();
+                    renderPrivilegeCardTypes();
+                    renderPrivilegeCardPayments();
+                }
+
+                function renderActivePrivilegeCard() {
+                    const box = document.getElementById('activePrivilegeCardBox');
+                    const card = state.privilegeCard;
+
+                    if (!box) {
+                        return;
+                    }
+
+                    if (!card) {
+                        box.innerHTML = `
+                            <div class="fw-bold mb-1">Aucune carte active</div>
+                            <div class="text-white-50">Achetez une carte privilège pour obtenir votre code à présenter et l’ajouter au portefeuille de votre téléphone.</div>
+                        `;
+                        return;
+                    }
+
+                    const canAddToWallet = isPrivilegeCardWalletEligible(card);
+
+                    box.innerHTML = `
+                        <div class="row g-3 align-items-center">
+                            <div class="col-lg-7">
+                                <div class="small text-white-50 fw-semibold mb-1">Carte active</div>
+                                <div class="fw-bold fs-3 mb-1">${card.type?.name || 'Carte privilège'}</div>
+                                <div class="privilege-active-number mb-2">${card.card_number || '-'}</div>
+                                <div class="text-white-50">Code à présenter: <span class="font-monospace">${card.card_uuid || '-'}</span></div>
+                                <div class="text-white-50">Expire le ${formatDateTime(card.expires_at)}</div>
+                            </div>
+                            <div class="col-lg-5">
+                                <div class="d-flex gap-2 flex-wrap justify-content-lg-end">
+                                    ${canAddToWallet
+                                        ? `<button class="btn btn-premium px-4" type="button" onclick="window.AcepenPortal.addPrivilegeCardToWallet(${card.id}, 'ios')">Ajouter sur iPhone</button>
+                                           <button class="btn btn-light px-4" type="button" onclick="window.AcepenPortal.addPrivilegeCardToWallet(${card.id}, 'android')">Ajouter sur Android</button>`
+                                        : '<div class="privilege-wallet-disabled">Ajout au téléphone disponible uniquement après paiement confirmé, carte active et non expirée.</div>'
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                function renderPrivilegeCardTypes() {
+                    const list = document.getElementById('privilegeCardTypesList');
+
+                    if (!list) {
+                        return;
+                    }
+
+                    if (!state.privilegeCardTypes.length) {
+                        list.innerHTML = '<div class="col-12"><div class="mini-card"><div class="fw-bold mb-1">Aucune carte disponible</div><div class="muted-label">Les cartes privilèges actives seront affichées ici dès leur configuration.</div></div></div>';
+                        return;
+                    }
+
+                    list.innerHTML = state.privilegeCardTypes.map((type) => `
+                        <div class="col-md-6 col-xl-4">
+                            <div class="privilege-offer-card">
+                                <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                                    <div>
+                                        <div class="fw-bold fs-5">${type.name}</div>
+                                        <div class="muted-label">${type.duration_months || 12} mois</div>
+                                    </div>
+                                    <span class="status-pill">${getPrivilegeDiscountLabel(type)}</span>
+                                </div>
+                                <div class="privilege-price mb-2">${formatAmount(type.price, type.currency)}</div>
+                                <div class="vstack gap-2 mb-3">
+                                    ${(type.benefits || []).length
+                                        ? type.benefits.map((benefit) => `<div class="privilege-benefit">${benefit}</div>`).join('')
+                                        : '<div class="privilege-benefit">Avantages associés à cette carte.</div>'
+                                    }
+                                </div>
+                                <button class="btn btn-premium w-100" type="button" onclick="window.AcepenPortal.buyPrivilegeCard(${type.id})">Acheter</button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+
+                function renderPrivilegeCardPayments() {
+                    const list = document.getElementById('privilegeCardPaymentsList');
+
+                    if (!list) {
+                        return;
+                    }
+
+                    if (!state.privilegeCardPaymentSessions.length) {
+                        list.innerHTML = '<div class="mini-card"><div class="fw-bold mb-1">Aucun achat de carte</div><div class="muted-label">Vos achats de cartes privilèges apparaîtront ici après initialisation du paiement.</div></div>';
+                        return;
+                    }
+
+                    list.innerHTML = `
+                        <div class="payment-table-shell">
+                            <div class="report-table-wrap">
+                                <table class="payment-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Numéro d'achat</th>
+                                            <th>Carte</th>
+                                            <th>Montant</th>
+                                            <th>Dates</th>
+                                            <th>État</th>
+                                            <th class="text-end">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${state.privilegeCardPaymentSessions.map((session) => `
+                                            <tr>
+                                                <td>
+                                                    <div class="payment-ref">${session.sync_ref}</div>
+                                                    <div class="payment-sub">${session.provider_reference || 'Confirmation en attente'}</div>
+                                                </td>
+                                                <td>
+                                                    <div class="payment-ref">${session.type?.name || 'Carte privilège'}</div>
+                                                    <div class="payment-sub">${session.card?.card_number || 'Carte non émise'}</div>
+                                                    ${session.card?.card_uuid ? `<div class="payment-sub font-monospace">${session.card.card_uuid}</div>` : ''}
+                                                </td>
+                                                <td>
+                                                    <div class="payment-amount">${formatAmount(session.amount, session.currency)}</div>
+                                                    <div class="payment-sub">${formatPaymentProvider(session.provider)}</div>
+                                                </td>
+                                                <td>
+                                                    <div class="payment-sub"><strong>Initié:</strong> ${formatDateTime(session.initiated_at)}</div>
+                                                    <div class="payment-sub"><strong>Payé:</strong> ${formatDateTime(session.paid_at)}</div>
+                                                </td>
+                                                <td>
+                                                    <span class="status-pill ${getPaymentStatusClass(session.status)}">${getPaymentStatusLabel(session.status)}</span>
+                                                    ${session.card ? `<div class="payment-sub mt-1">Carte: ${getPaymentStatusLabel(session.card.status)}</div>` : ''}
+                                                </td>
+                                                <td>
+                                                    <div class="report-actions">
+                                                        ${session.status === 'pending' && session.checkout_link
+                                                            ? `<a class="btn btn-premium btn-sm px-3" href="${session.checkout_link}" target="_blank" rel="noopener noreferrer">Payer</a>`
+                                                            : ''
+                                                        }
+                                                        ${session.card?.status === 'active' && session.status === 'paid' && isFutureDate(session.card.expires_at)
+                                                            ? `<button class="btn btn-ghost-premium btn-sm px-3" type="button" onclick="window.AcepenPortal.addPrivilegeCardToWallet(${session.card.id}, 'ios')">Ajouter sur iPhone</button>
+                                                               <button class="btn btn-ghost-premium btn-sm px-3" type="button" onclick="window.AcepenPortal.addPrivilegeCardToWallet(${session.card.id}, 'android')">Ajouter sur Android</button>`
+                                                            : ''
+                                                        }
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                async function refreshPrivilegeCards() {
+                    const [types, card, sessions] = await Promise.all([
+                        apiFetch('/privilege-cards'),
+                        apiFetch('/privilege-card'),
+                        apiFetch('/privilege-card-payment-sessions'),
+                    ]);
+
+                    state.privilegeCardTypes = types.data.cards || [];
+                    state.privilegeCard = card.data.card || null;
+                    state.privilegeCardPaymentSessions = sessions.data.payment_sessions || [];
+                    renderPrivilegeCards();
+                }
+
                 function persistPendingReportPayment(session) {
                     state.pendingReportPayment = session || null;
 
@@ -5290,7 +5624,7 @@
                     const isDamagePayment = (session?.payment_context || 'report') === 'damage';
                     document.getElementById('reportPaymentWaitingReference').textContent = session?.sync_ref || '-';
                     document.getElementById('reportPaymentWaitingAmount').textContent = formatAmount(session?.amount, session?.currency || 'FCFA');
-                    document.getElementById('reportPaymentWaitingProvider').textContent = session?.provider || 'FineoPay';
+                    document.getElementById('reportPaymentWaitingProvider').textContent = formatPaymentProvider(session?.provider);
                     document.getElementById('reportPaymentWaitingStatus').textContent = reportPaymentStatusLabel(session?.status || 'pending');
 
                     const loader = document.getElementById('reportPaymentWaitingLoader');
@@ -5331,11 +5665,11 @@
                     }
 
                     document.getElementById('reportPaymentWaitingSubtitle').textContent = 'Gardez cette page ouverte pendant que vous terminez le paiement dans l’autre onglet.';
-                    document.getElementById('reportPaymentWaitingMessage').textContent = 'Nous vérifions automatiquement la confirmation FineoPay.';
+                    document.getElementById('reportPaymentWaitingMessage').textContent = 'Nous vérifions automatiquement la confirmation du paiement.';
                     document.getElementById('reportPaymentWaitingLoaderTitle').textContent = 'Vérification du paiement en cours';
                     document.getElementById('reportPaymentWaitingLoaderText').textContent = isDamagePayment
-                        ? 'Le dommage sera enregistré automatiquement dès que FineoPay confirme le paiement.'
-                        : 'Le signalement sera créé automatiquement dès que FineoPay confirme le paiement.';
+                        ? 'Le dommage sera enregistré automatiquement dès que le paiement est confirmé.'
+                        : 'Le signalement sera créé automatiquement dès que le paiement est confirmé.';
                     loader.classList.remove('d-none');
                     refreshButton.disabled = false;
                     reopenButton.classList.remove('d-none');
@@ -5554,7 +5888,7 @@
                     }
 
                     if (!state.subscriptionHistory.length) {
-                        list.innerHTML = '<div class="mini-card"><div class="fw-bold mb-1">Aucun abonnement</div><div class="muted-label">Tes souscriptions annuelles apparaîtront ici avec leur statut et leur paiement.</div></div>';
+                        list.innerHTML = '<div class="mini-card"><div class="fw-bold mb-1">Aucun abonnement</div><div class="muted-label">Tes souscriptions annuelles apparaîtront ici avec leur état et leur paiement.</div></div>';
                         return;
                     }
 
@@ -5563,7 +5897,7 @@
                     state.subscriptionHistoryPage = Math.min(state.subscriptionHistoryPage, totalPages);
 
                     if (!filteredSubscriptions.length) {
-                        list.innerHTML = '<div class="mini-card"><div class="fw-bold mb-1">Aucun abonnement ne correspond aux filtres</div><div class="muted-label">Modifie la recherche, le statut ou le paiement pour retrouver une souscription.</div></div>';
+                        list.innerHTML = '<div class="mini-card"><div class="fw-bold mb-1">Aucun abonnement ne correspond aux filtres</div><div class="muted-label">Modifie la recherche, l’état ou le paiement pour retrouver une souscription.</div></div>';
                         return;
                     }
 
@@ -5578,9 +5912,9 @@
                                     <thead>
                                         <tr>
                                             <th>Plan</th>
-                                            <th>Periode</th>
+                                            <th>Période</th>
                                             <th>Montant</th>
-                                            <th>Statut</th>
+                                            <th>État</th>
                                             <th>Paiement</th>
                                         </tr>
                                     </thead>
@@ -5720,7 +6054,7 @@
 
                 function getSlaText(report) {
                     if (!report.target_sla_hours) {
-                        return 'SLA non configuré';
+                        return 'Délai non configuré';
                     }
 
                     return `${report.target_sla_hours}h`;
@@ -5736,7 +6070,7 @@
                     }
 
                     if (!report.target_sla_hours || !report.resolved_at || !report.created_at) {
-                        return 'Evaluation TCM indisponible';
+                        return 'Évaluation du délai indisponible';
                     }
 
                     const start = new Date(report.created_at);
@@ -5744,8 +6078,8 @@
                     const elapsedHours = (end.getTime() - start.getTime()) / 3600000;
 
                     return elapsedHours <= Number(report.target_sla_hours)
-                        ? 'Résolution dans le TCM'
-                        : 'Résolution hors TCM';
+                        ? 'Résolution dans le délai prévu'
+                        : 'Résolution hors délai prévu';
                 }
 
                 function getSlaImportanceText(report) {
@@ -5753,7 +6087,7 @@
                 }
 
                 function getSlaImportanceDetails(report) {
-                    return report.sla?.importance?.details || 'Le TCM fixe un délai cible de traitement pour protéger les usagers et limiter l’aggravation du sinistre.';
+                    return report.sla?.importance?.details || 'Le délai cible de traitement protège les usagers et limite l’aggravation du sinistre.';
                 }
 
                 function getDamageDeclarationLabel(report) {
@@ -5937,7 +6271,7 @@
                 }
 
                 function renderReportDetails(report) {
-                    document.getElementById('reportDetailTitle').textContent = `${report.reference} · ${report.signal_code}`;
+                    document.getElementById('reportDetailTitle').textContent = `${report.reference} · ${report.signal_label || report.incident_type || 'Signalement'}`;
                     document.getElementById('reportDetailContent').innerHTML = `
                         <div class="row g-4">
                             <div class="col-lg-6">
@@ -5946,13 +6280,13 @@
                                     <div class="fw-bold fs-5 mb-2">${report.signal_label || report.incident_type}</div>
                                     <div class="muted-label mb-3">${report.description || 'Aucune description fournie.'}</div>
                                     <div class="soft-panel mb-3">
-                                        <div class="small text-secondary fw-semibold mb-1">Statut</div>
+                                        <div class="small text-secondary fw-semibold mb-1">État</div>
                                         <div class="fw-semibold">${getPublicStatusLabel(report.status)}</div>
                                     </div>
                                     <div class="soft-panel mb-3">
                                         <div class="small text-secondary fw-semibold mb-1">Catégorie</div>
                                         <div class="fw-semibold">${report.application?.name || '-'}</div>
-                                        <div class="muted-label">${report.application?.code || 'Aucun univers métier défini'}</div>
+                                        <div class="muted-label">${report.application?.name || 'Aucune catégorie définie'}</div>
                                     </div>
                                     <div class="soft-panel mb-3">
                                         <div class="small text-secondary fw-semibold mb-1">Date du signalement</div>
@@ -5962,7 +6296,7 @@
                                         <div class="small text-secondary fw-semibold mb-1">Localisation</div>
                                         <div class="fw-semibold">${[report.location.country, report.location.city, report.location.commune].filter(Boolean).join(' · ') || '-'}</div>
                                         <div class="muted-label">${report.location.address || 'Adresse non renseignée'}</div>
-                                        <div class="muted-label">${report.location.latitude && report.location.longitude ? `GPS ${report.location.latitude}, ${report.location.longitude}` : 'Position GPS non renseignée'}</div>
+                                        <div class="muted-label">${report.location.latitude && report.location.longitude ? 'Position renseignée' : 'Position non renseignée'}</div>
                                     </div>
                                     <div class="soft-panel">
                                         <div class="small text-secondary fw-semibold mb-1">Identifiant associé</div>
@@ -5985,7 +6319,7 @@
                                         <div class="muted-label">${report.resolved_at ? `Problème marqué comme résolu le ${formatDateTime(report.resolved_at)}` : 'Le problème n’est pas encore marqué comme résolu.'}</div>
                                     </div>
                                     <div class="soft-panel mb-3">
-                                        <div class="small text-secondary fw-semibold mb-1">SLA appliqué par l’institution</div>
+                                        <div class="small text-secondary fw-semibold mb-1">Délai de traitement prévu</div>
                                         <div class="fw-semibold">${getSlaText(report)} · ${report.sla?.label || getSlaRespectText(report)}</div>
                                         <div class="muted-label">${getSlaRespectText(report)}</div>
                                         <div class="muted-label">Importance: ${getSlaImportanceText(report)}</div>
@@ -6019,11 +6353,11 @@
                                             <div class="fw-semibold">${formatDateTime(report.resolution_confirmation?.confirmed_at)}</div>
                                         </div>
                                         <div class="col-md-3">
-                                            <div class="small text-secondary fw-semibold mb-1">Respect du TCM</div>
+                                            <div class="small text-secondary fw-semibold mb-1">Respect du délai</div>
                                             <div class="fw-semibold">${report.sla?.is_respected === true ? 'Oui' : (report.sla?.is_respected === false ? 'Non' : 'En attente')}</div>
                                         </div>
                                         <div class="col-md-3">
-                                            <div class="small text-secondary fw-semibold mb-1">Importance du TCM</div>
+                                            <div class="small text-secondary fw-semibold mb-1">Importance du délai</div>
                                             <div class="fw-semibold">${getSlaImportanceText(report)}</div>
                                         </div>
                                     </div>
@@ -6115,7 +6449,7 @@
 
                 async function refreshDashboard() {
                     await loadReferenceData();
-                    const [me, meters, household, reports, payments, purchaseReceipts, subscription, discountCard, subscriptionHistory, subscriptionPayments, rexFeedbacks, invitations, reparationCases, notifications] = await Promise.all([
+                    const [me, meters, household, reports, payments, purchaseReceipts, subscription, discountCard, privilegeCardTypes, privilegeCard, privilegeCardPaymentSessions, subscriptionHistory, subscriptionPayments, rexFeedbacks, invitations, reparationCases, notifications] = await Promise.all([
                         apiFetch('/me'),
                         apiFetch('/meters'),
                         apiFetch('/households/me'),
@@ -6124,6 +6458,9 @@
                         apiFetch('/purchase-receipts'),
                         apiFetch('/subscription'),
                         apiFetch('/discount-card'),
+                        apiFetch('/privilege-cards'),
+                        apiFetch('/privilege-card'),
+                        apiFetch('/privilege-card-payment-sessions'),
                         apiFetch('/subscriptions'),
                         apiFetch('/subscription/payments'),
                         apiFetch('/rex-feedbacks'),
@@ -6135,6 +6472,9 @@
                     void registerPublicWebPushToken();
                     state.subscription = subscription.data.subscription;
                     state.discountCard = discountCard.data.card || null;
+                    state.privilegeCardTypes = privilegeCardTypes.data.cards || [];
+                    state.privilegeCard = privilegeCard.data.card || null;
+                    state.privilegeCardPaymentSessions = privilegeCardPaymentSessions.data.payment_sessions || [];
                     state.subscriptionHistory = subscriptionHistory.data.subscriptions || [];
                     state.subscriptionPayments = subscriptionPayments.data.payments || [];
                     state.rexFeedbacks = rexFeedbacks.data.feedbacks || [];
@@ -6150,6 +6490,7 @@
                     renderReports(reports.data.reports);
                     renderDamages(reports.data.reports);
                     renderPayments(payments.data.payments);
+                    renderPrivilegeCards();
                     renderRexFeedbacks(state.rexFeedbacks);
                     renderNotifications();
                     renderIncomingHouseholdInvitations(invitations.data.invitations);
@@ -6186,6 +6527,57 @@
                         form.is_primary.checked = Boolean(meter.is_primary);
                         form.querySelector('button[type="submit"]').textContent = 'Mettre à jour l’identifiant';
                         bootstrap.Collapse.getOrCreateInstance(document.getElementById('meterFormWrap')).show();
+                    },
+                    async buyPrivilegeCard(typeId) {
+                        const paymentWindow = window.open('', '_blank', 'noopener,noreferrer');
+
+                        try {
+                            const response = await apiFetch(`/privilege-cards/${typeId}/payments`, { method: 'POST' });
+                            const checkoutLink = response.data?.checkout_link || response.data?.payment_session?.checkout_link;
+
+                            showToast(response.message || 'Lien de paiement carte privilège généré.');
+
+                            if (checkoutLink) {
+                                if (paymentWindow) {
+                                    paymentWindow.location.href = checkoutLink;
+                                } else {
+                                    window.open(checkoutLink, '_blank', 'noopener,noreferrer');
+                                }
+                            } else {
+                                paymentWindow?.close();
+                            }
+
+                            await refreshPrivilegeCards();
+                            activatePanel('privilege-cards');
+                        } catch (error) {
+                            paymentWindow?.close();
+                            showToast(error.message, true);
+                        }
+                    },
+                    async addPrivilegeCardToWallet(cardId, platform) {
+                        try {
+                            const card = state.privilegeCard?.id === cardId
+                                ? state.privilegeCard
+                                : state.privilegeCardPaymentSessions.find((session) => Number(session.card?.id || 0) === Number(cardId))?.card;
+
+                            if (!isPrivilegeCardWalletEligible(card)) {
+                                showToast('Ajout au téléphone disponible uniquement après paiement confirmé, carte active et non expirée.', true);
+                                return;
+                            }
+
+                            const response = await apiFetch(`/privilege-cards/${cardId}/wallet-pass?platform=${encodeURIComponent(platform)}`);
+                            const walletUrl = response.data?.url;
+
+                            if (!walletUrl) {
+                                showToast('Lien d’ajout indisponible.', true);
+                                return;
+                            }
+
+                            window.open(walletUrl, '_blank', 'noopener,noreferrer');
+                            showToast(platform === 'ios' ? 'Lien d’ajout iPhone généré.' : 'Lien d’ajout Android généré.');
+                        } catch (error) {
+                            showToast(error.message, true);
+                        }
                     },
                     async payReport(reportId) {
                         try {
@@ -6272,7 +6664,7 @@
                         const report = state.reports.find((item) => item.id === reportId);
 
                         if (!report?.damage_declaration?.declared_at) {
-                            showToast('Aucun dommage a modifier pour ce signalement.', true);
+                            showToast('Aucun dommage à modifier pour ce signalement.', true);
                             return;
                         }
 
@@ -6285,7 +6677,7 @@
                         form.damage_amount_estimated.value = report.damage_declaration.amount_estimated ?? '';
                         form.damage_notes.value = report.damage_declaration.notes || '';
                         document.getElementById('damageAttachmentInput').required = false;
-                        form.querySelector('button[type="submit"]').textContent = 'Mettre a jour le dommage';
+                        form.querySelector('button[type="submit"]').textContent = 'Mettre à jour le dommage';
                         ['receipt_material_name', 'receipt_purchase_date', 'receipt_amount', 'receipt_attachment'].forEach((name) => {
                             form.elements[name].disabled = false;
                         });
@@ -6474,7 +6866,7 @@
                     },
                     openRexForm(contextType, contextId, title) {
                         if (hasRexFeedback(contextType, contextId)) {
-                            showToast('Un REX a déjà été envoyé pour cet élément.', true);
+                            showToast('Un avis a déjà été envoyé pour cet élément.', true);
                             return;
                         }
 
@@ -6482,7 +6874,7 @@
                         form.reset();
                         document.getElementById('rexContextType').value = contextType;
                         document.getElementById('rexContextId').value = String(contextId);
-                        document.getElementById('rexFeedbackTitle').textContent = `REX · ${title || getRexContextLabel(contextType)}`;
+                        document.getElementById('rexFeedbackTitle').textContent = `Avis · ${title || getRexContextLabel(contextType)}`;
                         rexFeedbackModal?.show();
                     },
                 };
@@ -6619,6 +7011,14 @@
                     document.getElementById('paymentReceiptFilter').value = '';
                     renderPayments(state.payments);
                 });
+                document.getElementById('refreshPrivilegeCardsButton')?.addEventListener('click', async () => {
+                    try {
+                        await refreshPrivilegeCards();
+                        showToast('Cartes privilèges actualisées.');
+                    } catch (error) {
+                        showToast(error.message, true);
+                    }
+                });
                 document.getElementById('subscriptionSearchFilter').addEventListener('input', (event) => {
                     state.subscriptionFilters.search = event.currentTarget.value || '';
                     state.subscriptionHistoryPage = 1;
@@ -6726,7 +7126,7 @@
                 document.getElementById('toggleProfileManualLocationButton').addEventListener('click', () => {
                     const enabled = document.getElementById('profileLatitude').readOnly;
                     setGeoManualMode('profile', enabled);
-                    showToast(enabled ? 'Saisie manuelle activee pour la position du profil.' : 'Saisie manuelle desactivee.');
+                    showToast(enabled ? 'Saisie manuelle activée pour la position du profil.' : 'Saisie manuelle désactivée.');
                 });
 
                 meterFormWrapElement?.addEventListener('shown.bs.collapse', () => {
@@ -6985,17 +7385,11 @@
                             payload.append('signal_attachment', signalAttachment);
                         }
 
-                        console.group('[MYSIGNAL] Soumission signalement UP');
-                        console.log('Payload soumis a /api/v1/public/reports', debugFormDataPayload(payload));
-
                         paymentWindow = window.open('', '_blank', 'noopener,noreferrer');
                         const response = await apiFetch('/reports', { method: 'POST', body: payload });
-                        console.log('Reponse /api/v1/public/reports', response);
-                        console.log('Checkout link FineoPay', response.data?.checkout_link || response.data?.payment_session?.checkout_link || null);
-                        console.groupEnd();
 
                         const checkoutLink = response.data?.checkout_link || response.data?.payment_session?.checkout_link;
-                        showToast(response.message || 'Lien de paiement genere.');
+                        showToast(response.message || 'Lien de paiement généré.');
                         form.reset();
                         clearReportGeoFields();
                         setGeoManualMode('report', false);
@@ -7020,22 +7414,6 @@
                         activatePanel('payments');
                     } catch (error) {
                         paymentWindow?.close();
-                        console.error('Erreur /api/v1/public/reports', {
-                            message: error.message,
-                            status: error.status,
-                            payload: error.payload,
-                        });
-                        const fineoPayDebug = error.payload?.errors?.fineopay_debug?.[0];
-                        if (fineoPayDebug) {
-                            try {
-                                const parsedFineoPayDebug = JSON.parse(fineoPayDebug);
-                                console.log('FineoPay debug', parsedFineoPayDebug);
-                                console.log('FineoPay curl', parsedFineoPayDebug.request?.curl || null);
-                            } catch (parseError) {
-                                console.log('FineoPay debug', fineoPayDebug);
-                            }
-                        }
-                        console.groupEnd();
                         showToast(error.message, true);
                     } finally {
                         setLoading(form, false);
