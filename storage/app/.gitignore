@@ -1,4 +1,7 @@
 *
 !private/
 !public/
+!wallet-keys/
+wallet-keys/*
+!wallet-keys/.gitkeep
 !.gitignore
