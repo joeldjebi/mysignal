@@ -12,6 +12,11 @@
 
 @section('content')
     <div class="row g-4">
+        <style>
+            .bulk-check-cell {
+                width: 44px;
+            }
+        </style>
         <div class="col-lg-4">
             <section class="panel-card sticky-form-card">
                 <div class="fw-bold mb-3">Nouveau sous-type</div>
@@ -94,12 +99,26 @@
                 </form>
 
                 <div class="table-toolbar">
-                    <div class="table-meta">{{ $subTypes->total() }} resultat{{ $subTypes->total() > 1 ? 's' : '' }}</div>
+                    <div class="table-meta" id="signalSubTypesResultCount">{{ $subTypes->total() }} resultat{{ $subTypes->total() > 1 ? 's' : '' }}</div>
+                    <div class="d-flex flex-wrap gap-2">
+                        <form
+                            method="POST"
+                            action="{{ route('super-admin.signal-sub-types.destroy-selected') }}"
+                            id="bulkDeleteSignalSubTypesForm"
+                        >
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-outline-danger btn-sm" id="bulkDeleteSignalSubTypesButton" disabled>Supprimer la sélection</button>
+                        </form>
+                    </div>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-modern align-middle">
                         <thead>
                             <tr>
+                                <th class="bulk-check-cell">
+                                    <input class="form-check-input" type="checkbox" id="selectAllSignalSubTypesOnPage" @disabled($subTypes->count() === 0)>
+                                </th>
                                 <th>Type de signal</th>
                                 <th>Sous-type</th>
                                 <th>Ordre</th>
@@ -109,7 +128,16 @@
                         </thead>
                         <tbody>
                             @forelse ($subTypes as $subType)
-                                <tr>
+                                <tr data-signal-sub-type-row="{{ $subType->id }}">
+                                    <td class="bulk-check-cell">
+                                        <input
+                                            class="form-check-input signal-sub-type-bulk-checkbox"
+                                            type="checkbox"
+                                            name="signal_sub_type_ids[]"
+                                            value="{{ $subType->id }}"
+                                            form="bulkDeleteSignalSubTypesForm"
+                                        >
+                                    </td>
                                     <td>
                                         <div>{{ $subType->signalType?->label ?: '-' }}</div>
                                         <div class="small text-secondary">{{ $subType->signalType?->code ?: '-' }}</div>
@@ -129,7 +157,7 @@
                                                 @method('PATCH')
                                                 <button class="btn btn-sm btn-outline-warning">{{ $subType->status === 'active' ? 'Desactiver' : 'Activer' }}</button>
                                             </form>
-                                            <form method="POST" action="{{ route('super-admin.signal-types.sub-types.destroy', [$subType->signalType, $subType]) }}">
+                                            <form method="POST" action="{{ route('super-admin.signal-types.sub-types.destroy', [$subType->signalType, $subType]) }}" class="ajax-delete-signal-sub-type-form" data-signal-sub-type-id="{{ $subType->id }}">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button class="btn btn-sm btn-outline-danger">Supprimer</button>
@@ -138,7 +166,7 @@
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="5" class="text-center text-secondary">Aucun sous-type de signal enregistre.</td></tr>
+                                <tr data-signal-sub-type-empty-row><td colspan="6" class="text-center text-secondary">Aucun sous-type de signal enregistre.</td></tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -237,6 +265,170 @@
             const categoryFilter = document.getElementById('importSignalSubTypesApplicationFilter');
             const options = Array.from(document.querySelectorAll('[data-signal-type-option]'));
             const emptyState = document.getElementById('importSignalSubTypesEmptyState');
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+            const bulkCheckboxes = Array.from(document.querySelectorAll('.signal-sub-type-bulk-checkbox'));
+            const bulkDeleteForm = document.getElementById('bulkDeleteSignalSubTypesForm');
+            const bulkDeleteButton = document.getElementById('bulkDeleteSignalSubTypesButton');
+            const selectAllCheckbox = document.getElementById('selectAllSignalSubTypesOnPage');
+            const resultCount = document.getElementById('signalSubTypesResultCount');
+
+            const activeBulkCheckboxes = () => bulkCheckboxes.filter((checkbox) => checkbox.isConnected);
+
+            const updateResultCount = () => {
+                const remainingRows = document.querySelectorAll('tr[data-signal-sub-type-row]').length;
+                const suffix = remainingRows > 1 ? 's' : '';
+
+                if (resultCount) {
+                    resultCount.textContent = `${remainingRows} resultat${suffix}`;
+                }
+            };
+
+            const updateBulkDeleteState = () => {
+                const activeCheckboxes = activeBulkCheckboxes();
+                const checkedCount = activeCheckboxes.filter((checkbox) => checkbox.checked).length;
+
+                if (bulkDeleteButton) {
+                    bulkDeleteButton.disabled = checkedCount === 0;
+                    bulkDeleteButton.textContent = checkedCount > 0
+                        ? `Supprimer la sélection (${checkedCount})`
+                        : 'Supprimer la sélection';
+                }
+
+                if (selectAllCheckbox) {
+                    selectAllCheckbox.disabled = activeCheckboxes.length === 0;
+                    selectAllCheckbox.checked = checkedCount > 0 && checkedCount === activeCheckboxes.length;
+                    selectAllCheckbox.indeterminate = checkedCount > 0 && checkedCount < activeCheckboxes.length;
+                }
+            };
+
+            const ensureEmptySignalSubTypeRow = () => {
+                const tbody = document.querySelector('.table-modern tbody');
+                const remainingRows = tbody ? tbody.querySelectorAll('tr[data-signal-sub-type-row]').length : 0;
+
+                if (tbody && remainingRows === 0 && !tbody.querySelector('[data-signal-sub-type-empty-row]')) {
+                    tbody.innerHTML = '<tr data-signal-sub-type-empty-row><td colspan="6" class="text-center text-secondary">Aucun sous-type de signal enregistre.</td></tr>';
+                }
+            };
+
+            const removeSignalSubTypeRows = (ids) => {
+                ids.forEach((id) => {
+                    document.querySelector(`tr[data-signal-sub-type-row="${id}"]`)?.remove();
+                });
+
+                updateBulkDeleteState();
+                updateResultCount();
+                ensureEmptySignalSubTypeRow();
+            };
+
+            bulkCheckboxes.forEach((checkbox) => {
+                checkbox.addEventListener('change', updateBulkDeleteState);
+            });
+
+            selectAllCheckbox?.addEventListener('change', () => {
+                activeBulkCheckboxes().forEach((checkbox) => {
+                    checkbox.checked = selectAllCheckbox.checked;
+                });
+                updateBulkDeleteState();
+            });
+
+            bulkDeleteForm?.addEventListener('submit', async (event) => {
+                event.preventDefault();
+
+                const selectedIds = activeBulkCheckboxes()
+                    .filter((checkbox) => checkbox.checked)
+                    .map((checkbox) => checkbox.value);
+
+                if (selectedIds.length === 0) {
+                    return;
+                }
+
+                if (!confirm('Supprimer les sous-types de signal sélectionnés ? Cette action est irréversible.')) {
+                    return;
+                }
+
+                const originalText = bulkDeleteButton?.textContent || 'Supprimer la sélection';
+
+                if (bulkDeleteButton) {
+                    bulkDeleteButton.disabled = true;
+                    bulkDeleteButton.textContent = 'Suppression...';
+                }
+
+                const formData = new FormData(bulkDeleteForm);
+                selectedIds.forEach((id) => formData.append('signal_sub_type_ids[]', id));
+
+                try {
+                    const response = await fetch(bulkDeleteForm.action, {
+                        method: 'POST',
+                        headers: {
+                            Accept: 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                        body: formData,
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('bulk_delete_failed');
+                    }
+
+                    const payload = await response.json();
+                    removeSignalSubTypeRows((payload.deleted_ids || selectedIds).map((id) => String(id)));
+                } catch (error) {
+                    alert('La suppression a échoué. Veuillez réessayer.');
+
+                    if (bulkDeleteButton) {
+                        bulkDeleteButton.disabled = false;
+                        bulkDeleteButton.textContent = originalText;
+                    }
+
+                    updateBulkDeleteState();
+                }
+            });
+
+            document.querySelectorAll('.ajax-delete-signal-sub-type-form').forEach((form) => {
+                form.addEventListener('submit', async (event) => {
+                    event.preventDefault();
+
+                    if (!confirm('Supprimer ce sous-type de signal ? Cette action est irréversible.')) {
+                        return;
+                    }
+
+                    const button = form.querySelector('button[type="submit"], button:not([type])');
+                    const originalText = button?.textContent || 'Supprimer';
+
+                    if (button) {
+                        button.disabled = true;
+                        button.textContent = 'Suppression...';
+                    }
+
+                    try {
+                        const response = await fetch(form.action, {
+                            method: 'DELETE',
+                            headers: {
+                                Accept: 'application/json',
+                                'X-CSRF-TOKEN': csrfToken,
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('delete_failed');
+                        }
+
+                        const payload = await response.json();
+                        removeSignalSubTypeRows([String(payload.deleted_id || form.dataset.signalSubTypeId)]);
+                    } catch (error) {
+                        alert('La suppression a échoué. Veuillez réessayer.');
+
+                        if (button) {
+                            button.disabled = false;
+                            button.textContent = originalText;
+                        }
+                    }
+                });
+            });
+
+            updateBulkDeleteState();
 
             if (listCategoryFilter && listSignalTypeFilter) {
                 const signalTypeOptions = Array.from(listSignalTypeFilter.options).filter((option) => option.value !== '');

@@ -564,7 +564,7 @@ class SignalTypeController extends Controller
         return back()->with('success', 'Le statut du sous-type de signal a ete mis a jour.');
     }
 
-    public function destroySubType(Request $request, SignalType $signalType, SignalSubType $subType, ActivityLogger $activityLogger): RedirectResponse
+    public function destroySubType(Request $request, SignalType $signalType, SignalSubType $subType, ActivityLogger $activityLogger): RedirectResponse|JsonResponse
     {
         $this->ensureSubTypeBelongsToSignalType($signalType, $subType);
 
@@ -579,8 +579,72 @@ class SignalTypeController extends Controller
             $request
         );
 
-        return redirect()->route('super-admin.signal-types.edit', $signalType)
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Le sous-type de signal a ete supprime.',
+                'deleted_id' => $subType->id,
+            ]);
+        }
+
+        return back()
             ->with('success', 'Le sous-type de signal a ete supprime.');
+    }
+
+    public function destroySelectedSubTypes(Request $request, ActivityLogger $activityLogger): RedirectResponse|JsonResponse
+    {
+        $attributes = $request->validate([
+            'signal_sub_type_ids' => ['required', 'array', 'min:1'],
+            'signal_sub_type_ids.*' => ['integer'],
+        ]);
+
+        $ids = collect($attributes['signal_sub_type_ids'])
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn (int $id) => $id > 0)
+            ->unique()
+            ->values();
+
+        $subTypes = SignalSubType::query()
+            ->whereIn('id', $ids)
+            ->get(['id', 'signal_type_id', 'code', 'label', 'status']);
+
+        if ($subTypes->isEmpty()) {
+            throw ValidationException::withMessages([
+                'signal_sub_type_ids' => ['Selectionnez au moins un sous-type de signal valide.'],
+            ]);
+        }
+
+        $snapshots = $subTypes
+            ->map(fn (SignalSubType $subType) => $subType->toArray())
+            ->all();
+        $deletedIds = $subTypes->pluck('id')->map(fn ($id) => (int) $id)->values();
+
+        $count = SignalSubType::query()
+            ->whereIn('id', $deletedIds)
+            ->delete();
+
+        $activityLogger->log(
+            'signal_sub_type.bulk_deleted',
+            'Suppression groupée de sous-types de signal.',
+            SignalSubType::class,
+            [
+                'deleted_count' => $count,
+                'items' => $snapshots,
+            ],
+            $request
+        );
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "{$count} sous-type(s) de signal supprime(s).",
+                'deleted_ids' => $deletedIds,
+                'deleted_count' => $count,
+            ]);
+        }
+
+        return back()
+            ->with('success', "{$count} sous-type(s) de signal selectionne(s) supprime(s).");
     }
 
     private function validatedAttributes(Request $request, ?SignalType $signalType = null): array

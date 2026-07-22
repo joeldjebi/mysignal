@@ -111,31 +111,19 @@
     </div>
 
     <div class="row g-4 mt-1">
-        <div class="col-lg-4">
-            <section class="panel-card sticky-form-card">
-                <div class="fw-bold mb-3">Nouveau sous-type</div>
-                <form method="POST" action="{{ route('super-admin.signal-types.sub-types.store', $signalType) }}" class="vstack gap-3">
-                    @csrf
-                    <div>
-                        <label class="form-label">Libelle</label>
-                        <input type="text" name="label" value="{{ old('label') }}" class="form-control" placeholder="Cable arrache" required>
-                    </div>
-                    <div>
-                        <label class="form-label">Description</label>
-                        <textarea name="description" class="form-control" rows="3">{{ old('description') }}</textarea>
-                    </div>
-                    <button type="submit" class="btn btn-dark">Ajouter</button>
-                </form>
-            </section>
-        </div>
-        <div class="col-lg-8">
+        <div class="col-12">
             <section class="panel-card">
                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
                     <div>
                         <div class="fw-bold">Sous-types de signal</div>
                         <div class="small text-secondary">Si au moins un sous-type actif existe, le UP devra choisir un sous-type ou Autre.</div>
                     </div>
-                    <span class="badge-soft">{{ $signalType->subTypes->count() }} sous-types</span>
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                        <span class="badge-soft">{{ $signalType->subTypes->count() }} sous-types</span>
+                        <button type="button" class="btn btn-dark btn-sm" data-bs-toggle="modal" data-bs-target="#createSignalSubTypeModal">
+                            Ajouter un sous-type de signal
+                        </button>
+                    </div>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-modern align-middle">
@@ -195,6 +183,43 @@
             </section>
         </div>
     </div>
+
+    <div class="modal fade" id="createSignalSubTypeModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-md modal-dialog-centered">
+            <div class="modal-content border-0" style="border-radius: 24px; overflow: hidden;">
+                <div class="modal-header px-4 py-3 border-0" style="background: linear-gradient(145deg, #0f2738, #1b4867); color: white;">
+                    <div>
+                        <div class="small text-white-50 fw-semibold mb-1">Sous-type de signal</div>
+                        <div class="h5 fw-bold mb-0">Ajouter un sous-type de signal</div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form method="POST" action="{{ route('super-admin.signal-types.sub-types.store', $signalType) }}" class="vstack gap-3">
+                        @csrf
+                        <input type="hidden" name="sub_type_form" value="1">
+                        <div>
+                            <label class="form-label">Libelle <span class="text-danger">*</span></label>
+                            <input type="text" name="label" value="{{ old('sub_type_form') ? old('label') : '' }}" class="form-control" placeholder="Cable arrache" required>
+                        </div>
+                        <div>
+                            <label class="form-label">Description</label>
+                            <textarea name="description" class="form-control" rows="3">{{ old('sub_type_form') ? old('description') : '' }}</textarea>
+                        </div>
+                        <button type="submit" class="btn btn-dark">Ajouter</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if ($errors->any() && old('sub_type_form'))
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('createSignalSubTypeModal')).show();
+            });
+        </script>
+    @endif
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
