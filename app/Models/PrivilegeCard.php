@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PrivilegeCard extends Model
 {
@@ -46,5 +47,10 @@ class PrivilegeCard extends Model
     public function type(): BelongsTo
     {
         return $this->belongsTo(PrivilegeCardType::class, 'privilege_card_type_id');
+    }
+
+    public function paymentSessions(): HasMany
+    {
+        return $this->hasMany(PrivilegeCardPaymentSession::class, 'privilege_card_id');
     }
 }

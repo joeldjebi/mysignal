@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers\Web\SuperAdmin;
 
+use App\Domain\Payments\Enums\PaymentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\PartnerDiscountTransaction;
 use App\Models\PrivilegeCard;
 use App\Models\PrivilegeCardPaymentSession;
 use App\Models\PrivilegeCardType;
 use App\Models\PublicUser;
+use App\Services\Wallet\GoogleWalletService;
+use App\Services\Wallet\WalletConfigurationException;
 use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -41,10 +44,13 @@ class PrivilegeCardTypeController extends Controller
         ]);
     }
 
-    public function issuedCards(): View
+    public function issuedCards(GoogleWalletService $googleWallet): View
     {
         $issuedCardQuery = PrivilegeCard::query()
-            ->with(['publicUser', 'type']);
+            ->with(['publicUser', 'type'])
+            ->withExists([
+                'paymentSessions as has_paid_session' => fn ($query) => $query->where('status', PaymentStatus::Paid->value),
+            ]);
 
         if (filled(request('issued_search'))) {
             $search = trim((string) request('issued_search'));
@@ -68,8 +74,11 @@ class PrivilegeCardTypeController extends Controller
             $issuedCardQuery->where('status', request('issued_status'));
         }
 
+        $issuedCards = $issuedCardQuery->latest('id')->paginate(12)->withQueryString();
+
         return view('super-admin.privilege-card-types.issued-cards', [
-            'issuedCards' => $issuedCardQuery->latest('id')->paginate(12)->withQueryString(),
+            'issuedCards' => $issuedCards,
+            'walletLinks' => $this->walletLinksForCards($issuedCards->getCollection(), $googleWallet),
             ...$this->commonViewData(),
             ...$this->issueFormViewData(),
         ]);
@@ -381,5 +390,48 @@ class PrivilegeCardTypeController extends Controller
         } while (PrivilegeCard::query()->where('card_number', $number)->exists());
 
         return $number;
+    }
+
+    private function walletLinksForCards(iterable $cards, GoogleWalletService $googleWallet): array
+    {
+        $links = [];
+
+        foreach ($cards as $card) {
+            $isEligible = $card->status === 'active'
+                && ($card->expires_at === null || $card->expires_at->isFuture())
+                && (bool) $card->has_paid_session;
+
+            if (! $isEligible) {
+                $links[$card->id] = [
+                    'eligible' => false,
+                    'apple' => null,
+                    'android' => null,
+                    'android_error' => null,
+                ];
+
+                continue;
+            }
+
+            $androidUrl = null;
+            $androidError = null;
+
+            try {
+                $androidUrl = $googleWallet->buildSaveUrl($card);
+            } catch (WalletConfigurationException $exception) {
+                $androidError = $exception->getMessage();
+            }
+
+            $links[$card->id] = [
+                'eligible' => true,
+                'apple' => route('api.public.privilege-cards.pass.apple', [
+                    'card' => $card->id,
+                    'expires' => now()->addMinutes(10)->timestamp,
+                ]),
+                'android' => $androidUrl,
+                'android_error' => $androidError,
+            ];
+        }
+
+        return $links;
     }
 }

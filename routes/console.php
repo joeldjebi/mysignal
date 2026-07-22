@@ -3,6 +3,7 @@
 use App\Domain\Discounts\Actions\IssueUpDiscountCardAction;
 use App\Domain\Subscriptions\Enums\UpSubscriptionStatus;
 use App\Services\Wallet\GoogleWalletAuth;
+use App\Services\Wallet\GoogleWalletService;
 use App\Services\Wallet\WalletConfigurationException;
 use App\Models\UpSubscription;
 use Illuminate\Foundation\Inspiring;
@@ -70,7 +71,7 @@ Artisan::command('discounts:backfill-cards {--dry-run : Simule la creation sans 
     return self::SUCCESS;
 })->purpose('Genere les cartes de reduction manquantes pour les abonnements UP deja actifs');
 
-Artisan::command('wallet:google:create-class', function (GoogleWalletAuth $googleWalletAuth) {
+Artisan::command('wallet:google:create-class', function (GoogleWalletAuth $googleWalletAuth, GoogleWalletService $googleWalletService) {
     $classId = (string) config('wallet.google.class_id');
 
     if ($classId === '') {
@@ -87,33 +88,37 @@ Artisan::command('wallet:google:create-class', function (GoogleWalletAuth $googl
         return self::FAILURE;
     }
 
-    $payload = [
-        'id' => $classId,
-        'classTemplateInfo' => [
-            'cardTemplateOverride' => [
-                'cardRowTemplateInfos' => [],
-            ],
-        ],
-    ];
+    $payload = $googleWalletService->classPayload();
 
     $response = Http::withToken($token)
         ->acceptJson()
         ->post('https://walletobjects.googleapis.com/walletobjects/v1/genericClass', $payload);
 
     if ($response->status() === 409) {
-        $this->info('La classe Google Wallet existe deja: '.$classId);
+        $updateResponse = Http::withToken($token)
+            ->acceptJson()
+            ->patch('https://walletobjects.googleapis.com/walletobjects/v1/genericClass/'.$classId, $payload);
+
+        if (! $updateResponse->successful()) {
+            $this->error('Mise à jour Google Wallet échouée: HTTP '.$updateResponse->status());
+            $this->line($updateResponse->body());
+
+            return self::FAILURE;
+        }
+
+        $this->info('Classe Google Wallet mise à jour: '.$classId);
 
         return self::SUCCESS;
     }
 
     if (! $response->successful()) {
-        $this->error('Creation Google Wallet echouee: HTTP '.$response->status());
+        $this->error('Création Google Wallet échouée: HTTP '.$response->status());
         $this->line($response->body());
 
         return self::FAILURE;
     }
 
-    $this->info('Classe Google Wallet creee: '.$classId);
+    $this->info('Classe Google Wallet créée: '.$classId);
 
     return self::SUCCESS;
-})->purpose('Cree la classe Google Wallet des cartes privileges');
+})->purpose('Crée ou met à jour la classe Google Wallet des cartes privilèges');

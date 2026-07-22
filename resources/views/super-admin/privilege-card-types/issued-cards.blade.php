@@ -90,12 +90,24 @@
                             </td>
                             <td><span class="status-chip">{{ $cardStatusLabels[$card->status] ?? $card->status }}</span></td>
                             <td class="text-end">
-                                @if ($card->status === 'active')
-                                    <a class="btn btn-sm btn-outline-dark" href="{{ \Illuminate\Support\Facades\URL::temporarySignedRoute('api.public.privilege-cards.pass.apple', now()->addMinutes(10), ['card' => $card->id]) }}">
-                                        Tester l’ajout iPhone
-                                    </a>
+                                @php
+                                    $links = $walletLinks[$card->id] ?? null;
+                                @endphp
+                                @if ($links && $links['eligible'])
+                                    <div class="d-flex justify-content-end gap-2 flex-wrap">
+                                        <a class="btn btn-sm btn-outline-dark" href="{{ $links['apple'] }}" target="_blank" rel="noopener noreferrer">
+                                            Tester iPhone
+                                        </a>
+                                        @if ($links['android'])
+                                            <a class="btn btn-sm btn-dark" href="{{ $links['android'] }}" target="_blank" rel="noopener noreferrer">
+                                                Tester Android
+                                            </a>
+                                        @else
+                                            <span class="text-secondary small" title="{{ $links['android_error'] ?: 'Lien Android indisponible.' }}">Android indisponible</span>
+                                        @endif
+                                    </div>
                                 @else
-                                    <span class="text-secondary small">Indisponible</span>
+                                    <span class="text-secondary small">Disponible après paiement confirmé</span>
                                 @endif
                             </td>
                         </tr>
@@ -131,12 +143,12 @@
                             <label class="form-label">Usager <span class="text-danger">*</span></label>
                             <select class="form-select" name="public_user_id" required>
                                 <option value="">Sélectionner un usager</option>
-                                @foreach ($publicUsers as $publicUser)
+                                @foreach ($publicUsers as $modalPublicUser)
                                     @php
-                                        $publicUserName = trim(($publicUser->first_name ?? '').' '.($publicUser->last_name ?? ''));
+                                        $modalPublicUserName = trim(($modalPublicUser->first_name ?? '').' '.($modalPublicUser->last_name ?? ''));
                                     @endphp
-                                    <option value="{{ $publicUser->id }}" @selected((string) old('public_user_id') === (string) $publicUser->id)>
-                                        {{ $publicUserName ?: 'Usager #'.$publicUser->id }} · {{ $publicUser->phone ?: $publicUser->email ?: '-' }}
+                                    <option value="{{ $modalPublicUser->id }}" @selected((string) old('public_user_id') === (string) $modalPublicUser->id)>
+                                        {{ $modalPublicUserName ?: 'Usager #'.$modalPublicUser->id }} · {{ $modalPublicUser->phone ?: $modalPublicUser->email ?: '-' }}
                                     </option>
                                 @endforeach
                             </select>

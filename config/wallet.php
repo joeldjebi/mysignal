@@ -10,6 +10,7 @@ return [
         'foreground_color' => env('APPLE_WALLET_FOREGROUND_COLOR', 'rgb(255, 255, 255)'),
         'background_color' => env('APPLE_WALLET_BACKGROUND_COLOR', 'rgb(201, 162, 39)'),
         'label_color' => env('APPLE_WALLET_LABEL_COLOR', 'rgb(255, 255, 255)'),
+        'logo_path' => env('APPLE_WALLET_LOGO_PATH', 'public/image/logo/ufc.jpg'),
         'cert_path' => env('APPLE_PASS_CERT_PATH'),
         'key_path' => env('APPLE_PASS_KEY_PATH'),
         'wwdr_path' => env('APPLE_WWDR_CERT_PATH'),
@@ -27,5 +28,8 @@ return [
         'service_account_json' => env('GOOGLE_WALLET_SERVICE_ACCOUNT_JSON'),
         'service_account_base64' => env('GOOGLE_WALLET_SERVICE_ACCOUNT_BASE64'),
         'background_color' => env('GOOGLE_WALLET_BACKGROUND_COLOR', '#C9A227'),
+        'logo_path' => env('GOOGLE_WALLET_LOGO_PATH', 'public/image/logo/ufc.jpg'),
+        'logo_url' => env('GOOGLE_WALLET_LOGO_URL'),
+        'object_version' => env('GOOGLE_WALLET_OBJECT_VERSION', 'v5'),
     ],
 ];

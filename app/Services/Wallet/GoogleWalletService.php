@@ -18,7 +18,7 @@ class GoogleWalletService
             throw new WalletConfigurationException('La configuration Google Wallet est incomplète.');
         }
 
-        $objectId = $issuerId.'.'.preg_replace('/[^A-Za-z0-9._-]/', '_', (string) $card->card_uuid);
+        $objectId = $issuerId.'.'.preg_replace('/[^A-Za-z0-9._-]/', '_', (string) $card->card_uuid.'-'.$this->objectVersion());
         $type = $card->type;
 
         $genericObject = [
@@ -26,21 +26,14 @@ class GoogleWalletService
             'classId' => $classId,
             'genericType' => 'GENERIC_TYPE_UNSPECIFIED',
             'hexBackgroundColor' => config('wallet.google.background_color', '#C9A227'),
+            'logo' => $this->image((string) config('wallet.google.logo_url'), 'Logo My Signal'),
+            'wideLogo' => $this->image((string) config('wallet.google.logo_url'), 'Logo My Signal'),
             'cardTitle' => ['defaultValue' => ['language' => 'fr', 'value' => 'My Signal']],
-            'subheader' => ['defaultValue' => ['language' => 'fr', 'value' => $type?->name ?? 'Carte privilège']],
-            'header' => ['defaultValue' => ['language' => 'fr', 'value' => $card->card_number]],
-            'barcode' => ['type' => 'QR_CODE', 'value' => $card->card_uuid],
-            'textModulesData' => [
-                [
-                    'id' => 'discount',
-                    'header' => 'Réduction',
-                    'body' => $this->discountLabel($card),
-                ],
-                [
-                    'id' => 'expires',
-                    'header' => 'Expiration',
-                    'body' => $card->expires_at?->format('d/m/Y') ?? 'Non définie',
-                ],
+            'subheader' => ['defaultValue' => ['language' => 'fr', 'value' => $this->walletSubtitle($card)]],
+            'header' => ['defaultValue' => ['language' => 'fr', 'value' => $this->walletHeader($card)]],
+            'barcode' => [
+                'type' => 'QR_CODE',
+                'value' => $card->card_uuid,
             ],
         ];
 
@@ -53,6 +46,35 @@ class GoogleWalletService
         ], $serviceAccount['private_key']);
 
         return 'https://pay.google.com/gp/v/save/'.$jwt;
+    }
+
+    public function classPayload(): array
+    {
+        $classId = (string) config('wallet.google.class_id');
+
+        return [
+            'id' => $classId,
+            'classTemplateInfo' => [
+                'listTemplateOverride' => [
+                    'firstRowOption' => [
+                        'fieldOption' => [
+                            'fields' => [
+                                ['fieldPath' => 'object.header'],
+                            ],
+                        ],
+                    ],
+                    'secondRowOption' => [
+                        'fields' => [
+                            ['fieldPath' => 'object.subheader'],
+                        ],
+                    ],
+                ],
+            ],
+            'enableSmartTap' => false,
+            'logo' => $this->image((string) config('wallet.google.logo_url'), 'Logo My Signal'),
+            'wideLogo' => $this->image((string) config('wallet.google.logo_url'), 'Logo My Signal'),
+            'hexBackgroundColor' => config('wallet.google.background_color', '#C9A227'),
+        ];
     }
 
     private function serviceAccount(): array
@@ -111,6 +133,69 @@ class GoogleWalletService
         }
 
         return number_format((float) $type->discount_value, 0, ',', ' ').'%';
+    }
+
+    private function expirationLabel(PrivilegeCard $card): string
+    {
+        return $card->expires_at?->format('d/m/Y') ?? 'Non définie';
+    }
+
+    private function walletHeader(PrivilegeCard $card): string
+    {
+        $number = (string) $card->card_number;
+        $parts = array_values(array_filter(explode('-', $number)));
+        $suffix = end($parts);
+
+        if (is_string($suffix) && $suffix !== '' && strlen($suffix) <= 8) {
+            return $suffix;
+        }
+
+        return strlen($number) > 12 ? substr($number, -12) : $number;
+    }
+
+    private function walletSubtitle(PrivilegeCard $card): string
+    {
+        $typeName = $card->type?->name ?? 'Carte';
+
+        return $typeName.' · '.$this->discountLabel($card).' · Exp. '.$this->shortExpirationLabel($card);
+    }
+
+    private function shortExpirationLabel(PrivilegeCard $card): string
+    {
+        return $card->expires_at?->format('d/m/y') ?? '-';
+    }
+
+    private function objectVersion(): string
+    {
+        $version = (string) config('wallet.google.object_version', 'v2');
+
+        return preg_replace('/[^A-Za-z0-9._-]/', '_', $version) ?: 'v2';
+    }
+
+    private function image(string $url, string $description): array
+    {
+        $url = $url !== '' ? $url : $this->publicAssetUrl('logo');
+
+        return [
+            'sourceUri' => ['uri' => $url],
+            'contentDescription' => [
+                'defaultValue' => [
+                    'language' => 'fr',
+                    'value' => $description,
+                ],
+            ],
+        ];
+    }
+
+    private function publicAssetUrl(string $asset): string
+    {
+        $path = (string) config('wallet.google.logo_path', 'public/image/logo/ufc.jpg');
+
+        $path = str_starts_with($path, 'public/')
+            ? substr($path, 7)
+            : $path;
+
+        return asset($path);
     }
 
     private function path(string $path): string

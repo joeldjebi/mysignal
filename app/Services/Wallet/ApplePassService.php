@@ -56,20 +56,26 @@ class ApplePassService
             'serialNumber' => $card->card_uuid,
             'organizationName' => config('wallet.apple.organization_name'),
             'description' => config('wallet.apple.description'),
-            'logoText' => config('wallet.apple.logo_text'),
+            'logoText' => '',
             'foregroundColor' => config('wallet.apple.foreground_color'),
             'backgroundColor' => config('wallet.apple.background_color'),
             'labelColor' => config('wallet.apple.label_color'),
+            'expirationDate' => $card->expires_at?->toIso8601String(),
             'storeCard' => [
                 'primaryFields' => [
                     ['key' => 'tier', 'label' => 'NIVEAU', 'value' => $type?->name ?? 'Carte privilège'],
                 ],
                 'secondaryFields' => [
                     ['key' => 'cardNumber', 'label' => 'N° CARTE', 'value' => $card->card_number],
-                    ['key' => 'expires', 'label' => 'EXPIRE LE', 'value' => $card->expires_at?->toDateString() ?? '-', 'dateStyle' => 'PKDateStyleMedium'],
                 ],
                 'auxiliaryFields' => [
                     ['key' => 'discount', 'label' => 'RÉDUCTION', 'value' => $this->discountLabel($card)],
+                    ['key' => 'expires', 'label' => 'EXPIRE LE', 'value' => $this->expirationLabel($card)],
+                ],
+                'backFields' => [
+                    ['key' => 'cardNumberBack', 'label' => 'Numéro de carte', 'value' => $card->card_number],
+                    ['key' => 'discountBack', 'label' => 'Réduction', 'value' => $this->discountLabel($card)],
+                    ['key' => 'expiresBack', 'label' => 'Expiration', 'value' => $this->expirationLabel($card)],
                 ],
             ],
             'barcodes' => [
@@ -85,21 +91,101 @@ class ApplePassService
     private function copyAssets(string $tmpDir): void
     {
         $assetPath = $this->path((string) config('wallet.apple.asset_path'));
-        $fallbackLogo = public_path('image/logo/logo-my-signal.png');
+        $logoPath = $this->firstExistingPath([
+            config('wallet.apple.logo_path'),
+            'public/image/logo/ufc.jpg',
+            'public/image/ufc.jpg',
+            'public/image/logo/logo-my-signal.png',
+        ]);
+        $assetFiles = [
+            'icon.png' => [29, 29, $logoPath, 'contain'],
+            'icon@2x.png' => [58, 58, $logoPath, 'contain'],
+            'icon@3x.png' => [87, 87, $logoPath, 'contain'],
+            'logo.png' => [160, 50, $logoPath, 'contain'],
+            'logo@2x.png' => [320, 100, $logoPath, 'contain'],
+            'logo@3x.png' => [480, 150, $logoPath, 'contain'],
+        ];
 
-        foreach (['icon.png', 'icon@2x.png', 'icon@3x.png', 'logo.png'] as $asset) {
+        foreach ($assetFiles as $asset => [$width, $height, $sourcePath, $fit]) {
             $source = $assetPath.'/'.$asset;
 
-            if (! is_file($source) && is_file($fallbackLogo)) {
-                $source = $fallbackLogo;
+            if (is_file($source)) {
+                copy($source, $tmpDir.'/'.$asset);
+
+                continue;
             }
 
-            if (! is_file($source)) {
+            if (! is_file($sourcePath)) {
                 throw new WalletConfigurationException("Fichier Apple Wallet manquant: {$asset}.");
             }
 
-            copy($source, $tmpDir.'/'.$asset);
+            $this->renderPngAsset($sourcePath, $tmpDir.'/'.$asset, $width, $height, $fit);
         }
+    }
+
+    private function renderPngAsset(string $sourcePath, string $destinationPath, int $width, int $height, string $fit): void
+    {
+        [$sourceWidth, $sourceHeight, $sourceType] = getimagesize($sourcePath) ?: [0, 0, 0];
+
+        if ($sourceWidth <= 0 || $sourceHeight <= 0) {
+            throw new WalletConfigurationException('Image Apple Wallet invalide.');
+        }
+
+        $sourceImage = match ($sourceType) {
+            IMAGETYPE_JPEG => imagecreatefromjpeg($sourcePath),
+            IMAGETYPE_PNG => imagecreatefrompng($sourcePath),
+            IMAGETYPE_WEBP => function_exists('imagecreatefromwebp') ? imagecreatefromwebp($sourcePath) : false,
+            default => false,
+        };
+
+        if (! $sourceImage) {
+            throw new WalletConfigurationException('Format d’image Apple Wallet non supporté.');
+        }
+
+        $canvas = imagecreatetruecolor($width, $height);
+        imagealphablending($canvas, false);
+        imagesavealpha($canvas, true);
+        imagefill($canvas, 0, 0, imagecolorallocatealpha($canvas, 255, 255, 255, 127));
+        imagealphablending($canvas, true);
+
+        if ($fit === 'watermark') {
+            $this->renderWatermarkAsset($canvas, $sourceImage, $sourceWidth, $sourceHeight, $width, $height);
+        } else {
+            $this->renderContainedAsset($canvas, $sourceImage, $sourceWidth, $sourceHeight, $width, $height);
+        }
+
+        imagepng($canvas, $destinationPath);
+        imagedestroy($canvas);
+        imagedestroy($sourceImage);
+    }
+
+    private function renderContainedAsset($canvas, $sourceImage, int $sourceWidth, int $sourceHeight, int $width, int $height): void
+    {
+        $scale = min($width / $sourceWidth, $height / $sourceHeight);
+        $targetWidth = max(1, (int) floor($sourceWidth * $scale));
+        $targetHeight = max(1, (int) floor($sourceHeight * $scale));
+        $targetX = (int) floor(($width - $targetWidth) / 2);
+        $targetY = (int) floor(($height - $targetHeight) / 2);
+
+        imagecopyresampled($canvas, $sourceImage, $targetX, $targetY, 0, 0, $targetWidth, $targetHeight, $sourceWidth, $sourceHeight);
+    }
+
+    private function renderWatermarkAsset($canvas, $sourceImage, int $sourceWidth, int $sourceHeight, int $width, int $height): void
+    {
+        $scale = min(($width * 0.78) / $sourceWidth, ($height * 0.78) / $sourceHeight);
+        $targetWidth = max(1, (int) floor($sourceWidth * $scale));
+        $targetHeight = max(1, (int) floor($sourceHeight * $scale));
+        $targetX = (int) floor(($width - $targetWidth) / 2);
+        $targetY = (int) floor(($height - $targetHeight) / 2);
+
+        $watermark = imagecreatetruecolor($targetWidth, $targetHeight);
+        imagealphablending($watermark, false);
+        imagesavealpha($watermark, true);
+        imagefill($watermark, 0, 0, imagecolorallocatealpha($watermark, 255, 255, 255, 127));
+        imagecopyresampled($watermark, $sourceImage, 0, 0, 0, 0, $targetWidth, $targetHeight, $sourceWidth, $sourceHeight);
+        imagefilter($watermark, IMG_FILTER_COLORIZE, 255, 255, 255, 72);
+        imagecopymerge($canvas, $watermark, $targetX, $targetY, 0, 0, $targetWidth, $targetHeight, 24);
+        imagedestroy($watermark);
     }
 
     private function manifest(string $tmpDir): array
@@ -204,10 +290,32 @@ class ApplePassService
         return number_format((float) $type->discount_value, 0, ',', ' ').'%';
     }
 
+    private function expirationLabel(PrivilegeCard $card): string
+    {
+        return $card->expires_at?->format('d/m/Y') ?? 'Non définie';
+    }
+
     private function path(string $path): string
     {
         return str_starts_with($path, '/')
             ? $path
             : base_path($path);
+    }
+
+    private function firstExistingPath(array $paths): string
+    {
+        foreach ($paths as $path) {
+            if (! is_string($path) || $path === '') {
+                continue;
+            }
+
+            $resolvedPath = $this->path($path);
+
+            if (is_file($resolvedPath)) {
+                return $resolvedPath;
+            }
+        }
+
+        throw new WalletConfigurationException('Les images Apple Wallet sont introuvables.');
     }
 }

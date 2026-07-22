@@ -2573,6 +2573,25 @@
                     toast.show();
                 }
 
+                async function copyTextToClipboard(value) {
+                    if (navigator.clipboard?.writeText) {
+                        await navigator.clipboard.writeText(value);
+                        return true;
+                    }
+
+                    const input = document.createElement('textarea');
+                    input.value = value;
+                    input.setAttribute('readonly', 'readonly');
+                    input.style.position = 'fixed';
+                    input.style.opacity = '0';
+                    document.body.appendChild(input);
+                    input.select();
+                    const copied = document.execCommand('copy');
+                    input.remove();
+
+                    return copied;
+                }
+
                 function normalizeText(value) {
                     return String(value || '')
                         .normalize('NFD')
@@ -5445,7 +5464,9 @@
                                 <div class="d-flex gap-2 flex-wrap justify-content-lg-end">
                                     ${canAddToWallet
                                         ? `<button class="btn btn-premium px-4" type="button" onclick="window.AcepenPortal.addPrivilegeCardToWallet(${card.id}, 'ios')">Ajouter sur iPhone</button>
-                                           <button class="btn btn-light px-4" type="button" onclick="window.AcepenPortal.addPrivilegeCardToWallet(${card.id}, 'android')">Ajouter sur Android</button>`
+                                           <button class="btn btn-outline-light px-4" type="button" onclick="window.AcepenPortal.copyPrivilegeCardWalletLink(${card.id}, 'ios')">Copier le lien iPhone</button>
+                                           <button class="btn btn-light px-4" type="button" onclick="window.AcepenPortal.addPrivilegeCardToWallet(${card.id}, 'android')">Ajouter sur Android</button>
+                                           <button class="btn btn-outline-light px-4" type="button" onclick="window.AcepenPortal.copyPrivilegeCardWalletLink(${card.id}, 'android')">Copier le lien Android</button>`
                                         : '<div class="privilege-wallet-disabled">Ajout au téléphone disponible uniquement après paiement confirmé, carte active et non expirée.</div>'
                                     }
                                 </div>
@@ -5547,7 +5568,9 @@
                                                         }
                                                         ${session.card?.status === 'active' && session.status === 'paid' && isFutureDate(session.card.expires_at)
                                                             ? `<button class="btn btn-ghost-premium btn-sm px-3" type="button" onclick="window.AcepenPortal.addPrivilegeCardToWallet(${session.card.id}, 'ios')">Ajouter sur iPhone</button>
-                                                               <button class="btn btn-ghost-premium btn-sm px-3" type="button" onclick="window.AcepenPortal.addPrivilegeCardToWallet(${session.card.id}, 'android')">Ajouter sur Android</button>`
+                                                               <button class="btn btn-ghost-premium btn-sm px-3" type="button" onclick="window.AcepenPortal.copyPrivilegeCardWalletLink(${session.card.id}, 'ios')">Copier le lien iPhone</button>
+                                                               <button class="btn btn-ghost-premium btn-sm px-3" type="button" onclick="window.AcepenPortal.addPrivilegeCardToWallet(${session.card.id}, 'android')">Ajouter sur Android</button>
+                                                               <button class="btn btn-ghost-premium btn-sm px-3" type="button" onclick="window.AcepenPortal.copyPrivilegeCardWalletLink(${session.card.id}, 'android')">Copier le lien Android</button>`
                                                             : ''
                                                         }
                                                     </div>
@@ -6577,6 +6600,31 @@
                             showToast(platform === 'ios' ? 'Lien d’ajout iPhone généré.' : 'Lien d’ajout Android généré.');
                         } catch (error) {
                             showToast(error.message, true);
+                        }
+                    },
+                    async copyPrivilegeCardWalletLink(cardId, platform = 'android') {
+                        try {
+                            const card = state.privilegeCard?.id === cardId
+                                ? state.privilegeCard
+                                : state.privilegeCardPaymentSessions.find((session) => Number(session.card?.id || 0) === Number(cardId))?.card;
+
+                            if (!isPrivilegeCardWalletEligible(card)) {
+                                showToast('Ajout au téléphone disponible uniquement après paiement confirmé, carte active et non expirée.', true);
+                                return;
+                            }
+
+                            const response = await apiFetch(`/privilege-cards/${cardId}/wallet-pass?platform=${encodeURIComponent(platform)}`);
+                            const walletUrl = response.data?.url;
+
+                            if (!walletUrl) {
+                                showToast('Lien d’ajout indisponible.', true);
+                                return;
+                            }
+
+                            await copyTextToClipboard(walletUrl);
+                            showToast(platform === 'ios' ? 'Lien iPhone copié.' : 'Lien Android copié. Ouvrez-le sur un téléphone Android pour tester Google Wallet.');
+                        } catch (error) {
+                            showToast(error.message || 'Impossible de copier le lien.', true);
                         }
                     },
                     async payReport(reportId) {

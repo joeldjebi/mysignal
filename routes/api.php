@@ -40,7 +40,6 @@ Route::prefix('v1/public')->group(function (): void {
     Route::post('privilege-card-payments/fineopay/callback', PrivilegeCardFineoPayCallbackController::class)
         ->name('api.public.privilege-card-payments.fineopay.callback');
     Route::get('privilege-cards/{card}/pass.pkpass', [PrivilegeCardWalletPassController::class, 'downloadApplePass'])
-        ->middleware('signed')
         ->name('api.public.privilege-cards.pass.apple');
 
     Route::get('applications', [PublicCatalogController::class, 'applications']);
