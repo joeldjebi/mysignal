@@ -64,6 +64,9 @@
     { "key": "privilegeCardTypeId", "value": "" },
     { "key": "privilegeCardPaymentSessionSyncRef", "value": "" },
     { "key": "privilegeCardId", "value": "" },
+    { "key": "privilegeCardAppleWalletUrl", "value": "" },
+    { "key": "privilegeCardGoogleWalletUrl", "value": "" },
+    { "key": "privilegeCardWalletUrlExpiresAt", "value": "" },
     { "key": "householdId", "value": "" },
     { "key": "householdMemberId", "value": "" },
     { "key": "invitationId", "value": "" },
@@ -1002,47 +1005,6 @@
           }
         },
         {
-          "name": "Create Test Report Without Payment",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "const json = pm.response.json();",
-                  "if (json?.data?.report?.id) pm.environment.set('reportId', json.data.report.id);"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "formdata",
-              "formdata": [
-                { "key": "application_id", "value": "{{applicationId}}", "type": "text", "description": "Obligatoire si meter_id est absent." },
-                { "key": "organization_type_id", "value": "{{organizationTypeId}}", "type": "text", "description": "Sous categorie. Obligatoire si la categorie retourne requires_organization_type_on_report=true et si meter_id est absent." },
-                { "key": "organization_id", "value": "{{organizationId}}", "type": "text", "description": "Institution concernee pour la categorie selectionnee." },
-                { "key": "meter_id", "value": "{{meterId}}", "type": "text", "description": "Obligatoire uniquement si la categorie retourne requires_public_user_identifier=true. Sinon retirer ce champ du payload." },
-                { "key": "signal_code", "value": "{{signalCode}}", "type": "text", "description": "Code retourne par GET /v1/public/signal-types et compatible avec la categorie/institution selectionnee." },
-                { "key": "signal_sub_type_code", "value": "{{signalSubTypeCode}}", "type": "text", "disabled": true, "description": "Facultatif. Activer uniquement si le type de signal retourne requires_sub_type=true." },
-                { "key": "description", "value": "Signalement de test sans paiement", "type": "text" },
-                { "key": "occurred_at", "value": "2026-06-24T12:00:00Z", "type": "text" },
-                { "key": "latitude", "value": "{{latitude}}", "type": "text" },
-                { "key": "longitude", "value": "{{longitude}}", "type": "text" },
-                { "key": "location_accuracy", "value": "{{locationAccuracy}}", "type": "text" },
-                { "key": "location_source", "value": "gps", "type": "text" },
-                { "key": "signal_attachment", "type": "file", "src": [], "disabled": true }
-              ]
-            },
-            "url": "{{baseUrl}}/v1/public/reports/test",
-            "description": "API de test: cree directement un signalement sans session FineoPay. Active automatiquement en local/testing ou avec PUBLIC_REPORT_TEST_ENDPOINT_ENABLED=true."
-          }
-        },
-        {
           "name": "Create Report With Sub Type",
           "event": [
             {
@@ -1568,11 +1530,11 @@
       ]
     },
     {
-      "name": "11 - Cartes privileges",
-      "description": "Endpoints UP pour consulter les cartes privileges, acheter une carte via FineoPay et recuperer la carte du UP connecte.",
+      "name": "11 - Cartes privilèges",
+      "description": "Endpoints UP pour consulter les cartes privilèges, acheter une carte via FineoPay et récupérer la carte du UP connecté.",
       "item": [
         {
-          "name": "List Privilege Cards",
+          "name": "Lister les cartes privilèges",
           "event": [
             {
               "listen": "test",
@@ -1590,11 +1552,11 @@
             "method": "GET",
             "header": [{ "key": "Accept", "value": "application/json" }],
             "url": "{{baseUrl}}/v1/public/privilege-cards",
-            "description": "Retourne les types de cartes privileges disponibles pour les UP, tries par ordre d affichage puis prix. Chaque type contient prix, devise, avantages, reduction et duree."
+            "description": "Retourne les types de cartes privilèges disponibles pour les UP, triés par ordre d affichage puis prix. Chaque type contient prix, devise, avantages, réduction et durée."
           }
         },
         {
-          "name": "Purchase Privilege Card",
+          "name": "Acheter une carte privilège",
           "event": [
             {
               "listen": "test",
@@ -1619,11 +1581,11 @@
               "raw": "{}"
             },
             "url": "{{baseUrl}}/v1/public/privilege-cards/{{privilegeCardTypeId}}/payments",
-            "description": "Initialise l achat FineoPay d une carte privilege. Le checkout_link est retourne dans data.checkout_link."
+            "description": "Initialise l achat FineoPay d une carte privilège. Le checkout_link est retourné dans data.checkout_link."
           }
         },
         {
-          "name": "Show Privilege Card Payment Session",
+          "name": "Voir le paiement d une carte privilège",
           "event": [
             {
               "listen": "test",
@@ -1641,11 +1603,11 @@
             "method": "GET",
             "header": [{ "key": "Accept", "value": "application/json" }],
             "url": "{{baseUrl}}/v1/public/privilege-card-payment-sessions/{{privilegeCardPaymentSessionSyncRef}}",
-            "description": "Verifie le statut serveur d un achat de carte privilege. Quand le paiement est confirme, status vaut paid et card contient la carte emise."
+            "description": "Vérifie le statut serveur d un achat de carte privilège. Quand le paiement est confirmé, status vaut paid et card contient la carte émise."
           }
         },
         {
-          "name": "List Privilege Card Payment Sessions",
+          "name": "Lister les achats de cartes privilèges",
           "event": [
             {
               "listen": "test",
@@ -1664,11 +1626,11 @@
             "method": "GET",
             "header": [{ "key": "Accept", "value": "application/json" }],
             "url": "{{baseUrl}}/v1/public/privilege-card-payment-sessions",
-            "description": "Retourne l historique complet des achats de cartes privileges du UP connecte."
+            "description": "Retourne l historique complet des achats de cartes privilèges du UP connecté."
           }
         },
         {
-          "name": "Get My Privilege Card",
+          "name": "Voir ma carte privilège",
           "event": [
             {
               "listen": "test",
@@ -1686,25 +1648,85 @@
             "method": "GET",
             "header": [{ "key": "Accept", "value": "application/json" }],
             "url": "{{baseUrl}}/v1/public/privilege-card",
-            "description": "Retourne la derniere carte privilege du UP connecte, ou card: null si aucune carte n a encore ete achetee."
+            "description": "Retourne la dernière carte privilège du UP connecté, ou card: null si aucune carte n a encore été achetée."
           }
         },
         {
-          "name": "Add Privilege Card to Apple Wallet",
+          "name": "Obtenir les liens Wallet Apple et Android",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "const appleUrl = json?.data?.apple_url || json?.data?.links?.apple;",
+                  "const androidUrl = json?.data?.android_url || json?.data?.links?.android;",
+                  "pm.test('Apple Wallet URL returned', function () { pm.expect(appleUrl).to.be.a('string').and.not.empty; });",
+                  "pm.test('Google Wallet URL returned', function () { pm.expect(androidUrl).to.be.a('string').and.not.empty; });",
+                  "if (appleUrl) pm.environment.set('privilegeCardAppleWalletUrl', appleUrl);",
+                  "if (androidUrl) pm.environment.set('privilegeCardGoogleWalletUrl', androidUrl);",
+                  "if (json?.data?.expires_at) pm.environment.set('privilegeCardWalletUrlExpiresAt', json.data.expires_at);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/privilege-cards/{{privilegeCardId}}/wallet-pass",
+            "description": "Retourne les deux liens Wallet disponibles pour une carte privilège payée, active et non expirée. La réponse contient data.apple_url, data.android_url, data.links.apple, data.links.android et data.expires_at."
+          }
+        },
+        {
+          "name": "Ajouter la carte privilège à Apple Wallet",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "const appleUrl = json?.data?.apple_url || json?.data?.url || json?.data?.links?.apple;",
+                  "pm.test('Apple Wallet URL returned', function () { pm.expect(appleUrl).to.be.a('string').and.not.empty; });",
+                  "if (appleUrl) pm.environment.set('privilegeCardAppleWalletUrl', appleUrl);",
+                  "if (json?.data?.expires_at) pm.environment.set('privilegeCardWalletUrlExpiresAt', json.data.expires_at);"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [{ "key": "Accept", "value": "application/json" }],
             "url": "{{baseUrl}}/v1/public/privilege-cards/{{privilegeCardId}}/wallet-pass?platform=ios",
-            "description": "Genere une URL signee temporaire vers le fichier .pkpass Apple Wallet de la carte privilege active."
+            "description": "Génère une URL temporaire vers le fichier .pkpass Apple Wallet. La carte doit être payée, active et non expirée. La réponse contient data.url, data.apple_url, data.links.apple et data.expires_at."
           }
         },
         {
-          "name": "Add Privilege Card to Google Wallet",
+          "name": "Ajouter la carte privilège à Google Wallet",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "const androidUrl = json?.data?.android_url || json?.data?.url || json?.data?.links?.android;",
+                  "pm.test('Google Wallet URL returned', function () { pm.expect(androidUrl).to.be.a('string').and.not.empty; });",
+                  "if (androidUrl) pm.environment.set('privilegeCardGoogleWalletUrl', androidUrl);",
+                  "if (json?.data?.expires_at) pm.environment.set('privilegeCardWalletUrlExpiresAt', json.data.expires_at);"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [{ "key": "Accept", "value": "application/json" }],
             "url": "{{baseUrl}}/v1/public/privilege-cards/{{privilegeCardId}}/wallet-pass?platform=android",
-            "description": "Genere l URL Save to Google Wallet de la carte privilege active."
+            "description": "Génère l URL Save to Google Wallet. La carte doit être payée, active et non expirée. La réponse contient data.url, data.android_url, data.links.android et data.expires_at."
           }
         }
       ]

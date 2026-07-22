@@ -64,10 +64,6 @@ return [
         'callback_token' => env('FINEOPAY_CALLBACK_TOKEN'),
     ],
 
-    'public_reports' => [
-        'test_endpoint_enabled' => (bool) env('PUBLIC_REPORT_TEST_ENDPOINT_ENABLED', in_array(env('APP_ENV', 'production'), ['local', 'testing'], true)),
-    ],
-
     'public_auth' => [
         'otp_digits' => (int) env('PUBLIC_AUTH_OTP_DIGITS', 4),
         'default_otp' => env(

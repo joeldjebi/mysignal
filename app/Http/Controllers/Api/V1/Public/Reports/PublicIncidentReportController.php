@@ -4,8 +4,6 @@ namespace App\Http\Controllers\Api\V1\Public\Reports;
 
 use App\Domain\Payments\Actions\InitiateDamageDeclarationFineoPaymentAction;
 use App\Domain\Payments\Actions\InitiateIncidentReportFineoPaymentAction;
-use App\Domain\Payments\Enums\PaymentStatus;
-use App\Domain\Reports\Actions\CreateIncidentReportAction;
 use App\Domain\Reports\Enums\IncidentReportStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Public\Reports\StoreIncidentReportDamageRequest;
@@ -16,7 +14,6 @@ use App\Http\Resources\Api\V1\Public\Reports\IncidentReportDamageResource;
 use App\Http\Resources\Api\V1\Public\Reports\IncidentReportResource;
 use App\Models\IncidentReport;
 use App\Models\PurchaseReceipt;
-use App\Services\Notifications\IncidentReportNotificationService;
 use App\Services\WasabiService;
 use App\Support\Api\ApiResponse;
 use App\Support\Audit\ActivityLogger;
@@ -70,57 +67,6 @@ class PublicIncidentReportController extends Controller
             'payment_session' => new IncidentReportPaymentSessionResource($paymentSession),
             'checkout_link' => $paymentSession->checkout_link,
         ], 'Lien de paiement généré avec succès. Le signalement sera enregistré après paiement.', 201);
-    }
-
-    public function storeTest(
-        StoreIncidentReportRequest $request,
-        CreateIncidentReportAction $action,
-        ActivityLogger $activityLogger,
-        IncidentReportNotificationService $notificationService
-    ) {
-        abort_unless((bool) config('services.public_reports.test_endpoint_enabled'), 403, 'L’API de test des signalements est désactivée.');
-
-        $attributes = $request->validated();
-        unset($attributes['signal_attachment']);
-
-        $report = $action->handle(
-            $request->user('public_api'),
-            $attributes,
-            $request->file('signal_attachment')
-        );
-
-        $report->update([
-            'payment_status' => PaymentStatus::Paid->value,
-            'paid_at' => now(),
-        ]);
-
-        $report->load(['application', 'organization', 'meter.organization', 'country', 'city', 'commune', 'purchaseReceipt', 'payments.pricingRule']);
-
-        $activityLogger->log(
-            'public.report.created_test_without_payment',
-            'Création d’un signalement public via l’API de test sans paiement FineoPay.',
-            $report,
-            [
-                'reference' => $report->reference,
-                'status' => $report->status,
-                'payment_status' => $report->payment_status,
-                'application_id' => $report->application_id,
-                'organization_id' => $report->organization_id,
-                'signal_code' => $report->signal_code,
-                'signal_label' => $report->signal_label,
-            ],
-            $request,
-            $report->publicUser,
-            'public',
-        );
-
-        $notificationService->notifyInstitutionReportCreated($report);
-        $notificationService->notifyCommunityReportCreated($report);
-
-        return ApiResponse::success([
-            'report' => new IncidentReportResource($report),
-            'payment_bypassed' => true,
-        ], 'Signalement de test créé avec succès sans paiement.', 201);
     }
 
     public function show(Request $request, IncidentReport $report)

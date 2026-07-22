@@ -160,16 +160,17 @@ Reponse :
 Pour l inscription ou la mise a jour du profil, envoyer la valeur `name` dans `business_sector`.
 
 ### Paiement
-Les signalements et les cartes privileges utilisent FineoPay avec des URLs separees.
+Les signalements et les cartes privilèges utilisent FineoPay avec des URLs séparées.
 
 Impact :
 - `POST /reports/{report}/payments` initialise un paiement
-- `POST /payments/{payment}/confirm` le confirme cote API
-- `GET /payments/{payment}/receipt` telecharge un PDF si le paiement est `paid`
-- `POST /privilege-cards/{type}/payments` initialise un achat de carte privilege
-- `GET /privilege-card-payment-sessions` retourne l historique des achats de cartes privileges
-- `GET /privilege-card-payment-sessions/{syncRef}` verifie le paiement d une carte privilege
-- `GET /privilege-cards/{card}/wallet-pass?platform=ios|android` genere le lien Wallet Apple ou Android
+- `POST /payments/{payment}/confirm` le confirme côté API
+- `GET /payments/{payment}/receipt` télécharge un PDF si le paiement est `paid`
+- `POST /privilege-cards/{type}/payments` initialise un achat de carte privilège
+- `GET /privilege-card-payment-sessions` retourne l historique des achats de cartes privilèges
+- `GET /privilege-card-payment-sessions/{syncRef}` vérifie le paiement d une carte privilège
+- `GET /privilege-cards/{card}/wallet-pass` retourne les liens Wallet Apple et Android
+- `GET /privilege-cards/{card}/wallet-pass?platform=ios|android` retourne le lien Wallet demandé
 
 ### Dommages
 Un dommage ne peut etre declare que si :
@@ -653,36 +654,6 @@ L app mobile doit ouvrir `checkout_link`. Apres paiement reussi, FineoPay appell
 
 Comme FineoPay ne redirige pas encore vers l app mobile, l app doit conserver `payment_session.sync_ref`, puis verifier le statut lorsque l utilisateur revient dans l app.
 
-#### POST `/v1/public/reports/test`
-Crée directement un signalement de test sans initialiser de paiement FineoPay.
-
-Cet endpoint est reserve aux tests et reprend exactement le meme payload que `POST /v1/public/reports`, y compris le mode `multipart/form-data` avec `signal_attachment` si besoin.
-
-Activation backend :
-- actif automatiquement en environnement `local` ou `testing`
-- en production, activer explicitement `PUBLIC_REPORT_TEST_ENDPOINT_ENABLED=true`
-
-Reponse `201` :
-```json
-{
-  "success": true,
-  "message": "Signalement de test cree avec succes sans paiement.",
-  "data": {
-    "payment_bypassed": true,
-    "report": {
-      "id": 51,
-      "reference": "RPT-20260624102030-A1B2C3",
-      "signal_code": "EL-01",
-      "signal_label": "Coupure totale",
-      "status": "submitted",
-      "payment_status": "paid"
-    }
-  }
-}
-```
-
-Si l endpoint est desactive, l API retourne `403`.
-
 #### GET `/v1/public/payment-sessions/{syncRef}`
 Verifie le statut serveur d une session de paiement de signalement.
 
@@ -735,10 +706,10 @@ Flux mobile recommande :
 - si `status = pending`, continuer ou proposer "Actualiser"
 - si `status = failed`, proposer de relancer le paiement
 
-### Cartes privileges
+### Cartes privilèges
 
 #### GET `/v1/public/privilege-cards`
-Retourne les cartes privileges disponibles pour les UP, triees par ordre d affichage.
+Retourne les cartes privilèges disponibles pour les UP, triées par ordre d affichage.
 
 Reponse :
 ```json
@@ -764,16 +735,16 @@ Reponse :
 }
 ```
 
-`discount_type` vaut `percentage` pour une reduction en pourcentage ou `fixed_amount` pour une reduction en montant fixe.
+`discount_type` vaut `percentage` pour une réduction en pourcentage ou `fixed_amount` pour une réduction en montant fixe.
 
 #### POST `/v1/public/privilege-cards/{type}/payments`
-Initialise l achat FineoPay d une carte privilege. `{type}` est l identifiant numerique retourne par `GET /v1/public/privilege-cards`.
+Initialise l achat FineoPay d une carte privilège. `{type}` est l identifiant numérique retourné par `GET /v1/public/privilege-cards`.
 
 Reponse :
 ```json
 {
   "success": true,
-  "message": "Lien de paiement carte privilege genere avec succes.",
+  "message": "Lien de paiement carte privilège généré avec succès.",
   "data": {
     "checkout_link": "https://dev.fineopay.com/pay/business123/abc123/checkout",
     "payment_session": {
@@ -789,12 +760,12 @@ Reponse :
 ```
 
 #### GET `/v1/public/privilege-card-payment-sessions/{syncRef}`
-Verifie le statut serveur d un achat de carte privilege.
+Vérifie le statut serveur d un achat de carte privilège.
 
-Quand le paiement est confirme, `status` vaut `paid` et `card` contient la carte emise.
+Quand le paiement est confirmé, `status` vaut `paid` et `card` contient la carte émise.
 
 #### GET `/v1/public/privilege-card-payment-sessions`
-Retourne l historique complet des achats de cartes privileges du UP connecte.
+Retourne l historique complet des achats de cartes privilèges du UP connecté.
 
 Reponse :
 ```json
@@ -827,30 +798,41 @@ Reponse :
 ```
 
 #### GET `/v1/public/privilege-card`
-Retourne la derniere carte privilege du UP connecte, ou `null`.
+Retourne la dernière carte privilège du UP connecté, ou `null`.
 
-#### GET `/v1/public/privilege-cards/{card}/wallet-pass?platform=ios|android`
-Genere un lien d ajout Wallet pour une carte privilege active appartenant au UP connecte.
+#### GET `/v1/public/privilege-cards/{card}/wallet-pass`
+Retourne les liens Wallet Apple et Android pour une carte privilège active appartenant au UP connecté.
 
 Conditions obligatoires :
-- la carte appartient au UP connecte
-- la carte est liee a une session FineoPay `paid`
+- la carte appartient au UP connecté
+- la carte est liée à une session FineoPay `paid`
 - `status = active`
 - `expires_at` est vide ou dans le futur
 
 Parametres query :
-- `platform=ios` retourne une URL signee temporaire vers un fichier `.pkpass` Apple Wallet
-- `platform=android` retourne une URL Google Wallet `Save to Google Wallet`
+- sans `platform`, l API retourne `apple_url` et `android_url`
+- `platform=ios` retourne le lien Apple Wallet dans `data.url`
+- `platform=android` retourne le lien Google Wallet dans `data.url`
 
 Reponse :
 ```json
 {
   "success": true,
   "data": {
-    "url": "https://..."
+    "url": null,
+    "platform": "all",
+    "apple_url": "https://example.com/api/v1/public/privilege-cards/4/pass.pkpass?expires=1784738719",
+    "android_url": "https://pay.google.com/gp/v/save/...",
+    "links": {
+      "apple": "https://example.com/api/v1/public/privilege-cards/4/pass.pkpass?expires=1784738719",
+      "android": "https://pay.google.com/gp/v/save/..."
+    },
+    "expires_at": "2026-07-22T17:30:00+00:00"
   }
 }
 ```
+
+Pour Apple Wallet, ouvrir le lien sur un iPhone. Pour Google Wallet, ouvrir le lien sur un téléphone Android avec Google Wallet.
 
 Exemple avec piece jointe optionnelle :
 ```json
