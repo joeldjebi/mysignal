@@ -21,12 +21,30 @@ class ScopedUserController extends Controller
     {
         $actor = $request->user()->loadMissing(['roles.permissions', 'permissions']);
         $this->authorizeScopedManagement($actor, 'SA_SCOPED_USERS_MANAGE');
+        $perPage = min(max((int) $request->integer('per_page', 12), 1), 100);
+        $query = $this->scopedUserQuery($actor)
+            ->with(['roles.permissions', 'permissions']);
+
+        if (filled($request->input('search'))) {
+            $search = trim((string) $request->input('search'));
+            $query->where(function (Builder $builder) use ($search): void {
+                $builder->where('name', 'like', '%'.$search.'%')
+                    ->orWhere('email', 'like', '%'.$search.'%')
+                    ->orWhere('phone', 'like', '%'.$search.'%');
+            });
+        }
+
+        if (filled($request->input('status'))) {
+            $query->where('status', $request->input('status'));
+        }
+
+        if (filled($request->input('role_id'))) {
+            $roleId = (int) $request->input('role_id');
+            $query->whereHas('roles', fn (Builder $roleQuery) => $roleQuery->where('roles.id', $roleId));
+        }
 
         return view('super-admin.scoped-users.index', [
-            'users' => $this->scopedUserQuery($actor)
-                ->with(['roles.permissions', 'permissions'])
-                ->latest()
-                ->paginate(12),
+            'users' => $query->latest()->paginate($perPage)->withQueryString(),
             'roles' => $this->scopedRoleQuery($actor)->where('status', 'active')->orderBy('name')->get(),
             'permissions' => $this->assignablePermissions($actor),
         ]);
@@ -136,7 +154,10 @@ class ScopedUserController extends Controller
         $query = User::query()
             ->whereNull('organization_id')
             ->where('is_super_admin', false)
-            ->whereNotNull('created_by');
+            ->whereNotNull('created_by')
+            ->whereDoesntHave('accesses', fn ($accessQuery) => $accessQuery
+                ->where('status', 'active')
+                ->whereIn('portal', ['institution', 'partner']));
 
         if (! $actor->is_super_admin) {
             $query->where('created_by', $actor->id);

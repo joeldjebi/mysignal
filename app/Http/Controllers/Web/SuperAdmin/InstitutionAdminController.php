@@ -17,9 +17,12 @@ class InstitutionAdminController extends Controller
 {
     public function index(): View
     {
+        $perPage = min(max((int) request()->integer('per_page', 12), 1), 100);
         $query = User::query()
             ->with(['organization.application.features', 'organization.featureOverrides', 'features'])
-            ->whereNotNull('organization_id');
+            ->where('is_super_admin', false)
+            ->whereNotNull('organization_id')
+            ->whereHas('organization', fn ($organizationQuery) => $this->onlyInstitutionOrganizations($organizationQuery));
 
         if (filled(request('search'))) {
             $search = trim((string) request('search'));
@@ -39,10 +42,9 @@ class InstitutionAdminController extends Controller
         }
 
         return view('super-admin.institution-admins.index', [
-            'admins' => $query->latest()->paginate(12)->withQueryString(),
-            'organizations' => Organization::query()
+            'admins' => $query->latest()->paginate($perPage)->withQueryString(),
+            'organizations' => $this->institutionOrganizationsQuery()
                 ->with(['application.features', 'featureOverrides'])
-                ->where('status', 'active')
                 ->orderBy('name')
                 ->get(),
             'features' => Feature::query()->where('status', 'active')->orderBy('name')->get(),
@@ -52,7 +54,7 @@ class InstitutionAdminController extends Controller
     public function store(Request $request, ActivityLogger $activityLogger): RedirectResponse
     {
         $attributes = $this->validateRequest($request);
-        $organization = Organization::query()
+        $organization = $this->institutionOrganizationsQuery()
             ->with(['application.features', 'featureOverrides'])
             ->findOrFail($attributes['organization_id']);
 
@@ -87,11 +89,12 @@ class InstitutionAdminController extends Controller
 
     public function edit(User $institutionAdmin): View
     {
+        $this->abortIfNotInstitutionAdmin($institutionAdmin);
+
         return view('super-admin.institution-admins.edit', [
             'institutionAdmin' => $institutionAdmin->load(['organization.application.features', 'organization.featureOverrides', 'features']),
-            'organizations' => Organization::query()
+            'organizations' => $this->institutionOrganizationsQuery()
                 ->with(['application.features', 'featureOverrides'])
-                ->where('status', 'active')
                 ->orderBy('name')
                 ->get(),
             'features' => Feature::query()->where('status', 'active')->orderBy('name')->get(),
@@ -100,8 +103,10 @@ class InstitutionAdminController extends Controller
 
     public function update(Request $request, User $institutionAdmin, ActivityLogger $activityLogger): RedirectResponse
     {
+        $this->abortIfNotInstitutionAdmin($institutionAdmin);
+
         $attributes = $this->validateRequest($request, $institutionAdmin);
-        $organization = Organization::query()
+        $organization = $this->institutionOrganizationsQuery()
             ->with(['application.features', 'featureOverrides'])
             ->findOrFail($attributes['organization_id']);
         $before = [
@@ -150,6 +155,8 @@ class InstitutionAdminController extends Controller
 
     public function destroy(Request $request, User $institutionAdmin, ActivityLogger $activityLogger): RedirectResponse
     {
+        $this->abortIfNotInstitutionAdmin($institutionAdmin);
+
         $activityLogger->log(
             'institution_admin.deleted',
             'Suppression d un admin institutionnel.',
@@ -169,6 +176,8 @@ class InstitutionAdminController extends Controller
 
     public function toggleStatus(Request $request, User $institutionAdmin, ActivityLogger $activityLogger): RedirectResponse
     {
+        $this->abortIfNotInstitutionAdmin($institutionAdmin);
+
         $previousStatus = $institutionAdmin->status;
 
         $institutionAdmin->update([
@@ -245,5 +254,29 @@ class InstitutionAdminController extends Controller
         // No direct assignment means the root AI inherits the organization's
         // full feature perimeter, including future app/org feature updates.
         $institutionAdmin->features()->sync($inheritsAllOrganizationFeatures ? [] : $selectedFeatureIds->all());
+    }
+
+    private function institutionOrganizationsQuery()
+    {
+        return Organization::query()
+            ->where('status', 'active')
+            ->where(fn ($query) => $this->onlyInstitutionOrganizations($query));
+    }
+
+    private function onlyInstitutionOrganizations($query)
+    {
+        return $query->whereDoesntHave('organizationType', fn ($typeQuery) => $typeQuery->where('code', 'PARTNER_ESTABLISHMENT'));
+    }
+
+    private function abortIfNotInstitutionAdmin(User $user): void
+    {
+        $user->loadMissing('organization.organizationType');
+
+        abort_if(
+            $user->is_super_admin
+                || $user->organization_id === null
+                || $user->organization?->organizationType?->code === 'PARTNER_ESTABLISHMENT',
+            404
+        );
     }
 }
