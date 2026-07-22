@@ -13,6 +13,7 @@ class PermissionController extends Controller
 {
     public function index(): View
     {
+        $perPage = min(max((int) request()->integer('per_page', 12), 1), 100);
         $query = Permission::query();
 
         if (filled(request('search'))) {
@@ -37,7 +38,7 @@ class PermissionController extends Controller
         }
 
         return view('super-admin.permissions.index', [
-            'permissions' => $query->latest()->paginate(12)->withQueryString(),
+            'permissions' => $query->latest()->paginate($perPage)->withQueryString(),
             'profileScopes' => Permission::PROFILE_SCOPES,
             'categories' => Permission::CATEGORIES,
         ]);

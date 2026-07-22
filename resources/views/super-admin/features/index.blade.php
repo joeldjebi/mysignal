@@ -21,7 +21,7 @@
         <div class="fw-bold mb-3">Liste des fonctionnalités</div>
         <form method="GET" class="filter-bar">
             <div class="row g-2 align-items-end">
-                <div class="col-md-7">
+                <div class="col-md-5">
                     <label class="form-label small text-secondary">Recherche</label>
                     <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Nom ou description">
                 </div>
@@ -31,6 +31,14 @@
                         <option value="">Tous</option>
                         <option value="active" @selected(request('status') === 'active')>Actif</option>
                         <option value="inactive" @selected(request('status') === 'inactive')>Inactif</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small text-secondary">Par page</label>
+                    <select name="per_page" class="form-select">
+                        @foreach ([12, 25, 50, 100] as $perPageOption)
+                            <option value="{{ $perPageOption }}" @selected((int) request('per_page', 12) === $perPageOption)>{{ $perPageOption }}</option>
+                        @endforeach
                     </select>
                 </div>
                 <div class="col-md-2 d-flex gap-2">

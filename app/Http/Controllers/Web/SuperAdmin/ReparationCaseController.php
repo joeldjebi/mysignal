@@ -55,6 +55,7 @@ class ReparationCaseController extends Controller
 
     public function index(): View
     {
+        $perPage = min(max((int) request()->integer('per_page', 15), 1), 100);
         $query = ReparationCase::query()->with(['incidentReport', 'publicUser', 'organization', 'application', 'assignedTo', 'bailiff', 'lawyer']);
 
         if (filled(request('search'))) {
@@ -81,7 +82,7 @@ class ReparationCaseController extends Controller
         }
 
         return view('super-admin.reparation-cases.index', [
-            'reparationCases' => $query->latest()->paginate(15)->withQueryString(),
+            'reparationCases' => $query->latest()->paginate($perPage)->withQueryString(),
         ]);
     }
 
@@ -89,6 +90,7 @@ class ReparationCaseController extends Controller
     {
         $this->abortIfOperationalLegalPortal();
 
+        $perPage = min(max((int) request()->integer('per_page', 15), 1), 100);
         $query = IncidentReport::query()
             ->with(['publicUser', 'organization', 'application', 'commune'])
             ->whereNotNull('public_user_id')
@@ -119,7 +121,7 @@ class ReparationCaseController extends Controller
         }
 
         return view('super-admin.reparation-cases.pending-damages', [
-            'pendingDamageReports' => $query->latest()->paginate(15)->withQueryString(),
+            'pendingDamageReports' => $query->latest()->paginate($perPage)->withQueryString(),
             'bailiffUsers' => $this->resolveAssignableUsersByRole(['HUISSIER', 'BAILIFF']),
             'lawyerUsers' => $this->resolveAssignableUsersByRole(['AVOCAT', 'LAWYER']),
         ]);

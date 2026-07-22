@@ -12,6 +12,7 @@ class PublicIncidentReportController extends Controller
 {
     public function index(): View
     {
+        $perPage = min(max((int) request()->integer('per_page', 15), 1), 100);
         $query = IncidentReport::query()
             ->with(['publicUser.publicUserType', 'application', 'organization', 'commune', 'reparationCase'])
             ->whereNotNull('public_user_id');
@@ -86,7 +87,7 @@ class PublicIncidentReportController extends Controller
         }
 
         return view('super-admin.public-reports.index', [
-            'reports' => $query->latest()->paginate(15)->withQueryString(),
+            'reports' => $query->latest()->paginate($perPage)->withQueryString(),
             'applications' => Application::query()->where('status', 'active')->orderBy('name')->get(['id', 'name']),
             'organizations' => Organization::query()->where('status', 'active')->orderBy('name')->get(['id', 'name']),
         ]);

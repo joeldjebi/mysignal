@@ -12,9 +12,17 @@
     <section class="panel-card">
         <form method="GET" class="filter-bar">
             <div class="row g-2 align-items-end">
-                <div class="col-md-9">
+                <div class="col-md-7">
                     <label class="form-label small text-secondary">Recherche</label>
                     <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Reference, usager, signalement, organisation...">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small text-secondary">Par page</label>
+                    <select name="per_page" class="form-select">
+                        @foreach ([15, 25, 50, 100] as $perPageOption)
+                            <option value="{{ $perPageOption }}" @selected((int) request('per_page', 15) === $perPageOption)>{{ $perPageOption }}</option>
+                        @endforeach
+                    </select>
                 </div>
                 <div class="col-md-3 d-flex gap-2">
                     <button class="btn btn-dark w-100">Filtrer</button>

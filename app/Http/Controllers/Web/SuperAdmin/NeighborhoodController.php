@@ -13,6 +13,7 @@ class NeighborhoodController extends Controller
 {
     public function index(): View
     {
+        $perPage = min(max((int) request()->integer('per_page', 12), 1), 100);
         $query = Neighborhood::query()->with('commune.city');
 
         if (filled(request('search'))) {
@@ -32,7 +33,7 @@ class NeighborhoodController extends Controller
         }
 
         return view('super-admin.neighborhoods.index', [
-            'neighborhoods' => $query->latest()->paginate(12)->withQueryString(),
+            'neighborhoods' => $query->latest()->paginate($perPage)->withQueryString(),
             'communes' => Commune::query()->with('city')->orderBy('name')->get(),
         ]);
     }

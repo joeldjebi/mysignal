@@ -22,6 +22,7 @@ class PublicUserController extends Controller
 {
     public function index(): View
     {
+        $perPage = min(max((int) request()->integer('per_page', 12), 1), 100);
         $query = PublicUser::query()->with([
             'publicUserType.pricingRule',
             'latestSubscription.plan',
@@ -64,7 +65,7 @@ class PublicUserController extends Controller
                     'deviceTokens as device_tokens_count',
                 ])
                 ->latest()
-                ->paginate(12)
+                ->paginate($perPage)
                 ->withQueryString(),
             'publicUserTypes' => PublicUserType::query()->with('pricingRule')->where('status', 'active')->orderBy('sort_order')->orderBy('name')->get(),
             'communes' => Commune::query()->where('status', 'active')->orderBy('name')->get(),

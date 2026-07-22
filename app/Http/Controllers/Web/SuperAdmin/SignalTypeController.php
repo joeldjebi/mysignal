@@ -21,6 +21,7 @@ class SignalTypeController extends Controller
 {
     public function index(): View
     {
+        $perPage = min(max((int) request()->integer('per_page', 12), 1), 100);
         $query = SignalType::query()->with(['application', 'organization', 'organizations']);
 
         if (filled(request('search'))) {
@@ -50,7 +51,7 @@ class SignalTypeController extends Controller
         }
 
         return view('super-admin.signal-types.index', [
-            'signalTypes' => $query->orderBy('application_id')->orderBy('organization_id')->orderBy('code')->paginate(12)->withQueryString(),
+            'signalTypes' => $query->orderBy('application_id')->orderBy('organization_id')->orderBy('code')->paginate($perPage)->withQueryString(),
             'applications' => Application::query()
                 ->with(['organizations' => fn ($query) => $query->where('status', 'active')->orderBy('name')])
                 ->where('status', 'active')
@@ -302,6 +303,7 @@ class SignalTypeController extends Controller
 
     public function subTypesIndex(): View
     {
+        $perPage = min(max((int) request()->integer('per_page', 15), 1), 100);
         $query = SignalSubType::query()
             ->with(['signalType.application', 'signalType.organization']);
 
@@ -341,7 +343,7 @@ class SignalTypeController extends Controller
                 ->orderBy('signal_sub_types.sort_order')
                 ->orderBy('signal_sub_types.label')
                 ->select('signal_sub_types.*')
-                ->paginate(15)
+                ->paginate($perPage)
                 ->withQueryString(),
             'signalTypes' => SignalType::query()
                 ->with(['application', 'organization', 'organizations'])

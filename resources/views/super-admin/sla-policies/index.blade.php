@@ -51,6 +51,14 @@
                         <option value="inactive" @selected(request('status') === 'inactive')>Inactif</option>
                     </select>
                 </div>
+                <div class="col-md-2">
+                    <label class="form-label small text-secondary">Par page</label>
+                    <select name="per_page" class="form-select">
+                        @foreach ([12, 25, 50, 100] as $perPageOption)
+                            <option value="{{ $perPageOption }}" @selected((int) request('per_page', 12) === $perPageOption)>{{ $perPageOption }}</option>
+                        @endforeach
+                    </select>
+                </div>
                 <div class="col-md-1 d-flex gap-2">
                     <button class="btn btn-dark w-100">OK</button>
                 </div>

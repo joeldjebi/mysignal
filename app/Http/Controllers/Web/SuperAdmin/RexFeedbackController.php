@@ -15,6 +15,7 @@ class RexFeedbackController extends Controller
 {
     public function index(): View
     {
+        $perPage = min(max((int) request()->integer('per_page', 15), 1), 100);
         $query = RexFeedback::query()
             ->with(['publicUser.publicUserType', 'incidentReport', 'application', 'organization']);
 
@@ -52,7 +53,7 @@ class RexFeedbackController extends Controller
         }
 
         return view('super-admin.rex-feedbacks.index', [
-            'feedbacks' => $query->latest('submitted_at')->latest('id')->paginate(15)->withQueryString(),
+            'feedbacks' => $query->latest('submitted_at')->latest('id')->paginate($perPage)->withQueryString(),
             'setting' => RexSetting::current(),
             'applications' => Application::query()->orderBy('name')->get(['id', 'name']),
             'organizations' => Organization::query()->orderBy('name')->get(['id', 'name']),

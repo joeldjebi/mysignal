@@ -13,6 +13,7 @@ class SubNeighborhoodController extends Controller
 {
     public function index(): View
     {
+        $perPage = min(max((int) request()->integer('per_page', 12), 1), 100);
         $query = SubNeighborhood::query()->with('neighborhood.commune');
 
         if (filled(request('search'))) {
@@ -32,7 +33,7 @@ class SubNeighborhoodController extends Controller
         }
 
         return view('super-admin.sub-neighborhoods.index', [
-            'subNeighborhoods' => $query->latest()->paginate(12)->withQueryString(),
+            'subNeighborhoods' => $query->latest()->paginate($perPage)->withQueryString(),
             'neighborhoods' => Neighborhood::query()->with('commune')->orderBy('name')->get(),
         ]);
     }

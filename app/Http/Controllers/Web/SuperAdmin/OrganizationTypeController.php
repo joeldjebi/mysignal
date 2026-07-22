@@ -13,6 +13,7 @@ class OrganizationTypeController extends Controller
 {
     public function index(): View
     {
+        $perPage = min(max((int) request()->integer('per_page', 12), 1), 100);
         $query = OrganizationType::query();
 
         if (filled(request('search'))) {
@@ -29,7 +30,7 @@ class OrganizationTypeController extends Controller
         }
 
         return view('super-admin.client-types.index', [
-            'organizationTypes' => $query->latest()->paginate(12)->withQueryString(),
+            'organizationTypes' => $query->latest()->paginate($perPage)->withQueryString(),
         ]);
     }
 

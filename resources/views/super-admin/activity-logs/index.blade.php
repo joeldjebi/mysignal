@@ -43,6 +43,14 @@
                         @endforeach
                     </select>
                 </div>
+                <div class="col-md-2">
+                    <label class="form-label small text-secondary">Par page</label>
+                    <select name="per_page" class="form-select">
+                        @foreach ([20, 50, 75, 100] as $perPageOption)
+                            <option value="{{ $perPageOption }}" @selected((int) request('per_page', 20) === $perPageOption)>{{ $perPageOption }}</option>
+                        @endforeach
+                    </select>
+                </div>
                 <div class="col-12 d-flex gap-2 justify-content-end">
                     <button class="btn btn-dark w-100">Filtrer</button>
                     <a href="{{ route('super-admin.activity-logs.index') }}" class="btn btn-outline-secondary">RAZ</a>

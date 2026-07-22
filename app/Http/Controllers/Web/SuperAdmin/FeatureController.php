@@ -12,6 +12,7 @@ class FeatureController extends Controller
 {
     public function index(): View
     {
+        $perPage = min(max((int) request()->integer('per_page', 12), 1), 100);
         $query = Feature::query();
 
         if (filled(request('search'))) {
@@ -28,7 +29,7 @@ class FeatureController extends Controller
         }
 
         return view('super-admin.features.index', [
-            'features' => $query->latest()->paginate(12)->withQueryString(),
+            'features' => $query->latest()->paginate($perPage)->withQueryString(),
         ]);
     }
 

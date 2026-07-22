@@ -12,6 +12,7 @@ class ActivityLogController extends Controller
 {
     public function index(): View
     {
+        $perPage = min(max((int) request()->integer('per_page', 20), 1), 100);
         $actor = auth()->user()?->loadMissing('activityLogVisibleUsers');
         abort_unless($actor instanceof User, 403);
 
@@ -92,7 +93,7 @@ class ActivityLogController extends Controller
         }
 
         return view('super-admin.activity-logs.index', [
-            'logs' => $query->paginate(20)->withQueryString(),
+            'logs' => $query->paginate($perPage)->withQueryString(),
             'portals' => ActivityLog::query()->select('portal')->distinct()->orderBy('portal')->pluck('portal'),
             'actions' => ActivityLog::query()->select('action')->distinct()->orderBy('action')->pluck('action'),
         ]);

@@ -69,6 +69,14 @@
                         <option value="missing" @selected(request('reparation_case') === 'missing')>Sans dossier</option>
                     </select>
                 </div>
+                <div class="col-md-2">
+                    <label class="form-label small text-secondary">Par page</label>
+                    <select name="per_page" class="form-select">
+                        @foreach ([15, 25, 50, 100] as $perPageOption)
+                            <option value="{{ $perPageOption }}" @selected((int) request('per_page', 15) === $perPageOption)>{{ $perPageOption }}</option>
+                        @endforeach
+                    </select>
+                </div>
                 <div class="col-md-3 d-flex gap-2">
                     <button class="btn btn-dark w-100">Filtrer</button>
                     <a href="{{ route('super-admin.public-reports.index') }}" class="btn btn-outline-secondary">RAZ</a>

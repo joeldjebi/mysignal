@@ -14,6 +14,7 @@ class OrganizationTypeSignalSlaController extends Controller
 {
     public function index(): View
     {
+        $perPage = min(max((int) request()->integer('per_page', 12), 1), 100);
         $query = OrganizationTypeSignalSla::query()->with('organizationType');
 
         if (filled(request('search'))) {
@@ -46,7 +47,7 @@ class OrganizationTypeSignalSlaController extends Controller
             ->pluck('network_type');
 
         return view('super-admin.sla-policies.index', [
-            'slaPolicies' => $query->orderBy('organization_type_id')->orderBy('network_type')->orderBy('signal_code')->paginate(12)->withQueryString(),
+            'slaPolicies' => $query->orderBy('organization_type_id')->orderBy('network_type')->orderBy('signal_code')->paginate($perPage)->withQueryString(),
             'organizationTypes' => OrganizationType::query()->where('status', 'active')->orderBy('name')->get(),
             'networkTypes' => $networkTypes,
         ]);

@@ -27,6 +27,7 @@ class OrganizationController extends Controller
 
     public function index(): View
     {
+        $perPage = min(max((int) request()->integer('per_page', 12), 1), 100);
         $query = Organization::query()->with(['application.features', 'organizationType', 'featureOverrides']);
         $features = Feature::query()->where('status', 'active')->orderBy('name')->get();
 
@@ -53,7 +54,7 @@ class OrganizationController extends Controller
         }
 
         return view('super-admin.organizations.index', [
-            'organizations' => $query->latest()->paginate(12)->withQueryString(),
+            'organizations' => $query->latest()->paginate($perPage)->withQueryString(),
             'applications' => Application::query()->with('features')->where('status', 'active')->orderBy('sort_order')->orderBy('name')->get(),
             'organizationTypes' => OrganizationType::query()->where('status', 'active')->orderBy('name')->get(),
             'features' => $features,
