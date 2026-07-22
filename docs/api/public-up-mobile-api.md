@@ -711,7 +711,7 @@ Flux mobile recommande :
 #### GET `/v1/public/privilege-cards`
 Retourne les cartes privilèges disponibles pour les UP, triées par ordre d affichage.
 
-Reponse :
+Réponse :
 ```json
 {
   "success": true,
@@ -723,7 +723,7 @@ Reponse :
         "name": "Standard",
         "price": 1000,
         "currency": "FCFA",
-        "benefits": ["Acces aux avantages standards"],
+        "benefits": ["Accès aux avantages standards"],
         "discount_type": "percentage",
         "discount_value": 10,
         "duration_months": 12,
@@ -740,7 +740,7 @@ Reponse :
 #### POST `/v1/public/privilege-cards/{type}/payments`
 Initialise l achat FineoPay d une carte privilège. `{type}` est l identifiant numérique retourné par `GET /v1/public/privilege-cards`.
 
-Reponse :
+Réponse :
 ```json
 {
   "success": true,
@@ -767,7 +767,7 @@ Quand le paiement est confirmé, `status` vaut `paid` et `card` contient la cart
 #### GET `/v1/public/privilege-card-payment-sessions`
 Retourne l historique complet des achats de cartes privilèges du UP connecté.
 
-Reponse :
+Réponse :
 ```json
 {
   "success": true,
@@ -809,12 +809,12 @@ Conditions obligatoires :
 - `status = active`
 - `expires_at` est vide ou dans le futur
 
-Parametres query :
+Paramètres query :
 - sans `platform`, l API retourne `apple_url` et `android_url`
 - `platform=ios` retourne le lien Apple Wallet dans `data.url`
 - `platform=android` retourne le lien Google Wallet dans `data.url`
 
-Reponse :
+Réponse :
 ```json
 {
   "success": true,
@@ -834,7 +834,7 @@ Reponse :
 
 Pour Apple Wallet, ouvrir le lien sur un iPhone. Pour Google Wallet, ouvrir le lien sur un téléphone Android avec Google Wallet.
 
-Exemple avec piece jointe optionnelle :
+Exemple avec pièce jointe optionnelle :
 ```json
 {
   "meter_id": 1,
