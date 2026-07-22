@@ -45,7 +45,7 @@ class PublicPurchaseReceiptController extends Controller
 
         return ApiResponse::success([
             'purchase_receipt' => new PurchaseReceiptResource($receipt),
-        ], 'Recu d achat enregistre avec succes.', 201);
+        ], 'Reçu d’achat enregistré avec succès.', 201);
     }
 
     public function show(Request $request, PurchaseReceipt $purchaseReceipt)
@@ -77,7 +77,7 @@ class PublicPurchaseReceiptController extends Controller
 
         return ApiResponse::success([
             'purchase_receipt' => new PurchaseReceiptResource($purchaseReceipt->fresh()),
-        ], 'Recu d achat mis a jour avec succes.');
+        ], 'Reçu d’achat mis à jour avec succès.');
     }
 
     public function destroy(Request $request, PurchaseReceipt $purchaseReceipt)
@@ -91,7 +91,7 @@ class PublicPurchaseReceiptController extends Controller
             $this->wasabiService->deleteFile($attachmentPath);
         }
 
-        return ApiResponse::success([], 'Recu d achat supprime avec succes.');
+        return ApiResponse::success([], 'Reçu d’achat supprimé avec succès.');
     }
 
     private function storeReceiptFile(UploadedFile $file, string $userId): array
@@ -104,7 +104,7 @@ class PublicPurchaseReceiptController extends Controller
 
         if (! $path) {
             throw ValidationException::withMessages([
-                'receipt_file' => ['Impossible de televerser le fichier du recu sur le stockage distant.'],
+                'receipt_file' => ['Impossible de téléverser le fichier du reçu sur le stockage distant.'],
             ]);
         }
 

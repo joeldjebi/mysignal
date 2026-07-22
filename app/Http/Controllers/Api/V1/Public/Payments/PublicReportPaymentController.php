@@ -39,7 +39,7 @@ class PublicReportPaymentController extends Controller
 
         $activityLogger->log(
             'public.payment.created',
-            'Initialisation d un paiement public.',
+            'Initialisation d’un paiement public.',
             $payment,
             [
                 'reference' => $payment->reference,
@@ -53,7 +53,7 @@ class PublicReportPaymentController extends Controller
 
         return ApiResponse::success([
             'payment' => new PaymentResource($payment),
-        ], 'Paiement initialise avec succes.', 201);
+        ], 'Paiement initialisé avec succès.', 201);
     }
 
     public function confirm(Request $request, Payment $payment, ConfirmReportPaymentAction $action, ActivityLogger $activityLogger)
@@ -62,7 +62,7 @@ class PublicReportPaymentController extends Controller
 
         $activityLogger->log(
             'public.payment.confirmed',
-            'Confirmation d un paiement public.',
+            'Confirmation d’un paiement public.',
             $payment,
             [
                 'reference' => $payment->reference,
@@ -76,13 +76,13 @@ class PublicReportPaymentController extends Controller
 
         return ApiResponse::success([
             'payment' => new PaymentResource($payment),
-        ], 'Paiement confirme avec succes.');
+        ], 'Paiement confirmé avec succès.');
     }
 
     public function receipt(Request $request, Payment $payment, SimplePaymentReceiptPdf $pdf)
     {
         abort_unless((int) $payment->public_user_id === (int) $request->user('public_api')->id, 404);
-        abort_unless($payment->status === 'paid', 422, 'Le reçu n est disponible que pour un paiement confirme.');
+        abort_unless($payment->status === 'paid', 422, 'Le reçu n’est disponible que pour un paiement confirmé.');
 
         $payment->loadMissing(['pricingRule', 'incidentReport.meter']);
         $content = $pdf->make($payment, $request->user('public_api'));

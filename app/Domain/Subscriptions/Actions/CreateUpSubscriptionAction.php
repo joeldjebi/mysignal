@@ -38,7 +38,7 @@ class CreateUpSubscriptionAction
 
         if ($plan === null) {
             throw ValidationException::withMessages([
-                'subscription_plan' => ['Aucun plan d abonnement actif n est disponible.'],
+                'subscription_plan' => ['Aucun plan d’abonnement actif n’est disponible.'],
             ]);
         }
 

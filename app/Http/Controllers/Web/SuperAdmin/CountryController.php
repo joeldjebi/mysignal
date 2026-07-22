@@ -65,7 +65,7 @@ class CountryController extends Controller
         $request->session()->put('errors', new ViewErrorBag());
 
         return redirect()->route('super-admin.countries.index')
-            ->with('success', 'Le pays a ete cree.');
+            ->with('success', 'Le pays a été créé.');
     }
 
     public function edit(Country $country): View
@@ -99,7 +99,7 @@ class CountryController extends Controller
         $request->session()->put('errors', new ViewErrorBag());
 
         return redirect()->route('super-admin.countries.index')
-            ->with('success', 'Le pays a ete mis a jour.');
+            ->with('success', 'Le pays a été mis à jour.');
     }
 
     public function destroy(Country $country): RedirectResponse
@@ -107,7 +107,7 @@ class CountryController extends Controller
         $country->delete();
 
         return redirect()->route('super-admin.countries.index')
-            ->with('success', 'Le pays a ete supprime.');
+            ->with('success', 'Le pays a été supprimé.');
     }
 
     public function toggleStatus(Country $country): RedirectResponse
@@ -116,6 +116,6 @@ class CountryController extends Controller
             'status' => $country->status === 'active' ? 'inactive' : 'active',
         ]);
 
-        return back()->with('success', 'Le statut du pays a ete mis a jour.');
+        return back()->with('success', 'Le statut du pays a été mis à jour.');
     }
 }

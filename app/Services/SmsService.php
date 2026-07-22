@@ -7,7 +7,7 @@ class SmsService
     public function sendSmsMtarget($message, $msisdn, $sender = 'MY-SIGNAL')
     {
         if (!function_exists('curl_init')) {
-            throw new \Exception('Extension PHP cURL non activee.');
+            throw new \Exception('Extension PHP cURL non activée.');
         }
 
         $url = config('services.mtarget.url', 'https://api-public-2.mtarget.fr/messages');
@@ -51,7 +51,7 @@ class SmsService
         curl_close($ch);
 
         if ($httpCode !== 200) {
-            throw new \Exception('Erreur HTTP : ' . $httpCode . ' - Reponse : ' . $response);
+            throw new \Exception('Erreur HTTP : ' . $httpCode . ' - Réponse : ' . $response);
         }
 
         return $response;

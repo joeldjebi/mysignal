@@ -67,7 +67,7 @@ class PrivilegeCardWalletPassController extends Controller
     private function authorizeCardOwner(Request $request, PrivilegeCard $card): void
     {
         abort_unless((int) $card->public_user_id === (int) $request->user('public_api')?->id, 404);
-        abort_unless($card->status === 'active', 422, 'Cette carte privilege n est pas active.');
+        abort_unless($card->status === 'active', 422, 'Cette carte privilège n’est pas active.');
         abort_unless($card->expires_at === null || $card->expires_at->isFuture(), 422, 'Cette carte privilege est expiree.');
         abort_unless($this->hasPaidSession($card), 422, 'Cette carte privilege doit etre payee avant l ajout au Wallet.');
     }

@@ -25,6 +25,6 @@ class LandingPageContactController extends Controller
     {
         $contactSubmission->update(['read_at' => now()]);
 
-        return back()->with('success', 'Le message a ete marque comme lu.');
+        return back()->with('success', 'Le message a été marqué comme lu.');
     }
 }

@@ -16,14 +16,14 @@ class DeviceTokenController extends Controller
 
         return ApiResponse::success([
             'device_token' => $this->deviceTokenPayload($deviceToken),
-        ], 'Token de notification enregistre.');
+        ], 'Token de notification enregistré.');
     }
 
     public function destroyPublic(Request $request)
     {
         $this->destroy($request, 'public', 'public_api');
 
-        return ApiResponse::success([], 'Token de notification supprime.');
+        return ApiResponse::success([], 'Token de notification supprimé.');
     }
 
     public function storePartner(Request $request)
@@ -32,14 +32,14 @@ class DeviceTokenController extends Controller
 
         return ApiResponse::success([
             'device_token' => $this->deviceTokenPayload($deviceToken),
-        ], 'Token de notification enregistre.');
+        ], 'Token de notification enregistré.');
     }
 
     public function destroyPartner(Request $request)
     {
         $this->destroy($request, 'partner', 'partner_api');
 
-        return ApiResponse::success([], 'Token de notification supprime.');
+        return ApiResponse::success([], 'Token de notification supprimé.');
     }
 
     private function store(Request $request, string $recipientType, string $guard): DeviceToken

@@ -29,7 +29,7 @@ class ApplePassService
             $zip = new ZipArchive();
 
             if ($zip->open($pkpassPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
-                throw new WalletConfigurationException('Creation du fichier Apple Wallet impossible.');
+                throw new WalletConfigurationException('Création du fichier Apple Wallet impossible.');
             }
 
             foreach (File::files($tmpDir) as $file) {
@@ -95,7 +95,7 @@ class ApplePassService
             }
 
             if (! is_file($source)) {
-                throw new WalletConfigurationException("Asset Apple Wallet manquant: {$asset}.");
+                throw new WalletConfigurationException("Fichier Apple Wallet manquant: {$asset}.");
             }
 
             copy($source, $tmpDir.'/'.$asset);
@@ -142,11 +142,11 @@ class ApplePassService
     private function assertConfigured(): void
     {
         if (blank(config('wallet.apple.pass_type_identifier')) || blank(config('wallet.apple.team_identifier'))) {
-            throw new WalletConfigurationException('La configuration Apple Wallet est incomplete.');
+            throw new WalletConfigurationException('La configuration Apple Wallet est incomplète.');
         }
 
         if (! extension_loaded('zip')) {
-            throw new WalletConfigurationException('L extension PHP ZipArchive est requise pour Apple Wallet.');
+            throw new WalletConfigurationException('L’extension PHP ZipArchive est requise pour Apple Wallet.');
         }
     }
 
@@ -177,7 +177,7 @@ class ApplePassService
             }
         }
 
-        throw new WalletConfigurationException("Credential Apple Wallet manquant: {$filename}.");
+        throw new WalletConfigurationException("Identifiant Apple Wallet manquant: {$filename}.");
     }
 
     private function cleanupTemporaryFiles(): void

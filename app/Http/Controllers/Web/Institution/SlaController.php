@@ -85,7 +85,7 @@ class SlaController extends Controller
         );
 
         return redirect()->route('institution.sla.index')
-            ->with('success', 'La regle TCM a ete creee.');
+            ->with('success', 'La règle TCM a été créée.');
     }
 
     public function edit(OrganizationTypeSignalSla $sla): View
@@ -119,7 +119,7 @@ class SlaController extends Controller
         ]);
 
         return redirect()->route('institution.sla.index')
-            ->with('success', 'Le referentiel TCM a ete mis a jour.');
+            ->with('success', 'Le référentiel TCM a été mis à jour.');
     }
 
     public function toggleStatus(OrganizationTypeSignalSla $sla): RedirectResponse
@@ -131,7 +131,7 @@ class SlaController extends Controller
             'status' => $sla->status === 'active' ? 'inactive' : 'active',
         ]);
 
-        return back()->with('success', 'Le statut de la regle TCM a ete mis a jour.');
+        return back()->with('success', 'Le statut de la règle TCM a été mis à jour.');
     }
 
     private function authorizeSlaAccess(OrganizationTypeSignalSla $sla, array $context): void

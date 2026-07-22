@@ -54,7 +54,7 @@ class PublicUserPushNotificationController extends Controller
         if ($attributes['target_scope'] === 'selected') {
             if ($selectedIds->isEmpty()) {
                 throw ValidationException::withMessages([
-                    'public_user_ids' => 'Selectionnez au moins un UP avec un token notification actif.',
+                    'public_user_ids' => 'Sélectionnez au moins un UP avec les notifications actives.',
                 ]);
             }
 
@@ -65,7 +65,7 @@ class PublicUserPushNotificationController extends Controller
 
         if ($users->isEmpty()) {
             throw ValidationException::withMessages([
-                'public_user_ids' => 'Aucun UP eligible avec token notification actif.',
+                'public_user_ids' => 'Aucun UP éligible avec les notifications actives.',
             ]);
         }
 
@@ -114,7 +114,7 @@ class PublicUserPushNotificationController extends Controller
                 $failureDetails[] = [
                     'public_user_id' => $user->id,
                     'phone' => $user->phone,
-                    'errors' => [['message' => 'Erreur interne pendant l envoi.']],
+                    'errors' => [['message' => 'Erreur interne pendant l’envoi.']],
                 ];
             }
         }
@@ -134,7 +134,7 @@ class PublicUserPushNotificationController extends Controller
 
         $activityLogger->log(
             'public_user.push_notification_sent',
-            'Envoi d une notification push aux usagers publics.',
+            'Envoi d’une notification aux usagers publics.',
             $campaign,
             [
                 'target_scope' => $attributes['target_scope'],
@@ -148,6 +148,6 @@ class PublicUserPushNotificationController extends Controller
 
         return redirect()
             ->route('super-admin.public-users.push-notifications.index')
-            ->with('success', $sentCount.' notification(s) envoyee(s), '.$failedCount.' echec(s).');
+            ->with('success', $sentCount.' notification(s) envoyée(s), '.$failedCount.' échec(s).');
     }
 }

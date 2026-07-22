@@ -100,7 +100,7 @@ class InitiateDamageDeclarationFineoPaymentAction
 
         if ($pricingRule === null) {
             throw ValidationException::withMessages([
-                'pricing_rule' => ['Aucune tarification active n est disponible pour la declaration de dommage.'],
+                'pricing_rule' => ['Aucune tarification active n’est disponible pour la déclaration de dommage.'],
             ]);
         }
 

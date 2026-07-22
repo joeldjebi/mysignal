@@ -188,7 +188,7 @@
                                         <div class="status-box text-white" style="background:rgba(255,255,255,.10)">Abonnement UP</div>
                                     </div>
                                     <div class="col-6">
-                                        <div class="status-box text-white" style="background:rgba(255,255,255,.10)">REX apres traitement</div>
+                                        <div class="status-box text-white" style="background:rgba(255,255,255,.10)">REX après traitement</div>
                                     </div>
                                 </div>
                             </div>
@@ -199,7 +199,7 @@
                         <section class="auth-card">
                             <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
                                 <div>
-                                    <div class="small text-secondary fw-bold text-uppercase mb-1">Acces public</div>
+                                    <div class="small text-secondary fw-bold text-uppercase mb-1">Accès public</div>
                                     <h2 class="h3 fw-bold mb-1">Authentification</h2>
                                     <div class="text-secondary">Choisissez une option pour continuer vers le signalement.</div>
                                 </div>
@@ -208,7 +208,7 @@
 
                             <div class="auth-tabs" role="tablist">
                                 <button class="auth-tab active" type="button" data-auth-tab="login">Connexion</button>
-                                <button class="auth-tab" type="button" data-auth-tab="register">Creer un compte</button>
+                                <button class="auth-tab" type="button" data-auth-tab="register">Créer un compte</button>
                                 <button class="auth-tab" type="button" data-auth-tab="forgot">Mot de passe oublié</button>
                             </div>
 
@@ -217,7 +217,7 @@
                             <section class="auth-pane active" data-auth-pane="login">
                                 <form id="loginForm" class="row g-3">
                                     <div class="col-12">
-                                        <label class="form-label fw-semibold">Numero de telephone</label>
+                                        <label class="form-label fw-semibold">Numéro de téléphone</label>
                                         <div class="input-group">
                                             <select class="form-select flex-grow-0" name="phone_dial_code" data-dial-code-select style="width: 140px"></select>
                                             <input class="form-control" name="phone_local" inputmode="numeric" required placeholder="0700000000">
@@ -238,11 +238,11 @@
                                 <form id="forgotPasswordForm" class="row g-3">
                                     <div class="col-12">
                                         <div class="status-box">
-                                            Renseignez votre numero UP, recevez le code OTP, puis choisissez un nouveau mot de passe.
+                                            Renseignez votre numéro UP, recevez le code OTP, puis choisissez un nouveau mot de passe.
                                         </div>
                                     </div>
                                     <div class="col-12">
-                                        <label class="form-label fw-semibold">Numero de telephone</label>
+                                        <label class="form-label fw-semibold">Numéro de téléphone</label>
                                         <div class="input-group">
                                             <select class="form-select flex-grow-0" name="phone_dial_code" data-dial-code-select style="width: 140px"></select>
                                             <input class="form-control" name="phone_local" inputmode="numeric" required placeholder="0700000000">
@@ -255,7 +255,7 @@
                                     <div class="col-md-6">
                                         <div class="input-group">
                                             <input class="form-control" name="otp_code" placeholder="Code OTP">
-                                            <button class="btn btn-soft" type="button" id="verifyResetOtpButton">Verifier</button>
+                                            <button class="btn btn-soft" type="button" id="verifyResetOtpButton">Vérifier</button>
                                         </div>
                                     </div>
                                     <input type="hidden" name="verification_token" id="resetVerificationToken">
@@ -269,7 +269,7 @@
                                         <input class="form-control" type="password" name="password_confirmation" minlength="8" required>
                                     </div>
                                     <div class="col-12">
-                                        <button class="btn btn-main w-100" type="submit" id="resetPasswordSubmitButton" disabled>Verifier le numero pour continuer</button>
+                                        <button class="btn btn-main w-100" type="submit" id="resetPasswordSubmitButton" disabled>Vérifier le numéro pour continuer</button>
                                     </div>
                                 </form>
                             </section>
@@ -278,11 +278,11 @@
                                 <form id="registerForm" class="row g-3">
                                     <div class="col-12">
                                         <div class="status-box">
-                                            1. Renseignez votre numero, demandez le code OTP, puis verifiez-le avant de finaliser le compte.
+                                            1. Renseignez votre numéro, demandez le code OTP, puis vérifiez-le avant de finaliser le compte.
                                         </div>
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label fw-semibold">Type d usager</label>
+                                        <label class="form-label fw-semibold">Type d’usager</label>
                                         <select class="form-select" name="public_user_type_id" id="registerPublicUserTypeId" required>
                                             @foreach ($publicUserTypes as $publicUserType)
                                                 <option value="{{ $publicUserType->id }}" data-type-code="{{ $publicUserType->code }}">{{ $publicUserType->name }}</option>
@@ -290,7 +290,7 @@
                                         </select>
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label fw-semibold">Numero de telephone</label>
+                                        <label class="form-label fw-semibold">Numéro de téléphone</label>
                                         <div class="input-group">
                                             <select class="form-select flex-grow-0" name="phone_dial_code" data-dial-code-select style="width: 140px"></select>
                                             <input class="form-control" name="phone_local" inputmode="numeric" required placeholder="0700000000">
@@ -298,7 +298,7 @@
                                         <input type="hidden" name="phone">
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label fw-semibold">Numero WhatsApp</label>
+                                        <label class="form-label fw-semibold">Numéro WhatsApp</label>
                                         <select class="form-select" name="is_whatsapp_number" id="registerWhatsappNumber" disabled>
                                             <option value="1">Oui</option>
                                             <option value="0">Non</option>
@@ -310,13 +310,13 @@
                                     <div class="col-md-6">
                                         <div class="input-group">
                                             <input class="form-control" name="otp_code" placeholder="Code OTP">
-                                            <button class="btn btn-soft" type="button" id="verifyOtpButton">Verifier</button>
+                                            <button class="btn btn-soft" type="button" id="verifyOtpButton">Vérifier</button>
                                         </div>
                                     </div>
                                     <input type="hidden" name="verification_token" id="verificationToken">
 
                                     <div class="col-md-6">
-                                        <label class="form-label fw-semibold">Prenom</label>
+                                        <label class="form-label fw-semibold">Prénom</label>
                                         <input class="form-control" name="first_name" required>
                                     </div>
                                     <div class="col-md-6">
@@ -341,9 +341,9 @@
                                     </div>
 
                                     <div class="col-12 hidden" id="sectorFields">
-                                        <label class="form-label fw-semibold">Secteur d activite</label>
+                                        <label class="form-label fw-semibold">Secteur d’activité</label>
                                         <select class="form-select" name="business_sector">
-                                            <option value="">Selectionner un secteur</option>
+                                            <option value="">Sélectionner un secteur</option>
                                             @foreach ($businessSectors as $businessSector)
                                                 <option value="{{ $businessSector->name }}">{{ $businessSector->name }}</option>
                                             @endforeach
@@ -368,7 +368,7 @@
                                         <input class="form-control" type="password" name="password_confirmation" minlength="8" required>
                                     </div>
                                     <div class="col-12">
-                                        <button class="btn btn-main w-100" type="submit" id="registerSubmitButton" disabled>Verifier le numero pour continuer</button>
+                                        <button class="btn btn-main w-100" type="submit" id="registerSubmitButton" disabled>Vérifier le numéro pour continuer</button>
                                     </div>
                                 </form>
                             </section>
@@ -438,7 +438,7 @@
 
                 function populateRegisterCountries() {
                     const countrySelect = document.getElementById('registerCountryId');
-                    countrySelect.innerHTML = optionMarkup(countries, 'Selectionner un pays');
+                    countrySelect.innerHTML = optionMarkup(countries, 'Sélectionner un pays');
 
                     const defaultCountry = countries.find((country) => country.code === 'CI') || countries[0];
                     if (defaultCountry) {
@@ -451,7 +451,7 @@
                 function populateRegisterCities() {
                     const citySelect = document.getElementById('registerCityId');
                     const cities = selectedCountry()?.cities || [];
-                    citySelect.innerHTML = optionMarkup(cities, 'Selectionner une ville');
+                    citySelect.innerHTML = optionMarkup(cities, 'Sélectionner une ville');
                     citySelect.disabled = cities.length === 0;
 
                     const defaultCity = cities.find((city) => city.name === 'Abidjan') || cities[0];
@@ -465,7 +465,7 @@
                 function populateRegisterCommunes() {
                     const communeSelect = document.getElementById('registerCommuneId');
                     const communes = selectedCity()?.communes || [];
-                    communeSelect.innerHTML = optionMarkup(communes, 'Selectionner une commune');
+                    communeSelect.innerHTML = optionMarkup(communes, 'Sélectionner une commune');
                     communeSelect.disabled = communes.length === 0;
                 }
 
@@ -493,21 +493,21 @@
                     verifiedPhone = phone;
                     verificationToken.value = '';
                     registerSubmitButton.disabled = true;
-                    registerSubmitButton.textContent = 'Verifier le numero pour continuer';
+                    registerSubmitButton.textContent = 'Vérifier le numéro pour continuer';
                 }
 
                 function enableRegistrationSubmit(token, phone) {
                     verifiedPhone = phone;
                     verificationToken.value = token;
                     registerSubmitButton.disabled = false;
-                    registerSubmitButton.textContent = 'Creer mon compte et signaler maintenant';
+                    registerSubmitButton.textContent = 'Créer mon compte et signaler maintenant';
                 }
 
                 function setPasswordResetVerified(phone = '') {
                     resetVerifiedPhone = phone;
                     resetVerificationToken.value = '';
                     resetPasswordSubmitButton.disabled = true;
-                    resetPasswordSubmitButton.textContent = 'Verifier le numero pour continuer';
+                    resetPasswordSubmitButton.textContent = 'Vérifier le numéro pour continuer';
                 }
 
                 function enablePasswordResetSubmit(token, phone) {
@@ -612,7 +612,7 @@
                         setRegistrationVerified(phone);
                         const response = await publicApi('/auth/request-otp', { phone });
                         const testingCode = response?.data?.otp_code_for_testing ? ` Code local: ${response.data.otp_code_for_testing}` : '';
-                        showAlert(`Code OTP envoye.${testingCode}`, 'success');
+                        showAlert(`Code OTP envoyé.${testingCode}`, 'success');
                     } catch (error) {
                         showAlert(error.message);
                     } finally {
@@ -634,7 +634,7 @@
                         const code = form.querySelector('[name="otp_code"]').value;
                         const response = await publicApi('/auth/verify-otp', { phone, code });
                         enableRegistrationSubmit(response.data.verification_token, phone);
-                        showAlert('Numero verifie. Vous pouvez creer le compte.', 'success');
+                        showAlert('Numéro vérifié. Vous pouvez créer le compte.', 'success');
                     } catch (error) {
                         showAlert(error.message);
                     } finally {
@@ -655,8 +655,8 @@
                         const phone = composePhoneNumber(form);
                         setPasswordResetVerified(phone);
                         const response = await publicApi('/auth/forgot-password/request-otp', { phone });
-                        const testingCode = response?.data?.otp_code_for_testing ? ` Code local: ${response.data.otp_code_for_testing}` : '';
-                        showAlert(`Code OTP envoye.${testingCode}`, 'success');
+                        const testingCode = response?.data?.otp_code_for_testing ? ` Code local : ${response.data.otp_code_for_testing}` : '';
+                        showAlert(`Code OTP envoyé.${testingCode}`, 'success');
                     } catch (error) {
                         showAlert(error.message);
                     } finally {
@@ -678,7 +678,7 @@
                         const code = form.querySelector('[name="otp_code"]').value;
                         const response = await publicApi('/auth/forgot-password/verify-otp', { phone, code });
                         enablePasswordResetSubmit(response.data.verification_token, phone);
-                        showAlert('Numero verifie. Vous pouvez choisir un nouveau mot de passe.', 'success');
+                        showAlert('Numéro vérifié. Vous pouvez choisir un nouveau mot de passe.', 'success');
                     } catch (error) {
                         showAlert(error.message);
                     } finally {
@@ -699,7 +699,7 @@
 
                         if (!payload.verification_token || payload.phone !== resetVerifiedPhone) {
                             setPasswordResetVerified(payload.phone);
-                            showAlert('Veuillez verifier votre numero avec le code OTP avant de changer le mot de passe.');
+                            showAlert('Veuillez vérifier votre numéro avec le code OTP avant de changer le mot de passe.');
                             return;
                         }
 
@@ -711,7 +711,7 @@
                         form.reset();
                         setPasswordResetVerified();
                         activateAuthTab('login');
-                        showAlert('Mot de passe reinitialise avec succes. Vous pouvez vous connecter.', 'success');
+                        showAlert('Mot de passe réinitialisé avec succès. Vous pouvez vous connecter.', 'success');
                     } catch (error) {
                         showAlert(error.message);
                     } finally {
@@ -732,7 +732,7 @@
 
                         if (!payload.verification_token || payload.phone !== verifiedPhone) {
                             setRegistrationVerified(payload.phone);
-                            showAlert('Veuillez verifier votre numero avec le code OTP avant de creer le compte.');
+                            showAlert('Veuillez vérifier votre numéro avec le code OTP avant de créer le compte.');
                             return;
                         }
 

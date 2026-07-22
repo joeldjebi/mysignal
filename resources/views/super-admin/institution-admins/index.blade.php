@@ -2,15 +2,21 @@
 
 @section('title', config('app.name').' | Admins institutionnels')
 @section('page-title', 'Admins institutionnels')
-@section('page-description', 'Creer les comptes admins racine qui gereront ensuite leurs propres users, roles et permissions dans leur portail.')
+@section('page-description', 'Créer les comptes admins racine qui géreront ensuite leurs utilisateurs, rôles et permissions dans leur portail.')
 
 @section('header-badges')
     <span class="badge-soft">{{ $admins->total() }} admins</span>
+    <a href="{{ route('super-admin.institution-admins.orphaned') }}" class="btn btn-outline-warning">
+        AI sans institution
+        @if (($orphanedAdminsCount ?? 0) > 0)
+            <span class="badge text-bg-warning ms-1">{{ $orphanedAdminsCount }}</span>
+        @endif
+    </a>
     <a href="{{ route('institution.login') }}" class="btn btn-outline-dark" target="_blank" rel="noopener">
-        Login AI
+        Connexion AI
     </a>
     <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#createInstitutionAdminModal">
-        Creer un nouvel institution
+        Créer une institution
     </button>
 @endsection
 
@@ -64,7 +70,7 @@
             <div class="row g-2 align-items-end">
                 <div class="col-md-4">
                     <label class="form-label small text-secondary">Recherche</label>
-                    <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Nom, email, telephone">
+                    <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Nom, email, téléphone">
                 </div>
                 <div class="col-md-4">
                     <label class="form-label small text-secondary">Organisation</label>
@@ -94,11 +100,11 @@
             </div>
             <div class="d-flex gap-2 mt-2">
                 <button class="btn btn-dark">Filtrer</button>
-                <a href="{{ route('super-admin.institution-admins.index') }}" class="btn btn-outline-secondary">RAZ</a>
+                <a href="{{ route('super-admin.institution-admins.index') }}" class="btn btn-outline-secondary">Réinitialiser</a>
             </div>
         </form>
         <div class="table-toolbar">
-            <div class="table-meta">{{ $admins->total() }} resultat{{ $admins->total() > 1 ? 's' : '' }}</div>
+            <div class="table-meta">{{ $admins->total() }} résultat{{ $admins->total() > 1 ? 's' : '' }}</div>
         </div>
         <div class="table-responsive">
             <table class="table table-modern align-middle">
@@ -106,7 +112,7 @@
                     <tr>
                         <th>Admin</th>
                         <th>Organisation</th>
-                        <th>Fonctionnalites</th>
+                        <th>Fonctionnalités</th>
                         <th>Statut</th>
                         <th class="text-end">Actions</th>
                     </tr>
@@ -159,7 +165,7 @@
                                         <form method="POST" action="{{ route('super-admin.institution-admins.toggle-status', $admin) }}">
                                             @csrf
                                             @method('PATCH')
-                                            <button class="btn btn-sm btn-outline-warning">{{ $admin->status === 'active' ? 'Desactiver' : 'Activer' }}</button>
+                                            <button class="btn btn-sm btn-outline-warning">{{ $admin->status === 'active' ? 'Désactiver' : 'Activer' }}</button>
                                         </form>
                                     @endif
                                     <form method="POST" action="{{ route('super-admin.institution-admins.destroy', $admin) }}">
@@ -171,7 +177,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="5" class="text-center text-secondary">Aucun admin institutionnel enregistre.</td></tr>
+                        <tr><td colspan="5" class="text-center text-secondary">Aucun admin institutionnel enregistré.</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -188,7 +194,7 @@
                 <div class="modal-header">
                     <div>
                         <h5 class="modal-title fw-bold" id="createInstitutionAdminModalLabel">Nouvel admin institutionnel</h5>
-                        <div class="small text-secondary">Creer le compte admin racine d'un portail institutionnel.</div>
+                        <div class="small text-secondary">Créer le compte admin racine d’un portail institutionnel.</div>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
                 </div>
@@ -199,7 +205,7 @@
                             <div class="col-md-6">
                                 <label class="form-label">Organisation</label>
                                 <select name="organization_id" class="form-select" id="institutionAdminOrganizationSelect" required>
-                                    <option value="">Selectionner</option>
+                                    <option value="">Sélectionner</option>
                                     @foreach ($organizations as $organization)
                                         <option value="{{ $organization->id }}" data-feature-ids="{{ implode(',', $organization->resolvedFeatureIds()) }}" @selected(old('organization_id') == $organization->id)>{{ $organization->name }}</option>
                                     @endforeach
@@ -221,8 +227,8 @@
                                 <input type="password" name="password" class="form-control" required>
                             </div>
                             <div class="col-12">
-                                <label class="form-label">Fonctionnalites attribuees</label>
-                                <div class="small text-secondary mb-2">Les fonctionnalites ouvertes pour l'organisation sont preselectionnees automatiquement. Vous pouvez ensuite limiter l'AI a un sous-ensemble.</div>
+                                <label class="form-label">Fonctionnalités attribuées</label>
+                                <div class="small text-secondary mb-2">Les fonctionnalités ouvertes pour l’institution sont présélectionnées automatiquement. Vous pouvez ensuite limiter l’AI à un sous-ensemble.</div>
                                 <div class="border rounded-3 p-3" style="max-height: 260px; overflow:auto;">
                                     <div class="feature-grid-3">
                                         @forelse ($features as $feature)
@@ -243,7 +249,7 @@
                                                 </div>
                                             </div>
                                         @empty
-                                            <div class="text-secondary small">Aucune fonctionnalite active.</div>
+                                            <div class="text-secondary small">Aucune fonctionnalité active.</div>
                                         @endforelse
                                     </div>
                                 </div>
@@ -252,7 +258,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
-                        <button type="submit" class="btn btn-dark">Creer</button>
+                        <button type="submit" class="btn btn-dark">Créer</button>
                     </div>
                 </form>
             </div>

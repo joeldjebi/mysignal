@@ -6,7 +6,7 @@ use Illuminate\Http\JsonResponse;
 
 class ApiResponse
 {
-    public static function success(array $data = [], string $message = 'Request processed successfully.', int $status = 200): JsonResponse
+    public static function success(array $data = [], string $message = 'Requête traitée avec succès.', int $status = 200): JsonResponse
     {
         return response()->json([
             'success' => true,

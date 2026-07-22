@@ -27,7 +27,7 @@ class PartnerPasswordController extends Controller
 
         $activityLogger->log(
             'partner.password.updated',
-            'Mise a jour du mot de passe partenaire.',
+            'Mise à jour du mot de passe partenaire.',
             $user,
             [
                 'organization_id' => $user->organization_id,
@@ -37,6 +37,6 @@ class PartnerPasswordController extends Controller
             'partner',
         );
 
-        return ApiResponse::success([], 'Mot de passe mis a jour avec succes.');
+        return ApiResponse::success([], 'Mot de passe mis à jour avec succès.');
     }
 }

@@ -46,10 +46,10 @@ class RegisterPublicUserRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'email.unique' => 'Cette adresse email est deja utilisee par un autre compte.',
-            'phone.regex' => 'Le numero de telephone doit contenir entre 8 et 15 chiffres.',
-            'verification_token.required' => 'Veuillez verifier votre numero avec le code OTP avant de creer le compte.',
-            'verification_token.uuid' => 'La verification du numero est invalide. Veuillez verifier a nouveau le code OTP.',
+            'email.unique' => 'Cette adresse email est déjà utilisée par un autre compte.',
+            'phone.regex' => 'Le numéro de téléphone doit contenir entre 8 et 15 chiffres.',
+            'verification_token.required' => 'Veuillez vérifier votre numéro avec le code OTP avant de créer le compte.',
+            'verification_token.uuid' => 'La vérification du numéro est invalide. Veuillez vérifier à nouveau le code OTP.',
         ];
     }
 
@@ -91,16 +91,16 @@ class RegisterPublicUserRequest extends FormRequest
                 $country = $city?->country;
 
                 if ($city === null || $country === null || $city->status !== 'active' || $country->status !== 'active') {
-                    $validator->errors()->add('commune_id', 'La commune selectionnee est inactive ou invalide.');
+                    $validator->errors()->add('commune_id', 'La commune sélectionnée est inactive ou invalide.');
                 } elseif ((int) $this->input('city_id') !== (int) $city->id || (int) $this->input('country_id') !== (int) $country->id) {
-                    $validator->errors()->add('commune_id', 'La commune selectionnee ne correspond pas au pays et a la ville.');
+                    $validator->errors()->add('commune_id', 'La commune sélectionnée ne correspond pas au pays et à la ville.');
                 }
             }
 
             $publicUserType = PublicUserType::query()->find($typeId);
 
             if ($publicUserType === null || $publicUserType->status !== 'active') {
-                $validator->errors()->add('public_user_type_id', 'Le type d usager public selectionne est invalide.');
+                $validator->errors()->add('public_user_type_id', 'Le type d’usager public sélectionné est invalide.');
 
                 return;
             }
@@ -113,7 +113,7 @@ class RegisterPublicUserRequest extends FormRequest
 
             foreach ([
                 'company_name' => 'La raison sociale est obligatoire.',
-                'company_registration_number' => 'Le RCCM ou numero d immatriculation est obligatoire.',
+                'company_registration_number' => 'Le RCCM ou numéro d’immatriculation est obligatoire.',
             ] as $field => $message) {
                 if (! filled($this->input($field))) {
                     $validator->errors()->add($field, $message);

@@ -32,7 +32,7 @@ class ConfirmIncidentReportFineoPaymentAction
 
         if ($syncRef === '') {
             throw ValidationException::withMessages([
-                'syncRef' => ['La reference de synchronisation est requise.'],
+                'syncRef' => ['La référence de synchronisation est requise.'],
             ]);
         }
 

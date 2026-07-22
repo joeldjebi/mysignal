@@ -72,7 +72,7 @@ class SignalTypeController extends Controller
 
         $activityLogger->log(
             'signal_type.created',
-            'Creation d un type de signal.',
+            'Création d’un type de signal.',
             $signalType,
             [
                 'code' => $signalType->code,
@@ -85,7 +85,7 @@ class SignalTypeController extends Controller
         );
 
         return redirect()->route('super-admin.signal-types.index')
-            ->with('success', 'Le type de signal a ete creee.');
+            ->with('success', 'Le type de signal a été créé.');
     }
 
     public function import(Request $request, ActivityLogger $activityLogger): RedirectResponse
@@ -118,7 +118,7 @@ class SignalTypeController extends Controller
 
             if ($organizations->count() !== $organizationIds->count()) {
                 throw ValidationException::withMessages([
-                    'organization_ids' => ['Une ou plusieurs institutions selectionnees n appartiennent pas a la catégorie choisie.'],
+                    'organization_ids' => ['Une ou plusieurs institutions sélectionnées n’appartiennent pas à la catégorie choisie.'],
                 ]);
             }
         }
@@ -139,7 +139,7 @@ class SignalTypeController extends Controller
 
                 if ($label === '') {
                     throw ValidationException::withMessages([
-                        'csv_file' => ['La ligne '.($index + 2).' ne contient pas de libelle.'],
+                        'csv_file' => ['La ligne '.($index + 2).' ne contient pas de libellé.'],
                     ]);
                 }
 
@@ -175,7 +175,7 @@ class SignalTypeController extends Controller
         );
 
         return redirect()->route('super-admin.signal-types.index', ['application_id' => $application->id])
-            ->with('success', "{$createdCount} type(s) de signal importe(s).");
+            ->with('success', "{$createdCount} type(s) de signal importé(s).");
     }
 
     public function downloadImportTemplate(): StreamedResponse
@@ -209,7 +209,7 @@ class SignalTypeController extends Controller
 
         if ($signalTypes->isEmpty()) {
             throw ValidationException::withMessages([
-                'signal_type_ids' => ['Selectionnez au moins un type de signal.'],
+                'signal_type_ids' => ['Sélectionnez au moins un type de signal.'],
             ]);
         }
 
@@ -230,7 +230,7 @@ class SignalTypeController extends Controller
 
                     if ($label === '') {
                         throw ValidationException::withMessages([
-                            'csv_file' => ['La ligne '.($index + 2).' ne contient pas de libelle.'],
+                        'csv_file' => ['La ligne '.($index + 2).' ne contient pas de libellé.'],
                         ]);
                     }
 
@@ -266,7 +266,7 @@ class SignalTypeController extends Controller
         $redirectParameters = $signalTypes->count() === 1 ? ['signal_type_id' => $firstSignalType?->id] : [];
 
         return redirect()->route('super-admin.signal-sub-types.index', $redirectParameters)
-            ->with('success', "{$createdCount} sous-type(s) de signal importe(s) pour ".$signalTypes->count().' type(s) de signal.');
+            ->with('success', "{$createdCount} sous-type(s) de signal importé(s) pour ".$signalTypes->count().' type(s) de signal.');
     }
 
     public function downloadSubTypeImportTemplate(): StreamedResponse
@@ -373,7 +373,7 @@ class SignalTypeController extends Controller
 
         $activityLogger->log(
             'signal_type.updated',
-            'Mise a jour d un type de signal.',
+            'Mise à jour d’un type de signal.',
             $signalType,
             [
                 'before' => $before,
@@ -386,7 +386,7 @@ class SignalTypeController extends Controller
         );
 
         return redirect()->route('super-admin.signal-types.index')
-            ->with('success', 'Le type de signal a ete mis a jour.');
+            ->with('success', 'Le type de signal a été mis à jour.');
     }
 
     public function destroy(Request $request, SignalType $signalType, ActivityLogger $activityLogger): RedirectResponse|JsonResponse
@@ -396,7 +396,7 @@ class SignalTypeController extends Controller
 
         $activityLogger->log(
             'signal_type.deleted',
-            'Suppression d un type de signal.',
+            'Suppression d’un type de signal.',
             SignalType::class,
             $snapshot,
             $request
@@ -405,13 +405,13 @@ class SignalTypeController extends Controller
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Le type de signal a ete supprime.',
+                'message' => 'Le type de signal a été supprimé.',
                 'deleted_id' => $signalType->id,
             ]);
         }
 
         return redirect()->route('super-admin.signal-types.index')
-            ->with('success', 'Le type de signal a ete supprime.');
+            ->with('success', 'Le type de signal a été supprimé.');
     }
 
     public function destroyAll(Request $request, ActivityLogger $activityLogger): RedirectResponse
@@ -429,7 +429,7 @@ class SignalTypeController extends Controller
         );
 
         return redirect()->route('super-admin.signal-types.index')
-            ->with('success', "{$count} type(s) de signal supprime(s).");
+            ->with('success', "{$count} type(s) de signal supprimé(s).");
     }
 
     public function destroySelected(Request $request, ActivityLogger $activityLogger): RedirectResponse
@@ -452,7 +452,7 @@ class SignalTypeController extends Controller
 
         if ($existingIds->isEmpty()) {
             throw ValidationException::withMessages([
-                'signal_type_ids' => ['Selectionnez au moins un type de signal valide.'],
+                'signal_type_ids' => ['Sélectionnez au moins un type de signal valide.'],
             ]);
         }
 
@@ -478,7 +478,7 @@ class SignalTypeController extends Controller
         );
 
         return redirect()->route('super-admin.signal-types.index')
-            ->with('success', "{$count} type(s) de signal selectionne(s) supprime(s).");
+            ->with('success', "{$count} type(s) de signal sélectionné(s) supprimé(s).");
     }
 
     public function toggleStatus(Request $request, SignalType $signalType, ActivityLogger $activityLogger): RedirectResponse
@@ -489,7 +489,7 @@ class SignalTypeController extends Controller
 
         $activityLogger->log(
             'signal_type.status_toggled',
-            'Changement de statut d un type de signal.',
+            'Changement de statut d’un type de signal.',
             $signalType,
             [
                 'status' => $signalType->status,
@@ -497,7 +497,7 @@ class SignalTypeController extends Controller
             $request
         );
 
-        return back()->with('success', 'Le statut du type de signal a ete mis a jour.');
+        return back()->with('success', 'Le statut du type de signal a été mis à jour.');
     }
 
     public function storeSubType(Request $request, SignalType $signalType, ActivityLogger $activityLogger): RedirectResponse
@@ -507,7 +507,7 @@ class SignalTypeController extends Controller
         $this->logSubTypeCreation($activityLogger, $request, $signalType, $subType);
 
         return redirect()->route('super-admin.signal-types.edit', $signalType)
-            ->with('success', 'Le sous-type de signal a ete cree.');
+            ->with('success', 'Le sous-type de signal a été créé.');
     }
 
     public function storeSubTypeFromIndex(Request $request, ActivityLogger $activityLogger): RedirectResponse
@@ -522,7 +522,7 @@ class SignalTypeController extends Controller
         $this->logSubTypeCreation($activityLogger, $request, $signalType, $subType);
 
         return redirect()->route('super-admin.signal-sub-types.index', ['signal_type_id' => $signalType->id])
-            ->with('success', 'Le sous-type de signal a ete cree.');
+            ->with('success', 'Le sous-type de signal a été créé.');
     }
 
     public function updateSubType(Request $request, SignalType $signalType, SignalSubType $subType, ActivityLogger $activityLogger): RedirectResponse
@@ -534,7 +534,7 @@ class SignalTypeController extends Controller
 
         $activityLogger->log(
             'signal_sub_type.updated',
-            'Mise a jour d un sous-type de signal.',
+            'Mise à jour d’un sous-type de signal.',
             $subType,
             [
                 'before' => $before,
@@ -544,7 +544,7 @@ class SignalTypeController extends Controller
         );
 
         return redirect()->route('super-admin.signal-types.edit', $signalType)
-            ->with('success', 'Le sous-type de signal a ete mis a jour.');
+            ->with('success', 'Le sous-type de signal a été mis à jour.');
     }
 
     public function toggleSubTypeStatus(Request $request, SignalType $signalType, SignalSubType $subType, ActivityLogger $activityLogger): RedirectResponse
@@ -557,13 +557,13 @@ class SignalTypeController extends Controller
 
         $activityLogger->log(
             'signal_sub_type.status_toggled',
-            'Changement de statut d un sous-type de signal.',
+            'Changement de statut d’un sous-type de signal.',
             $subType,
             ['status' => $subType->status],
             $request
         );
 
-        return back()->with('success', 'Le statut du sous-type de signal a ete mis a jour.');
+        return back()->with('success', 'Le statut du sous-type de signal a été mis à jour.');
     }
 
     public function destroySubType(Request $request, SignalType $signalType, SignalSubType $subType, ActivityLogger $activityLogger): RedirectResponse|JsonResponse
@@ -575,7 +575,7 @@ class SignalTypeController extends Controller
 
         $activityLogger->log(
             'signal_sub_type.deleted',
-            'Suppression d un sous-type de signal.',
+            'Suppression d’un sous-type de signal.',
             SignalSubType::class,
             $snapshot,
             $request
@@ -584,13 +584,13 @@ class SignalTypeController extends Controller
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Le sous-type de signal a ete supprime.',
+                'message' => 'Le sous-type de signal a été supprimé.',
                 'deleted_id' => $subType->id,
             ]);
         }
 
         return back()
-            ->with('success', 'Le sous-type de signal a ete supprime.');
+            ->with('success', 'Le sous-type de signal a été supprimé.');
     }
 
     public function destroySelectedSubTypes(Request $request, ActivityLogger $activityLogger): RedirectResponse|JsonResponse
@@ -612,7 +612,7 @@ class SignalTypeController extends Controller
 
         if ($subTypes->isEmpty()) {
             throw ValidationException::withMessages([
-                'signal_sub_type_ids' => ['Selectionnez au moins un sous-type de signal valide.'],
+                'signal_sub_type_ids' => ['Sélectionnez au moins un sous-type de signal valide.'],
             ]);
         }
 
@@ -639,14 +639,14 @@ class SignalTypeController extends Controller
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => "{$count} sous-type(s) de signal supprime(s).",
+                'message' => "{$count} sous-type(s) de signal supprimé(s).",
                 'deleted_ids' => $deletedIds,
                 'deleted_count' => $count,
             ]);
         }
 
         return back()
-            ->with('success', "{$count} sous-type(s) de signal selectionne(s) supprime(s).");
+            ->with('success', "{$count} sous-type(s) de signal sélectionné(s) supprimé(s).");
     }
 
     private function validatedAttributes(Request $request, ?SignalType $signalType = null): array

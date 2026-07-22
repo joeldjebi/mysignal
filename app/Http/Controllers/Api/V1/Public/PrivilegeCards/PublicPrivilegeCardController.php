@@ -60,7 +60,7 @@ class PublicPrivilegeCardController extends Controller
         return ApiResponse::success([
             'payment_session' => new PrivilegeCardPaymentSessionResource($session),
             'checkout_link' => $session->checkout_link,
-        ], 'Lien de paiement carte privilege genere avec succes.');
+        ], 'Lien de paiement de carte privilège généré avec succès.');
     }
 
     public function session(Request $request, string $syncRef)

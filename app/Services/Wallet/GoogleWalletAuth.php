@@ -47,7 +47,7 @@ class GoogleWalletAuth
         $serviceAccount = is_string($json) ? json_decode($json, true) : null;
 
         if (! is_array($serviceAccount) || blank($serviceAccount['client_email'] ?? null) || blank($serviceAccount['private_key'] ?? null)) {
-            throw new WalletConfigurationException('La cle de service Google Wallet est invalide ou absente.');
+            throw new WalletConfigurationException('La clé de service Google Wallet est invalide ou absente.');
         }
 
         return $serviceAccount;

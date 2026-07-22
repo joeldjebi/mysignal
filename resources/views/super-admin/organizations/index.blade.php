@@ -350,7 +350,7 @@
                 <div class="modal-header">
                     <div>
                         <h5 class="modal-title fw-bold" id="importOrganizationsModalLabel">Importer des institutions</h5>
-                        <div class="small text-secondary">CSV ou XLSX attendu : Nom, Commune, Adresse, Mobile ou Type_organisation, Nom, Commune, Region_District.</div>
+                        <div class="small text-secondary">Fichier CSV ou XLSX attendu : Nom, Commune, Adresse, Mobile ou Type_organisation, Nom, Commune, Region_District.</div>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
                 </div>
@@ -362,22 +362,22 @@
                             <div class="col-md-6">
                                 <label class="form-label">Catégorie<span class="required-star">*</span></label>
                                 <select name="application_id" class="form-select" required>
-                                    <option value="">Selectionner</option>
+                                    <option value="">Sélectionner</option>
                                     @foreach ($applications as $application)
                                         <option value="{{ $application->id }}" @selected(old('application_id') == $application->id)>{{ $application->name }}</option>
                                     @endforeach
                                 </select>
-                                <div class="small text-secondary mt-2">Les fonctionnalites de cette catégorie seront liees aux institutions importees.</div>
+                                <div class="small text-secondary mt-2">Les fonctionnalités de cette catégorie seront liées aux institutions importées.</div>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Sous Catégorie</label>
                                 <select name="organization_type_id" class="form-select">
-                                    <option value="">Selectionner une sous catégorie existante</option>
+                                    <option value="">Sélectionner une sous catégorie existante</option>
                                     @foreach ($organizationTypes as $organizationType)
                                         <option value="{{ $organizationType->id }}" @selected(old('organization_type_id') == $organizationType->id)>{{ $organizationType->name }}</option>
                                     @endforeach
                                 </select>
-                                <div class="small text-secondary mt-2">Facultatif si le fichier contient une colonne Type_organisation.</div>
+                                <div class="small text-secondary mt-2">Facultatif si le fichier contient la colonne Type_organisation.</div>
                             </div>
                             <div class="col-12">
                                 <label class="form-label">Nouvelle sous catégorie</label>
@@ -385,22 +385,22 @@
                                 <div class="small text-secondary mt-2">Facultatif si vous choisissez une sous catégorie existante ou si le fichier contient Type_organisation.</div>
                             </div>
                             <div class="col-12">
-                                <label class="form-label">Modeles de fichier</label>
+                                <label class="form-label">Modèles de fichier</label>
                                 <div class="d-flex flex-wrap gap-2">
-                                    <a href="{{ route('super-admin.organizations.import-template', 'standard') }}" class="btn btn-outline-dark btn-sm">Modele Nom, Commune, Adresse, Mobile</a>
-                                    <a href="{{ route('super-admin.organizations.import-template', 'typed') }}" class="btn btn-outline-dark btn-sm">Modele Type_organisation</a>
+                                    <a href="{{ route('super-admin.organizations.import-template', 'standard') }}" class="btn btn-outline-dark btn-sm">Modèle Nom, Commune, Adresse, Mobile</a>
+                                    <a href="{{ route('super-admin.organizations.import-template', 'typed') }}" class="btn btn-outline-dark btn-sm">Modèle avec sous catégorie</a>
                                 </div>
-                                <div class="small text-secondary mt-2">Telechargez un modele, renseignez les lignes, puis importez le fichier complete.</div>
+                                <div class="small text-secondary mt-2">Téléchargez un modèle, renseignez les lignes, puis importez le fichier complété.</div>
                             </div>
                             <div class="col-12">
                                 <label class="form-label">Fichier CSV ou XLSX<span class="required-star">*</span></label>
                                 <input type="file" name="csv_file" class="form-control" accept=".csv,.xlsx,text/csv,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required>
-                                <div class="small text-secondary mt-2">Mobile peut etre vide ou absent. S il est vide ou trop court, un numero a 10 chiffres sera genere ou complete automatiquement.</div>
+                                <div class="small text-secondary mt-2">Le mobile peut être vide ou absent. S’il est vide ou trop court, un numéro à 10 chiffres sera généré ou complété automatiquement.</div>
                             </div>
                             <div class="col-12">
                                 <div class="alert alert-light border mb-0">
-                                    <div class="fw-semibold mb-1">Regles appliquees</div>
-                                    <div class="small text-secondary">Code institution et cle portail generes depuis le nom, sous catégorie creee depuis Type_organisation si present, admin institutionnel cree avec email en @mysignal.pro et mot de passe par defaut 12345678.</div>
+                                    <div class="fw-semibold mb-1">Règles appliquées</div>
+                                    <div class="small text-secondary">Le code institution, la clé portail et les comptes AI sont générés automatiquement depuis les informations importées.</div>
                                 </div>
                             </div>
                         </div>

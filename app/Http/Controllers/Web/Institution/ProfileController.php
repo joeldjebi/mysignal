@@ -88,6 +88,6 @@ class ProfileController extends Controller
         }
 
         return redirect()->route('institution.profile.edit')
-            ->with('success', 'Votre profil a ete mis a jour.');
+            ->with('success', 'Votre profil a été mis à jour.');
     }
 }

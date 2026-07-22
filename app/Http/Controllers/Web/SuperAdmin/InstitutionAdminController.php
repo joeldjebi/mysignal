@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Feature;
 use App\Models\Organization;
 use App\Models\User;
+use App\Models\UserType;
 use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,8 +20,9 @@ class InstitutionAdminController extends Controller
     {
         $perPage = min(max((int) request()->integer('per_page', 12), 1), 100);
         $query = User::query()
-            ->with(['organization.application.features', 'organization.featureOverrides', 'features'])
+            ->with(['organization.application.features', 'organization.featureOverrides', 'features', 'userType'])
             ->where('is_super_admin', false)
+            ->where('user_type_id', UserType::idFor(UserType::INSTITUTION_ADMIN))
             ->whereNotNull('organization_id')
             ->whereHas('organization', fn ($organizationQuery) => $this->onlyInstitutionOrganizations($organizationQuery));
 
@@ -48,6 +50,31 @@ class InstitutionAdminController extends Controller
                 ->orderBy('name')
                 ->get(),
             'features' => Feature::query()->where('status', 'active')->orderBy('name')->get(),
+            'orphanedAdminsCount' => $this->orphanedInstitutionAdminsQuery()->count(),
+        ]);
+    }
+
+    public function orphaned(Request $request): View
+    {
+        $perPage = min(max((int) $request->integer('per_page', 12), 1), 100);
+        $query = $this->orphanedInstitutionAdminsQuery()
+            ->with(['creator', 'userType']);
+
+        if (filled($request->input('search'))) {
+            $search = trim((string) $request->input('search'));
+            $query->where(function ($builder) use ($search): void {
+                $builder->where('name', 'like', '%'.$search.'%')
+                    ->orWhere('email', 'like', '%'.$search.'%')
+                    ->orWhere('phone', 'like', '%'.$search.'%');
+            });
+        }
+
+        if (filled($request->input('status'))) {
+            $query->where('status', $request->input('status'));
+        }
+
+        return view('super-admin.institution-admins.orphaned', [
+            'admins' => $query->latest()->paginate($perPage)->withQueryString(),
         ]);
     }
 
@@ -59,6 +86,7 @@ class InstitutionAdminController extends Controller
             ->findOrFail($attributes['organization_id']);
 
         $admin = User::query()->create([
+            'user_type_id' => UserType::idFor(UserType::INSTITUTION_ADMIN),
             'organization_id' => $attributes['organization_id'],
             'name' => $attributes['name'],
             'email' => $attributes['email'],
@@ -73,7 +101,7 @@ class InstitutionAdminController extends Controller
 
         $activityLogger->log(
             'institution_admin.created',
-            'Creation d un admin institutionnel.',
+            'Création d’un admin institutionnel.',
             $admin->fresh('features'),
             [
                 'organization_id' => $admin->organization_id,
@@ -84,7 +112,7 @@ class InstitutionAdminController extends Controller
         );
 
         return redirect()->route('super-admin.institution-admins.index')
-            ->with('success', 'L admin institutionnel a ete cree.');
+            ->with('success', 'L’admin institutionnel a été créé.');
     }
 
     public function edit(User $institutionAdmin): View
@@ -133,7 +161,7 @@ class InstitutionAdminController extends Controller
 
         $activityLogger->log(
             'institution_admin.updated',
-            'Mise a jour d un admin institutionnel.',
+            'Mise à jour d’un admin institutionnel.',
             $institutionAdmin->fresh('features'),
             [
                 'before' => $before,
@@ -150,7 +178,7 @@ class InstitutionAdminController extends Controller
         );
 
         return redirect()->route('super-admin.institution-admins.index')
-            ->with('success', 'L admin institutionnel a ete mis a jour.');
+            ->with('success', 'L’admin institutionnel a été mis à jour.');
     }
 
     public function destroy(Request $request, User $institutionAdmin, ActivityLogger $activityLogger): RedirectResponse
@@ -159,7 +187,7 @@ class InstitutionAdminController extends Controller
 
         $activityLogger->log(
             'institution_admin.deleted',
-            'Suppression d un admin institutionnel.',
+            'Suppression d’un admin institutionnel.',
             $institutionAdmin,
             [
                 'organization_id' => $institutionAdmin->organization_id,
@@ -171,7 +199,7 @@ class InstitutionAdminController extends Controller
         $institutionAdmin->delete();
 
         return redirect()->route('super-admin.institution-admins.index')
-            ->with('success', 'L admin institutionnel a ete supprime.');
+            ->with('success', 'L’admin institutionnel a été supprimé.');
     }
 
     public function toggleStatus(Request $request, User $institutionAdmin, ActivityLogger $activityLogger): RedirectResponse
@@ -186,7 +214,7 @@ class InstitutionAdminController extends Controller
 
         $activityLogger->log(
             'institution_admin.status_toggled',
-            'Changement de statut d un admin institutionnel.',
+            'Changement de statut d’un admin institutionnel.',
             $institutionAdmin,
             [
                 'before' => $previousStatus,
@@ -196,7 +224,7 @@ class InstitutionAdminController extends Controller
             $request->user(),
         );
 
-        return back()->with('success', 'Le statut de l admin institutionnel a ete mis a jour.');
+        return back()->with('success', 'Le statut de l’admin institutionnel a été mis à jour.');
     }
 
     private function validateRequest(Request $request, ?User $user = null): array
@@ -274,9 +302,18 @@ class InstitutionAdminController extends Controller
 
         abort_if(
             $user->is_super_admin
+                || (int) $user->user_type_id !== (int) UserType::idFor(UserType::INSTITUTION_ADMIN)
                 || $user->organization_id === null
                 || $user->organization?->organizationType?->code === 'PARTNER_ESTABLISHMENT',
             404
         );
+    }
+
+    private function orphanedInstitutionAdminsQuery()
+    {
+        return User::query()
+            ->where('is_super_admin', false)
+            ->where('user_type_id', UserType::idFor(UserType::INSTITUTION_ADMIN))
+            ->whereNull('organization_id');
     }
 }

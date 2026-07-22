@@ -46,7 +46,7 @@ class PersistIncidentReportDamageAction
 
         $this->activityLogger->log(
             'public.report.damage_declared',
-            'Declaration d un dommage sur un signalement apres paiement.',
+            'Déclaration d’un dommage sur un signalement après paiement.',
             $report,
             [
                 'reference' => $report->reference,
@@ -72,25 +72,25 @@ class PersistIncidentReportDamageAction
 
         if ($report->resolution_confirmation_status !== 'confirmed') {
             throw ValidationException::withMessages([
-                'report_id' => ['Confirmez d abord la resolution du signalement avant d enregistrer un dommage.'],
+                'report_id' => ['Confirmez d’abord la résolution du signalement avant d’enregistrer un dommage.'],
             ]);
         }
 
         if ($report->damage_declared_at !== null) {
             throw ValidationException::withMessages([
-                'report_id' => ['Le dommage pour ce signalement a deja ete enregistre.'],
+                'report_id' => ['Le dommage pour ce signalement a déjà été enregistré.'],
             ]);
         }
 
         if ($report->resolution_confirmed_at === null) {
             throw ValidationException::withMessages([
-                'report_id' => ['La date de confirmation de resolution est introuvable pour ce signalement.'],
+                'report_id' => ['La date de confirmation de résolution est introuvable pour ce signalement.'],
             ]);
         }
 
         if ($enforceWindow && now()->greaterThan($report->resolution_confirmed_at->copy()->addDay())) {
             throw ValidationException::withMessages([
-                'report_id' => ['Le delai de 24h pour declarer un dommage apres confirmation de resolution est depasse.'],
+                'report_id' => ['Le délai de 24 h pour déclarer un dommage après confirmation de résolution est dépassé.'],
             ]);
         }
     }

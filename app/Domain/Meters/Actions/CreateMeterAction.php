@@ -25,7 +25,7 @@ class CreateMeterAction
 
             if ($organization === null) {
                 throw ValidationException::withMessages([
-                    'organization_id' => ['L organisation selectionnee n appartient pas a l application choisie.'],
+                    'organization_id' => ['L’institution sélectionnée n’appartient pas à la catégorie choisie.'],
                 ]);
             }
 
@@ -73,7 +73,7 @@ class CreateMeterAction
 
             if ($user->meters()->whereKey($meter->id)->exists()) {
                 throw ValidationException::withMessages([
-                    'meter_number' => ['Ce compteur est deja rattache a votre compte.'],
+                    'meter_number' => ['Ce compteur est déjà rattaché à votre compte.'],
                 ]);
             }
 
@@ -185,7 +185,7 @@ class CreateMeterAction
                     'EAU_POTABLE' => 'Eau potable',
                     default => $code,
                 },
-                'description' => 'Type historique cree automatiquement pour compatibilite.',
+                'description' => 'Type historique créé automatiquement pour compatibilité.',
                 'status' => 'active',
             ],
         );

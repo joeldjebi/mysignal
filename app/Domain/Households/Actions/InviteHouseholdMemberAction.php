@@ -21,7 +21,7 @@ class InviteHouseholdMemberAction
 
         if ($payload['phone'] === $actor->phone) {
             throw ValidationException::withMessages([
-                'phone' => ['Vous ne pouvez pas vous inviter vous-meme dans votre propre foyer.'],
+                'phone' => ['Vous ne pouvez pas vous inviter vous-même dans votre propre foyer.'],
             ]);
         }
 
@@ -31,13 +31,13 @@ class InviteHouseholdMemberAction
 
         if ($invitedUser === null) {
             throw ValidationException::withMessages([
-                'phone' => ['Ce numero ne correspond a aucun compte public existant.'],
+                'phone' => ['Ce numéro ne correspond à aucun compte public existant.'],
             ]);
         }
 
         if ($household->members()->whereHas('publicUser', fn ($query) => $query->where('phone', $payload['phone']))->exists()) {
             throw ValidationException::withMessages([
-                'phone' => ['Ce numero appartient deja a un membre du foyer.'],
+                'phone' => ['Ce numéro appartient déjà à un membre du foyer.'],
             ]);
         }
 
@@ -48,7 +48,7 @@ class InviteHouseholdMemberAction
 
             if (! $sharedMeter instanceof Meter) {
                 throw ValidationException::withMessages([
-                    'meter_id' => ['Le compteur commun selectionne ne vous appartient pas.'],
+                    'meter_id' => ['Le compteur commun sélectionné ne vous appartient pas.'],
                 ]);
             }
         }

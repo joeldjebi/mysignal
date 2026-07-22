@@ -53,7 +53,7 @@ class CityController extends Controller
         ]);
 
         return redirect()->route('super-admin.cities.index')
-            ->with('success', 'La ville a ete creee.');
+            ->with('success', 'La ville a été créée.');
     }
 
     public function edit(City $city): View
@@ -79,7 +79,7 @@ class CityController extends Controller
         ]);
 
         return redirect()->route('super-admin.cities.index')
-            ->with('success', 'La ville a ete mise a jour.');
+            ->with('success', 'La ville a été mise à jour.');
     }
 
     public function destroy(City $city): RedirectResponse
@@ -87,7 +87,7 @@ class CityController extends Controller
         $city->delete();
 
         return redirect()->route('super-admin.cities.index')
-            ->with('success', 'La ville a ete supprimee.');
+            ->with('success', 'La ville a été supprimée.');
     }
 
     public function toggleStatus(City $city): RedirectResponse
@@ -96,6 +96,6 @@ class CityController extends Controller
             'status' => $city->status === 'active' ? 'inactive' : 'active',
         ]);
 
-        return back()->with('success', 'Le statut de la ville a ete mis a jour.');
+        return back()->with('success', 'Le statut de la ville a été mis à jour.');
     }
 }

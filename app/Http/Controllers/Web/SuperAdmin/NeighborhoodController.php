@@ -54,7 +54,7 @@ class NeighborhoodController extends Controller
         ]);
 
         return redirect()->route('super-admin.neighborhoods.index')
-            ->with('success', 'Le quartier a ete cree.');
+            ->with('success', 'Le quartier a été créé.');
     }
 
     public function edit(Neighborhood $neighborhood): View
@@ -80,7 +80,7 @@ class NeighborhoodController extends Controller
         ]);
 
         return redirect()->route('super-admin.neighborhoods.index')
-            ->with('success', 'Le quartier a ete mis a jour.');
+            ->with('success', 'Le quartier a été mis à jour.');
     }
 
     public function destroy(Neighborhood $neighborhood): RedirectResponse
@@ -88,7 +88,7 @@ class NeighborhoodController extends Controller
         $neighborhood->delete();
 
         return redirect()->route('super-admin.neighborhoods.index')
-            ->with('success', 'Le quartier a ete supprime.');
+            ->with('success', 'Le quartier a été supprimé.');
     }
 
     public function toggleStatus(Neighborhood $neighborhood): RedirectResponse
@@ -97,6 +97,6 @@ class NeighborhoodController extends Controller
             'status' => $neighborhood->status === 'active' ? 'inactive' : 'active',
         ]);
 
-        return back()->with('success', 'Le statut du quartier a ete mis a jour.');
+        return back()->with('success', 'Le statut du quartier a été mis à jour.');
     }
 }

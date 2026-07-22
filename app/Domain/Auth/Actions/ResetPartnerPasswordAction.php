@@ -22,7 +22,7 @@ class ResetPartnerPasswordAction
 
         if ($verification === null || $verification->expires_at->isPast()) {
             throw ValidationException::withMessages([
-                'verification_token' => ['La verification du numero a expire ou est invalide.'],
+                'verification_token' => ['La vérification du numéro a expiré ou est invalide.'],
             ]);
         }
 
@@ -39,7 +39,7 @@ class ResetPartnerPasswordAction
             $user->organization?->organizationType?->code !== 'PARTNER_ESTABLISHMENT'
         ) {
             throw ValidationException::withMessages([
-                'phone' => ['Aucun compte partenaire actif n a ete trouve pour ce numero.'],
+                'phone' => ['Aucun compte partenaire actif n’a été trouvé pour ce numéro.'],
             ]);
         }
 

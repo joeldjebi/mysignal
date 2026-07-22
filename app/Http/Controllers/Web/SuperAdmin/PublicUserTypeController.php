@@ -40,7 +40,7 @@ class PublicUserTypeController extends Controller
         PublicUserType::query()->create($this->validatedPayload($request));
 
         return redirect()->route('super-admin.public-user-types.index')
-            ->with('success', 'Le type d usager public a ete cree.');
+            ->with('success', 'Le type d’usager public a été créé.');
     }
 
     public function edit(PublicUserType $publicUserType): View
@@ -56,7 +56,7 @@ class PublicUserTypeController extends Controller
         $publicUserType->update($this->validatedPayload($request, $publicUserType));
 
         return redirect()->route('super-admin.public-user-types.index')
-            ->with('success', 'Le type d usager public a ete mis a jour.');
+            ->with('success', 'Le type d’usager public a été mis à jour.');
     }
 
     public function destroy(PublicUserType $publicUserType): RedirectResponse
@@ -64,7 +64,7 @@ class PublicUserTypeController extends Controller
         $publicUserType->delete();
 
         return redirect()->route('super-admin.public-user-types.index')
-            ->with('success', 'Le type d usager public a ete supprime.');
+            ->with('success', 'Le type d’usager public a été supprimé.');
     }
 
     public function toggleStatus(PublicUserType $publicUserType): RedirectResponse
@@ -73,7 +73,7 @@ class PublicUserTypeController extends Controller
             'status' => $publicUserType->status === 'active' ? 'inactive' : 'active',
         ]);
 
-        return back()->with('success', 'Le statut du type d usager public a ete mis a jour.');
+        return back()->with('success', 'Le statut du type d’usager public a été mis à jour.');
     }
 
     private function validatedPayload(Request $request, ?PublicUserType $publicUserType = null): array

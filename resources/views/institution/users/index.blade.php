@@ -1,13 +1,13 @@
 @extends('institution.layouts.app')
 
-@section('title', config('app.name').' | Users')
-@section('page-title', 'Users')
-@section('page-description', 'Creer les collaborateurs de l institution et leur attribuer roles et permissions.')
+@section('title', config('app.name').' | Collaborateurs')
+@section('page-title', 'Collaborateurs')
+@section('page-description', 'Créer les collaborateurs de l’institution et leur attribuer rôles et permissions.')
 
 @section('header-badges')
-    <span class="badge-soft">{{ $users->total() }} users</span>
+    <span class="badge-soft">{{ $users->total() }} collaborateur{{ $users->total() > 1 ? 's' : '' }}</span>
     @if ($authorization['canManageInstitutionRoles'])
-        <span class="badge-soft">{{ $roles->count() }} roles</span>
+        <span class="badge-soft">{{ $roles->count() }} rôle{{ $roles->count() > 1 ? 's' : '' }}</span>
     @endif
     @if ($authorization['canManageInstitutionPermissions'])
         <span class="badge-soft">{{ $permissions->count() }} permissions</span>
@@ -40,7 +40,7 @@
                     </div>
                     @if ($authorization['canManageInstitutionRoles'])
                         <div>
-                            <label class="form-label">Roles</label>
+                            <label class="form-label">Rôles</label>
                             <div class="border rounded-3 p-2" style="max-height: 180px; overflow:auto;">
                                 @forelse ($roles as $role)
                                     <div class="form-check">
@@ -48,7 +48,7 @@
                                         <label class="form-check-label" for="user-role-create-{{ $role->id }}">{{ $role->name }}</label>
                                     </div>
                                 @empty
-                                    <div class="text-secondary small">Aucun role local disponible pour le moment.</div>
+                                    <div class="text-secondary small">Aucun rôle local disponible pour le moment.</div>
                                 @endforelse
                             </div>
                         </div>
@@ -71,12 +71,12 @@
                                         @endforeach
                                     </div>
                                 @empty
-                                    <div class="text-secondary small">Aucune permission disponible. Verifiez les fonctionnalites affectees par le super admin.</div>
+                                    <div class="text-secondary small">Aucune permission disponible. Vérifiez les fonctionnalités attribuées par le super admin.</div>
                                 @endforelse
                             </div>
                         </div>
                     @endif
-                    <button type="submit" class="btn btn-dark">Creer</button>
+                    <button type="submit" class="btn btn-dark">Créer</button>
                 </form>
             </section>
         </div>
@@ -87,11 +87,11 @@
                     <div class="row g-2 align-items-end">
                         <div class="col-md-5">
                             <label class="form-label small text-secondary">Recherche</label>
-                            <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Nom, email, telephone">
+                            <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Nom, email, téléphone">
                         </div>
                         @if ($authorization['canManageInstitutionRoles'])
                             <div class="col-md-4">
-                                <label class="form-label small text-secondary">Role</label>
+                                <label class="form-label small text-secondary">Rôle</label>
                                 <select name="role_id" class="form-select">
                                     <option value="">Tous</option>
                                     @foreach ($roles as $role)
@@ -111,11 +111,11 @@
                     </div>
                     <div class="d-flex gap-2 mt-2">
                         <button class="btn btn-dark">Filtrer</button>
-                        <a href="{{ route('institution.users.index') }}" class="btn btn-outline-secondary">RAZ</a>
+                        <a href="{{ route('institution.users.index') }}" class="btn btn-outline-secondary">Réinitialiser</a>
                     </div>
                 </form>
                 <div class="table-toolbar">
-                    <div class="table-meta">{{ $users->total() }} resultat{{ $users->total() > 1 ? 's' : '' }}</div>
+                    <div class="table-meta">{{ $users->total() }} résultat{{ $users->total() > 1 ? 's' : '' }}</div>
                 </div>
                 <div class="table-card">
                     <div class="table-responsive">
@@ -124,7 +124,7 @@
                                 <tr>
                                     <th>Collaborateur</th>
                                     @if ($authorization['canManageInstitutionRoles'])
-                                        <th>Roles</th>
+                                        <th>Rôles</th>
                                     @endif
                                     @if ($authorization['canManageInstitutionPermissions'])
                                         <th>Permissions directes</th>
@@ -157,7 +157,7 @@
                                                     <form method="POST" action="{{ route('institution.users.toggle-status', $user) }}">
                                                         @csrf
                                                         @method('PATCH')
-                                                        <button class="btn btn-sm btn-outline-warning">{{ $user->status === 'active' ? 'Desactiver' : 'Activer' }}</button>
+                                                        <button class="btn btn-sm btn-outline-warning">{{ $user->status === 'active' ? 'Désactiver' : 'Activer' }}</button>
                                                     </form>
                                                     <form method="POST" action="{{ route('institution.users.destroy', $user) }}">
                                                         @csrf
@@ -169,7 +169,7 @@
                                         </td>
                                     </tr>
                                 @empty
-                                    <tr><td colspan="{{ 3 + ($authorization['canManageInstitutionRoles'] ? 1 : 0) + ($authorization['canManageInstitutionPermissions'] ? 1 : 0) }}" class="text-center text-secondary">Aucun collaborateur enregistre.</td></tr>
+                                    <tr><td colspan="{{ 3 + ($authorization['canManageInstitutionRoles'] ? 1 : 0) + ($authorization['canManageInstitutionPermissions'] ? 1 : 0) }}" class="text-center text-secondary">Aucun collaborateur enregistré.</td></tr>
                                 @endforelse
                             </tbody>
                         </table>

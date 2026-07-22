@@ -53,7 +53,7 @@ class CommuneController extends Controller
         ]);
 
         return redirect()->route('super-admin.communes.index')
-            ->with('success', 'La commune a ete creee.');
+            ->with('success', 'La commune a été créée.');
     }
 
     public function edit(Commune $commune): View
@@ -79,7 +79,7 @@ class CommuneController extends Controller
         ]);
 
         return redirect()->route('super-admin.communes.index')
-            ->with('success', 'La commune a ete mise a jour.');
+            ->with('success', 'La commune a été mise à jour.');
     }
 
     public function destroy(Commune $commune): RedirectResponse
@@ -87,7 +87,7 @@ class CommuneController extends Controller
         $commune->delete();
 
         return redirect()->route('super-admin.communes.index')
-            ->with('success', 'La commune a ete supprimee.');
+            ->with('success', 'La commune a été supprimée.');
     }
 
     public function toggleStatus(Commune $commune): RedirectResponse
@@ -96,6 +96,6 @@ class CommuneController extends Controller
             'status' => $commune->status === 'active' ? 'inactive' : 'active',
         ]);
 
-        return back()->with('success', 'Le statut de la commune a ete mis a jour.');
+        return back()->with('success', 'Le statut de la commune a été mis à jour.');
     }
 }

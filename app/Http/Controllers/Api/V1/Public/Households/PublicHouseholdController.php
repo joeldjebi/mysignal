@@ -49,7 +49,7 @@ class PublicHouseholdController extends Controller
 
         return ApiResponse::success([
             'household' => new HouseholdResource($household),
-        ], 'Gonhi cree avec succes.', 201);
+        ], 'Gbonhi créé avec succès.', 201);
     }
 
     public function showMine(Request $request)
@@ -60,7 +60,7 @@ class PublicHouseholdController extends Controller
             return ApiResponse::success([
                 'household' => null,
                 'households' => [],
-            ], 'Aucun Gonhi rattache a ce compte.');
+            ], 'Aucun Gbonhi rattaché à ce compte.');
         }
 
         return ApiResponse::success([
@@ -80,7 +80,7 @@ class PublicHouseholdController extends Controller
         return ApiResponse::success([
             'household' => $households->isNotEmpty() ? new HouseholdResource($households->first()) : null,
             'households' => HouseholdResource::collection($households),
-        ], 'Gbonhi supprime avec succes.');
+        ], 'Gbonhi supprimé avec succès.');
     }
 
     private function userHouseholds(PublicUser $user)
@@ -121,7 +121,7 @@ class PublicHouseholdController extends Controller
 
         return ApiResponse::success([
             'invitation' => new HouseholdInvitationResource($invitation),
-        ], 'Invitation Gonhi envoyee avec succes.', 201);
+        ], 'Invitation Gbonhi envoyée avec succès.', 201);
     }
 
     public function cancelInvitation(Request $request, HouseholdInvitation $invitation, CancelHouseholdInvitationAction $action)
@@ -137,7 +137,7 @@ class PublicHouseholdController extends Controller
             'invitation' => new HouseholdInvitationResource($invitation->fresh()),
             'household' => $selectedHousehold ? new HouseholdResource($selectedHousehold) : null,
             'households' => HouseholdResource::collection($households),
-        ], 'Invitation Gbonhi annulee avec succes.');
+        ], 'Invitation Gbonhi annulée avec succès.');
     }
 
     public function removeMember(Request $request, Household $household, HouseholdMember $member, RemoveHouseholdMemberAction $action)
@@ -154,7 +154,7 @@ class PublicHouseholdController extends Controller
         return ApiResponse::success([
             'household' => $selectedHousehold ? new HouseholdResource($selectedHousehold) : null,
             'households' => HouseholdResource::collection($households),
-        ], 'Membre retire du Gbonhi avec succes.');
+        ], 'Membre retiré du Gbonhi avec succès.');
     }
 
     public function accept(AcceptHouseholdInvitationRequest $request, AcceptHouseholdInvitationAction $action)
@@ -170,7 +170,7 @@ class PublicHouseholdController extends Controller
 
         return ApiResponse::success([
             'household' => new HouseholdResource($household),
-        ], 'Invitation Gonhi acceptee avec succes.');
+        ], 'Invitation Gbonhi acceptée avec succès.');
     }
 
     public function decline(DeclineHouseholdInvitationRequest $request, DeclineHouseholdInvitationAction $action)
@@ -184,7 +184,7 @@ class PublicHouseholdController extends Controller
                     ->latest('id')
                     ->get()
             ),
-        ], 'Invitation Gonhi declinee avec succes.');
+        ], 'Invitation Gbonhi refusée avec succès.');
     }
 
     private function pendingInvitationsQuery(?string $phone)

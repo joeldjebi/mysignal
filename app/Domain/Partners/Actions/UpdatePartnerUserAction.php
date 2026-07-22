@@ -46,7 +46,7 @@ class UpdatePartnerUserAction
             $target->organization?->organizationType?->code !== 'PARTNER_ESTABLISHMENT'
         ) {
             throw ValidationException::withMessages([
-                'user' => ['Cet utilisateur n appartient pas a votre etablissement partenaire.'],
+                'user' => ['Cet utilisateur n’appartient pas à votre établissement partenaire.'],
             ]);
         }
     }

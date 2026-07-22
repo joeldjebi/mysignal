@@ -8,6 +8,7 @@ use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\UserAccess;
+use App\Models\UserType;
 use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,7 +24,12 @@ class SystemUserController extends Controller
         $query = User::query()
             ->with(['roles', 'roles.permissions'])
             ->whereNull('organization_id')
-            ->where('is_super_admin', false);
+            ->where('is_super_admin', false)
+            ->whereIn('user_type_id', array_filter([
+                UserType::idFor(UserType::SA_USER),
+                UserType::idFor(UserType::PARTNER_MANAGER),
+                UserType::idFor(UserType::PARTNER_SCAN_AGENT),
+            ]));
 
         if (filled(request('search'))) {
             $search = trim((string) request('search'));
@@ -55,7 +61,16 @@ class SystemUserController extends Controller
             'systemUsers' => $systemUsers,
             'roles' => Role::query()->whereNull('organization_id')->where('status', 'active')->orderBy('name')->get(),
             'partnerOrganizations' => $this->partnerOrganizations(),
-            'visibleActivityUsers' => User::query()->whereNull('organization_id')->where('is_super_admin', false)->orderBy('name')->get(['id', 'name', 'email']),
+            'visibleActivityUsers' => User::query()
+                ->whereNull('organization_id')
+                ->where('is_super_admin', false)
+                ->whereIn('user_type_id', array_filter([
+                    UserType::idFor(UserType::SA_USER),
+                    UserType::idFor(UserType::PARTNER_MANAGER),
+                    UserType::idFor(UserType::PARTNER_SCAN_AGENT),
+                ]))
+                ->orderBy('name')
+                ->get(['id', 'name', 'email']),
         ]);
     }
 
@@ -66,6 +81,7 @@ class SystemUserController extends Controller
 
         DB::transaction(function () use ($attributes, $request, &$createdUser): void {
             $createdUser = User::query()->create([
+                'user_type_id' => $this->userTypeIdForPayload($attributes),
                 'organization_id' => null,
                 'name' => $attributes['name'],
                 'email' => $attributes['email'],
@@ -85,7 +101,7 @@ class SystemUserController extends Controller
         if ($createdUser instanceof User) {
             $activityLogger->log(
                 'system_user.created',
-                'Creation d un utilisateur interne.',
+                'Création d’un utilisateur interne.',
                 $createdUser,
                 [
                     'role_ids' => $attributes['role_ids'] ?? [],
@@ -97,7 +113,7 @@ class SystemUserController extends Controller
         }
 
         return redirect()->route('super-admin.system-users.index')
-            ->with('success', 'L utilisateur interne a ete cree.');
+            ->with('success', 'L’utilisateur interne a été créé.');
     }
 
     public function edit(User $systemUser): View
@@ -111,6 +127,11 @@ class SystemUserController extends Controller
             'visibleActivityUsers' => User::query()
                 ->whereNull('organization_id')
                 ->where('is_super_admin', false)
+                ->whereIn('user_type_id', array_filter([
+                    UserType::idFor(UserType::SA_USER),
+                    UserType::idFor(UserType::PARTNER_MANAGER),
+                    UserType::idFor(UserType::PARTNER_SCAN_AGENT),
+                ]))
                 ->whereKeyNot($systemUser->id)
                 ->orderBy('name')
                 ->get(['id', 'name', 'email']),
@@ -161,6 +182,8 @@ class SystemUserController extends Controller
                 $payload['password'] = Hash::make($attributes['password']);
             }
 
+            $payload['user_type_id'] = $this->userTypeIdForPayload($attributes);
+
             $systemUser->update($payload);
             $systemUser->roles()->sync($attributes['role_ids'] ?? []);
             $systemUser->permissions()->sync([]);
@@ -170,7 +193,7 @@ class SystemUserController extends Controller
 
         $activityLogger->log(
             'system_user.updated',
-            'Mise a jour d un utilisateur interne.',
+            'Mise à jour d’un utilisateur interne.',
             $systemUser->fresh(['roles.permissions']),
             [
                 'before' => $before,
@@ -187,7 +210,7 @@ class SystemUserController extends Controller
         );
 
         return redirect()->route('super-admin.system-users.index')
-            ->with('success', 'L utilisateur interne a ete mis a jour.');
+            ->with('success', 'L’utilisateur interne a été mis à jour.');
     }
 
     public function destroy(Request $request, User $systemUser, ActivityLogger $activityLogger): RedirectResponse
@@ -195,7 +218,7 @@ class SystemUserController extends Controller
         $this->abortIfNotManageable($systemUser);
         $activityLogger->log(
             'system_user.deleted',
-            'Suppression d un utilisateur interne.',
+            'Suppression d’un utilisateur interne.',
             $systemUser,
             [
                 'email' => $systemUser->email,
@@ -206,7 +229,7 @@ class SystemUserController extends Controller
         $systemUser->delete();
 
         return redirect()->route('super-admin.system-users.index')
-            ->with('success', 'L utilisateur interne a ete supprime.');
+            ->with('success', 'L’utilisateur interne a été supprimé.');
     }
 
     public function toggleStatus(Request $request, User $systemUser, ActivityLogger $activityLogger): RedirectResponse
@@ -220,7 +243,7 @@ class SystemUserController extends Controller
 
         $activityLogger->log(
             'system_user.status_toggled',
-            'Changement de statut d un utilisateur interne.',
+            'Changement de statut d’un utilisateur interne.',
             $systemUser,
             [
                 'before' => $previousStatus,
@@ -230,7 +253,7 @@ class SystemUserController extends Controller
             $request->user(),
         );
 
-        return back()->with('success', 'Le statut de l utilisateur interne a ete mis a jour.');
+        return back()->with('success', 'Le statut de l’utilisateur interne a été mis à jour.');
     }
 
     private function validateRequest(Request $request, ?User $user = null): array
@@ -259,7 +282,25 @@ class SystemUserController extends Controller
 
     private function abortIfNotManageable(User $user): void
     {
-        abort_if($user->is_super_admin || $user->organization_id !== null, 404);
+        abort_if(
+            $user->is_super_admin
+                || $user->organization_id !== null
+                || (int) $user->user_type_id === (int) UserType::idFor(UserType::INSTITUTION_ADMIN),
+            404
+        );
+    }
+
+    private function userTypeIdForPayload(array $attributes): ?int
+    {
+        if (! $this->selectedRolesContainPartner($attributes['role_ids'] ?? [])) {
+            return UserType::idFor(UserType::SA_USER);
+        }
+
+        if ($this->selectedRolesContainPartnerScanAgent($attributes['role_ids'] ?? [])) {
+            return UserType::idFor(UserType::PARTNER_SCAN_AGENT);
+        }
+
+        return UserType::idFor(UserType::PARTNER_MANAGER);
     }
 
     private function syncPartnerAccess(User $user, array $attributes, ?int $createdBy = null): void
@@ -306,6 +347,20 @@ class SystemUserController extends Controller
             ->exists();
     }
 
+    private function selectedRolesContainPartnerScanAgent(array $roleIds): bool
+    {
+        $roleIds = collect($roleIds)->filter()->map(fn ($roleId) => (int) $roleId)->all();
+
+        if ($roleIds === []) {
+            return false;
+        }
+
+        return Role::query()
+            ->whereIn('id', $roleIds)
+            ->where('code', 'PARTNER_SCAN_AGENT')
+            ->exists();
+    }
+
     private function partnerOrganizations()
     {
         return Organization::query()
@@ -328,11 +383,11 @@ class SystemUserController extends Controller
         $scopes = $permissions->pluck('profile_scope')->filter();
 
         if ($codes->contains(fn (string $code) => str_starts_with($code, 'PARTNER_')) || $scopes->contains('partner')) {
-            return ['url' => route('partner.login'), 'label' => 'Login partenaire'];
+            return ['url' => route('partner.login'), 'label' => 'Connexion partenaire'];
         }
 
         if ($codes->contains(fn (string $code) => str_starts_with($code, 'INSTITUTION_')) || $scopes->contains('institution')) {
-            return ['url' => route('institution.login'), 'label' => 'Login institution'];
+            return ['url' => route('institution.login'), 'label' => 'Connexion institution'];
         }
 
         if (
@@ -340,14 +395,14 @@ class SystemUserController extends Controller
             || $codes->contains(fn (string $code) => str_starts_with($code, 'BO_'))
             || $scopes->intersect(['backoffice', 'huissier', 'aoda', 'avocat'])->isNotEmpty()
         ) {
-            return ['url' => route('backoffice.login'), 'label' => 'Login backoffice'];
+            return ['url' => route('backoffice.login'), 'label' => 'Connexion back-office'];
         }
 
         if ($codes->contains(fn (string $code) => str_starts_with($code, 'SA_')) || $scopes->contains('super_admin')) {
-            return ['url' => route('super-admin.login'), 'label' => 'Login SA'];
+            return ['url' => route('super-admin.login'), 'label' => 'Connexion SA'];
         }
 
-        return ['url' => route('backoffice.login'), 'label' => 'Login backoffice'];
+        return ['url' => route('backoffice.login'), 'label' => 'Connexion back-office'];
     }
 
     private function abortIfProfileAccessIsNotManageable(User $user): void

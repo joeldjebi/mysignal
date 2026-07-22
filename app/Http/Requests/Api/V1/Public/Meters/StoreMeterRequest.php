@@ -92,12 +92,12 @@ class StoreMeterRequest extends FormRequest
             $organization = Organization::query()->whereKey($organizationId)->where('status', 'active')->first();
 
             if ($application === null) {
-                $validator->errors()->add('application_id', 'L application selectionnee est invalide.');
+                $validator->errors()->add('application_id', 'La catégorie sélectionnée est invalide.');
                 return;
             }
 
             if ($organization === null || (int) $organization->application_id !== $application->id) {
-                $validator->errors()->add('organization_id', 'L organisation selectionnee n appartient pas a l application choisie.');
+                $validator->errors()->add('organization_id', 'L’institution sélectionnée n’appartient pas à la catégorie choisie.');
             }
         });
     }

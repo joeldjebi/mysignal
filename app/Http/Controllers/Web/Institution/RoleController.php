@@ -46,8 +46,8 @@ class RoleController extends Controller
             'permissions' => $permissions,
             'groupedPermissions' => $permissions->groupBy(function ($permission): string {
                 return match (true) {
-                    str_starts_with($permission->code, 'INSTITUTION_DASHBOARD_') => 'Dashboard institutionnel',
-                    str_starts_with($permission->code, 'INSTITUTION_') => 'Acces institutionnels',
+                    str_starts_with($permission->code, 'INSTITUTION_DASHBOARD_') => 'Tableau de bord institutionnel',
+                    str_starts_with($permission->code, 'INSTITUTION_') => 'Accès institutionnels',
                     str_starts_with($permission->code, 'PUBLIC_') => 'Modules publics',
                     default => 'Autres permissions',
                 };
@@ -72,7 +72,7 @@ class RoleController extends Controller
 
         if (Role::query()->where('code', $roleCode)->exists()) {
             return back()
-                ->withErrors(['code' => 'Ce code de role existe deja pour cette institution.'])
+                ->withErrors(['code' => 'Ce code de rôle existe déjà pour cette institution.'])
                 ->withInput();
         }
 
@@ -91,7 +91,7 @@ class RoleController extends Controller
         });
 
         return redirect()->route('institution.roles.index')
-            ->with('success', 'Le role a ete cree.');
+            ->with('success', 'Le rôle a été créé.');
     }
 
     public function edit(Role $role): View
@@ -113,8 +113,8 @@ class RoleController extends Controller
             'permissions' => $permissions,
             'groupedPermissions' => $permissions->groupBy(function ($permission): string {
                 return match (true) {
-                    str_starts_with($permission->code, 'INSTITUTION_DASHBOARD_') => 'Dashboard institutionnel',
-                    str_starts_with($permission->code, 'INSTITUTION_') => 'Acces institutionnels',
+                    str_starts_with($permission->code, 'INSTITUTION_DASHBOARD_') => 'Tableau de bord institutionnel',
+                    str_starts_with($permission->code, 'INSTITUTION_') => 'Accès institutionnels',
                     str_starts_with($permission->code, 'PUBLIC_') => 'Modules publics',
                     default => 'Autres permissions',
                 };
@@ -142,7 +142,7 @@ class RoleController extends Controller
 
         if (Role::query()->where('code', $roleCode)->whereKeyNot($role->id)->exists()) {
             return back()
-                ->withErrors(['code' => 'Ce code de role existe deja pour cette institution.'])
+                ->withErrors(['code' => 'Ce code de rôle existe déjà pour cette institution.'])
                 ->withInput();
         }
 
@@ -160,7 +160,7 @@ class RoleController extends Controller
         });
 
         return redirect()->route('institution.roles.index')
-            ->with('success', 'Le role a ete mis a jour.');
+            ->with('success', 'Le rôle a été mis à jour.');
     }
 
     public function destroy(Role $role): RedirectResponse
@@ -173,7 +173,7 @@ class RoleController extends Controller
         $role->delete();
 
         return redirect()->route('institution.roles.index')
-            ->with('success', 'Le role a ete supprime.');
+            ->with('success', 'Le rôle a été supprimé.');
     }
 
     public function toggleStatus(Role $role): RedirectResponse
@@ -187,7 +187,7 @@ class RoleController extends Controller
             'status' => $role->status === 'active' ? 'inactive' : 'active',
         ]);
 
-        return back()->with('success', 'Le statut du role a ete mis a jour.');
+        return back()->with('success', 'Le statut du rôle a été mis à jour.');
     }
 
     private function validateRequest(Request $request, int $organizationId, ?Role $role = null): array

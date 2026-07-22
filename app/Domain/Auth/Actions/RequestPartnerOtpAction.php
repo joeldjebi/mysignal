@@ -28,7 +28,7 @@ class RequestPartnerOtpAction
             $user->organization?->organizationType?->code !== 'PARTNER_ESTABLISHMENT'
         ) {
             throw ValidationException::withMessages([
-                'phone' => ['Aucun compte partenaire actif n a ete trouve pour ce numero.'],
+                'phone' => ['Aucun compte partenaire actif n’a été trouvé pour ce numéro.'],
             ]);
         }
 

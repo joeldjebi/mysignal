@@ -24,7 +24,7 @@ class VerifyPublicOtpAction
 
         if ($otp === null) {
             throw ValidationException::withMessages([
-                'phone' => ['Aucun code OTP valide n’a ete trouve pour ce numero.'],
+                'phone' => ['Aucun code OTP valide n’a été trouvé pour ce numéro.'],
             ]);
         }
 
@@ -36,7 +36,7 @@ class VerifyPublicOtpAction
 
         if ($otp->attempts >= $otp->max_attempts) {
             throw ValidationException::withMessages([
-                'code' => ['Le nombre maximal de tentatives OTP a ete atteint.'],
+                'code' => ['Le nombre maximal de tentatives OTP a été atteint.'],
             ]);
         }
 

@@ -20,13 +20,13 @@ class TogglePartnerUserStatusAction
             $target->organization?->organizationType?->code !== 'PARTNER_ESTABLISHMENT'
         ) {
             throw ValidationException::withMessages([
-                'user' => ['Cet utilisateur n appartient pas a votre etablissement partenaire.'],
+                'user' => ['Cet utilisateur n’appartient pas à votre établissement partenaire.'],
             ]);
         }
 
         if ((int) $actor->id === (int) $target->id) {
             throw ValidationException::withMessages([
-                'user' => ['Vous ne pouvez pas modifier votre propre statut depuis cette operation.'],
+                'user' => ['Vous ne pouvez pas modifier votre propre statut depuis cette opération.'],
             ]);
         }
 

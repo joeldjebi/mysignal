@@ -19,7 +19,7 @@ class PartnerProfileController extends Controller
 
         $activityLogger->log(
             'partner.profile.updated',
-            'Mise a jour du profil partenaire.',
+            'Mise à jour du profil partenaire.',
             $user,
             [
                 'organization_id' => $user->organization_id,

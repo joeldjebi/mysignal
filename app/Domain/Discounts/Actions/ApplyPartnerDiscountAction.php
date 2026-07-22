@@ -37,7 +37,7 @@ class ApplyPartnerDiscountAction
 
         if (! isset($payload['offer_id'])) {
             throw ValidationException::withMessages([
-                'offer_id' => ['Selectionnez une offre pour cette carte.'],
+                'offer_id' => ['Sélectionnez une offre pour cette carte.'],
             ]);
         }
 
@@ -100,7 +100,7 @@ class ApplyPartnerDiscountAction
 
             if ($type === null || $type->status !== 'active') {
                 throw ValidationException::withMessages([
-                    'card_uuid' => ['Le type de cette carte privilege n est pas actif.'],
+                    'card_uuid' => ['Le type de cette carte privilège n’est pas actif.'],
                 ]);
             }
 
@@ -145,7 +145,7 @@ class ApplyPartnerDiscountAction
 
         if ($offer->max_uses_per_card !== null && $validatedTransactions->count() >= $offer->max_uses_per_card) {
             throw ValidationException::withMessages([
-                'offer_id' => ['Le nombre maximal d utilisations pour cette carte a ete atteint.'],
+                'offer_id' => ['Le nombre maximal d’utilisations pour cette carte a été atteint.'],
             ]);
         }
 

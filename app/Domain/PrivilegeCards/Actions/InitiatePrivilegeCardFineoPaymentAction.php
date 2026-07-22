@@ -20,7 +20,7 @@ class InitiatePrivilegeCardFineoPaymentAction
     {
         if ($type->status !== 'active') {
             throw ValidationException::withMessages([
-                'privilege_card_type_id' => ['Cette carte privilege n est pas disponible.'],
+                'privilege_card_type_id' => ['Cette carte privilège n’est pas disponible.'],
             ]);
         }
 

@@ -4,6 +4,7 @@ namespace App\Domain\Partners\Actions;
 
 use App\Models\Role;
 use App\Models\User;
+use App\Models\UserType;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
@@ -16,7 +17,7 @@ class CreatePartnerUserAction
 
         if ($actor->organization?->organizationType?->code !== 'PARTNER_ESTABLISHMENT') {
             throw ValidationException::withMessages([
-                'organization' => ['Votre compte n est pas rattache a un etablissement partenaire.'],
+                'organization' => ['Votre compte n’est pas rattaché à un établissement partenaire.'],
             ]);
         }
 
@@ -24,6 +25,9 @@ class CreatePartnerUserAction
 
         return DB::transaction(function () use ($actor, $payload, $role): User {
             $user = User::query()->create([
+                'user_type_id' => $role->code === 'PARTNER_SCAN_AGENT'
+                    ? UserType::idFor(UserType::PARTNER_SCAN_AGENT)
+                    : UserType::idFor(UserType::PARTNER_MANAGER),
                 'organization_id' => $actor->organization_id,
                 'name' => $payload['name'],
                 'email' => $payload['email'],

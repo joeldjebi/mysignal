@@ -55,7 +55,7 @@ class RoleController extends Controller
 
         $activityLogger->log(
             'role.created',
-            'Creation d un role.',
+            'Création d’un rôle.',
             $role,
             [
                 'code' => $role->code,
@@ -67,7 +67,7 @@ class RoleController extends Controller
         );
 
         return redirect()->route('super-admin.roles.index')
-            ->with('success', 'Le role a ete cree.');
+            ->with('success', 'Le rôle a été créé.');
     }
 
     public function edit(Role $role): View
@@ -98,23 +98,23 @@ class RoleController extends Controller
 
                     if (($segments[0] ?? null) === 'SA') {
                         return match ($segments[1] ?? null) {
-                            'ACCESS' => 'Acces au portail',
-                            'DASHBOARD' => 'Dashboard',
+                            'ACCESS' => 'Accès au portail',
+                            'DASHBOARD' => 'Tableau de bord',
                             'PUBLIC' => 'Usagers publics et signalements',
                             'PAYMENTS' => 'Paiements',
-                            'ACTIVITY' => 'Journaux d activite',
+                            'ACTIVITY' => 'Journaux d’activité',
                             'INSTITUTION' => 'Admins institutionnels',
                             'SYSTEM' => 'Utilisateurs internes',
-                            'ROLES' => 'Roles',
+                            'ROLES' => 'Rôles',
                             'PERMISSIONS' => 'Permissions',
                             'REPARATION' => 'Dossiers contentieux',
                             'APPLICATIONS' => 'Applications',
-                            'FEATURES' => 'Fonctionnalites',
+                            'FEATURES' => 'Fonctionnalités',
                             'SLA' => 'SLA',
                             'ORGANIZATIONS' => 'Organisations',
-                            'ORGANIZATION' => 'Types d organisation',
+                            'ORGANIZATION' => 'Sous catégories',
                             'PRICING' => 'Tarification',
-                            'COUNTRIES', 'CITIES', 'COMMUNES' => 'Geographie',
+                            'COUNTRIES', 'CITIES', 'COMMUNES' => 'Géographie',
                             'BUSINESS' => 'Secteurs',
                             default => 'Autres permissions SA',
                         };
@@ -147,7 +147,7 @@ class RoleController extends Controller
 
         $activityLogger->log(
             'role.updated',
-            'Mise a jour d un role.',
+            'Mise à jour d’un rôle.',
             $role,
             [
                 'before' => [
@@ -169,7 +169,7 @@ class RoleController extends Controller
         );
 
         return redirect()->route('super-admin.roles.index')
-            ->with('success', 'Le role a ete mis a jour.');
+            ->with('success', 'Le rôle a été mis à jour.');
     }
 
     public function destroy(Request $request, Role $role, ActivityLogger $activityLogger): RedirectResponse
@@ -181,7 +181,7 @@ class RoleController extends Controller
 
         $activityLogger->log(
             'role.deleted',
-            'Suppression d un role.',
+            'Suppression d’un rôle.',
             Role::class,
             [
                 'id' => $snapshot->id,
@@ -194,7 +194,7 @@ class RoleController extends Controller
         );
 
         return redirect()->route('super-admin.roles.index')
-            ->with('success', 'Le role a ete supprime.');
+            ->with('success', 'Le rôle a été supprimé.');
     }
 
     public function toggleStatus(Request $request, Role $role, ActivityLogger $activityLogger): RedirectResponse
@@ -207,7 +207,7 @@ class RoleController extends Controller
 
         $activityLogger->log(
             'role.status_toggled',
-            'Changement de statut d un role.',
+            'Changement de statut d’un rôle.',
             $role,
             [
                 'status' => $role->status,
@@ -215,7 +215,7 @@ class RoleController extends Controller
             $request
         );
 
-        return back()->with('success', 'Le statut du role a ete mis a jour.');
+        return back()->with('success', 'Le statut du rôle a été mis à jour.');
     }
 
     private function validateRequest(Request $request, ?int $roleId = null): array

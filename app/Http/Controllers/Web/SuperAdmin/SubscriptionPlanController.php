@@ -47,14 +47,14 @@ class SubscriptionPlanController extends Controller
 
         $activityLogger->log(
             'subscription_plan.created',
-            'Creation d un plan d abonnement UP.',
+            'Création d’un plan d’abonnement UP.',
             $subscriptionPlan,
             $this->activityProperties($subscriptionPlan),
             $request
         );
 
         return redirect()->route('super-admin.subscription-plans.index')
-            ->with('success', 'Le plan d abonnement a ete cree.');
+            ->with('success', 'Le plan d’abonnement a été créé.');
     }
 
     public function edit(SubscriptionPlan $subscriptionPlan): View
@@ -73,14 +73,14 @@ class SubscriptionPlanController extends Controller
 
         $activityLogger->log(
             'subscription_plan.updated',
-            'Mise a jour d un plan d abonnement UP.',
+            'Mise à jour d’un plan d’abonnement UP.',
             $subscriptionPlan,
             $this->activityProperties($subscriptionPlan),
             $request
         );
 
         return redirect()->route('super-admin.subscription-plans.index')
-            ->with('success', 'Le plan d abonnement a ete mis a jour.');
+            ->with('success', 'Le plan d’abonnement a été mis à jour.');
     }
 
     public function toggleStatus(Request $request, SubscriptionPlan $subscriptionPlan, ActivityLogger $activityLogger): RedirectResponse
@@ -94,13 +94,13 @@ class SubscriptionPlanController extends Controller
 
         $activityLogger->log(
             'subscription_plan.status_toggled',
-            'Changement de statut d un plan d abonnement UP.',
+            'Changement de statut d’un plan d’abonnement UP.',
             $subscriptionPlan,
             $this->activityProperties($subscriptionPlan),
             $request
         );
 
-        return back()->with('success', 'Le statut du plan d abonnement a ete mis a jour.');
+        return back()->with('success', 'Le statut du plan d’abonnement a été mis à jour.');
     }
 
     public function destroy(Request $request, SubscriptionPlan $subscriptionPlan, ActivityLogger $activityLogger): RedirectResponse
@@ -111,14 +111,14 @@ class SubscriptionPlanController extends Controller
 
         $activityLogger->log(
             'subscription_plan.deleted',
-            'Suppression d un plan d abonnement UP.',
+            'Suppression d’un plan d’abonnement UP.',
             SubscriptionPlan::class,
             $properties,
             $request
         );
 
         return redirect()->route('super-admin.subscription-plans.index')
-            ->with('success', 'Le plan d abonnement a ete supprime.');
+            ->with('success', 'Le plan d’abonnement a été supprimé.');
     }
 
     private function validatedPayload(Request $request, ?SubscriptionPlan $subscriptionPlan = null): array

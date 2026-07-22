@@ -84,7 +84,7 @@ class CreateIncidentReportAction
 
             if ($meter === null) {
                 throw ValidationException::withMessages([
-                    'meter_id' => ['Le compteur selectionne ne vous appartient pas.'],
+                    'meter_id' => ['Le compteur sélectionné ne vous appartient pas.'],
                 ]);
             }
         }
@@ -100,7 +100,7 @@ class CreateIncidentReportAction
 
         if (! $application instanceof Application) {
             throw ValidationException::withMessages([
-                'application_id' => ['La catégorie selectionnee est invalide.'],
+                'application_id' => ['La catégorie sélectionnée est invalide.'],
             ]);
         }
 
@@ -121,7 +121,7 @@ class CreateIncidentReportAction
 
             if (! $organizationType instanceof OrganizationType) {
                 throw ValidationException::withMessages([
-                    'organization_type_id' => ['La sous catégorie selectionnee est invalide.'],
+                    'organization_type_id' => ['La sous catégorie sélectionnée est invalide.'],
                 ]);
             }
         }
@@ -136,19 +136,19 @@ class CreateIncidentReportAction
 
         if (! empty($payload['organization_id']) && ! $organization instanceof Organization) {
             throw ValidationException::withMessages([
-                'organization_id' => ['L institution selectionnee est invalide pour cette catégorie.'],
+                'organization_id' => ['L’institution sélectionnée est invalide pour cette catégorie.'],
             ]);
         }
 
         if ($meter?->organization instanceof Organization && $organizationType instanceof OrganizationType && (int) $meter->organization->organization_type_id !== (int) $organizationType->id) {
             throw ValidationException::withMessages([
-                'organization_type_id' => ['La sous catégorie selectionnee ne correspond pas a l identifiant choisi.'],
+                'organization_type_id' => ['La sous catégorie sélectionnée ne correspond pas à l’identifiant choisi.'],
             ]);
         }
 
         if ($organization instanceof Organization && $organizationType instanceof OrganizationType && (int) $organization->organization_type_id !== (int) $organizationType->id) {
             throw ValidationException::withMessages([
-                'organization_id' => ['L institution selectionnee ne correspond pas a la sous catégorie choisie.'],
+                'organization_id' => ['L’institution sélectionnée ne correspond pas à la sous catégorie choisie.'],
             ]);
         }
 
@@ -211,7 +211,7 @@ class CreateIncidentReportAction
 
         if ($signalType === null) {
             throw ValidationException::withMessages([
-                'signal_code' => ['Le type de signal selectionne est invalide.'],
+                'signal_code' => ['Le type de signal sélectionné est invalide.'],
             ]);
         }
 
@@ -291,7 +291,7 @@ class CreateIncidentReportAction
 
         if (! $subType instanceof SignalSubType) {
             throw ValidationException::withMessages([
-                'signal_sub_type_code' => ['Le sous-type de signal selectionne est invalide.'],
+                'signal_sub_type_code' => ['Le sous-type de signal sélectionné est invalide.'],
             ]);
         }
 
@@ -305,7 +305,7 @@ class CreateIncidentReportAction
 
         if ($communeName === '') {
             throw ValidationException::withMessages([
-                'meter_id' => ['La commune enregistree sur cet identifiant est introuvable. Mettez a jour l identifiant avant de signaler.'],
+                'meter_id' => ['La commune enregistrée sur cet identifiant est introuvable. Mettez à jour l’identifiant avant de signaler.'],
             ]);
         }
 
@@ -322,7 +322,7 @@ class CreateIncidentReportAction
 
         if ($commune === null || $commune->city === null || $commune->city->country === null) {
             throw ValidationException::withMessages([
-                'meter_id' => ['La commune enregistree sur cet identifiant ne correspond a aucune commune active. Mettez a jour l identifiant avant de signaler.'],
+                'meter_id' => ['La commune enregistrée sur cet identifiant ne correspond à aucune commune active. Mettez à jour l’identifiant avant de signaler.'],
             ]);
         }
 

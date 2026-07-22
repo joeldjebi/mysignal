@@ -40,7 +40,7 @@ class SignalTypeController extends Controller
         SignalType::query()->create($this->validatedAttributes($request, $context['organization_id'], $context['application_id']));
 
         return redirect()->route('institution.signal-types.index')
-            ->with('success', 'Le type de signal a ete creee.');
+            ->with('success', 'Le type de signal a été créé.');
     }
 
     public function edit(SignalType $signalType): View
@@ -65,7 +65,7 @@ class SignalTypeController extends Controller
         $signalType->update($this->validatedAttributes($request, $context['organization_id'], $context['application_id'], true));
 
         return redirect()->route('institution.signal-types.index')
-            ->with('success', 'Le type de signal a ete mis a jour.');
+            ->with('success', 'Le type de signal a été mis à jour.');
     }
 
     public function toggleStatus(SignalType $signalType): RedirectResponse
@@ -77,7 +77,7 @@ class SignalTypeController extends Controller
             'status' => $signalType->status === 'active' ? 'inactive' : 'active',
         ]);
 
-        return back()->with('success', 'Le statut du type de signal a ete mis a jour.');
+        return back()->with('success', 'Le statut du type de signal a été mis à jour.');
     }
 
     private function authorizeSignalTypeAccess(SignalType $signalType, array $context): void

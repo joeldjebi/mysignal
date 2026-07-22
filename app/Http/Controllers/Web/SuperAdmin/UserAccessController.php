@@ -49,7 +49,7 @@ class UserAccessController extends Controller
 
         $activityLogger->log(
             'system_user.access.created',
-            'Creation d un profil d acces utilisateur.',
+            'Création d’un profil d’accès utilisateur.',
             $systemUser,
             [
                 'access_id' => $access?->id,
@@ -64,7 +64,7 @@ class UserAccessController extends Controller
 
         return redirect()
             ->route('super-admin.system-users.show', $systemUser)
-            ->with('success', 'Le profil d acces a ete ajoute.');
+            ->with('success', 'Le profil d’accès a été ajouté.');
     }
 
     public function update(Request $request, User $systemUser, UserAccess $access, ActivityLogger $activityLogger): RedirectResponse
@@ -96,7 +96,7 @@ class UserAccessController extends Controller
 
         $activityLogger->log(
             'system_user.access.updated',
-            'Mise a jour d un profil d acces utilisateur.',
+            'Mise à jour d’un profil d’accès utilisateur.',
             $systemUser,
             [
                 'access_id' => $access->id,
@@ -115,7 +115,7 @@ class UserAccessController extends Controller
 
         return redirect()
             ->route('super-admin.system-users.show', $systemUser)
-            ->with('success', 'Le profil d acces a ete mis a jour.');
+            ->with('success', 'Le profil d’accès a été mis à jour.');
     }
 
     public function destroy(Request $request, User $systemUser, UserAccess $access, ActivityLogger $activityLogger): RedirectResponse
@@ -135,7 +135,7 @@ class UserAccessController extends Controller
 
         $activityLogger->log(
             'system_user.access.deleted',
-            'Suppression d un profil d acces utilisateur.',
+            'Suppression d’un profil d’accès utilisateur.',
             $systemUser,
             $snapshot,
             $request,
@@ -144,7 +144,7 @@ class UserAccessController extends Controller
 
         return redirect()
             ->route('super-admin.system-users.show', $systemUser)
-            ->with('success', 'Le profil d acces a ete supprime.');
+            ->with('success', 'Le profil d’accès a été supprimé.');
     }
 
     private function validateRequest(Request $request, ?UserAccess $access = null): array
@@ -173,7 +173,7 @@ class UserAccessController extends Controller
 
         if (in_array($portal, ['institution', 'partner'], true) && blank($organizationId)) {
             throw ValidationException::withMessages([
-                'organization_id' => ['Selectionnez une organisation pour ce profil.'],
+                'organization_id' => ['Sélectionnez une institution pour ce profil.'],
             ]);
         }
 
@@ -214,7 +214,7 @@ class UserAccessController extends Controller
 
         if ($exists) {
             throw ValidationException::withMessages([
-                'portal' => ['Cet utilisateur possede deja ce profil pour cette organisation.'],
+                'portal' => ['Cet utilisateur possède déjà ce profil pour cette institution.'],
             ]);
         }
     }

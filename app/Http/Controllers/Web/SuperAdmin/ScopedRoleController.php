@@ -45,7 +45,7 @@ class ScopedRoleController extends Controller
             $role->permissions()->sync($this->validAssignablePermissionIds($user, $attributes['permission_ids'] ?? []));
         });
 
-        return redirect()->route('super-admin.scoped-roles.index')->with('success', 'Le role a ete cree.');
+        return redirect()->route('super-admin.scoped-roles.index')->with('success', 'Le rôle a été créé.');
     }
 
     public function edit(Request $request, Role $role): View
@@ -78,7 +78,7 @@ class ScopedRoleController extends Controller
             $role->permissions()->sync($this->validAssignablePermissionIds($user, $attributes['permission_ids'] ?? []));
         });
 
-        return redirect()->route('super-admin.scoped-roles.index')->with('success', 'Le role a ete mis a jour.');
+        return redirect()->route('super-admin.scoped-roles.index')->with('success', 'Le rôle a été mis à jour.');
     }
 
     public function destroy(Request $request, Role $role): RedirectResponse
@@ -89,7 +89,7 @@ class ScopedRoleController extends Controller
 
         $role->delete();
 
-        return back()->with('success', 'Le role a ete supprime.');
+        return back()->with('success', 'Le rôle a été supprimé.');
     }
 
     private function validatePayload(Request $request, ?Role $role = null): array

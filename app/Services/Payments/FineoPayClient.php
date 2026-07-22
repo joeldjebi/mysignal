@@ -16,7 +16,7 @@ class FineoPayClient
 
         if ($baseUrl === '' || $checkoutPath === '/' || $businessCode === '' || $apiKey === '') {
             throw ValidationException::withMessages([
-                'payment' => ['La configuration FineoPay est incomplete.'],
+                'payment' => ['La configuration FineoPay est incomplète.'],
             ]);
         }
 
@@ -49,7 +49,7 @@ class FineoPayClient
 
         if ($response['status'] < 200 || $response['status'] >= 300 || ! (bool) ($response['json']['success'] ?? false)) {
             throw ValidationException::withMessages([
-                'payment' => [($response['json']['message'] ?? null) ?: 'Impossible de generer le lien de paiement.'],
+                'payment' => [($response['json']['message'] ?? null) ?: 'Impossible de générer le lien de paiement.'],
                 'fineopay_debug' => [
                     json_encode([
                         'request' => [
@@ -76,7 +76,7 @@ class FineoPayClient
 
         if (! is_string($checkoutLink) || trim($checkoutLink) === '') {
             throw ValidationException::withMessages([
-                'payment' => ['FineoPay n a retourne aucun lien de paiement.'],
+                'payment' => ['FineoPay n’a retourné aucun lien de paiement.'],
             ]);
         }
 
@@ -89,7 +89,7 @@ class FineoPayClient
 
         if ($curl === false) {
             throw ValidationException::withMessages([
-                'payment' => ['Impossible d initialiser la requete FineoPay.'],
+                'payment' => ['Impossible d’initialiser la requête FineoPay.'],
             ]);
         }
 

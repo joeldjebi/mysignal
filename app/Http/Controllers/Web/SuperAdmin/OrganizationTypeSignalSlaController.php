@@ -64,9 +64,9 @@ class OrganizationTypeSignalSlaController extends Controller
             'status' => 'active',
         ]);
 
-        $activityLogger->log(
+            $activityLogger->log(
             'sla_policy.created',
-            'Creation d une regle TCM.',
+            'Création d’une règle TCM.',
             $slaPolicy,
             [
                 'organization_type_id' => $slaPolicy->organization_type_id,
@@ -80,7 +80,7 @@ class OrganizationTypeSignalSlaController extends Controller
         );
 
         return redirect()->route('super-admin.sla-policies.index')
-            ->with('success', 'La regle TCM a ete creee.');
+            ->with('success', 'La règle TCM a été créée.');
     }
 
     public function edit(OrganizationTypeSignalSla $slaPolicy): View
@@ -114,9 +114,9 @@ class OrganizationTypeSignalSlaController extends Controller
             'signal_code' => strtoupper($attributes['signal_code']),
         ]);
 
-        $activityLogger->log(
+            $activityLogger->log(
             'sla_policy.updated',
-            'Mise a jour d une regle TCM.',
+            'Mise à jour d’une règle TCM.',
             $slaPolicy,
             [
                 'before' => $before,
@@ -126,7 +126,7 @@ class OrganizationTypeSignalSlaController extends Controller
         );
 
         return redirect()->route('super-admin.sla-policies.index')
-            ->with('success', 'La regle TCM a ete mise a jour.');
+            ->with('success', 'La règle TCM a été mise à jour.');
     }
 
     public function destroy(Request $request, OrganizationTypeSignalSla $slaPolicy, ActivityLogger $activityLogger): RedirectResponse
@@ -134,16 +134,16 @@ class OrganizationTypeSignalSlaController extends Controller
         $snapshot = $slaPolicy->only(['id', 'organization_type_id', 'network_type', 'signal_code', 'signal_label', 'sla_hours', 'status']);
         $slaPolicy->delete();
 
-        $activityLogger->log(
+            $activityLogger->log(
             'sla_policy.deleted',
-            'Suppression d une regle TCM.',
+            'Suppression d’une règle TCM.',
             OrganizationTypeSignalSla::class,
             $snapshot,
             $request
         );
 
         return redirect()->route('super-admin.sla-policies.index')
-            ->with('success', 'La regle TCM a ete supprimee.');
+            ->with('success', 'La règle TCM a été supprimée.');
     }
 
     public function toggleStatus(Request $request, OrganizationTypeSignalSla $slaPolicy, ActivityLogger $activityLogger): RedirectResponse
@@ -152,9 +152,9 @@ class OrganizationTypeSignalSlaController extends Controller
             'status' => $slaPolicy->status === 'active' ? 'inactive' : 'active',
         ]);
 
-        $activityLogger->log(
+            $activityLogger->log(
             'sla_policy.status_toggled',
-            'Changement de statut d une regle TCM.',
+            'Changement de statut d’une règle TCM.',
             $slaPolicy,
             [
                 'status' => $slaPolicy->status,
@@ -162,7 +162,7 @@ class OrganizationTypeSignalSlaController extends Controller
             $request
         );
 
-        return back()->with('success', 'Le statut de la regle TCM a ete mis a jour.');
+        return back()->with('success', 'Le statut de la règle TCM a été mis à jour.');
     }
 
     private function validateRequest(Request $request): array

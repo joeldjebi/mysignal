@@ -89,7 +89,7 @@ class PublicRexFeedbackController extends Controller
             $report = IncidentReport::query()->findOrFail($contextId);
             abort_unless((int) $report->public_user_id === (int) $request->user('public_api')->id, 404);
             $eligible = in_array($report->status, ['resolved', 'closed'], true) || $report->resolution_confirmation_status === 'confirmed';
-            abort_unless($eligible, 422, 'Ce signalement n est pas encore eligible au REX.');
+            abort_unless($eligible, 422, 'Ce signalement n’est pas encore éligible au REX.');
 
             return [$report, $report->resolution_confirmed_at ?? $report->resolved_at ?? $report->updated_at];
         }
@@ -100,7 +100,7 @@ class PublicRexFeedbackController extends Controller
             abort_unless((int) $report->public_user_id === (int) $request->user('public_api')->id, 404);
             $eligible = $report->damage_declared_at !== null
                 && in_array($report->damage_resolution_status, ['resolved', 'rejected', 'compensated', 'closed'], true);
-            abort_unless($eligible, 422, 'Ce dommage n est pas encore eligible au REX.');
+            abort_unless($eligible, 422, 'Ce dommage n’est pas encore éligible au REX.');
 
             return [$report, $report->damage_resolved_at ?? $report->updated_at];
         }
@@ -108,7 +108,7 @@ class PublicRexFeedbackController extends Controller
         abort_unless($setting->reparation_case_enabled, 422, 'Le REX dossier est desactive.');
         $case = ReparationCase::query()->with('incidentReport')->findOrFail($contextId);
         abort_unless((int) $case->public_user_id === (int) $request->user('public_api')->id, 404);
-        abort_unless(in_array($case->status, ['approved', 'rejected', 'compensated', 'closed'], true), 422, 'Ce dossier n est pas encore eligible au REX.');
+        abort_unless(in_array($case->status, ['approved', 'rejected', 'compensated', 'closed'], true), 422, 'Ce dossier n’est pas encore éligible au REX.');
 
         return [$case->incidentReport, $case->closed_at ?? $case->updated_at];
     }

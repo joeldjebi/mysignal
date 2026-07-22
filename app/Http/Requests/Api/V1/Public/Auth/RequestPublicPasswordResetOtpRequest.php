@@ -36,7 +36,7 @@ class RequestPublicPasswordResetOtpRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'phone.exists' => 'Aucun compte UP actif n a ete trouve pour ce numero.',
+            'phone.exists' => 'Aucun compte UP actif n’a été trouvé pour ce numéro.',
         ];
     }
 }

@@ -54,7 +54,7 @@ class SubNeighborhoodController extends Controller
         ]);
 
         return redirect()->route('super-admin.sub-neighborhoods.index')
-            ->with('success', 'Le sous-quartier a ete cree.');
+            ->with('success', 'Le sous-quartier a été créé.');
     }
 
     public function edit(SubNeighborhood $subNeighborhood): View
@@ -80,7 +80,7 @@ class SubNeighborhoodController extends Controller
         ]);
 
         return redirect()->route('super-admin.sub-neighborhoods.index')
-            ->with('success', 'Le sous-quartier a ete mis a jour.');
+            ->with('success', 'Le sous-quartier a été mis à jour.');
     }
 
     public function destroy(SubNeighborhood $subNeighborhood): RedirectResponse
@@ -88,7 +88,7 @@ class SubNeighborhoodController extends Controller
         $subNeighborhood->delete();
 
         return redirect()->route('super-admin.sub-neighborhoods.index')
-            ->with('success', 'Le sous-quartier a ete supprime.');
+            ->with('success', 'Le sous-quartier a été supprimé.');
     }
 
     public function toggleStatus(SubNeighborhood $subNeighborhood): RedirectResponse
@@ -97,6 +97,6 @@ class SubNeighborhoodController extends Controller
             'status' => $subNeighborhood->status === 'active' ? 'inactive' : 'active',
         ]);
 
-        return back()->with('success', 'Le statut du sous-quartier a ete mis a jour.');
+        return back()->with('success', 'Le statut du sous-quartier a été mis à jour.');
     }
 }

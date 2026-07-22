@@ -44,7 +44,7 @@ class PublicUpSubscriptionController extends Controller
 
         $activityLogger->log(
             'public.subscription.created',
-            'Initialisation d un abonnement UP.',
+            'Initialisation d’un abonnement UP.',
             $subscription,
             [
                 'status' => $subscription->status,
@@ -57,6 +57,6 @@ class PublicUpSubscriptionController extends Controller
 
         return ApiResponse::success([
             'subscription' => new UpSubscriptionResource($subscription),
-        ], 'Abonnement initialise avec succes.', 201);
+        ], 'Abonnement initialisé avec succès.', 201);
     }
 }

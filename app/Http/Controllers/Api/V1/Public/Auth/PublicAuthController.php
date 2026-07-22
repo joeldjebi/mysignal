@@ -41,7 +41,7 @@ class PublicAuthController extends Controller
             'public',
         );
 
-        return ApiResponse::success($this->otpRequestPayload($result), 'OTP envoye avec succes.');
+        return ApiResponse::success($this->otpRequestPayload($result), 'OTP envoyé avec succès.');
     }
 
     public function verifyOtp(VerifyOtpRequest $request, VerifyPublicOtpAction $action, ActivityLogger $activityLogger)
@@ -53,7 +53,7 @@ class PublicAuthController extends Controller
 
         $activityLogger->log(
             'public.otp_verified',
-            'Verification OTP reussie.',
+            'Vérification OTP réussie.',
             'public_auth',
             [
                 'phone' => $request->string('phone')->value(),
@@ -67,7 +67,7 @@ class PublicAuthController extends Controller
             'phone' => $verification->phone,
             'verification_token' => $verification->token,
             'expires_at' => $verification->expires_at->toIso8601String(),
-        ], 'Numero verifie avec succes.');
+        ], 'Numéro vérifié avec succès.');
     }
 
     public function register(RegisterPublicUserRequest $request, RegisterPublicUserAction $action, ActivityLogger $activityLogger)
@@ -77,7 +77,7 @@ class PublicAuthController extends Controller
 
         $activityLogger->log(
             'public.registered',
-            'Creation de compte usager public.',
+            'Création de compte usager public.',
             $user,
             [
                 'public_user_type_id' => $user->public_user_type_id,
@@ -93,7 +93,7 @@ class PublicAuthController extends Controller
             'token_type' => 'bearer',
             'expires_in' => PublicApiTokenTtl::seconds(),
             'user' => new PublicUserResource($user->loadMissing(['publicUserType.pricingRule', 'countryReference', 'cityReference', 'communeReference'])),
-        ], 'Compte public cree avec succes.', 201);
+        ], 'Compte public créé avec succès.', 201);
     }
 
     public function login(LoginPublicUserRequest $request, LoginPublicUserAction $action, ActivityLogger $activityLogger)
@@ -121,7 +121,7 @@ class PublicAuthController extends Controller
             'token_type' => 'bearer',
             'expires_in' => PublicApiTokenTtl::seconds(),
             'user' => new PublicUserResource($user->loadMissing(['publicUserType.pricingRule', 'countryReference', 'cityReference', 'communeReference'])),
-        ], 'Connexion reussie.');
+        ], 'Connexion réussie.');
     }
 
     public function requestPasswordResetOtp(RequestPublicPasswordResetOtpRequest $request, RequestPublicOtpAction $action, ActivityLogger $activityLogger)
@@ -130,7 +130,7 @@ class PublicAuthController extends Controller
 
         $activityLogger->log(
             'public.password_reset_otp_requested',
-            'Demande de code OTP UP pour reinitialisation du mot de passe.',
+            'Demande de code OTP UP pour réinitialisation du mot de passe.',
             'public_auth',
             [
                 'phone' => $request->string('phone')->value(),
@@ -140,7 +140,7 @@ class PublicAuthController extends Controller
             'public',
         );
 
-        return ApiResponse::success($this->otpRequestPayload($result), 'OTP envoye avec succes.');
+        return ApiResponse::success($this->otpRequestPayload($result), 'OTP envoyé avec succès.');
     }
 
     public function verifyPasswordResetOtp(VerifyPublicPasswordResetOtpRequest $request, VerifyPublicOtpAction $action, ActivityLogger $activityLogger)
@@ -153,7 +153,7 @@ class PublicAuthController extends Controller
 
         $activityLogger->log(
             'public.password_reset_otp_verified',
-            'Verification OTP UP pour reinitialisation du mot de passe.',
+            'Vérification OTP UP pour réinitialisation du mot de passe.',
             'public_auth',
             [
                 'phone' => $verification->phone,
@@ -167,7 +167,7 @@ class PublicAuthController extends Controller
             'phone' => $verification->phone,
             'verification_token' => $verification->token,
             'expires_at' => $verification->expires_at->toIso8601String(),
-        ], 'Numero verifie avec succes.');
+        ], 'Numéro vérifié avec succès.');
     }
 
     public function resetPassword(ResetPublicPasswordRequest $request, ResetPublicPasswordAction $action, ActivityLogger $activityLogger)
@@ -180,7 +180,7 @@ class PublicAuthController extends Controller
 
         $activityLogger->log(
             'public.password_reset_completed',
-            'Reinitialisation du mot de passe UP.',
+            'Réinitialisation du mot de passe UP.',
             $user,
             [
                 'phone' => $user->phone,
@@ -192,7 +192,7 @@ class PublicAuthController extends Controller
 
         return ApiResponse::success([
             'user' => new PublicUserResource($user),
-        ], 'Mot de passe reinitialise avec succes.');
+        ], 'Mot de passe réinitialisé avec succès.');
     }
 
     private function otpRequestPayload(OtpRequestResult $result): array

@@ -345,7 +345,7 @@
       <div class="container position-relative">
         <div class="page-badge"><i class="bi bi-broadcast-pin"></i>Transparence</div>
         <h1>Derniers signalements</h1>
-        <p class="lead">Consultez tous les signalements enregistres sur My-Signal durant les 30 derniers jours, sans donnees personnelles des usagers.</p>
+        <p class="lead">Consultez tous les signalements enregistrés sur My-Signal durant les 30 derniers jours, sans données personnelles des usagers.</p>
       </div>
     </section>
 
@@ -361,7 +361,7 @@
             <div class="stat-value">{{ $stats['in_progress'] }}</div>
           </div>
           <div class="stat-tile">
-            <div class="stat-label">Resolus</div>
+            <div class="stat-label">Résolus</div>
             <div class="stat-value">{{ $stats['resolved'] }}</div>
           </div>
           <div class="stat-tile">
@@ -378,7 +378,7 @@
           <form method="GET" action="{{ route('public.reports') }}" class="search-form">
             <div>
               <label for="search">Recherche</label>
-              <input id="search" type="search" name="search" value="{{ request('search') }}" class="form-control" placeholder="Reference, type, statut, catégorie, institution, commune...">
+              <input id="search" type="search" name="search" value="{{ request('search') }}" class="form-control" placeholder="Référence, type, statut, catégorie, institution, commune...">
             </div>
             <div>
               <label for="status">Statut</label>
@@ -426,7 +426,7 @@
             </div>
             <button type="submit" class="btn btn-search"><i class="bi bi-funnel-fill me-1"></i> Filtrer</button>
             @if (filled(request()->query()))
-              <a href="{{ route('public.reports') }}" class="btn btn-outline-secondary">RAZ</a>
+              <a href="{{ route('public.reports') }}" class="btn btn-outline-secondary">Réinitialiser</a>
             @endif
           </form>
         </div>
@@ -435,7 +435,7 @@
           <div class="reports-panel-header">
             <div class="reports-panel-title">Liste des signalements</div>
             <div class="reports-panel-count">
-              {{ $reports->total() }} resultat{{ $reports->total() > 1 ? 's' : '' }} depuis le {{ $stats['period_start']->format('d/m/Y') }}
+              {{ $reports->total() }} résultat{{ $reports->total() > 1 ? 's' : '' }} depuis le {{ $stats['period_start']->format('d/m/Y') }}
             </div>
           </div>
           <div class="table-responsive">

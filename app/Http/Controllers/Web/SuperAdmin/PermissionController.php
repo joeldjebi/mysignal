@@ -65,7 +65,7 @@ class PermissionController extends Controller
 
         $activityLogger->log(
             'permission.created',
-            'Creation d une permission.',
+            'Création d’une permission.',
             $permission,
             [
                 'code' => $permission->code,
@@ -76,7 +76,7 @@ class PermissionController extends Controller
         );
 
         return redirect()->route('super-admin.permissions.index')
-            ->with('success', 'La permission a ete creee.');
+            ->with('success', 'La permission a été créée.');
     }
 
     public function edit(Permission $permission): View
@@ -110,7 +110,7 @@ class PermissionController extends Controller
 
         $activityLogger->log(
             'permission.updated',
-            'Mise a jour d une permission.',
+            'Mise à jour d’une permission.',
             $permission,
             [
                 'before' => $before,
@@ -120,7 +120,7 @@ class PermissionController extends Controller
         );
 
         return redirect()->route('super-admin.permissions.index')
-            ->with('success', 'La permission a ete mise a jour.');
+            ->with('success', 'La permission a été mise à jour.');
     }
 
     public function destroy(Request $request, Permission $permission, ActivityLogger $activityLogger): RedirectResponse
@@ -131,14 +131,14 @@ class PermissionController extends Controller
 
         $activityLogger->log(
             'permission.deleted',
-            'Suppression d une permission.',
+            'Suppression d’une permission.',
             Permission::class,
             $snapshot,
             $request
         );
 
         return redirect()->route('super-admin.permissions.index')
-            ->with('success', 'La permission a ete supprimee.');
+            ->with('success', 'La permission a été supprimée.');
     }
 
     public function toggleStatus(Request $request, Permission $permission, ActivityLogger $activityLogger): RedirectResponse
@@ -149,7 +149,7 @@ class PermissionController extends Controller
 
         $activityLogger->log(
             'permission.status_toggled',
-            'Changement de statut d une permission.',
+            'Changement de statut d’une permission.',
             $permission,
             [
                 'status' => $permission->status,
@@ -157,6 +157,6 @@ class PermissionController extends Controller
             $request
         );
 
-        return back()->with('success', 'Le statut de la permission a ete mis a jour.');
+        return back()->with('success', 'Le statut de la permission a été mis à jour.');
     }
 }

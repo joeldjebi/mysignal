@@ -421,6 +421,7 @@ Route::prefix('sa')->name('super-admin.')->group(function (): void {
         Route::patch('organizations/{organization}/toggle-status', [OrganizationController::class, 'toggleStatus'])->middleware('super_admin_permission:SA_ORGANIZATIONS_TOGGLE_STATUS,SA_ORGANIZATIONS_MANAGE')->name('organizations.toggle-status');
 
         Route::get('institution-admins', [InstitutionAdminController::class, 'index'])->middleware('super_admin_permission:SA_INSTITUTION_ADMINS_VIEW,SA_INSTITUTION_ADMINS_MANAGE')->name('institution-admins.index');
+        Route::get('institution-admins/orphaned', [InstitutionAdminController::class, 'orphaned'])->middleware('super_admin_permission:SA_INSTITUTION_ADMINS_VIEW,SA_INSTITUTION_ADMINS_MANAGE')->name('institution-admins.orphaned');
         Route::post('institution-admins', [InstitutionAdminController::class, 'store'])->middleware('super_admin_permission:SA_INSTITUTION_ADMINS_CREATE,SA_INSTITUTION_ADMINS_MANAGE')->name('institution-admins.store');
         Route::get('institution-admins/{institutionAdmin}/edit', [InstitutionAdminController::class, 'edit'])->middleware('super_admin_permission:SA_INSTITUTION_ADMINS_UPDATE,SA_INSTITUTION_ADMINS_MANAGE')->name('institution-admins.edit');
         Route::put('institution-admins/{institutionAdmin}', [InstitutionAdminController::class, 'update'])->middleware('super_admin_permission:SA_INSTITUTION_ADMINS_UPDATE,SA_INSTITUTION_ADMINS_MANAGE')->name('institution-admins.update');

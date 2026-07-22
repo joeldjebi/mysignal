@@ -72,7 +72,7 @@ class NotificationController extends Controller
             $notification->forceFill(['read_at' => now()])->save();
         }
 
-        return back()->with('success', 'Notification marquee comme lue.');
+        return back()->with('success', 'Notification marquée comme lue.');
     }
 
     public function markAllAsRead(Request $request): RedirectResponse
@@ -87,7 +87,7 @@ class NotificationController extends Controller
 
         $query->update(['read_at' => now()]);
 
-        return back()->with('success', 'Toutes les notifications ont ete marquees comme lues.');
+        return back()->with('success', 'Toutes les notifications ont été marquées comme lues.');
     }
 
     private function abortIfNotOwned(Request $request, UserNotification $notification): void

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web\SuperAdmin;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Web\SuperAdmin\Concerns\InteractsWithScopedSaAdminManagement;
 use App\Models\User;
+use App\Models\UserType;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -58,6 +59,7 @@ class ScopedUserController extends Controller
 
         DB::transaction(function () use ($attributes, $actor): void {
             $user = User::query()->create([
+                'user_type_id' => UserType::idFor(UserType::SA_USER),
                 'organization_id' => null,
                 'name' => $attributes['name'],
                 'email' => $attributes['email'],
@@ -72,7 +74,7 @@ class ScopedUserController extends Controller
             $user->permissions()->sync($this->validAssignablePermissionIds($actor, $attributes['permission_ids'] ?? []));
         });
 
-        return redirect()->route('super-admin.scoped-users.index')->with('success', 'L utilisateur a ete cree.');
+        return redirect()->route('super-admin.scoped-users.index')->with('success', 'L’utilisateur a été créé.');
     }
 
     public function edit(Request $request, User $scopedUser): View
@@ -113,7 +115,7 @@ class ScopedUserController extends Controller
             $scopedUser->permissions()->sync($this->validAssignablePermissionIds($actor, $attributes['permission_ids'] ?? []));
         });
 
-        return redirect()->route('super-admin.scoped-users.index')->with('success', 'L utilisateur a ete mis a jour.');
+        return redirect()->route('super-admin.scoped-users.index')->with('success', 'L’utilisateur a été mis à jour.');
     }
 
     public function destroy(Request $request, User $scopedUser): RedirectResponse
@@ -124,7 +126,7 @@ class ScopedUserController extends Controller
 
         $scopedUser->delete();
 
-        return back()->with('success', 'L utilisateur a ete supprime.');
+        return back()->with('success', 'L’utilisateur a été supprimé.');
     }
 
     private function validatePayload(Request $request, ?User $user = null): array
@@ -152,12 +154,9 @@ class ScopedUserController extends Controller
     private function scopedUserQuery(User $actor): Builder
     {
         $query = User::query()
-            ->whereNull('organization_id')
+            ->where('user_type_id', UserType::idFor(UserType::SA_USER))
             ->where('is_super_admin', false)
-            ->whereNotNull('created_by')
-            ->whereDoesntHave('accesses', fn ($accessQuery) => $accessQuery
-                ->where('status', 'active')
-                ->whereIn('portal', ['institution', 'partner']));
+            ->whereNotNull('created_by');
 
         if (! $actor->is_super_admin) {
             $query->where('created_by', $actor->id);
@@ -170,7 +169,7 @@ class ScopedUserController extends Controller
     {
         abort_if(
             $user->is_super_admin
-                || $user->organization_id !== null
+                || (int) $user->user_type_id !== (int) UserType::idFor(UserType::SA_USER)
                 || $user->created_by === null
                 || (! $actorIsSuperAdmin && (int) $user->created_by !== $actorId),
             404

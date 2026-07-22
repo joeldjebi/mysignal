@@ -10,6 +10,7 @@ use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\Payment;
 use App\Models\User;
+use App\Models\UserType;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Database\QueryException;
@@ -95,7 +96,7 @@ class OrganizationController extends Controller
         $this->syncOrganizationFeatures($organization, $attributes['feature_ids'] ?? []);
 
         return redirect()->route('super-admin.organizations.index')
-            ->with('success', 'L institution a ete creee.');
+            ->with('success', 'L’institution a été créée.');
     }
 
     public function import(Request $request): RedirectResponse
@@ -120,7 +121,7 @@ class OrganizationController extends Controller
 
         if (! $hasOrganizationTypeInFile && blank($attributes['organization_type_id'] ?? null) && blank($attributes['organization_type_name'] ?? null)) {
             throw ValidationException::withMessages([
-                'organization_type_id' => ['Selectionnez une sous catégorie, renseignez une nouvelle sous catégorie, ou utilisez une colonne Type_organisation dans le fichier.'],
+                'organization_type_id' => ['Sélectionnez une sous catégorie, renseignez une nouvelle sous catégorie, ou utilisez une colonne Type_organisation dans le fichier.'],
             ]);
         }
 
@@ -161,6 +162,7 @@ class OrganizationController extends Controller
                     $this->syncOrganizationFeatures($organization, $application->features->pluck('id')->all());
 
                     User::query()->create([
+                        'user_type_id' => UserType::idFor(UserType::INSTITUTION_ADMIN),
                         'organization_id' => $organization->id,
                         'name' => $name,
                         'email' => $this->uniqueAdminEmail($name),
@@ -178,7 +180,7 @@ class OrganizationController extends Controller
         } catch (QueryException $exception) {
             if (($exception->errorInfo[0] ?? null) === '22001') {
                 throw ValidationException::withMessages([
-                    'csv_file' => ['Une valeur du fichier depasse la taille acceptee. Verifiez que les colonnes Nom, Commune, Adresse, Mobile ou Type_organisation, Nom, Commune, Region_District sont bien alignees.'],
+                    'csv_file' => ['Une valeur du fichier dépasse la taille acceptée. Vérifiez que les colonnes Nom, Commune, Adresse, Mobile ou Type_organisation, Nom, Commune, Region_District sont bien alignées.'],
                 ]);
             }
 
@@ -186,7 +188,7 @@ class OrganizationController extends Controller
         }
 
         return redirect()->route('super-admin.organizations.index')
-            ->with('success', "{$createdOrganizations} institution(s) et {$createdAdmins} admin(s) institutionnel(s) ont ete crees.");
+            ->with('success', "{$createdOrganizations} institution(s) et {$createdAdmins} admin(s) institutionnel(s) ont été créés.");
     }
 
     public function downloadImportTemplate(string $template): StreamedResponse
@@ -318,7 +320,7 @@ class OrganizationController extends Controller
         $this->syncOrganizationFeatures($organization, $attributes['feature_ids'] ?? []);
 
         return redirect()->route('super-admin.organizations.index')
-            ->with('success', 'L institution a ete mise a jour.');
+            ->with('success', 'L’institution a été mise à jour.');
     }
 
     public function destroy(Organization $organization): RedirectResponse
@@ -326,7 +328,7 @@ class OrganizationController extends Controller
         $organization->delete();
 
         return redirect()->route('super-admin.organizations.index')
-            ->with('success', 'L institution a ete supprimee.');
+            ->with('success', 'L’institution a été supprimée.');
     }
 
     public function destroyAll(): RedirectResponse
@@ -337,11 +339,11 @@ class OrganizationController extends Controller
             Organization::query()->delete();
         } catch (QueryException) {
             return redirect()->route('super-admin.organizations.index')
-                ->with('error', 'Impossible de vider les institutions : certaines donnees liees bloquent la suppression.');
+                ->with('error', 'Impossible de vider les institutions : certaines données liées bloquent la suppression.');
         }
 
         return redirect()->route('super-admin.organizations.index')
-            ->with('success', "{$count} institution(s) supprimee(s).");
+            ->with('success', "{$count} institution(s) supprimée(s).");
     }
 
     public function toggleStatus(Organization $organization): RedirectResponse
@@ -350,7 +352,7 @@ class OrganizationController extends Controller
             'status' => $organization->status === 'active' ? 'inactive' : 'active',
         ]);
 
-        return back()->with('success', 'Le statut de l institution a ete mis a jour.');
+        return back()->with('success', 'Le statut de l’institution a été mis à jour.');
     }
 
     private function groupFeatures($features)
@@ -358,8 +360,8 @@ class OrganizationController extends Controller
         return $features
             ->groupBy(function (Feature $feature): string {
                 return match (true) {
-                    str_starts_with($feature->code, 'INSTITUTION_DASHBOARD_') => 'Dashboard institutionnel',
-                    str_starts_with($feature->code, 'INSTITUTION_') => 'Acces institutionnels',
+                    str_starts_with($feature->code, 'INSTITUTION_DASHBOARD_') => 'Tableau de bord institutionnel',
+                    str_starts_with($feature->code, 'INSTITUTION_') => 'Accès institutionnels',
                     str_starts_with($feature->code, 'PUBLIC_') => 'Modules publics',
                     default => 'Autres fonctionnalites',
                 };

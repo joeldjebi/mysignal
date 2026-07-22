@@ -76,7 +76,7 @@ class InitiateIncidentReportFineoPaymentAction
 
         if ($pricingRule === null) {
             throw ValidationException::withMessages([
-                'pricing_rule' => ['Aucune tarification active n est disponible pour ce signalement.'],
+                'pricing_rule' => ['Aucune tarification active n’est disponible pour ce signalement.'],
             ]);
         }
 

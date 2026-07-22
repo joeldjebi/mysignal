@@ -29,7 +29,7 @@ class AcceptHouseholdInvitationAction
 
         if ($invitation->phone !== $user->phone) {
             throw ValidationException::withMessages([
-                'invitation_id' => ['Cette invitation ne vous est pas destinee.'],
+                'invitation_id' => ['Cette invitation ne vous est pas destinée.'],
             ]);
         }
 

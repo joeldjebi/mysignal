@@ -136,7 +136,7 @@ class PaymentController extends Controller
         if ($paymentSession->status === PaymentStatus::Paid->value && $paymentSession->incident_report_id !== null) {
             return redirect()
                 ->route('super-admin.payments.index')
-                ->with('success', 'Cette session est deja payee et traitee.');
+                ->with('success', 'Cette session est déjà payée et traitée.');
         }
 
         $validatedSession = $action->handle([
@@ -154,7 +154,7 @@ class PaymentController extends Controller
 
         $activityLogger->log(
             'payment_session.manually_validated',
-            'Validation manuelle SA d une session de paiement FineoPay.',
+            'Validation manuelle d’une session de paiement FineoPay.',
             $validatedSession,
             [
                 'sync_ref' => $validatedSession->sync_ref,
@@ -170,6 +170,6 @@ class PaymentController extends Controller
 
         return redirect()
             ->route('super-admin.payments.index')
-            ->with('success', 'Paiement valide manuellement. La session est maintenant traitee.');
+            ->with('success', 'Paiement validé manuellement. La session est maintenant traitée.');
     }
 }

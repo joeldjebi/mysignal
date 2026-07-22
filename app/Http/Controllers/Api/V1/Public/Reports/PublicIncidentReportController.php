@@ -69,7 +69,7 @@ class PublicIncidentReportController extends Controller
         return ApiResponse::success([
             'payment_session' => new IncidentReportPaymentSessionResource($paymentSession),
             'checkout_link' => $paymentSession->checkout_link,
-        ], 'Lien de paiement genere avec succes. Le signalement sera enregistre apres paiement.', 201);
+        ], 'Lien de paiement généré avec succès. Le signalement sera enregistré après paiement.', 201);
     }
 
     public function storeTest(
@@ -78,7 +78,7 @@ class PublicIncidentReportController extends Controller
         ActivityLogger $activityLogger,
         IncidentReportNotificationService $notificationService
     ) {
-        abort_unless((bool) config('services.public_reports.test_endpoint_enabled'), 403, 'L API de test des signalements est desactivee.');
+        abort_unless((bool) config('services.public_reports.test_endpoint_enabled'), 403, 'L’API de test des signalements est désactivée.');
 
         $attributes = $request->validated();
         unset($attributes['signal_attachment']);
@@ -98,7 +98,7 @@ class PublicIncidentReportController extends Controller
 
         $activityLogger->log(
             'public.report.created_test_without_payment',
-            'Creation d un signalement public via l API de test sans paiement FineoPay.',
+            'Création d’un signalement public via l’API de test sans paiement FineoPay.',
             $report,
             [
                 'reference' => $report->reference,
@@ -120,7 +120,7 @@ class PublicIncidentReportController extends Controller
         return ApiResponse::success([
             'report' => new IncidentReportResource($report),
             'payment_bypassed' => true,
-        ], 'Signalement de test cree avec succes sans paiement.', 201);
+        ], 'Signalement de test créé avec succès sans paiement.', 201);
     }
 
     public function show(Request $request, IncidentReport $report)
@@ -152,8 +152,8 @@ class PublicIncidentReportController extends Controller
     public function confirmResolution(Request $request, IncidentReport $report, ActivityLogger $activityLogger)
     {
         abort_unless((int) $report->public_user_id === (int) $request->user('public_api')->id, 404);
-        abort_unless($report->status !== IncidentReportStatus::Rejected->value, 422, 'Ce signalement ne peut pas etre confirme car il a ete rejete.');
-        abort_unless($report->resolution_confirmation_status !== 'confirmed', 422, 'La resolution de ce signalement a deja ete confirmee.');
+        abort_unless($report->status !== IncidentReportStatus::Rejected->value, 422, 'Ce signalement ne peut pas être confirmé car il a été rejeté.');
+        abort_unless($report->resolution_confirmation_status !== 'confirmed', 422, 'La résolution de ce signalement a déjà été confirmée.');
 
         $isValidatedByAi = $report->status === IncidentReportStatus::Resolved->value && $report->resolved_at !== null;
 
@@ -168,7 +168,7 @@ class PublicIncidentReportController extends Controller
 
         $activityLogger->log(
             'public.report.resolution_confirmed',
-            'Confirmation de resolution d un signalement par l usager.',
+            'Confirmation de résolution d’un signalement par l’usager.',
             $report,
             [
                 'reference' => $report->reference,
@@ -181,7 +181,7 @@ class PublicIncidentReportController extends Controller
 
         return ApiResponse::success([
             'report' => new IncidentReportResource($report),
-        ], 'La resolution du signalement a ete confirmee.');
+        ], 'La résolution du signalement a été confirmée.');
     }
 
     public function storeDamage(StoreIncidentReportDamageRequest $request, IncidentReport $report, InitiateDamageDeclarationFineoPaymentAction $action, ActivityLogger $activityLogger)
@@ -210,7 +210,7 @@ class PublicIncidentReportController extends Controller
 
         if ($report->damage_declared_at === null) {
             throw ValidationException::withMessages([
-                'report_id' => ['Aucun dommage n est encore enregistre pour ce signalement.'],
+                'report_id' => ['Aucun dommage n’est encore enregistré pour ce signalement.'],
             ]);
         }
 
@@ -238,7 +238,7 @@ class PublicIncidentReportController extends Controller
 
         $activityLogger->log(
             'public.report.damage_updated',
-            'Mise a jour d un dommage par l usager.',
+            'Mise à jour d’un dommage par l’usager.',
             $report,
             [
                 'reference' => $report->reference,
@@ -251,7 +251,7 @@ class PublicIncidentReportController extends Controller
         return ApiResponse::success([
             'report' => new IncidentReportResource($report),
             'damage' => new IncidentReportDamageResource($report),
-        ], 'Dommage mis a jour avec succes.');
+        ], 'Dommage mis à jour avec succès.');
     }
 
     private function initiateDamagePayment(StoreIncidentReportDamageRequest $request, IncidentReport $report, InitiateDamageDeclarationFineoPaymentAction $action, ActivityLogger $activityLogger)
@@ -281,7 +281,7 @@ class PublicIncidentReportController extends Controller
 
         $activityLogger->log(
             'public.damage.payment_session_created',
-            'Initialisation du paiement FineoPay pour une declaration de dommage.',
+            'Initialisation du paiement FineoPay pour une déclaration de dommage.',
             $paymentSession,
             [
                 'sync_ref' => $paymentSession->sync_ref,
@@ -297,7 +297,7 @@ class PublicIncidentReportController extends Controller
         return ApiResponse::success([
             'payment_session' => new IncidentReportPaymentSessionResource($paymentSession),
             'checkout_link' => $paymentSession->checkout_link,
-        ], 'Lien de paiement genere avec succes. Le dommage sera enregistre apres paiement.', 201);
+        ], 'Lien de paiement généré avec succès. Le dommage sera enregistré après paiement.', 201);
     }
 
     private function resolveDamagePurchaseReceipt(Request $request, array $attributes): ?PurchaseReceipt
@@ -311,7 +311,7 @@ class PublicIncidentReportController extends Controller
 
             if ($receipt === null) {
                 throw ValidationException::withMessages([
-                    'purchase_receipt_id' => ['Le recu selectionne est introuvable pour cet usager.'],
+                    'purchase_receipt_id' => ['Le reçu sélectionné est introuvable pour cet usager.'],
                 ]);
             }
 
@@ -350,7 +350,7 @@ class PublicIncidentReportController extends Controller
 
         if (! $path) {
             throw ValidationException::withMessages([
-                'receipt_attachment' => ['Impossible de televerser le fichier du recu sur le stockage distant.'],
+                'receipt_attachment' => ['Impossible de téléverser le fichier du reçu sur le stockage distant.'],
             ]);
         }
 

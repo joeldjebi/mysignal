@@ -70,7 +70,7 @@ class UserController extends Controller
 
         $activityLogger->log(
             'partner.web.user.created',
-            'Creation d un utilisateur partenaire depuis le dashboard web.',
+            'Création d’un utilisateur partenaire depuis le tableau de bord web.',
             $user,
             [
                 'organization_id' => $user->organization_id,
@@ -81,7 +81,7 @@ class UserController extends Controller
             'partner',
         );
 
-        return redirect()->route('partner.users.index')->with('success', 'L utilisateur partenaire a ete cree.');
+        return redirect()->route('partner.users.index')->with('success', 'L’utilisateur partenaire a été créé.');
     }
 
     public function edit(User $user): View
@@ -114,7 +114,7 @@ class UserController extends Controller
 
         $activityLogger->log(
             'partner.web.user.updated',
-            'Mise a jour d un utilisateur partenaire depuis le dashboard web.',
+            'Mise à jour d’un utilisateur partenaire depuis le tableau de bord web.',
             $updatedUser,
             [
                 'organization_id' => $updatedUser->organization_id,
@@ -126,7 +126,7 @@ class UserController extends Controller
             'partner',
         );
 
-        return redirect()->route('partner.users.index')->with('success', 'L utilisateur partenaire a ete mis a jour.');
+        return redirect()->route('partner.users.index')->with('success', 'L’utilisateur partenaire a été mis à jour.');
     }
 
     public function toggleStatus(Request $request, User $user, TogglePartnerUserStatusAction $action, ActivityLogger $activityLogger): RedirectResponse
@@ -135,7 +135,7 @@ class UserController extends Controller
 
         $activityLogger->log(
             'partner.web.user.status_toggled',
-            'Changement de statut d un utilisateur partenaire.',
+            'Changement de statut d’un utilisateur partenaire.',
             $updatedUser,
             [
                 'organization_id' => $updatedUser->organization_id,
@@ -146,7 +146,7 @@ class UserController extends Controller
             'partner',
         );
 
-        return back()->with('success', 'Le statut de l utilisateur partenaire a ete mis a jour.');
+        return back()->with('success', 'Le statut de l’utilisateur partenaire a été mis à jour.');
     }
 
     private function assignablePartnerRoles(?User $actor)

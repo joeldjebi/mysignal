@@ -1,12 +1,12 @@
 @extends('partner.layouts.app')
 
-@section('title', config('app.name').' | Users partenaire')
+@section('title', config('app.name').' | Utilisateurs partenaire')
 @section('page-title', 'Utilisateurs partenaire')
-@section('page-description', 'Creez les admins, managers et agents de scan qui accedent a l application mobile partenaire.')
+@section('page-description', 'Créez les admins, managers et agents de scan qui accèdent à l’application mobile partenaire.')
 
 @section('header-badges')
     <span class="badge-soft">{{ $users->total() }} utilisateurs</span>
-    <span class="badge-soft">{{ $roles->count() }} roles</span>
+    <span class="badge-soft">{{ $roles->count() }} rôle{{ $roles->count() > 1 ? 's' : '' }}</span>
     @if ($authorization['canCreateUsers'])
         <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#createUserModal">
             Nouvel agent de scan
@@ -21,10 +21,10 @@
             <div class="row g-2 align-items-end">
                 <div class="col-md-5">
                     <label class="form-label small text-secondary">Recherche</label>
-                    <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Nom, email, telephone">
+                    <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Nom, email, téléphone">
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label small text-secondary">Role</label>
+                    <label class="form-label small text-secondary">Rôle</label>
                     <select name="role_code" class="form-select">
                         <option value="">Tous</option>
                         @foreach ($roles as $role)
@@ -43,12 +43,12 @@
             </div>
             <div class="d-flex gap-2 mt-2">
                 <button class="btn btn-dark">Filtrer</button>
-                <a href="{{ route('partner.users.index') }}" class="btn btn-outline-secondary">RAZ</a>
+                <a href="{{ route('partner.users.index') }}" class="btn btn-outline-secondary">Réinitialiser</a>
             </div>
         </form>
 
         <div class="table-toolbar">
-            <div class="table-meta">{{ $users->total() }} resultat{{ $users->total() > 1 ? 's' : '' }}</div>
+            <div class="table-meta">{{ $users->total() }} résultat{{ $users->total() > 1 ? 's' : '' }}</div>
         </div>
 
         <div class="table-card">
@@ -57,7 +57,7 @@
                     <thead>
                         <tr>
                             <th>Utilisateur</th>
-                            <th>Role</th>
+                            <th>Rôle</th>
                             <th>Permissions</th>
                             <th>Statut</th>
                             <th class="text-end">Actions</th>
@@ -85,14 +85,14 @@
                                             <form method="POST" action="{{ route('partner.users.toggle-status', $user) }}">
                                                 @csrf
                                                 @method('PATCH')
-                                                <button class="btn btn-sm btn-outline-warning">{{ $user->status === 'active' ? 'Desactiver' : 'Activer' }}</button>
+                                                <button class="btn btn-sm btn-outline-warning">{{ $user->status === 'active' ? 'Désactiver' : 'Activer' }}</button>
                                             </form>
                                         @endif
                                     </div>
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="5" class="text-center text-secondary">Aucun utilisateur partenaire enregistre.</td></tr>
+                            <tr><td colspan="5" class="text-center text-secondary">Aucun utilisateur partenaire enregistré.</td></tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -111,7 +111,7 @@
                 <div class="modal-header border-0 pb-0">
                     <div>
                         <h5 class="modal-title" id="createUserModalLabel">Nouvel agent de scan</h5>
-                        <div class="text-secondary small">Creez un compte pour l application mobile de scan partenaire.</div>
+                        <div class="text-secondary small">Créez un compte pour l’application mobile de scan partenaire.</div>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -137,7 +137,7 @@
                                 <input type="password" name="password" class="form-control" required>
                             </div>
                             <div>
-                                <label class="form-label">Role</label>
+                                <label class="form-label">Rôle</label>
                                 <select name="role_code" class="form-select" required>
                                     @foreach ($assignableRoles as $role)
                                         <option value="{{ $role->code }}" @selected(old('role_code') === $role->code)>{{ $role->name }}</option>
@@ -148,7 +148,7 @@
                     </div>
                     <div class="modal-footer border-0 pt-0">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
-                        <button type="submit" class="btn btn-dark">Creer</button>
+                        <button type="submit" class="btn btn-dark">Créer</button>
                     </div>
                 </form>
             </div>

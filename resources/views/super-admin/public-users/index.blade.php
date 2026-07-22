@@ -2,7 +2,7 @@
 
 @section('title', config('app.name').' | Usagers publics')
 @section('page-title', 'Usagers publics')
-@section('page-description', 'Creer et piloter les comptes publics particuliers et entreprises.')
+@section('page-description', 'Créer et piloter les comptes publics particuliers et entreprises.')
 
 @section('header-badges')
     <span class="badge-soft">{{ $publicUsers->total() }} usagers</span>
@@ -21,7 +21,7 @@
             <div class="row g-2 align-items-end">
                 <div class="col-md-5">
                     <label class="form-label small text-secondary">Recherche</label>
-                    <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Nom, telephone, email, entreprise">
+                    <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Nom, téléphone, email, entreprise">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label small text-secondary">Type</label>
@@ -58,7 +58,7 @@
                 </div>
                 <div class="col-md-2 d-flex gap-2">
                     <button class="btn btn-dark w-100">Filtrer</button>
-                    <a href="{{ route('super-admin.public-users.index') }}" class="btn btn-outline-secondary">RAZ</a>
+                    <a href="{{ route('super-admin.public-users.index') }}" class="btn btn-outline-secondary">Réinitialiser</a>
                 </div>
             </div>
         </form>
@@ -105,19 +105,19 @@
                                     $subscriptionLabels = [
                                         'pending' => 'Paiement en attente',
                                         'active' => 'Actif',
-                                        'expired' => 'Expire',
-                                        'cancelled' => 'Annule',
+                                        'expired' => 'Expiré',
+                                        'cancelled' => 'Annulé',
                                         'suspended' => 'Suspendu',
-                                        'payment_failed' => 'Paiement echoue',
+                                        'payment_failed' => 'Paiement échoué',
                                     ];
                                 @endphp
                                 @if ($subscription)
                                     <div class="fw-semibold">
                                         {{ $subscriptionIsUsable ? 'Actif' : ($subscriptionLabels[$subscription->status] ?? $subscription->status) }}
                                     </div>
-                                    <div class="small text-secondary">{{ $subscription->plan?->name ?: 'Plan non renseigne' }}</div>
+                                    <div class="small text-secondary">{{ $subscription->plan?->name ?: 'Plan non renseigné' }}</div>
                                     <div class="small text-secondary">
-                                        {{ $subscription->end_date ? 'Fin '.$subscription->end_date->format('d/m/Y') : 'En attente d activation' }}
+                                        {{ $subscription->end_date ? 'Fin '.$subscription->end_date->format('d/m/Y') : 'En attente d’activation' }}
                                     </div>
                                 @else
                                     <span class="status-chip">Aucun</span>
@@ -136,27 +136,27 @@
                                 @endphp
                                 @if ($activeTokens->isNotEmpty())
                                     <div class="fw-semibold">{{ $activeTokens->count() }} token{{ $activeTokens->count() > 1 ? 's' : '' }} actif{{ $activeTokens->count() > 1 ? 's' : '' }}</div>
-                                    <div class="small text-secondary">{{ $platforms->isNotEmpty() ? $platforms->join(', ') : 'Plateforme non renseignee' }}</div>
+                                    <div class="small text-secondary">{{ $platforms->isNotEmpty() ? $platforms->join(', ') : 'Plateforme non renseignée' }}</div>
                                     <div class="small text-secondary">
-                                        {{ $latestToken?->last_seen_at ? 'Dernier: '.$latestToken->last_seen_at->format('d/m/Y H:i') : 'Dernier passage non renseigne' }}
+                                        {{ $latestToken?->last_seen_at ? 'Dernier : '.$latestToken->last_seen_at->format('d/m/Y H:i') : 'Dernier passage non renseigné' }}
                                     </div>
                                 @else
                                     <span class="status-chip">Aucun token actif</span>
                                     @if ((int) $publicUser->device_tokens_count > 0)
-                                        <div class="small text-secondary">{{ $publicUser->device_tokens_count }} ancien{{ $publicUser->device_tokens_count > 1 ? 's' : '' }} token{{ $publicUser->device_tokens_count > 1 ? 's' : '' }} revoque{{ $publicUser->device_tokens_count > 1 ? 's' : '' }}</div>
+                                        <div class="small text-secondary">{{ $publicUser->device_tokens_count }} ancien{{ $publicUser->device_tokens_count > 1 ? 's' : '' }} token{{ $publicUser->device_tokens_count > 1 ? 's' : '' }} révoqué{{ $publicUser->device_tokens_count > 1 ? 's' : '' }}</div>
                                     @endif
                                 @endif
                             </td>
                             <td><span class="status-chip">{{ $publicUser->status }}</span></td>
                             <td class="text-end">
                                 <div class="actions-wrap">
-                                    <a href="{{ route('super-admin.public-users.show', $publicUser) }}" class="btn btn-sm btn-dark">Details</a>
+                                    <a href="{{ route('super-admin.public-users.show', $publicUser) }}" class="btn btn-sm btn-dark">Détails</a>
                                     <a href="{{ route('super-admin.public-users.edit', $publicUser) }}" class="btn btn-sm btn-outline-dark">Modifier</a>
                                     @if (auth()->user()?->hasPermissionCode('SA_PUBLIC_USERS_TOGGLE_STATUS'))
                                         <form method="POST" action="{{ route('super-admin.public-users.toggle-status', $publicUser) }}">
                                             @csrf
                                             @method('PATCH')
-                                            <button class="btn btn-sm btn-outline-warning">{{ $publicUser->status === 'active' ? 'Desactiver' : 'Activer' }}</button>
+                                            <button class="btn btn-sm btn-outline-warning">{{ $publicUser->status === 'active' ? 'Désactiver' : 'Activer' }}</button>
                                         </form>
                                     @endif
                                     <form method="POST" action="{{ route('super-admin.public-users.destroy', $publicUser) }}">
@@ -168,7 +168,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="8" class="text-center text-secondary">Aucun usager public enregistre.</td></tr>
+                        <tr><td colspan="8" class="text-center text-secondary">Aucun usager public enregistré.</td></tr>
                     @endforelse
                 </tbody>
             </table>

@@ -29,7 +29,7 @@ class PublicProfileController extends Controller
 
         return ApiResponse::success([
             'user' => new PublicUserResource($user->loadMissing(['publicUserType.pricingRule', 'countryReference', 'cityReference', 'communeReference'])),
-        ], 'Profil mis a jour avec succes.');
+        ], 'Profil mis à jour avec succès.');
     }
 
     public function updatePhoto(Request $request, WasabiService $wasabiService)
@@ -56,7 +56,7 @@ class PublicProfileController extends Controller
 
         return ApiResponse::success([
             'user' => new PublicUserResource($user->fresh(['publicUserType.pricingRule', 'countryReference', 'cityReference', 'communeReference'])),
-        ], 'Photo de profil mise a jour avec succes.');
+        ], 'Photo de profil mise à jour avec succès.');
     }
 
     public function updatePassword(UpdatePublicPasswordRequest $request, ActivityLogger $activityLogger)
@@ -75,7 +75,7 @@ class PublicProfileController extends Controller
 
         $activityLogger->log(
             'public.password.updated',
-            'Mise a jour du mot de passe UP.',
+            'Mise à jour du mot de passe UP.',
             $user,
             [
                 'public_user_type_id' => $user->public_user_type_id,
@@ -86,6 +86,6 @@ class PublicProfileController extends Controller
             'public',
         );
 
-        return ApiResponse::success([], 'Mot de passe mis a jour avec succes.');
+        return ApiResponse::success([], 'Mot de passe mis à jour avec succès.');
     }
 }

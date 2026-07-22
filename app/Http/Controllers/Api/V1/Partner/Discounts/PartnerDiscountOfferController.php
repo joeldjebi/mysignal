@@ -51,7 +51,7 @@ class PartnerDiscountOfferController extends Controller
 
         $activityLogger->log(
             'partner.discount_offer.created',
-            'Creation d une offre de reduction partenaire.',
+            'Création d’une offre de réduction partenaire.',
             $offer,
             [
                 'organization_id' => $offer->organization_id,
@@ -65,7 +65,7 @@ class PartnerDiscountOfferController extends Controller
 
         return ApiResponse::success([
             'offer' => new PartnerDiscountOfferResource($offer),
-        ], 'Offre partenaire creee avec succes.', 201);
+        ], 'Offre partenaire créée avec succès.', 201);
     }
 
     public function update(UpdatePartnerDiscountOfferRequest $request, PartnerDiscountOffer $offer, ActivityLogger $activityLogger)
@@ -92,7 +92,7 @@ class PartnerDiscountOfferController extends Controller
 
         $activityLogger->log(
             'partner.discount_offer.updated',
-            'Mise a jour d une offre de reduction partenaire.',
+            'Mise à jour d’une offre de réduction partenaire.',
             $offer,
             [
                 'organization_id' => $offer->organization_id,
@@ -106,7 +106,7 @@ class PartnerDiscountOfferController extends Controller
 
         return ApiResponse::success([
             'offer' => new PartnerDiscountOfferResource($offer->fresh()),
-        ], 'Offre partenaire mise a jour avec succes.');
+        ], 'Offre partenaire mise à jour avec succès.');
     }
 
     public function toggleStatus(Request $request, PartnerDiscountOffer $offer, ActivityLogger $activityLogger)
@@ -126,7 +126,7 @@ class PartnerDiscountOfferController extends Controller
 
         $activityLogger->log(
             'partner.discount_offer.status_toggled',
-            'Changement de statut d une offre partenaire.',
+            'Changement de statut d’une offre partenaire.',
             $offer,
             [
                 'organization_id' => $offer->organization_id,
@@ -140,14 +140,14 @@ class PartnerDiscountOfferController extends Controller
 
         return ApiResponse::success([
             'offer' => new PartnerDiscountOfferResource($offer->fresh()),
-        ], 'Statut de l offre partenaire mis a jour.');
+        ], 'Statut de l’offre partenaire mis à jour.');
     }
 
     private function assertSameOrganization(Request $request, PartnerDiscountOffer $offer): void
     {
         if ((int) $offer->organization_id !== (int) $request->user('partner_api')->organization_id) {
             throw ValidationException::withMessages([
-                'offer' => ['Cette offre n appartient pas a votre etablissement partenaire.'],
+                'offer' => ['Cette offre n’appartient pas à votre établissement partenaire.'],
             ]);
         }
     }

@@ -45,7 +45,7 @@ class BusinessSectorController extends Controller
         ]);
 
         return redirect()->route('super-admin.business-sectors.index')
-            ->with('success', 'Le secteur d activite a ete cree.');
+            ->with('success', 'Le secteur d’activité a été créé.');
     }
 
     public function edit(BusinessSector $businessSector): View
@@ -67,7 +67,7 @@ class BusinessSectorController extends Controller
         ]);
 
         return redirect()->route('super-admin.business-sectors.index')
-            ->with('success', 'Le secteur d activite a ete mis a jour.');
+            ->with('success', 'Le secteur d’activité a été mis à jour.');
     }
 
     public function destroy(BusinessSector $businessSector): RedirectResponse
@@ -75,7 +75,7 @@ class BusinessSectorController extends Controller
         $businessSector->delete();
 
         return redirect()->route('super-admin.business-sectors.index')
-            ->with('success', 'Le secteur d activite a ete supprime.');
+            ->with('success', 'Le secteur d’activité a été supprimé.');
     }
 
     public function toggleStatus(BusinessSector $businessSector): RedirectResponse
@@ -84,7 +84,7 @@ class BusinessSectorController extends Controller
             'status' => $businessSector->status === 'active' ? 'inactive' : 'active',
         ]);
 
-        return back()->with('success', 'Le statut du secteur d activite a ete mis a jour.');
+        return back()->with('success', 'Le statut du secteur d’activité a été mis à jour.');
     }
 
     private function validatedAttributes(Request $request, ?BusinessSector $businessSector = null): array

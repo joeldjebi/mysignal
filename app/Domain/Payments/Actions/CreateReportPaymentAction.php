@@ -25,7 +25,7 @@ class CreateReportPaymentAction
 
         if ($report->payment_status === PaymentStatus::Paid->value) {
             throw ValidationException::withMessages([
-                'report' => ['Ce signalement a deja ete paye.'],
+                'report' => ['Ce signalement a déjà été payé.'],
             ]);
         }
 
@@ -49,7 +49,7 @@ class CreateReportPaymentAction
 
         if ($pricingRule === null) {
             throw ValidationException::withMessages([
-                'pricing_rule' => ['Aucune tarification active n est disponible pour ce signalement.'],
+                'pricing_rule' => ['Aucune tarification active n’est disponible pour ce signalement.'],
             ]);
         }
 

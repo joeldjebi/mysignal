@@ -1,16 +1,16 @@
 @extends('super-admin.layouts.app')
 
-@section('title', config('app.name').' | Journaux d activite')
-@section('page-title', 'Journaux d activite')
-@section('page-description', 'Consulter les activites visibles selon votre profil, vos permissions et le perimetre defini par le super admin.')
+@section('title', config('app.name').' | Journaux d’activité')
+@section('page-title', 'Journaux d’activité')
+@section('page-description', 'Consulter les activités visibles selon votre profil, vos permissions et le périmètre défini par le super admin.')
 
 @section('header-badges')
-    <span class="badge-soft">{{ $logs->total() }} entree{{ $logs->total() > 1 ? 's' : '' }}</span>
+    <span class="badge-soft">{{ $logs->total() }} entrée{{ $logs->total() > 1 ? 's' : '' }}</span>
 @endsection
 
 @section('content')
     <section class="panel-card">
-        <div class="fw-bold mb-3">Historique des activites</div>
+        <div class="fw-bold mb-3">Historique des activités</div>
         <form method="GET" class="filter-bar">
             <div class="row g-2 align-items-end">
                 <div class="col-md-4">
@@ -53,7 +53,7 @@
                 </div>
                 <div class="col-12 d-flex gap-2 justify-content-end">
                     <button class="btn btn-dark w-100">Filtrer</button>
-                    <a href="{{ route('super-admin.activity-logs.index') }}" class="btn btn-outline-secondary">RAZ</a>
+                    <a href="{{ route('super-admin.activity-logs.index') }}" class="btn btn-outline-secondary">Réinitialiser</a>
                 </div>
             </div>
         </form>
@@ -84,7 +84,7 @@
                                     <div class="fw-semibold">{{ trim(($log->actorPublicUser->first_name ?? '').' '.($log->actorPublicUser->last_name ?? '')) }}</div>
                                     <div class="small text-secondary">{{ $log->actorPublicUser->phone }}</div>
                                 @else
-                                    <span class="text-secondary">Systeme</span>
+                                    <span class="text-secondary">Système</span>
                                 @endif
                             </td>
                             <td>
@@ -102,18 +102,18 @@
                             </td>
                             <td class="text-end">
                                 @if ($log->actorPublicUser)
-                                    <a href="{{ route('super-admin.public-users.show', $log->actorPublicUser) }}" class="btn btn-sm btn-outline-dark">Details</a>
+                                    <a href="{{ route('super-admin.public-users.show', $log->actorPublicUser) }}" class="btn btn-sm btn-outline-dark">Détails</a>
                                 @elseif ($log->actorUser && ! $log->actorUser->is_super_admin && $log->actorUser->organization_id === null)
-                                    <a href="{{ route('super-admin.system-users.show', $log->actorUser) }}" class="btn btn-sm btn-outline-dark">Details</a>
+                                    <a href="{{ route('super-admin.system-users.show', $log->actorUser) }}" class="btn btn-sm btn-outline-dark">Détails</a>
                                 @elseif ($log->actorUser && $log->actorUser->organization_id !== null)
-                                    <a href="{{ route('super-admin.institution-admins.edit', $log->actorUser) }}" class="btn btn-sm btn-outline-dark">Details</a>
+                                    <a href="{{ route('super-admin.institution-admins.edit', $log->actorUser) }}" class="btn btn-sm btn-outline-dark">Détails</a>
                                 @else
                                     <span class="text-secondary small">-</span>
                                 @endif
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="7" class="text-center text-secondary">Aucune activite visible.</td></tr>
+                        <tr><td colspan="7" class="text-center text-secondary">Aucune activité visible.</td></tr>
                     @endforelse
                 </tbody>
             </table>

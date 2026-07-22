@@ -2,12 +2,12 @@
 
 @section('title', config('app.name').' | Utilisateurs internes')
 @section('page-title', 'Utilisateurs internes')
-@section('page-description', 'Creer les comptes internes, puis leur attribuer des roles pour le pilotage des dossiers et operations.')
+@section('page-description', 'Créer les comptes internes, puis leur attribuer des rôles pour le pilotage des dossiers et opérations.')
 
 @section('header-badges')
     @php($canManageSystemUsers = auth()->user()?->hasEffectivePermissionCode('SA_SYSTEM_USERS_MANAGE') ?? false)
     <span class="badge-soft">{{ $systemUsers->total() }} utilisateurs</span>
-    <span class="badge-soft">{{ $roles->count() }} roles actifs</span>
+    <span class="badge-soft">{{ $roles->count() }} rôle{{ $roles->count() > 1 ? 's' : '' }} actif{{ $roles->count() > 1 ? 's' : '' }}</span>
     @if ($canManageSystemUsers)
         <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#createSystemUserModal">Nouvel utilisateur</button>
     @endif
@@ -22,10 +22,10 @@
             <div class="row g-2 align-items-end">
                 <div class="col-md-5">
                     <label class="form-label small text-secondary">Recherche</label>
-                    <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Nom, email, telephone">
+                    <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Nom, email, téléphone">
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label small text-secondary">Role</label>
+                    <label class="form-label small text-secondary">Rôle</label>
                     <select name="role_id" class="form-select">
                         <option value="">Tous</option>
                         @foreach ($roles as $role)
@@ -43,20 +43,20 @@
                 </div>
                 <div class="col-md-2 d-flex gap-2">
                     <button class="btn btn-dark w-100">Filtrer</button>
-                    <a href="{{ route('super-admin.system-users.index') }}" class="btn btn-outline-secondary">RAZ</a>
+                    <a href="{{ route('super-admin.system-users.index') }}" class="btn btn-outline-secondary">Réinitialiser</a>
                 </div>
             </div>
         </form>
 
         <div class="table-toolbar">
-            <div class="table-meta">{{ $systemUsers->total() }} resultat{{ $systemUsers->total() > 1 ? 's' : '' }}</div>
+            <div class="table-meta">{{ $systemUsers->total() }} résultat{{ $systemUsers->total() > 1 ? 's' : '' }}</div>
         </div>
         <div class="table-responsive">
             <table class="table table-modern align-middle">
                 <thead>
                     <tr>
                         <th>Utilisateur</th>
-                        <th>Roles</th>
+                        <th>Rôles</th>
                         <th>Statut</th>
                         <th class="text-end">Actions</th>
                     </tr>
@@ -73,7 +73,7 @@
                             <td><span class="status-chip">{{ $systemUser->status }}</span></td>
                             <td class="text-end">
                                 <div class="actions-wrap">
-                                    <a href="{{ route('super-admin.system-users.show', $systemUser) }}" class="btn btn-sm btn-outline-secondary">Details</a>
+                                    <a href="{{ route('super-admin.system-users.show', $systemUser) }}" class="btn btn-sm btn-outline-secondary">Détails</a>
                                     <a href="{{ $systemUser->login_portal_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary">{{ $systemUser->login_portal_label }}</a>
                                     @if ($canManageSystemUsers)
                                         <a href="{{ route('super-admin.system-users.edit', $systemUser) }}" class="btn btn-sm btn-outline-dark">Modifier</a>
@@ -82,7 +82,7 @@
                                         <form method="POST" action="{{ route('super-admin.system-users.toggle-status', $systemUser) }}">
                                             @csrf
                                             @method('PATCH')
-                                            <button class="btn btn-sm btn-outline-warning">{{ $systemUser->status === 'active' ? 'Desactiver' : 'Activer' }}</button>
+                                            <button class="btn btn-sm btn-outline-warning">{{ $systemUser->status === 'active' ? 'Désactiver' : 'Activer' }}</button>
                                         </form>
                                     @endif
                                     @if ($canManageSystemUsers)
@@ -96,7 +96,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="4" class="text-center text-secondary">Aucun utilisateur interne enregistre.</td></tr>
+                        <tr><td colspan="4" class="text-center text-secondary">Aucun utilisateur interne enregistré.</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -114,7 +114,7 @@
                 <div class="modal-header">
                     <div>
                         <h5 class="modal-title fw-bold">Nouvel utilisateur interne</h5>
-                        <div class="small text-secondary">Creer un compte et attribuer ses roles.</div>
+                        <div class="small text-secondary">Créer un compte et attribuer ses rôles.</div>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
                 </div>
@@ -123,9 +123,9 @@
                     <div class="modal-body">
                         <div class="alert alert-light border rounded-4 mb-4">
                             <div class="fw-bold mb-2">Comment attribuer les droits</div>
-                            <div class="small text-secondary mb-1">Les utilisateurs internes heritent maintenant de leurs droits uniquement via les roles.</div>
-                            <div class="small text-secondary mb-1">Choisis donc un ou plusieurs roles coherents avec le metier du compte.</div>
-                            <div class="small text-secondary mb-0">Exemple : un huissier ou un avocat recoit un role metier, et ses permissions viennent automatiquement de ce role.</div>
+                            <div class="small text-secondary mb-1">Les utilisateurs internes héritent maintenant de leurs droits uniquement via les rôles.</div>
+                            <div class="small text-secondary mb-1">Choisissez donc un ou plusieurs rôles cohérents avec le métier du compte.</div>
+                            <div class="small text-secondary mb-0">Exemple : un huissier ou un avocat reçoit un rôle métier, et ses permissions viennent automatiquement de ce rôle.</div>
                         </div>
 
                         <div class="row g-3">
@@ -145,8 +145,8 @@
                                 <input type="password" name="password" class="form-control" required>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Roles</label>
-                                <div class="small text-secondary mb-2">Les roles regroupent plusieurs permissions. C est desormais l unique methode d attribution des droits.</div>
+                                <label class="form-label">Rôles</label>
+                                <div class="small text-secondary mb-2">Les rôles regroupent plusieurs permissions. C’est désormais la seule méthode d’attribution des droits.</div>
                                 <div class="border rounded-3 p-3" style="max-height: 360px; overflow:auto;">
                                     @forelse ($roles as $role)
                                         <div class="border rounded-3 p-2 mb-2">
@@ -155,12 +155,12 @@
                                                 <label class="form-check-label w-100" for="create-role-{{ $role->id }}">
                                                     <div class="fw-semibold">{{ $role->name }}</div>
                                                     <div class="small text-secondary">{{ $role->code }}</div>
-                                                    <div class="small text-secondary">{{ $role->description ?: 'Aucune description renseignee.' }}</div>
+                                                    <div class="small text-secondary">{{ $role->description ?: 'Aucune description renseignée.' }}</div>
                                                 </label>
                                             </div>
                                         </div>
                                     @empty
-                                        <div class="text-secondary small">Aucun role actif disponible.</div>
+                                        <div class="text-secondary small">Aucun rôle actif disponible.</div>
                                     @endforelse
                                 </div>
                             </div>
@@ -172,12 +172,12 @@
                                         <option value="{{ $organization->id }}" @selected((string) old('partner_organization_id') === (string) $organization->id)>{{ $organization->name }}</option>
                                     @endforeach
                                 </select>
-                                <div class="small text-secondary mt-1">Obligatoire si tu attribues un role partenaire comme PARTNER_MANAGER ou PARTNER_AGENT.</div>
+                                <div class="small text-secondary mt-1">Obligatoire si vous attribuez un rôle partenaire.</div>
                             </div>
                             <div class="col-12">
-                                <label class="form-label">Utilisateurs internes dont l activite est visible</label>
-                                <div class="small text-secondary mb-1">Ce parametre est utile si ce compte doit voir les activites de certains utilisateurs internes choisis par le super admin.</div>
-                                <div class="small text-secondary mb-2">Le role attribue doit alors contenir la permission <span class="fw-semibold">Voir activites utilisateurs internes</span> (<code>SA_ACTIVITY_LOGS_VIEW_INTERNAL</code>) dans la categorie <span class="fw-semibold">Journaux d activite</span>.</div>
+                                <label class="form-label">Utilisateurs internes dont l’activité est visible</label>
+                                <div class="small text-secondary mb-1">Ce paramètre est utile si ce compte doit voir les activités de certains utilisateurs internes choisis par le super admin.</div>
+                                <div class="small text-secondary mb-2">Le rôle attribué doit inclure <span class="fw-semibold">Voir les activités des utilisateurs internes</span> dans la catégorie <span class="fw-semibold">Journaux d’activité</span>.</div>
                                 <div class="border rounded-3 p-3" style="max-height: 220px; overflow:auto;">
                                     @forelse ($visibleActivityUsers as $visibleUser)
                                         <div class="form-check mb-2">
@@ -196,7 +196,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
-                        <button type="submit" class="btn btn-dark">Creer</button>
+                        <button type="submit" class="btn btn-dark">Créer</button>
                     </div>
                 </form>
             </div>

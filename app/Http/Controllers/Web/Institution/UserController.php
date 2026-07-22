@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web\Institution;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Web\Institution\Concerns\InteractsWithInstitutionContext;
 use App\Models\User;
+use App\Models\UserType;
 use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -82,6 +83,7 @@ class UserController extends Controller
 
         DB::transaction(function () use ($attributes, $organization, $request, $authorization, &$createdUser): void {
             $createdUser = User::query()->create([
+                'user_type_id' => UserType::idFor(UserType::INSTITUTION_ADMIN),
                 'organization_id' => $organization->id,
                 'name' => $attributes['name'],
                 'email' => $attributes['email'],
@@ -104,7 +106,7 @@ class UserController extends Controller
         if ($createdUser instanceof User) {
             $activityLogger->log(
                 'institution.user.created',
-                'Creation d un collaborateur institutionnel.',
+                'Création d’un collaborateur institutionnel.',
                 $createdUser,
                 [],
                 $request,
@@ -114,7 +116,7 @@ class UserController extends Controller
         }
 
         return redirect()->route('institution.users.index')
-            ->with('success', 'Le collaborateur a ete cree.');
+            ->with('success', 'Le collaborateur a été créé.');
     }
 
     public function edit(User $user): View
@@ -187,7 +189,7 @@ class UserController extends Controller
 
         $activityLogger->log(
             'institution.user.updated',
-            'Mise a jour d un collaborateur institutionnel.',
+            'Mise à jour d’un collaborateur institutionnel.',
             $user,
             [],
             $request,
@@ -196,7 +198,7 @@ class UserController extends Controller
         );
 
         return redirect()->route('institution.users.index')
-            ->with('success', 'Le collaborateur a ete mis a jour.');
+            ->with('success', 'Le collaborateur a été mis à jour.');
     }
 
     public function destroy(Request $request, User $user, ActivityLogger $activityLogger): RedirectResponse
@@ -214,7 +216,7 @@ class UserController extends Controller
 
         $activityLogger->log(
             'institution.user.deleted',
-            'Suppression d un collaborateur institutionnel.',
+            'Suppression d’un collaborateur institutionnel.',
             $user,
             [],
             $request,
@@ -225,7 +227,7 @@ class UserController extends Controller
         $user->delete();
 
         return redirect()->route('institution.users.index')
-            ->with('success', 'Le collaborateur a ete supprime.');
+            ->with('success', 'Le collaborateur a été supprimé.');
     }
 
     public function toggleStatus(Request $request, User $user, ActivityLogger $activityLogger): RedirectResponse
@@ -247,7 +249,7 @@ class UserController extends Controller
 
         $activityLogger->log(
             'institution.user.status_toggled',
-            'Changement de statut d un collaborateur institutionnel.',
+            'Changement de statut d’un collaborateur institutionnel.',
             $user,
             [
                 'status' => $user->status,
@@ -257,7 +259,7 @@ class UserController extends Controller
             'institution',
         );
 
-        return back()->with('success', 'Le statut du collaborateur a ete mis a jour.');
+        return back()->with('success', 'Le statut du collaborateur a été mis à jour.');
     }
 
     private function validateRequest(Request $request, int $organizationId, ?User $user = null): array

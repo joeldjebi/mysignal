@@ -71,7 +71,7 @@ class PartnerAuthController extends Controller
 
         if (! $user instanceof User || $partnerAccess === null) {
             throw ValidationException::withMessages([
-                $request->filled('phone') ? 'phone' : 'email' => ['Ce compte n est pas autorise a acceder au portail partenaire.'],
+                $request->filled('phone') ? 'phone' : 'email' => ['Ce compte n’est pas autorisé à accéder au portail partenaire.'],
             ]);
         }
 

@@ -31,7 +31,7 @@ class RegisterPublicUserAction
 
         if ($verification === null || $verification->expires_at->isPast()) {
             throw ValidationException::withMessages([
-                'verification_token' => ['La verification du numero a expire ou est invalide.'],
+                'verification_token' => ['La vérification du numéro a expiré ou est invalide.'],
             ]);
         }
 

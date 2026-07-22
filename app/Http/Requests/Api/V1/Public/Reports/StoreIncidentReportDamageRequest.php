@@ -42,7 +42,7 @@ class StoreIncidentReportDamageRequest extends FormRequest
 
             foreach (['receipt_material_name', 'receipt_purchase_date', 'receipt_amount'] as $field) {
                 if (! $this->filled($field)) {
-                    $validator->errors()->add($field, 'Les trois champs du recu sont requis pour enregistrer un recu pendant la declaration.');
+                    $validator->errors()->add($field, 'Les trois champs du reçu sont requis pour enregistrer un reçu pendant la déclaration.');
                 }
             }
         });

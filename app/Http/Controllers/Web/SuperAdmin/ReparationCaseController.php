@@ -143,7 +143,7 @@ class ReparationCaseController extends Controller
 
         if (filled($attributes['bailiff_user_id'] ?? null) && ! $bailiffUsers->contains('id', (int) $attributes['bailiff_user_id'])) {
             throw ValidationException::withMessages([
-                'bailiff_user_id' => ['Le huissier selectionne n est pas eligible pour recevoir ce dossier.'],
+                'bailiff_user_id' => ['Le huissier sélectionné n’est pas éligible pour recevoir ce dossier.'],
             ]);
         }
 
@@ -161,7 +161,7 @@ class ReparationCaseController extends Controller
 
         if ($eligibility === null) {
             throw ValidationException::withMessages([
-                'incident_report_id' => ['Ce signalement n est pas encore éligible à l ouverture manuelle d un dossier de réparation.'],
+                'incident_report_id' => ['Ce signalement n’est pas encore éligible à l’ouverture manuelle d’un dossier de réparation.'],
             ]);
         }
 
@@ -537,7 +537,7 @@ class ReparationCaseController extends Controller
         $this->recordHistory(
             $reparationCase,
             'step_added',
-            'Nouvelle etape de procedure',
+            'Nouvelle étape de procédure',
             $step->title.'. '.$this->stepStatusLabel($step->status).'.'.$assignedName,
             $request->user()?->id,
             ['step_type' => $step->step_type, 'step_id' => $step->id]
@@ -545,7 +545,7 @@ class ReparationCaseController extends Controller
 
         $activityLogger->log(
             'reparation_case.step_added',
-            'Ajout d une etape de procedure.',
+            'Ajout d’une étape de procédure.',
             $reparationCase,
             [
                 'reference' => $reparationCase->reference,
@@ -562,7 +562,7 @@ class ReparationCaseController extends Controller
         $notificationService->notifyInstitutionReparationCaseStepAdded($reparationCase, $step);
         $notificationService->notifyBackofficeReparationCaseStepAssigned($reparationCase, $step);
 
-        return back()->with('success', 'L etape de procedure a ete enregistree.');
+        return back()->with('success', 'L’étape de procédure a été enregistrée.');
     }
 
     private function recordHistory(

@@ -34,7 +34,7 @@ class PublicUpSubscriptionPaymentController extends Controller
 
         $activityLogger->log(
             'public.subscription_payment.created',
-            'Initialisation d un paiement d abonnement UP.',
+            'Initialisation d’un paiement d’abonnement UP.',
             $payment,
             [
                 'reference' => $payment->reference,
@@ -48,7 +48,7 @@ class PublicUpSubscriptionPaymentController extends Controller
 
         return ApiResponse::success([
             'payment' => new SubscriptionPaymentResource($payment),
-        ], 'Paiement d abonnement initialise avec succes.', 201);
+        ], 'Paiement d’abonnement initialisé avec succès.', 201);
     }
 
     public function confirm(Request $request, SubscriptionPayment $payment, ConfirmUpSubscriptionPaymentAction $action, ActivityLogger $activityLogger)
@@ -57,7 +57,7 @@ class PublicUpSubscriptionPaymentController extends Controller
 
         $activityLogger->log(
             'public.subscription_payment.confirmed',
-            'Confirmation d un paiement d abonnement UP.',
+            'Confirmation d’un paiement d’abonnement UP.',
             $payment,
             [
                 'reference' => $payment->reference,
@@ -72,6 +72,6 @@ class PublicUpSubscriptionPaymentController extends Controller
         return ApiResponse::success([
             'payment' => new SubscriptionPaymentResource($payment),
             'subscription' => new UpSubscriptionResource($payment->subscription),
-        ], 'Paiement d abonnement confirme avec succes.');
+        ], 'Paiement d’abonnement confirmé avec succès.');
     }
 }

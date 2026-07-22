@@ -76,6 +76,6 @@ class RexFeedbackController extends Controller
             'editable_hours' => (int) $attributes['editable_hours'],
         ]);
 
-        return back()->with('success', 'Le parametrage REX a ete mis a jour.');
+        return back()->with('success', 'Le paramétrage REX a été mis à jour.');
     }
 }

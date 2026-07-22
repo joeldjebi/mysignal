@@ -107,7 +107,7 @@ class PublicUserController extends Controller
 
         $activityLogger->log(
             'public_user.created',
-            'Creation d un usager public.',
+            'Création d’un usager public.',
             $publicUser,
             [
                 'public_user_type_id' => $publicUser->public_user_type_id,
@@ -118,7 +118,7 @@ class PublicUserController extends Controller
         );
 
         return redirect()->route('super-admin.public-users.index')
-            ->with('success', 'L usager public a ete cree.');
+            ->with('success', 'L’usager public a été créé.');
     }
 
     public function edit(PublicUser $publicUser): View
@@ -266,7 +266,7 @@ class PublicUserController extends Controller
 
         $activityLogger->log(
             'public_user.updated',
-            'Mise a jour d un usager public.',
+            'Mise à jour d’un usager public.',
             $publicUser,
             [
                 'before' => $before,
@@ -285,14 +285,14 @@ class PublicUserController extends Controller
         );
 
         return redirect()->route('super-admin.public-users.index')
-            ->with('success', 'L usager public a ete mis a jour.');
+            ->with('success', 'L’usager public a été mis à jour.');
     }
 
     public function destroy(Request $request, PublicUser $publicUser, ActivityLogger $activityLogger): RedirectResponse
     {
         $activityLogger->log(
             'public_user.deleted',
-            'Suppression d un usager public.',
+            'Suppression d’un usager public.',
             $publicUser,
             [
                 'phone' => $publicUser->phone,
@@ -304,7 +304,7 @@ class PublicUserController extends Controller
         $publicUser->delete();
 
         return redirect()->route('super-admin.public-users.index')
-            ->with('success', 'L usager public a ete supprime.');
+            ->with('success', 'L’usager public a été supprimé.');
     }
 
     public function toggleStatus(Request $request, PublicUser $publicUser, ActivityLogger $activityLogger): RedirectResponse
@@ -317,7 +317,7 @@ class PublicUserController extends Controller
 
         $activityLogger->log(
             'public_user.status_toggled',
-            'Changement de statut d un usager public.',
+            'Changement de statut d’un usager public.',
             $publicUser,
             [
                 'before' => $previousStatus,
@@ -327,7 +327,7 @@ class PublicUserController extends Controller
             $request->user(),
         );
 
-        return back()->with('success', 'Le statut de l usager public a ete mis a jour.');
+        return back()->with('success', 'Le statut de l’usager public a été mis à jour.');
     }
 
     private function validatedAttributes(Request $request, ?PublicUser $publicUser = null): array
@@ -356,7 +356,7 @@ class PublicUserController extends Controller
         if ($typeCode === 'UPE') {
             foreach ([
                 'company_name' => 'La raison sociale est obligatoire.',
-                'company_registration_number' => 'Le RCCM ou numero d immatriculation est obligatoire.',
+                'company_registration_number' => 'Le RCCM ou numéro d’immatriculation est obligatoire.',
             ] as $field => $message) {
                 if (! filled($attributes[$field] ?? null)) {
                     throw ValidationException::withMessages([$field => [$message]]);

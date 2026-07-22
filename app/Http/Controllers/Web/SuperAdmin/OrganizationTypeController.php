@@ -49,7 +49,7 @@ class OrganizationTypeController extends Controller
         ]);
 
         return redirect()->route('super-admin.client-types.index')
-            ->with('success', 'La sous catégorie a ete creee.');
+            ->with('success', 'La sous catégorie a été créée.');
     }
 
     public function edit(OrganizationType $clientType): View
@@ -73,7 +73,7 @@ class OrganizationTypeController extends Controller
         ]);
 
         return redirect()->route('super-admin.client-types.index')
-            ->with('success', 'La sous catégorie a ete mise a jour.');
+            ->with('success', 'La sous catégorie a été mise à jour.');
     }
 
     public function destroy(OrganizationType $clientType): RedirectResponse
@@ -81,7 +81,7 @@ class OrganizationTypeController extends Controller
         $clientType->delete();
 
         return redirect()->route('super-admin.client-types.index')
-            ->with('success', 'Le type de client a ete supprime.');
+            ->with('success', 'La sous catégorie a été supprimée.');
     }
 
     public function toggleStatus(OrganizationType $clientType): RedirectResponse
@@ -90,7 +90,7 @@ class OrganizationTypeController extends Controller
             'status' => $clientType->status === 'active' ? 'inactive' : 'active',
         ]);
 
-        return back()->with('success', 'Le statut du type de client a ete mis a jour.');
+        return back()->with('success', 'Le statut de la sous catégorie a été mis à jour.');
     }
 
     private function codeFromName(string $name, ?OrganizationType $organizationType = null): string

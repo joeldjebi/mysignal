@@ -28,7 +28,7 @@ class IncidentReportNotificationService
             $report,
             'institution_report_created',
             'Nouveau signalement',
-            'Un nouveau signalement '.$report->reference.' a ete soumis.',
+            'Un nouveau signalement '.$report->reference.' a été soumis.',
             'reports.show',
             'report',
         );
@@ -39,8 +39,8 @@ class IncidentReportNotificationService
         $this->notifyInstitutionUsers(
             $report,
             'institution_damage_declared',
-            'Dommage declare',
-            'Un dommage a ete declare sur le signalement '.$report->reference.'.',
+            'Dommage déclaré',
+            'Un dommage a été déclaré sur le signalement '.$report->reference.'.',
             'damages',
             'damage',
         );
@@ -105,8 +105,8 @@ class IncidentReportNotificationService
                         $this->dispatcher->notifyPublicUser(
                             $publicUser,
                             'community_report_resolved',
-                            'Probleme resolu',
-                            'Le probleme signale sur '.$this->reportSubjectLabel($report).' a ete marque comme resolu.',
+                            'Problème résolu',
+                            'Le problème signalé sur '.$this->reportSubjectLabel($report).' a été marqué comme résolu.',
                             $this->communityReportPayload($report, [
                                 'event' => 'resolved',
                                 'context_type' => $context->context_type,
@@ -131,7 +131,7 @@ class IncidentReportNotificationService
             $case->publicUser,
             'reparation_case_opened',
             'Dossier ouvert',
-            'Un dossier a ete ouvert pour le signalement '.$case->incidentReport?->reference.'.',
+            'Un dossier a été ouvert pour le signalement '.$case->incidentReport?->reference.'.',
             $this->reparationCasePayload($case, [
                 'event' => 'opened',
             ]),
@@ -146,7 +146,7 @@ class IncidentReportNotificationService
             $case,
             'institution_reparation_case_opened',
             'Dossier ouvert',
-            'Un dossier a ete ouvert pour le signalement '.$case->incidentReport?->reference.'.',
+            'Un dossier a été ouvert pour le signalement '.$case->incidentReport?->reference.'.',
             [
                 'event' => 'opened',
             ],
@@ -192,7 +192,7 @@ class IncidentReportNotificationService
         $this->dispatcher->notifyPublicUser(
             $case->publicUser,
             'reparation_case_step_added',
-            'Nouvelle etape du dossier',
+            'Nouvelle étape du dossier',
             $step->title.' - '.$this->stepStatusLabel($step->status).'.',
             $this->reparationCasePayload($case, [
                 'event' => 'step_added',
@@ -208,7 +208,7 @@ class IncidentReportNotificationService
         $this->notifyInstitutionUsersForCase(
             $case,
             'institution_reparation_case_step_added',
-            'Nouvelle etape du dossier',
+            'Nouvelle étape du dossier',
             $step->title.' - '.$this->stepStatusLabel($step->status).'.',
             [
                 'event' => 'step_added',
@@ -238,8 +238,8 @@ class IncidentReportNotificationService
         $this->dispatcher->notifyBackofficeUser(
             $user,
             'backoffice_reparation_case_assigned',
-            'Dossier affecte',
-            'Le dossier '.$case->reference.' vous a ete affecte comme '.$assignmentLabel.'.',
+            'Dossier affecté',
+            'Le dossier '.$case->reference.' vous a été affecté comme '.$assignmentLabel.'.',
             $this->reparationCasePayload($case, [
                 'event' => 'assigned',
                 'assignment_role' => $assignmentLabel,
@@ -268,8 +268,8 @@ class IncidentReportNotificationService
         $this->dispatcher->notifyBackofficeUser(
             $user,
             'backoffice_reparation_case_step_assigned',
-            'Etape affectee',
-            'L etape "'.$step->title.'" du dossier '.$case->reference.' vous a ete affectee.',
+            'Étape affectée',
+            'L’étape "'.$step->title.'" du dossier '.$case->reference.' vous a été affectée.',
             $this->reparationCasePayload($case, [
                 'event' => 'step_assigned',
                 'step_id' => $step->id,
@@ -392,7 +392,7 @@ class IncidentReportNotificationService
                 $context,
                 $recipientIds,
                 'Signalement dans votre Gbonhi',
-                'Un probleme a ete signale sur '.$this->reportSubjectLabel($report).'.',
+                'Un problème a été signalé sur '.$this->reportSubjectLabel($report).'.',
                 'household_report_created',
             );
         }
@@ -440,8 +440,8 @@ class IncidentReportNotificationService
             $report,
             $context,
             $recipientIds,
-            'Probleme signale pres de vous',
-            'Un probleme '.$this->organizationLabel($report).' a ete signale dans un rayon de 1 km.',
+            'Problème signalé près de vous',
+            'Un problème '.$this->organizationLabel($report).' a été signalé dans un rayon de 1 km.',
             'nearby_report_created',
         );
     }

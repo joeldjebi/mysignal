@@ -45,13 +45,13 @@ class UpdatePublicProfileRequest extends FormRequest
     {
         $validator->after(function (Validator $validator): void {
             if ($this->has('public_user_type_id')) {
-                $validator->errors()->add('public_user_type_id', 'Le type d usager public ne peut pas etre modifie depuis le profil.');
+                $validator->errors()->add('public_user_type_id', 'Le type d’usager public ne peut pas être modifié depuis le profil.');
 
                 return;
             }
 
             if ($this->hasAny(['country_id', 'city_id', 'commune_id']) && ! $this->has(['country_id', 'city_id', 'commune_id'])) {
-                $validator->errors()->add('commune_id', 'Le pays, la ville et la commune doivent etre envoyes ensemble.');
+                $validator->errors()->add('commune_id', 'Le pays, la ville et la commune doivent être envoyés ensemble.');
             }
 
             if ($this->has(['country_id', 'city_id', 'commune_id'])) {
@@ -66,9 +66,9 @@ class UpdatePublicProfileRequest extends FormRequest
                     $country = $city?->country;
 
                     if ($city === null || $country === null || $city->status !== 'active' || $country->status !== 'active') {
-                        $validator->errors()->add('commune_id', 'La commune selectionnee est inactive ou invalide.');
+                        $validator->errors()->add('commune_id', 'La commune sélectionnée est inactive ou invalide.');
                     } elseif ((int) $this->input('city_id') !== (int) $city->id || (int) $this->input('country_id') !== (int) $country->id) {
-                        $validator->errors()->add('commune_id', 'La commune selectionnee ne correspond pas au pays et a la ville.');
+                        $validator->errors()->add('commune_id', 'La commune sélectionnée ne correspond pas au pays et à la ville.');
                     }
                 }
             }
@@ -82,7 +82,7 @@ class UpdatePublicProfileRequest extends FormRequest
             $publicUserType = PublicUserType::query()->find($typeId);
 
             if ($publicUserType === null || $publicUserType->status !== 'active') {
-                $validator->errors()->add('public_user_type_id', 'Le type d usager public selectionne est invalide.');
+                $validator->errors()->add('public_user_type_id', 'Le type d’usager public sélectionné est invalide.');
 
                 return;
             }
@@ -95,7 +95,7 @@ class UpdatePublicProfileRequest extends FormRequest
 
             foreach ([
                 'company_name' => 'La raison sociale est obligatoire.',
-                'company_registration_number' => 'Le RCCM ou numero d immatriculation est obligatoire.',
+                'company_registration_number' => 'Le RCCM ou numéro d’immatriculation est obligatoire.',
             ] as $field => $message) {
                 $incomingValue = $this->input($field);
                 $currentValue = $this->user('public_api')?->{$field};

@@ -44,7 +44,7 @@ class VerifyPartnerDiscountCardAction
     {
         if ($card->status !== 'active') {
             throw ValidationException::withMessages([
-                'card_uuid' => ['Cette carte n est pas active.'],
+                'card_uuid' => ['Cette carte n’est pas active.'],
             ]);
         }
 
@@ -80,13 +80,13 @@ class VerifyPartnerDiscountCardAction
 
             if ($offer->status !== 'active') {
                 throw ValidationException::withMessages([
-                    'offer_id' => ['Cette offre n est pas active.'],
+                    'offer_id' => ['Cette offre n’est pas active.'],
                 ]);
             }
 
             if ($offer->starts_at !== null && $offer->starts_at->isFuture()) {
                 throw ValidationException::withMessages([
-                    'offer_id' => ['Cette offre n est pas encore disponible.'],
+                    'offer_id' => ['Cette offre n’est pas encore disponible.'],
                 ]);
             }
 
@@ -114,7 +114,7 @@ class VerifyPartnerDiscountCardAction
     {
         if ($card->status !== 'active') {
             throw ValidationException::withMessages([
-                'card_uuid' => ['Cette carte privilege n est pas active.'],
+                'card_uuid' => ['Cette carte privilège n’est pas active.'],
             ]);
         }
 
@@ -126,7 +126,7 @@ class VerifyPartnerDiscountCardAction
 
         if ($card->type === null || $card->type->status !== 'active') {
             throw ValidationException::withMessages([
-                'card_uuid' => ['Le type de cette carte privilege n est pas actif.'],
+                'card_uuid' => ['Le type de cette carte privilège n’est pas actif.'],
             ]);
         }
 

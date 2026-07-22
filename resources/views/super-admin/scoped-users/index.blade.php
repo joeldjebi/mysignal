@@ -2,7 +2,7 @@
 
 @section('title', config('app.name').' | Mes utilisateurs')
 @section('page-title', 'Mes utilisateurs')
-@section('page-description', 'Creer vos propres utilisateurs et leur attribuer vos roles ou permissions directes.')
+@section('page-description', 'Créer vos propres utilisateurs et leur attribuer vos rôles ou permissions directes.')
 
 @section('header-badges')
     <span class="badge-soft">{{ $users->total() }} utilisateurs</span>
@@ -16,10 +16,10 @@
             <div class="row g-2 align-items-end">
                 <div class="col-md-4">
                     <label class="form-label small text-secondary">Recherche</label>
-                    <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Nom, email, telephone">
+                    <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Nom, email, téléphone">
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label small text-secondary">Role</label>
+                    <label class="form-label small text-secondary">Rôle</label>
                     <select name="role_id" class="form-select">
                         <option value="">Tous</option>
                         @foreach ($roles as $role)
@@ -49,12 +49,12 @@
             </div>
         </form>
         <div class="table-toolbar">
-            <div class="table-meta">{{ $users->total() }} resultat{{ $users->total() > 1 ? 's' : '' }}</div>
-            <a href="{{ route('super-admin.scoped-users.index') }}" class="btn btn-outline-secondary btn-sm">RAZ</a>
+            <div class="table-meta">{{ $users->total() }} résultat{{ $users->total() > 1 ? 's' : '' }}</div>
+            <a href="{{ route('super-admin.scoped-users.index') }}" class="btn btn-outline-secondary btn-sm">Réinitialiser</a>
         </div>
         <div class="table-responsive">
             <table class="table table-modern align-middle">
-                <thead><tr><th>Utilisateur</th><th>Roles</th><th>Statut</th><th class="text-end">Actions</th></tr></thead>
+                <thead><tr><th>Utilisateur</th><th>Rôles</th><th>Statut</th><th class="text-end">Actions</th></tr></thead>
                 <tbody>
                     @forelse ($users as $managedUser)
                         <tr>
@@ -72,7 +72,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="4" class="text-center text-secondary">Aucun utilisateur cree.</td></tr>
+                        <tr><td colspan="4" class="text-center text-secondary">Aucun utilisateur créé.</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -94,7 +94,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
-                        <button class="btn btn-dark">Creer</button>
+                        <button class="btn btn-dark">Créer</button>
                     </div>
                 </form>
             </div>

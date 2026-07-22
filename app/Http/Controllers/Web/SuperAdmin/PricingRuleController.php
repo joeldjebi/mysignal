@@ -53,7 +53,7 @@ class PricingRuleController extends Controller
 
         $activityLogger->log(
             $existingRule ? 'pricing_rule.updated' : 'pricing_rule.created',
-            $existingRule ? 'Mise a jour d une tarification.' : 'Creation d une tarification.',
+            $existingRule ? 'Mise à jour d’une tarification.' : 'Création d’une tarification.',
             $pricingRule,
             [
                 'code' => $pricingRule->code,
@@ -66,7 +66,7 @@ class PricingRuleController extends Controller
         );
 
         return redirect()->route('super-admin.pricing.edit')
-            ->with('success', 'La tarification a ete enregistree.');
+            ->with('success', 'La tarification a été enregistrée.');
     }
 
     public function destroy(Request $request, ActivityLogger $activityLogger): RedirectResponse
@@ -82,7 +82,7 @@ class PricingRuleController extends Controller
 
                 $activityLogger->log(
                     'pricing_rule.deleted',
-                    'Suppression d une tarification.',
+                    'Suppression d’une tarification.',
                     PricingRule::class,
                     $snapshot,
                     $request
@@ -91,7 +91,7 @@ class PricingRuleController extends Controller
         }
 
         return redirect()->route('super-admin.pricing.edit')
-            ->with('success', 'La tarification a ete supprimee.');
+            ->with('success', 'La tarification a été supprimée.');
     }
 
     public function toggleStatus(Request $request, ActivityLogger $activityLogger): RedirectResponse
@@ -105,7 +105,7 @@ class PricingRuleController extends Controller
 
             $activityLogger->log(
                 'pricing_rule.status_toggled',
-                'Changement de statut d une tarification.',
+                'Changement de statut d’une tarification.',
                 $pricingRule,
                 [
                     'status' => $pricingRule->status,
@@ -114,6 +114,6 @@ class PricingRuleController extends Controller
             );
         }
 
-        return back()->with('success', 'Le statut de la tarification a ete mis a jour.');
+        return back()->with('success', 'Le statut de la tarification a été mis à jour.');
     }
 }

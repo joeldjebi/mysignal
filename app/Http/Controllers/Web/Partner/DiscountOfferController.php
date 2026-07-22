@@ -74,7 +74,7 @@ class DiscountOfferController extends Controller
 
         $activityLogger->log(
             'partner.web.discount_offer.created',
-            'Creation d une offre partenaire depuis le dashboard web.',
+            'Création d’une offre partenaire depuis le tableau de bord web.',
             $offer,
             [
                 'organization_id' => $organization->id,
@@ -85,7 +85,7 @@ class DiscountOfferController extends Controller
             'partner',
         );
 
-        return redirect()->route('partner.offers.index')->with('success', 'L offre de reduction a ete creee.');
+        return redirect()->route('partner.offers.index')->with('success', 'L’offre de réduction a été créée.');
     }
 
     public function edit(PartnerDiscountOffer $offer): View
@@ -129,7 +129,7 @@ class DiscountOfferController extends Controller
 
         $activityLogger->log(
             'partner.web.discount_offer.updated',
-            'Mise a jour d une offre partenaire depuis le dashboard web.',
+            'Mise à jour d’une offre partenaire depuis le tableau de bord web.',
             $offer,
             [
                 'organization_id' => $organization->id,
@@ -141,7 +141,7 @@ class DiscountOfferController extends Controller
             'partner',
         );
 
-        return redirect()->route('partner.offers.index')->with('success', 'L offre de reduction a ete mise a jour.');
+        return redirect()->route('partner.offers.index')->with('success', 'L’offre de réduction a été mise à jour.');
     }
 
     public function toggleStatus(Request $request, PartnerDiscountOffer $offer, ActivityLogger $activityLogger): RedirectResponse
@@ -157,7 +157,7 @@ class DiscountOfferController extends Controller
 
         $activityLogger->log(
             'partner.web.discount_offer.status_toggled',
-            'Changement de statut d une offre partenaire.',
+            'Changement de statut d’une offre partenaire.',
             $offer,
             [
                 'organization_id' => $organization->id,
@@ -169,7 +169,7 @@ class DiscountOfferController extends Controller
             'partner',
         );
 
-        return back()->with('success', 'Le statut de l offre a ete mis a jour.');
+        return back()->with('success', 'Le statut de l’offre a été mis à jour.');
     }
 
     private function validateRequest(Request $request, ?PartnerDiscountOffer $offer = null): array
