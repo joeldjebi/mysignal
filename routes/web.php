@@ -89,6 +89,7 @@ Route::get('/contactez-nous', [PublicPortalController::class, 'landingPage'])->d
 Route::post('/contactez-nous', [PublicPortalController::class, 'storeContact'])->name('public.pages.contact.store');
 Route::get('/conditions-generales-utilisation', [PublicPortalController::class, 'landingPage'])->defaults('pageKey', 'page_terms')->name('public.pages.terms');
 Route::get('/politique-confidentialite', [PublicPortalController::class, 'landingPage'])->defaults('pageKey', 'page_privacy')->name('public.pages.privacy');
+Route::get('/app', [PublicPortalController::class, 'appDownload'])->name('public.app-download');
 Route::get('/auth', [PublicPortalController::class, 'auth'])->name('public.auth');
 Route::get('/dashboard', [PublicPortalController::class, 'dashboard'])->name('public.dashboard');
 Route::get('/firebase-messaging-sw.js', function () {

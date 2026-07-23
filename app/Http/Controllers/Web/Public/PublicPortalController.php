@@ -102,6 +102,15 @@ class PublicPortalController extends Controller
         ]);
     }
 
+    public function appDownload()
+    {
+        return view('public.app-download', [
+            'androidUrl' => 'https://play.google.com/store/apps/details?id=com.bwan.mysignal',
+            'iosUrl' => 'https://apps.apple.com/ci/app/my-signal/id6764384980',
+            'downloadUrl' => route('public.app-download'),
+        ]);
+    }
+
     public function reports()
     {
         $periodStart = now()->subDays(30);
