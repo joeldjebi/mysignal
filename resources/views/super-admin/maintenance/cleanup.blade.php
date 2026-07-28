@@ -25,6 +25,29 @@
     <section class="panel-card mb-4">
         <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
             <div>
+                <div class="fw-bold mb-1">Analyse des rapports</div>
+                <div class="text-secondary small">
+                    Choisissez le mode utilisé par la page des rapports à la demande. Le mode sans IA produit aussi une analyse, sans consommer de crédits OpenAI.
+                </div>
+                @unless ($reportsAiConfigured)
+                    <div class="small text-warning mt-2">La clé OpenAI n’est pas configurée. Le rapport utilisera automatiquement l’analyse locale.</div>
+                @endunless
+            </div>
+            <div class="d-flex flex-column flex-sm-row gap-2 align-items-sm-center">
+                <span class="status-chip">{{ $reportsAiEnabled && $reportsAiConfigured ? 'Avec IA' : 'Sans IA' }}</span>
+                <form method="POST" action="{{ route('super-admin.maintenance.reports-ai.toggle') }}" class="d-flex gap-2">
+                    @csrf
+                    @method('PATCH')
+                    <button name="enabled" value="0" class="btn {{ ! $reportsAiEnabled ? 'btn-dark' : 'btn-outline-dark' }}">Sans IA</button>
+                    <button name="enabled" value="1" class="btn {{ $reportsAiEnabled ? 'btn-dark' : 'btn-outline-dark' }}" @disabled(! $reportsAiConfigured)>Avec IA</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <section class="panel-card mb-4">
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
+            <div>
                 <div class="fw-bold mb-1">Notifications de proximité</div>
                 <div class="text-secondary small">
                     Active ou désactive l’envoi de notifications aux usagers situés dans un rayon de 1 km lorsqu’un signalement compatible est créé.

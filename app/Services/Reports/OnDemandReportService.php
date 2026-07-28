@@ -60,6 +60,20 @@ class OnDemandReportService
                 'active' => 'Éléments actifs',
                 'expired' => 'Éléments expirés',
             ],
+            'statuses' => [
+                '' => 'Tous',
+                'active' => 'Actif',
+                'inactive' => 'Inactif',
+                'pending' => 'En attente',
+                'submitted' => 'Soumis',
+                'in_progress' => 'En cours',
+                'paid' => 'Payé',
+                'failed' => 'Échoué',
+                'resolved' => 'Résolu',
+                'rejected' => 'Rejeté',
+                'closed' => 'Clôturé',
+                'expired' => 'Expiré',
+            ],
             'applications' => Application::query()->orderBy('name')->get(['id', 'name']),
             'organizations' => Organization::query()->orderBy('name')->get(['id', 'name']),
         ];
@@ -167,7 +181,13 @@ class OnDemandReportService
     private function applySharedFilters(Builder $query, string $subject, array $filters): void
     {
         if (filled($filters['status'] ?? null) && in_array($subject, ['reports', 'payments', 'privilege_cards', 'privilege_purchases', 'privilege_scans', 'public_users', 'reparation_cases'], true)) {
-            $query->where('status', $filters['status']);
+            $status = (string) $filters['status'];
+
+            if ($subject === 'reports' && in_array($status, ['paid', 'failed', 'pending'], true)) {
+                $query->where('payment_status', $status);
+            } else {
+                $query->where('status', $status);
+            }
         }
 
         if (filled($filters['application_id'] ?? null) && in_array($subject, ['reports', 'payments', 'reparation_cases'], true)) {
@@ -183,6 +203,68 @@ class OnDemandReportService
                 ? $query->whereHas('incidentReport', fn ($subQuery) => $subQuery->where('organization_id', $organizationId))
                 : $query->where('organization_id', $organizationId);
         }
+    }
+
+    public function localAnalysis(array $report): array
+    {
+        $rows = collect($report['rows'] ?? []);
+        $summary = $report['summary'] ?? [];
+        $recordCount = (int) ($report['record_count'] ?? ($summary['Nombre'] ?? 0));
+        $amount = (float) ($summary['Montant'] ?? $rows->sum(fn ($row) => (float) ($row['Montant'] ?? 0)));
+        $paid = (int) ($summary['Payés'] ?? $rows->sum(fn ($row) => (int) ($row['Payés'] ?? 0)));
+        $resolved = (int) ($summary['Résolus'] ?? $rows->sum(fn ($row) => (int) ($row['Résolus'] ?? 0)));
+        $active = (int) ($summary['Actifs'] ?? $rows->sum(fn ($row) => (int) ($row['Actifs'] ?? 0)));
+        $topRow = $rows
+            ->filter(fn ($row) => isset($row['Nombre']))
+            ->sortByDesc(fn ($row) => (int) ($row['Nombre'] ?? 0))
+            ->first();
+        $topGroup = $topRow['Groupe'] ?? null;
+        $paidRate = $recordCount > 0 ? round(($paid / $recordCount) * 100) : 0;
+        $resolvedRate = $recordCount > 0 ? round(($resolved / $recordCount) * 100) : 0;
+
+        $lines = [];
+        $lines[] = 'Bilan : '.$recordCount.' élément(s) analysé(s) sur la période sélectionnée.';
+
+        if ($amount > 0) {
+            $lines[] = 'Commentaire : le montant total observé est de '.number_format($amount, 0, ',', ' ').' FCFA.';
+        } elseif ($recordCount > 0) {
+            $lines[] = 'Commentaire : aucun montant significatif n’apparaît dans cette combinaison de filtres.';
+        } else {
+            $lines[] = 'Commentaire : aucune donnée ne correspond à la combinaison de filtres sélectionnée.';
+        }
+
+        if ($paid > 0 || array_key_exists('Payés', $summary) || $rows->contains(fn ($row) => array_key_exists('Payés', $row))) {
+            $lines[] = 'Point paiement : '.$paid.' élément(s) payé(s), soit environ '.$paidRate.' % du volume analysé.';
+        }
+
+        if ($resolved > 0 || array_key_exists('Résolus', $summary) || $rows->contains(fn ($row) => array_key_exists('Résolus', $row))) {
+            $lines[] = 'Point traitement : '.$resolved.' élément(s) résolu(s), soit environ '.$resolvedRate.' % du volume analysé.';
+        }
+
+        if ($active > 0) {
+            $lines[] = 'Point activité : '.$active.' élément(s) actif(s) sont encore à suivre.';
+        }
+
+        if ($topGroup) {
+            $lines[] = 'Observation : le groupe le plus représenté est « '.$topGroup.' ».';
+            $lines[] = 'Recommandation : prioriser une vérification de ce groupe et comparer son évolution avec la période précédente.';
+        } elseif ($recordCount === 0) {
+            $lines[] = 'Observation : aucun élément ne correspond aux filtres choisis.';
+            $lines[] = 'Recommandation : élargir la période ou retirer un filtre pour confirmer qu’il n’y a pas de données attendues.';
+        } else {
+            $lines[] = 'Observation : les données sont disponibles, mais aucun groupe dominant ne ressort clairement.';
+            $lines[] = 'Recommandation : ajouter un regroupement pour mieux identifier les zones, institutions ou statuts à traiter.';
+        }
+
+        if ($report['limit_reached'] ?? false) {
+            $lines[] = 'Attention : la limite de lecture est atteinte. Il est préférable d’affiner les filtres avant export.';
+        }
+
+        return [
+            'enabled' => false,
+            'text' => implode("\n", $lines),
+            'notice' => 'Analyse locale générée sans consommation de crédits OpenAI.',
+        ];
     }
 
     private function groupRows(Collection $records, array $groups, array $metrics): array
@@ -242,7 +324,7 @@ class OnDemandReportService
             'status' => $this->statusLabel((string) ($record->status ?? '-')),
             'payment_status' => $this->statusLabel((string) ($record->payment_status ?? $record->status ?? '-')),
             'card_type' => $record->type?->name ?? $record->privilegeCard?->type?->name ?? '-',
-            'commune' => $record->commune?->name ?? '-',
+            'commune' => $record->commune?->name ?? $record->incidentReport?->commune?->name ?? '-',
             'partner' => $record->organization?->name ?? '-',
             default => '-',
         };
@@ -265,7 +347,15 @@ class OnDemandReportService
         return [
             'Période du' => $filters['date_from'] ?? '-',
             'Période au' => $filters['date_to'] ?? '-',
-            'Statut' => $filters['status'] ?? 'Tous',
+            'Catégorie' => filled($filters['application_id'] ?? null)
+                ? (Application::query()->find($filters['application_id'])?->name ?? 'Catégorie sélectionnée')
+                : 'Toutes',
+            'Institution' => filled($filters['organization_id'] ?? null)
+                ? (Organization::query()->find($filters['organization_id'])?->name ?? 'Institution sélectionnée')
+                : 'Toutes',
+            'Statut' => $this->statusLabel((string) ($filters['status'] ?? '')) ?: 'Tous',
+            'Regroupement' => $this->options()['groupings'][$filters['group_by'] ?? 'none'] ?? 'Aucun regroupement',
+            'Second regroupement' => $this->options()['groupings'][$filters['second_group_by'] ?? 'none'] ?? 'Aucun regroupement',
         ];
     }
 
@@ -285,8 +375,10 @@ class OnDemandReportService
             'submitted' => 'Soumis',
             'in_progress' => 'En cours',
             'resolved' => 'Résolu',
+            'rejected' => 'Rejeté',
             'closed' => 'Clôturé',
-            default => $status ?: '-',
+            'expired' => 'Expiré',
+            default => filled($status) ? str($status)->replace(['_', '-'], ' ')->title()->toString() : 'Tous',
         };
     }
 

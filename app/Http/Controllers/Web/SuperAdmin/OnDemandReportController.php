@@ -16,7 +16,10 @@ class OnDemandReportController extends Controller
     {
         $filters = $this->filters($request);
         $report = $request->boolean('preview') ? $reports->build($filters) : null;
-        $analysis = $report ? $ai->summarize($report) : null;
+        $useAi = (bool) config('openai.reports_enabled') && filled(config('openai.api_key'));
+        $analysis = $report
+            ? ($useAi ? $ai->summarize($report) : $reports->localAnalysis($report))
+            : null;
 
         return view('super-admin.on-demand-reports.index', [
             'options' => $reports->options(),
@@ -31,7 +34,8 @@ class OnDemandReportController extends Controller
         $filters = $this->filters($request);
         $format = (string) $request->input('format', 'csv');
         $report = $reports->build($filters);
-        $analysis = $request->boolean('with_ai') ? $ai->summarize($report) : null;
+        $useAi = (bool) config('openai.reports_enabled') && filled(config('openai.api_key'));
+        $analysis = $useAi ? $ai->summarize($report) : $reports->localAnalysis($report);
 
         return $exports->download($report, $format, $analysis);
     }
@@ -49,10 +53,12 @@ class OnDemandReportController extends Controller
             'second_group_by' => ['nullable', 'string', 'in:none,day,month,application,organization,status,payment_status,card_type,commune,partner'],
             'metrics' => ['nullable', 'array'],
             'metrics.*' => ['string', 'in:count,amount,paid,resolved,damages,active,expired'],
+            'metrics_present' => ['nullable', 'boolean'],
             'format' => ['nullable', 'string', 'in:html,csv,xls,pdf,pptx'],
-            'with_ai' => ['nullable', 'boolean'],
             'preview' => ['nullable', 'boolean'],
         ]);
+
+        $defaultMetrics = ['count', 'amount', 'paid', 'resolved'];
 
         return [
             'subject' => $validated['subject'] ?? 'global',
@@ -63,9 +69,10 @@ class OnDemandReportController extends Controller
             'status' => $validated['status'] ?? null,
             'group_by' => $validated['group_by'] ?? 'none',
             'second_group_by' => $validated['second_group_by'] ?? 'none',
-            'metrics' => $validated['metrics'] ?? ['count', 'amount', 'paid', 'resolved'],
+            'metrics' => array_key_exists('metrics', $validated)
+                ? $validated['metrics']
+                : ($request->boolean('metrics_present') ? [] : $defaultMetrics),
             'format' => $validated['format'] ?? 'html',
-            'with_ai' => (bool) ($validated['with_ai'] ?? false),
             'preview' => (bool) ($validated['preview'] ?? false),
         ];
     }

@@ -2,19 +2,19 @@
 
 @section('title', config('app.name').' | Dossiers')
 @section('page-title', 'Dossiers de traitement')
-@section('page-description', 'Historique des dossiers lies aux signalements de votre organisation.')
+@section('page-description', 'Historique des dossiers liés aux signalements de votre institution.')
 
 @section('content')
     @php
         $statusLabel = fn (?string $status) => [
             'submitted' => 'Soumis',
             'under_review' => 'Analyse',
-            'awaiting_documents' => 'Pieces attendues',
-            'sent_to_organization' => 'Transmis organisation',
-            'organization_responded' => 'Reponse organisation',
-            'approved' => 'Approuve',
-            'rejected' => 'Rejete',
-            'compensated' => 'Dedommage',
+            'awaiting_documents' => 'Pièces attendues',
+            'sent_to_organization' => 'Transmis à l’institution',
+            'organization_responded' => 'Réponse institutionnelle',
+            'approved' => 'Approuvé',
+            'rejected' => 'Rejeté',
+            'compensated' => 'Dédommagé',
             'closed' => 'Clos',
         ][$status] ?? ($status ?: '-');
         $statusClass = fn (?string $status) => match ($status) {
@@ -38,7 +38,7 @@
             <div class="row g-2 align-items-end">
                 <div class="col-md-5">
                     <label class="form-label small text-secondary">Recherche</label>
-                    <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Reference dossier, signalement, usager">
+                    <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Référence dossier, signalement, usager">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label small text-secondary">Statut</label>
@@ -53,13 +53,13 @@
                     <label class="form-label small text-secondary">Type</label>
                     <select name="case_type" class="form-select">
                         <option value="">Tous</option>
-                        <option value="precontentieux" @selected(request('case_type') === 'precontentieux')>Precontentieux</option>
+                        <option value="precontentieux" @selected(request('case_type') === 'precontentieux')>Précontentieux</option>
                         <option value="judiciaire" @selected(request('case_type') === 'judiciaire')>Judiciaire</option>
                     </select>
                 </div>
                 <div class="col-md-2 d-flex gap-2">
                     <button class="btn btn-dark w-100">Filtrer</button>
-                    <a href="{{ route('institution.reparation-cases.index') }}" class="btn btn-outline-secondary">RAZ</a>
+                    <a href="{{ route('institution.reparation-cases.index') }}" class="btn btn-outline-secondary">Réinitialiser</a>
                 </div>
             </div>
         </form>
@@ -70,7 +70,7 @@
                     <thead>
                         <tr>
                             <th>Dossier</th>
-                            <th>Perimetre</th>
+                            <th>Périmètre</th>
                             <th>Signalement</th>
                             <th>Usager</th>
                             <th>Statut</th>
@@ -96,7 +96,7 @@
                                 <td>
                                     <div class="meta-stack">
                                         <span class="meta-title">{{ $case->incidentReport?->reference ?: '-' }}</span>
-                                        <span class="meta-subtitle">{{ $case->incidentReport?->signal_label ?: $case->incidentReport?->signal_code }}</span>
+                                        <span class="meta-subtitle">{{ $case->incidentReport?->signal_label ?: 'Signalement' }}</span>
                                     </div>
                                 </td>
                                 <td>
@@ -116,7 +116,7 @@
                                     </div>
                                 </td>
                                 <td class="text-end">
-                                    <a href="{{ route('institution.reparation-cases.show', $case) }}" class="btn btn-sm btn-outline-dark">Details</a>
+                                    <a href="{{ route('institution.reparation-cases.show', $case) }}" class="btn btn-sm btn-outline-dark">Détails</a>
                                 </td>
                             </tr>
                         @empty

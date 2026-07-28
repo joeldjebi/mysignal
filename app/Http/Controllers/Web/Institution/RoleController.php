@@ -68,18 +68,18 @@ class RoleController extends Controller
             ? $this->delegableInstitutionPermissions($context['feature_codes'], $request->user())->pluck('id')->all()
             : [];
         abort_if(count(array_diff($attributes['permission_ids'] ?? [], $allowedPermissionIds)) > 0, 403);
-        $roleCode = $this->buildRoleCode($organization->code, $attributes['code']);
+        $roleCode = $this->uniqueRoleCode($organization->code, $attributes['code'] ?? $attributes['name']);
 
         if (Role::query()->where('code', $roleCode)->exists()) {
             return back()
-                ->withErrors(['code' => 'Ce code de rôle existe déjà pour cette institution.'])
+                ->withErrors(['name' => 'Ce nom de rôle existe déjà pour cette institution.'])
                 ->withInput();
         }
 
-        DB::transaction(function () use ($attributes, $organization, $authorization): void {
+        DB::transaction(function () use ($attributes, $organization, $authorization, $roleCode): void {
             $role = Role::query()->create([
                 'organization_id' => $organization->id,
-                'code' => $this->buildRoleCode($organization->code, $attributes['code']),
+                'code' => $roleCode,
                 'name' => $attributes['name'],
                 'description' => $attributes['description'] ?? null,
                 'status' => 'active',
@@ -138,11 +138,13 @@ class RoleController extends Controller
             ? $this->delegableInstitutionPermissions($context['feature_codes'], $request->user())->pluck('id')->all()
             : [];
         abort_if(count(array_diff($attributes['permission_ids'] ?? [], $allowedPermissionIds)) > 0, 403);
-        $roleCode = $this->buildRoleCode($organization->code, $attributes['code']);
+        $roleCode = filled($attributes['code'] ?? null)
+            ? $this->buildRoleCode($organization->code, $attributes['code'])
+            : $role->code;
 
         if (Role::query()->where('code', $roleCode)->whereKeyNot($role->id)->exists()) {
             return back()
-                ->withErrors(['code' => 'Ce code de rôle existe déjà pour cette institution.'])
+                ->withErrors(['name' => 'Ce nom de rôle existe déjà pour cette institution.'])
                 ->withInput();
         }
 
@@ -193,7 +195,7 @@ class RoleController extends Controller
     private function validateRequest(Request $request, int $organizationId, ?Role $role = null): array
     {
         return $request->validate([
-            'code' => ['required', 'string', 'max:60'],
+            'code' => ['nullable', 'string', 'max:60'],
             'name' => ['required', 'string', 'max:180'],
             'description' => ['nullable', 'string'],
             'status' => [$role ? 'required' : 'nullable', 'in:active,inactive'],
@@ -208,5 +210,20 @@ class RoleController extends Controller
         $normalized = strtoupper(Str::slug($code, '_'));
 
         return trim($prefix.'_'.$normalized, '_');
+    }
+
+    private function uniqueRoleCode(?string $organizationCode, string $name): string
+    {
+        $base = $this->buildRoleCode($organizationCode, $name);
+        $candidate = Str::limit($base, 60, '');
+        $index = 1;
+
+        while (Role::query()->where('code', $candidate)->exists()) {
+            $suffix = '_'.str_pad((string) $index, 2, '0', STR_PAD_LEFT);
+            $candidate = Str::limit($base, 60 - strlen($suffix), '').$suffix;
+            $index++;
+        }
+
+        return $candidate;
     }
 }

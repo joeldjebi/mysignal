@@ -15,6 +15,9 @@
 @endsection
 
 @section('content')
+    @php
+        $uiLabel = \App\Support\Ui\InstitutionLabel::class;
+    @endphp
     <div class="row g-4">
         <div class="col-xl-4">
             <section class="panel-card">
@@ -31,7 +34,7 @@
                             <input type="email" name="email" value="{{ old('email') }}" class="form-control" required>
                         </div>
                         <div class="col-md-5">
-                            @include('partials.phone-field', ['value' => old('phone'), 'placeholder' => '0700000000'])
+                            @include('partials.phone-field', ['label' => 'Téléphone', 'value' => old('phone'), 'placeholder' => '0700000000'])
                         </div>
                     </div>
                     <div>
@@ -55,7 +58,7 @@
                     @endif
                     @if ($authorization['canManageInstitutionPermissions'])
                         <div>
-                            <label class="form-label">Permissions directes</label>
+                            <label class="form-label">Droits directs</label>
                             <div class="border rounded-3 p-3" style="max-height: 260px; overflow:auto;">
                                 @forelse ($groupedPermissions as $groupLabel => $groupPermissions)
                                     <div class="mb-3">
@@ -65,13 +68,13 @@
                                                 <input class="form-check-input" type="checkbox" value="{{ $permission->id }}" name="permission_ids[]" id="user-permission-create-{{ $permission->id }}" @checked(in_array($permission->id, old('permission_ids', [])))>
                                                 <label class="form-check-label" for="user-permission-create-{{ $permission->id }}">
                                                     <span class="d-block">{{ $permission->name }}</span>
-                                                    <span class="small text-secondary">{{ $permission->description ?: $permission->code }}</span>
+                                                    <span class="small text-secondary">{{ $permission->description ?: 'Droit disponible pour l’institution.' }}</span>
                                                 </label>
                                             </div>
                                         @endforeach
                                     </div>
                                 @empty
-                                    <div class="text-secondary small">Aucune permission disponible. Vérifiez les fonctionnalités attribuées par le super admin.</div>
+                                    <div class="text-secondary small">Aucun droit disponible. Vérifiez les fonctions attribuées par le super administrateur.</div>
                                 @endforelse
                             </div>
                         </div>
@@ -127,7 +130,7 @@
                                         <th>Rôles</th>
                                     @endif
                                     @if ($authorization['canManageInstitutionPermissions'])
-                                        <th>Permissions directes</th>
+                                        <th>Droits directs</th>
                                     @endif
                                     <th>Statut</th>
                                     <th class="text-end">Actions</th>
@@ -149,7 +152,7 @@
                                         @if ($authorization['canManageInstitutionPermissions'])
                                             <td><span class="small">{{ $user->permissions->pluck('name')->join(', ') ?: '-' }}</span></td>
                                         @endif
-                                        <td><span class="status-chip">{{ $user->status }}</span></td>
+                                        <td><span class="status-chip">{{ $uiLabel::status($user->status) }}</span></td>
                                         <td class="text-end">
                                             <div class="report-actions">
                                                 <a href="{{ route('institution.users.edit', $user) }}" class="btn btn-sm btn-outline-dark">Modifier</a>

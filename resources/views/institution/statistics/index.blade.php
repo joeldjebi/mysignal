@@ -2,7 +2,7 @@
 
 @section('title', config('app.name').' | Statistiques')
 @section('page-title', 'Statistiques')
-@section('page-description', 'Premiers indicateurs autour des signalements visibles par l institution.')
+@section('page-description', 'Indicateurs des signalements visibles par votre institution.')
 
 @section('content')
     @php
@@ -27,14 +27,14 @@
         <form method="GET" class="filter-bar mb-0">
             <div class="row g-2 align-items-end">
                 <div class="col-md-3">
-                    <label class="form-label small text-secondary">Periode</label>
+                    <label class="form-label small text-secondary">Période</label>
                     <select name="period" class="form-select" onchange="this.form.submit()">
                         <option value="today" @selected($filters['period'] === 'today')>Aujourd'hui</option>
                         <option value="7d" @selected($filters['period'] === '7d')>7 jours</option>
                         <option value="14d" @selected($filters['period'] === '14d')>14 jours</option>
                         <option value="30d" @selected($filters['period'] === '30d')>30 jours</option>
                         <option value="month" @selected($filters['period'] === 'month')>Mois en cours</option>
-                        <option value="custom" @selected($filters['period'] === 'custom')>Personnalisee</option>
+                        <option value="custom" @selected($filters['period'] === 'custom')>Personnalisée</option>
                     </select>
                 </div>
                 <div class="col-md-3">
@@ -56,10 +56,9 @@
                 </div>
                 <div class="col-md-2 d-flex gap-2">
                     <button class="btn btn-dark w-100">Appliquer</button>
-                    <a href="{{ route('institution.statistics.index') }}" class="btn btn-outline-secondary">RAZ</a>
+                    <a href="{{ route('institution.statistics.index') }}" class="btn btn-outline-secondary">Réinitialiser</a>
                 </div>
             </div>
-            <div class="small text-secondary mt-2">Le filtre par rayon sera ajoute quand les coordonnees GPS seront stockees et consolidees cote signalement.</div>
         </form>
     </section>
 
@@ -76,23 +75,23 @@
                 <div class="stat-kicker">{{ $canViewPaymentInfo ? 'En attente' : 'En cours' }}</div>
                 <div class="stat-value">{{ $canViewPaymentInfo ? $stats['pending_reports'] : $stats['in_progress_reports'] }}</div>
                 <div class="text-secondary small">
-                    {{ $canViewPaymentInfo ? 'Signalements encore sans paiement valide.' : 'Signalements actuellement en traitement institutionnel.' }}
+                    {{ $canViewPaymentInfo ? 'Signalements encore en attente de paiement.' : 'Signalements actuellement en traitement.' }}
                 </div>
             </div>
         </div>
         @if ($canViewPaymentInfo)
             <div class="col-md-3">
                 <div class="stat-card h-100">
-                    <div class="stat-kicker">Payes</div>
+                    <div class="stat-kicker">Payés</div>
                     <div class="stat-value">{{ $stats['paid_reports'] }}</div>
-                    <div class="text-secondary small">Signalements avec valeur probatoire valide.</div>
+                    <div class="text-secondary small">Signalements payés.</div>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="stat-card h-100">
-                    <div class="stat-kicker">Montant collecte</div>
+                    <div class="stat-kicker">Montant collecté</div>
                     <div class="stat-value">{{ number_format($stats['collected_amount'], 0, ',', ' ') }}</div>
-                    <div class="text-secondary small">Montant total des paiements encaisses.</div>
+                    <div class="text-secondary small">Montant total reçu.</div>
                 </div>
             </div>
         @endif
@@ -105,23 +104,23 @@
         </div>
         <div class="col-md-3">
             <div class="stat-card h-100">
-                <div class="stat-kicker">SLA depasses</div>
+                <div class="stat-kicker">Délais dépassés</div>
                 <div class="stat-value">{{ $stats['sla_breached'] }}</div>
-                <div class="text-secondary small">Signalements hors delai cible sur la periode.</div>
+                <div class="text-secondary small">Signalements hors délai sur la période.</div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="stat-card h-100">
-                <div class="stat-kicker">Points cartographies</div>
+                <div class="stat-kicker">Points localisés</div>
                 <div class="stat-value">{{ $stats['geo_points'] }}</div>
-                <div class="text-secondary small">Signalements avec coordonnees GPS exploitables.</div>
+                <div class="text-secondary small">Signalements avec position GPS.</div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="stat-card h-100">
-                <div class="stat-kicker">Resolus</div>
+                <div class="stat-kicker">Résolus</div>
                 <div class="stat-value">{{ $stats['resolved_reports'] }}</div>
-                <div class="text-secondary small">Signalements clotures par l institution.</div>
+                <div class="text-secondary small">Signalements clôturés par l’institution.</div>
             </div>
         </div>
     </div>
@@ -137,9 +136,8 @@
                                     <div class="d-flex align-items-center justify-content-between mb-3">
                                         <div>
                                             <div class="fw-bold">Tendance des signalements</div>
-                                            <div class="text-secondary small">Evolution quotidienne sur la periode selectionnee.</div>
+                                            <div class="text-secondary small">Évolution quotidienne sur la période sélectionnée.</div>
                                         </div>
-                                        <span class="status-chip">{{ $organization?->code }}</span>
                                     </div>
                                     <div id="reportsTrendChart" class="chart-frame"></div>
                                 </div>
@@ -148,8 +146,8 @@
                         @if ($canViewPaymentBreakdownChart)
                             <div class="col-xl-6">
                                 <div class="chart-card">
-                                    <div class="fw-bold mb-1">Paiement probatoire</div>
-                                    <div class="text-secondary small mb-3">Repartition des signalements selon leur etat de paiement.</div>
+                                <div class="fw-bold mb-1">Paiements</div>
+                                <div class="text-secondary small mb-3">Répartition des signalements selon leur paiement.</div>
                                     <div id="paymentBreakdownChart" class="chart-frame"></div>
                                 </div>
                             </div>
@@ -158,7 +156,7 @@
                             <div class="col-xl-6">
                                 <div class="chart-card">
                                     <div class="fw-bold mb-1">Traitement</div>
-                                    <div class="text-secondary small mb-3">Statuts de traitement institutionnel.</div>
+                                <div class="text-secondary small mb-3">Répartition par niveau de traitement.</div>
                                     <div id="treatmentBreakdownChart" class="chart-frame"></div>
                                 </div>
                             </div>
@@ -166,8 +164,8 @@
                         @if ($canViewSlaBreakdownChart)
                             <div class="col-xl-6">
                                 <div class="chart-card">
-                                    <div class="fw-bold mb-1">Etat des TCM</div>
-                                    <div class="text-secondary small mb-3">Vue de conformite des signaux par rapport aux delais cibles.</div>
+                                <div class="fw-bold mb-1">Délais de traitement</div>
+                                <div class="text-secondary small mb-3">Respect des délais attendus.</div>
                                     <div id="slaBreakdownChart" class="chart-frame"></div>
                                 </div>
                             </div>
@@ -176,7 +174,7 @@
                             <div class="col-xl-6">
                                 <div class="chart-card">
                                     <div class="fw-bold mb-1">Top communes</div>
-                                    <div class="text-secondary small mb-3">Zones qui concentrent le plus de pression terrain.</div>
+                                <div class="text-secondary small mb-3">Zones avec le plus de signalements.</div>
                                     <div id="topCommunesChart" class="chart-frame"></div>
                                 </div>
                             </div>
@@ -185,7 +183,7 @@
                             <div class="col-xl-6">
                                 <div class="chart-card">
                                     <div class="fw-bold mb-1">Top types de signaux</div>
-                                    <div class="text-secondary small mb-3">Incidents les plus remontes sur la periode.</div>
+                                <div class="text-secondary small mb-3">Signalements les plus fréquents sur la période.</div>
                                     <div id="topSignalsChart" class="chart-frame"></div>
                                 </div>
                             </div>
@@ -193,8 +191,8 @@
                         @if ($canViewDamageDeclarationsChart)
                             <div class="col-xl-6">
                                 <div class="chart-card">
-                                    <div class="fw-bold mb-1">Resolution des dommages</div>
-                                    <div class="text-secondary small mb-3">Repartition des dommages declares selon leur statut de traitement institutionnel.</div>
+                                <div class="fw-bold mb-1">Traitement des dommages</div>
+                                <div class="text-secondary small mb-3">Répartition des demandes de dommage.</div>
                                     <div id="damageDeclarationsChart" class="chart-frame"></div>
                                 </div>
                             </div>
@@ -211,7 +209,7 @@
                         <div class="d-flex align-items-center justify-content-between mb-3">
                             <div>
                                 <div class="fw-bold mb-1">Carte des signalements</div>
-                                <div class="text-secondary small">Visualisation des points GPS des signalements de la periode selectionnee.</div>
+                                <div class="text-secondary small">Localisation des signalements de la période sélectionnée.</div>
                             </div>
                             <span class="status-chip">{{ $stats['geo_points'] }} point(s)</span>
                         </div>
@@ -239,7 +237,7 @@
                                     <td class="text-end fw-semibold">{{ $row->total }}</td>
                                 </tr>
                             @empty
-                                <tr><td colspan="2" class="text-center text-secondary">Aucune donnee disponible.</td></tr>
+                                <tr><td colspan="2" class="text-center text-secondary">Aucune donnée disponible.</td></tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -261,13 +259,12 @@
                             @forelse ($bySignal as $row)
                                 <tr>
                                     <td>
-                                        <div>{{ $row->signal_label ?: $row->signal_code }}</div>
-                                        <div class="small text-secondary">{{ $row->signal_code }}</div>
+                                        <div>{{ $row->signal_label ?: 'Signalement' }}</div>
                                     </td>
                                     <td class="text-end fw-semibold">{{ $row->total }}</td>
                                 </tr>
                             @empty
-                                <tr><td colspan="2" class="text-center text-secondary">Aucune donnee disponible.</td></tr>
+                                <tr><td colspan="2" class="text-center text-secondary">Aucune donnée disponible.</td></tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -319,7 +316,7 @@
 
         @if ($canViewPaymentBreakdownChart)
             const paymentBreakdown = @json(array_values($paymentBreakdown));
-            const paymentLabels = ['En attente', 'Payes', 'Echoues'];
+            const paymentLabels = ['En attente', 'Payés', 'Échoués'];
 
             new ApexCharts(document.querySelector('#paymentBreakdownChart'), {
                 chart: { type: 'donut', height: 300 },
@@ -334,7 +331,7 @@
 
         @if ($canViewSlaBreakdownChart)
             const slaBreakdown = @json(array_values($slaBreakdown));
-            const slaLabels = ['Dans le TCM', 'A risque', 'Depasse', 'Sans configuration'];
+            const slaLabels = ['Dans le délai', 'À surveiller', 'Délai dépassé', 'Non configuré'];
 
             new ApexCharts(document.querySelector('#slaBreakdownChart'), {
                 chart: { type: 'donut', height: 300 },
@@ -349,7 +346,7 @@
 
         @if ($canViewTreatmentBreakdownChart)
             const treatmentBreakdown = @json(array_values($treatmentBreakdown));
-            const treatmentLabels = ['Soumis', 'En cours', 'Resolus', 'Rejetes'];
+            const treatmentLabels = ['Soumis', 'En cours', 'Résolus', 'Rejetés'];
 
             new ApexCharts(document.querySelector('#treatmentBreakdownChart'), {
                 chart: { type: 'donut', height: 300 },
@@ -401,7 +398,7 @@
 
         @if ($canViewDamageDeclarationsChart)
             const damageResolutionBreakdown = @json(array_values($damageResolutionBreakdown));
-            const damageResolutionLabels = ['Soumis', 'En cours', 'Resolus', 'Rejetes'];
+            const damageResolutionLabels = ['Soumis', 'En cours', 'Résolus', 'Rejetés'];
 
             new ApexCharts(document.querySelector('#damageDeclarationsChart'), {
                 chart: { type: 'donut', height: 300 },
@@ -425,7 +422,7 @@
             const reportStatusMeta = {
                 submitted: { label: 'Soumis', color: '#ffa117', shadow: 'rgba(255,161,23,.35)' },
                 in_progress: { label: 'En cours', color: '#6791ff', shadow: 'rgba(103,145,255,.35)' },
-                rejected: { label: 'Rejete', color: '#ff0068', shadow: 'rgba(255,0,104,.32)' }
+                rejected: { label: 'Rejeté', color: '#ff0068', shadow: 'rgba(255,0,104,.32)' }
             };
 
             function buildSignalIcon(status) {
@@ -481,9 +478,9 @@
                     marker.bindPopup(`
                         <div style="min-width: 180px;">
                             <div style="font-weight: 700; margin-bottom: 4px;">${report.reference}</div>
-                            <div style="font-size: 12px; color: #5b6b7a;">${report.signal_label || report.signal_code || '-'}</div>
+                            <div style="font-size: 12px; color: #5b6b7a;">${report.signal_label || 'Signalement'}</div>
                             <div style="font-size: 12px; margin-top: 6px;">Statut: ${statusMeta.label}</div>
-                            <div style="font-size: 12px; margin-top: 6px;">SLA cible: ${report.target_sla_hours ?? '-'} h</div>
+                            <div style="font-size: 12px; margin-top: 6px;">Délai attendu: ${report.target_sla_hours ?? '-'} h</div>
                         </div>
                     `);
 

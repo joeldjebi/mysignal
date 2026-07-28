@@ -2,16 +2,19 @@
 
 @section('title', config('app.name').' | Identifiants')
 @section('page-title', 'Identifiants')
-@section('page-description', 'Liste des identifiants publics visibles pour cette application et cette organisation.')
+@section('page-description', 'Liste des références rattachées aux signalements.')
 
 @section('content')
+    @php
+        $label = \App\Support\Ui\InstitutionLabel::class;
+    @endphp
     <section class="panel-card">
         <div class="fw-bold mb-3">Identifiants</div>
         <form method="GET" class="filter-bar">
             <div class="row g-2 align-items-end">
                 <div class="col-md-8">
                     <label class="form-label small text-secondary">Recherche</label>
-                    <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Identifiant, libelle, commune, adresse">
+                    <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Identifiant, libellé, commune, adresse">
                 </div>
                 <div class="col-md-2">
                     <label class="form-label small text-secondary">Statut</label>
@@ -23,7 +26,7 @@
                 </div>
                 <div class="col-md-2 d-flex gap-2">
                     <button class="btn btn-dark w-100">Filtrer</button>
-                    <a href="{{ route('institution.meters.index') }}" class="btn btn-outline-secondary">RAZ</a>
+                    <a href="{{ route('institution.meters.index') }}" class="btn btn-outline-secondary">Réinitialiser</a>
                 </div>
             </div>
         </form>
@@ -35,10 +38,10 @@
                 <thead>
                     <tr>
                         <th>Identifiant</th>
-                        <th>Reseau/Type</th>
+                        <th>Catégorie</th>
                         <th>Usage</th>
-                        <th>Application / Organisation</th>
-                        <th>Libelle</th>
+                        <th>Catégorie métier / Institution</th>
+                        <th>Libellé</th>
                         <th>Commune</th>
                         <th>Statut</th>
                         <th class="text-end">Actions</th>
@@ -48,7 +51,7 @@
                     @forelse ($meters as $meter)
                         <tr>
                             <td class="fw-semibold">{{ $meter->meter_number }}</td>
-                            <td>{{ $meter->network_type }}</td>
+                            <td>{{ $label::humanize($meter->network_type) }}</td>
                             <td>
                                 <span class="status-chip">
                                     {{ ($meter->gbonhi_assignments_count ?? 0) > 0 ? 'Gbonhi' : 'Personnel' }}
@@ -62,9 +65,9 @@
                             </td>
                             <td>{{ $meter->label ?: '-' }}</td>
                             <td>{{ $meter->commune ?: '-' }}</td>
-                            <td><span class="status-chip">{{ $meter->status }}</span></td>
+                            <td><span class="status-chip">{{ $label::status($meter->status) }}</span></td>
                             <td class="text-end">
-                                <a href="{{ route('institution.meters.show', $meter) }}" class="btn btn-sm btn-outline-dark">Details</a>
+                                <a href="{{ route('institution.meters.show', $meter) }}" class="btn btn-sm btn-outline-dark">Détails</a>
                             </td>
                         </tr>
                     @empty

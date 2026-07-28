@@ -2,49 +2,44 @@
 
 @section('title', config('app.name').' | Modifier type de signal')
 @section('page-title', 'Modifier un type de signal')
-@section('page-description', 'Ajuster le referentiel des signaux publics sur votre application et votre organisation.')
+@section('page-description', 'Modifier les informations visibles dans le parcours public.')
 
 @section('content')
+    @php
+        $label = \App\Support\Ui\InstitutionLabel::class;
+    @endphp
     <div class="row g-4">
         <div class="col-lg-4">
             <section class="panel-card h-100">
                 <div class="small text-secondary fw-semibold mb-2">Type de signal</div>
                 <div class="h5 fw-bold mb-1">{{ $signalType->label }}</div>
-                <div class="text-secondary small mb-4">{{ $signalType->code }} · {{ $signalType->application?->name ?: '-' }} / {{ $signalType->organization?->name ?: '-' }}</div>
+                <div class="text-secondary small mb-4">{{ $signalType->application?->name ?: '-' }} / {{ $signalType->organization?->name ?: '-' }}</div>
                 <div class="d-flex flex-wrap gap-2 mb-3">
-                    <span class="status-chip">{{ $signalType->status }}</span>
-                    <span class="status-chip">{{ $signalType->default_sla_hours ? $signalType->default_sla_hours.' h' : 'Sans TCM defaut' }}</span>
+                    <span class="status-chip">{{ $label::status($signalType->status) }}</span>
+                    <span class="status-chip">{{ $signalType->default_sla_hours ? $signalType->default_sla_hours.' h' : 'Sans délai défini' }}</span>
                 </div>
-                <div class="text-secondary small">{{ $signalType->description ?: 'Aucune description detaillee pour le moment.' }}</div>
+                <div class="text-secondary small">{{ $signalType->description ?: 'Aucune description pour le moment.' }}</div>
             </section>
         </div>
         <div class="col-lg-8">
             <section class="panel-card">
                 <div class="d-flex align-items-center justify-content-between mb-3">
                     <div>
-                        <div class="fw-bold">Edition du type de signal</div>
-                        <div class="text-secondary small">Cette mise a jour restera limitee a votre application et votre organisation.</div>
+                        <div class="fw-bold">Édition du type de signal</div>
+                        <div class="text-secondary small">Cette mise à jour concerne uniquement votre institution.</div>
                     </div>
-                    <span class="status-chip">{{ $signalType->application?->name ?: '-' }} / {{ $signalType->organization?->code ?: '-' }}</span>
+                    <span class="status-chip">{{ $signalType->application?->name ?: '-' }} / {{ $signalType->organization?->name ?: '-' }}</span>
                 </div>
 
                 <form method="POST" action="{{ route('institution.signal-types.update', $signalType) }}" class="row g-3">
                     @csrf
                     @method('PUT')
-                    <div class="col-md-4">
-                        <label class="form-label">Code signal</label>
-                        <input type="text" class="form-control" value="{{ $signalType->code }}" disabled>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">SLA par defaut (heures)</label>
+                    <div class="col-md-6">
+                        <label class="form-label">Délai par défaut (heures)</label>
                         <input type="number" min="1" max="999" name="default_sla_hours" value="{{ old('default_sla_hours', $signalType->default_sla_hours) }}" class="form-control">
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Reseau</label>
-                        <input type="text" class="form-control" value="{{ $signalType->network_type }}" disabled>
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label">Libelle</label>
+                    <div class="col-md-6">
+                        <label class="form-label">Libellé</label>
                         <input type="text" name="label" value="{{ old('label', $signalType->label) }}" class="form-control" required>
                     </div>
                     <div class="col-12">

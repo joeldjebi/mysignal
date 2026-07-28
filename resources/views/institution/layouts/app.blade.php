@@ -438,7 +438,7 @@
                     @if ($organization?->logoUrl())
                         <img src="{{ $organization->logoUrl() }}" alt="{{ $organization->name }} logo" class="brand-logo">
                     @else
-                        <div class="brand-mark">{{ strtoupper(substr((string) ($organization?->code ?? 'IN'), 0, 2)) }}</div>
+                        <div class="brand-mark">{{ strtoupper(substr((string) ($organization?->name ?? 'IN'), 0, 2)) }}</div>
                     @endif
                     <div>
                         <div class="small text-white-50 fw-semibold">{{ $application?->name ?? 'SIGNAL ALERTE' }}</div>
@@ -450,37 +450,37 @@
             <div class="sidebar-menu">
                 <div class="sidebar-label">Pilotage</div>
                 <a href="{{ route('institution.dashboard') }}" class="nav-pill {{ $activeNav === 'dashboard' ? 'active' : '' }}">
-                    <span class="nav-icon">DB</span>
+                    <span class="nav-icon"><i class="bi bi-speedometer2"></i></span>
                     <span>
-                        <span class="d-block fw-semibold">Dashboard</span>
-                        <span class="small text-white-50">Vue d'ensemble</span>
+                        <span class="d-block fw-semibold">Tableau de bord</span>
+                        <span class="small text-white-50">Vue d’ensemble</span>
                     </span>
                 </a>
 
                 @if ($canViewReports)
                     <div class="sidebar-label">Signalements</div>
                     <a href="{{ route('institution.reports.index') }}" class="nav-pill {{ $activeNav === 'reports' ? 'active' : '' }}">
-                        <span class="nav-icon">FL</span>
+                        <span class="nav-icon"><i class="bi bi-inboxes"></i></span>
                         <span>
                             <span class="d-block fw-semibold">File des signaux</span>
-                            <span class="small text-white-50">Traitement chronologique</span>
+                            <span class="small text-white-50">À traiter</span>
                         </span>
                     </a>
                 @endif
 
                 @if ($canViewDamages)
                     <a href="{{ route('institution.damages.index') }}" class="nav-pill {{ $activeNav === 'damages' ? 'active' : '' }}">
-                        <span class="nav-icon">DG</span>
+                            <span class="nav-icon"><i class="bi bi-exclamation-diamond"></i></span>
                         <span>
                             <span class="d-block fw-semibold">Dommages</span>
-                            <span class="small text-white-50">Declarations et traitement</span>
+                            <span class="small text-white-50">Déclarations et suivi</span>
                         </span>
                     </a>
                 @endif
 
                 @if ($canViewReparationCases)
                     <a href="{{ route('institution.reparation-cases.index') }}" class="nav-pill {{ $activeNav === 'reparation-cases' ? 'active' : '' }}">
-                        <span class="nav-icon">DS</span>
+                        <span class="nav-icon"><i class="bi bi-folder2-open"></i></span>
                         <span>
                             <span class="d-block fw-semibold">Dossiers</span>
                             <span class="small text-white-50">Historique contentieux</span>
@@ -491,7 +491,7 @@
                 @if ($canViewReportUsers)
                     <div class="sidebar-label">Usagers</div>
                     <a href="{{ route('institution.report-users.index') }}" class="nav-pill {{ $activeNav === 'report-users' ? 'active' : '' }}">
-                        <span class="nav-icon">US</span>
+                        <span class="nav-icon"><i class="bi bi-people"></i></span>
                         <span>
                             <span class="d-block fw-semibold">Usagers publics</span>
                             <span class="small text-white-50">Avec ou sans signalement</span>
@@ -502,10 +502,10 @@
                 @if ($canViewMeters)
                     <div class="sidebar-label">Identifiants</div>
                     <a href="{{ route('institution.meters.index') }}" class="nav-pill {{ $activeNav === 'meters' ? 'active' : '' }}">
-                        <span class="nav-icon">ID</span>
+                        <span class="nav-icon"><i class="bi bi-card-list"></i></span>
                         <span>
                             <span class="d-block fw-semibold">Identifiants</span>
-                            <span class="small text-white-50">Suivi des identifiants publics</span>
+                            <span class="small text-white-50">Suivi des références</span>
                         </span>
                     </a>
                 @endif
@@ -513,10 +513,10 @@
                 @if ($canViewStatistics)
                     <div class="sidebar-label">Analyse</div>
                     <a href="{{ route('institution.statistics.index') }}" class="nav-pill {{ $activeNav === 'statistics' ? 'active' : '' }}">
-                        <span class="nav-icon">ST</span>
+                        <span class="nav-icon"><i class="bi bi-bar-chart"></i></span>
                         <span>
                             <span class="d-block fw-semibold">Statistiques</span>
-                            <span class="small text-white-50">Indicateurs et vue qualite</span>
+                            <span class="small text-white-50">Indicateurs</span>
                         </span>
                     </a>
                 @endif
@@ -524,9 +524,9 @@
                 @if (in_array('INSTITUTION_ACTIVITY_LOGS', $featureCodes, true))
                     <div class="sidebar-label">Journal</div>
                     <a href="{{ route('institution.activity-logs.index') }}" class="nav-pill {{ $activeNav === 'activity-logs' ? 'active' : '' }}">
-                        <span class="nav-icon">LG</span>
+                        <span class="nav-icon"><i class="bi bi-clock-history"></i></span>
                         <span>
-                            <span class="d-block fw-semibold">Mes activites</span>
+                            <span class="d-block fw-semibold">Mes activités</span>
                             <span class="small text-white-50">Historique de mes actions</span>
                         </span>
                     </a>
@@ -536,19 +536,19 @@
                     <div class="sidebar-label">Gouvernance</div>
                     @if ($canManageSignalTypes)
                     <a href="{{ route('institution.signal-types.index') }}" class="nav-pill {{ $activeNav === 'signal-types' ? 'active' : '' }}">
-                        <span class="nav-icon">SG</span>
+                        <span class="nav-icon"><i class="bi bi-tags"></i></span>
                         <span>
                             <span class="d-block fw-semibold">Types de signaux</span>
-                            <span class="small text-white-50">Catalogue du reseau</span>
+                            <span class="small text-white-50">Catalogue</span>
                         </span>
                     </a>
                     @endif
                     @if ($canViewSla)
                     <a href="{{ route('institution.sla.index') }}" class="nav-pill {{ $activeNav === 'sla' ? 'active' : '' }}">
-                        <span class="nav-icon">SL</span>
+                        <span class="nav-icon"><i class="bi bi-stopwatch"></i></span>
                         <span>
-                            <span class="d-block fw-semibold">TCM cibles</span>
-                            <span class="small text-white-50">Referentiel programme</span>
+                            <span class="d-block fw-semibold">Délais cibles</span>
+                            <span class="small text-white-50">Temps de traitement</span>
                         </span>
                     </a>
                     @endif
@@ -558,28 +558,28 @@
                     <div class="sidebar-label">Administration</div>
                     @if ($canManageInstitutionUsers)
                         <a href="{{ route('institution.users.index') }}" class="nav-pill {{ $activeNav === 'users' ? 'active' : '' }}">
-                            <span class="nav-icon">UT</span>
+                            <span class="nav-icon"><i class="bi bi-person-plus"></i></span>
                             <span>
-                                <span class="d-block fw-semibold">Users</span>
+                                <span class="d-block fw-semibold">Collaborateurs</span>
                                 <span class="small text-white-50">Collaborateurs du portail</span>
                             </span>
                         </a>
                     @endif
                     @if ($canManageInstitutionRoles)
                         <a href="{{ route('institution.roles.index') }}" class="nav-pill {{ $activeNav === 'roles' ? 'active' : '' }}">
-                            <span class="nav-icon">RL</span>
+                            <span class="nav-icon"><i class="bi bi-shield-check"></i></span>
                             <span>
-                                <span class="d-block fw-semibold">Roles</span>
+                                <span class="d-block fw-semibold">Rôles</span>
                                 <span class="small text-white-50">Profils et habilitations</span>
                             </span>
                         </a>
                     @endif
                     @if ($canManageInstitutionPermissions)
                         <a href="{{ route('institution.permissions.index') }}" class="nav-pill {{ $activeNav === 'permissions' ? 'active' : '' }}">
-                            <span class="nav-icon">PM</span>
+                            <span class="nav-icon"><i class="bi bi-key"></i></span>
                             <span>
                                 <span class="d-block fw-semibold">Permissions</span>
-                                <span class="small text-white-50">Fonctions autorisees par le SA</span>
+                                <span class="small text-white-50">Droits disponibles</span>
                             </span>
                         </a>
                     @endif
@@ -587,10 +587,10 @@
 
                 <div class="sidebar-label">Compte</div>
                 <a href="{{ route('institution.profile.edit') }}" class="nav-pill {{ $activeNav === 'profile' ? 'active' : '' }}">
-                    <span class="nav-icon">PR</span>
+                    <span class="nav-icon"><i class="bi bi-person-circle"></i></span>
                     <span>
                         <span class="d-block fw-semibold">Mon profil</span>
-                        <span class="small text-white-50">Infos personnelles et acces</span>
+                        <span class="small text-white-50">Informations personnelles</span>
                     </span>
                 </a>
             </div>
@@ -599,11 +599,11 @@
                 <div class="sidebar-card mb-3">
                     <div class="fw-semibold">{{ auth()->user()?->name }}</div>
                     <div class="small text-white-50 mb-2">{{ auth()->user()?->email }}</div>
-                    <div class="small text-white-50 mt-2">{{ count($featureCodes) }} fonctionnalite(s) active(s)</div>
+                    <div class="small text-white-50 mt-2">{{ count($featureCodes) }} service(s) actif(s)</div>
                 </div>
                 <form method="POST" action="{{ route('institution.logout') }}">
                     @csrf
-                    <button type="submit" class="btn btn-sidebar w-100">Se deconnecter</button>
+                    <button type="submit" class="btn btn-sidebar w-100">Se déconnecter</button>
                 </form>
             </div>
         </aside>
@@ -613,7 +613,7 @@
                 <div>
                     <div class="small text-secondary fw-semibold mb-1">Portail institutionnel</div>
                     <div class="h5 mb-1 fw-bold">@yield('page-title', $organization?->name ?? 'Organisation')</div>
-                    <div class="text-secondary small">@yield('page-description', 'Le portail affiche automatiquement le bon univers selon l institution du compte connecte.')</div>
+                    <div class="text-secondary small">@yield('page-description', 'Suivez et traitez les signalements de votre institution.')</div>
                 </div>
                 <div class="d-flex align-items-center gap-2 flex-wrap">
                     <a href="{{ route('institution.notifications.index') }}" class="notification-link {{ $activeNav === 'notifications' ? 'bg-light' : '' }}" aria-label="Notifications">
@@ -622,13 +622,9 @@
                             <span class="notification-count">{{ $institutionUnreadNotificationsCount > 99 ? '99+' : $institutionUnreadNotificationsCount }}</span>
                         @endif
                     </a>
-                    @if ($organization?->portal_key)
-                        <span class="badge-soft">{{ $organization->portal_key }}</span>
-                    @endif
                     @if ($application?->name)
                         <span class="badge-soft">{{ $application->name }}</span>
                     @endif
-                    <span class="badge-soft">{{ $organization?->code }}</span>
                     @yield('header-badges')
                 </div>
             </header>

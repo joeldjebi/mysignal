@@ -235,7 +235,9 @@ class ScopedUserController extends Controller
             ->where(function (Builder $builder): void {
                 $builder->whereHas('roles', fn (Builder $roleQuery) => $roleQuery->whereNotNull('roles.created_by'))
                     ->orWhereHas('permissions');
-            });
+            })
+            ->whereDoesntHave('roles.permissions', fn (Builder $permissionQuery) => $this->nonScopedPortalPermissions($permissionQuery))
+            ->whereDoesntHave('permissions', fn (Builder $permissionQuery) => $this->nonScopedPortalPermissions($permissionQuery));
 
         if (! $actor->is_super_admin) {
             $query->where('created_by', $actor->id);
@@ -251,8 +253,29 @@ class ScopedUserController extends Controller
                 || (int) $user->user_type_id !== (int) UserType::idFor(UserType::SA_USER)
                 || $user->created_by === null
                 || (! $user->roles()->whereNotNull('roles.created_by')->exists() && ! $user->permissions()->exists())
+                || $this->hasNonScopedPortalAccess($user)
                 || (! $actorIsSuperAdmin && (int) $user->created_by !== $actorId),
             404
         );
+    }
+
+    private function nonScopedPortalPermissions(Builder $query): void
+    {
+        $query->where(function (Builder $permissionQuery): void {
+            $permissionQuery
+                ->where('code', 'like', 'BO_%')
+                ->orWhere('code', 'like', 'PARTNER_%')
+                ->orWhereIn('profile_scope', ['backoffice', 'huissier', 'aoda', 'avocat', 'partner']);
+        });
+    }
+
+    private function hasNonScopedPortalAccess(User $user): bool
+    {
+        return $user->roles()
+            ->whereHas('permissions', fn (Builder $permissionQuery) => $this->nonScopedPortalPermissions($permissionQuery))
+            ->exists()
+            || $user->permissions()
+                ->where(fn (Builder $permissionQuery) => $this->nonScopedPortalPermissions($permissionQuery))
+                ->exists();
     }
 }

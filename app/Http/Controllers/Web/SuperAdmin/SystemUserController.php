@@ -302,6 +302,8 @@ class SystemUserController extends Controller
 
         return $query->where(function (Builder $builder) use ($saUserTypeId): void {
             $builder->where('user_type_id', '!=', $saUserTypeId)
+                ->orWhereHas('roles.permissions', fn (Builder $permissionQuery) => $this->systemPortalPermissions($permissionQuery))
+                ->orWhereHas('permissions', fn (Builder $permissionQuery) => $this->systemPortalPermissions($permissionQuery))
                 ->orWhere(function (Builder $saUserQuery): void {
                     $saUserQuery
                         ->whereDoesntHave('roles', fn (Builder $roleQuery) => $roleQuery->whereNotNull('roles.created_by'))
@@ -319,7 +321,28 @@ class SystemUserController extends Controller
             && (
                 $user->roles()->whereNotNull('roles.created_by')->exists()
                 || $user->permissions()->exists()
-            );
+            )
+            && ! $this->hasSystemPortalAccess($user);
+    }
+
+    private function systemPortalPermissions(Builder $query): void
+    {
+        $query->where(function (Builder $permissionQuery): void {
+            $permissionQuery
+                ->where('code', 'like', 'BO_%')
+                ->orWhere('code', 'like', 'PARTNER_%')
+                ->orWhereIn('profile_scope', ['backoffice', 'huissier', 'aoda', 'avocat', 'partner']);
+        });
+    }
+
+    private function hasSystemPortalAccess(User $user): bool
+    {
+        return $user->roles()
+            ->whereHas('permissions', fn (Builder $permissionQuery) => $this->systemPortalPermissions($permissionQuery))
+            ->exists()
+            || $user->permissions()
+                ->where(fn (Builder $permissionQuery) => $this->systemPortalPermissions($permissionQuery))
+                ->exists();
     }
 
     private function userTypeIdForPayload(array $attributes): ?int

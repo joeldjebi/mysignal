@@ -7,6 +7,7 @@ use App\Http\Controllers\Web\Institution\Concerns\InteractsWithInstitutionContex
 use App\Models\SignalType;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -99,7 +100,7 @@ class SignalTypeController extends Controller
     {
         $attributes = $request->validate([
             'code' => [
-                $updating ? 'sometimes' : 'required',
+                $updating ? 'sometimes' : 'nullable',
                 'string',
                 'max:30',
                 Rule::unique('signal_types', 'code')
@@ -113,14 +114,38 @@ class SignalTypeController extends Controller
             'description' => ['nullable', 'string'],
         ]);
 
+        $code = array_key_exists('code', $attributes) && filled($attributes['code'])
+            ? strtoupper($attributes['code'])
+            : ($updating ? null : $this->generateSignalCode($attributes['label'], $applicationId, $organizationId));
+
         return array_filter([
             'application_id' => $applicationId,
             'organization_id' => $organizationId,
             'network_type' => strtoupper((string) $request->user()?->organization?->code),
-            'code' => array_key_exists('code', $attributes) ? strtoupper($attributes['code']) : null,
+            'code' => $code,
             'label' => $attributes['label'],
             'default_sla_hours' => $attributes['default_sla_hours'] ?? null,
             'description' => $attributes['description'] ?? null,
         ], fn ($value, $key) => ! ($key === 'code' && $value === null), ARRAY_FILTER_USE_BOTH);
+    }
+
+    private function generateSignalCode(string $label, ?int $applicationId, int $organizationId): string
+    {
+        $base = strtoupper(Str::slug($label, '_')) ?: 'SIGNAL';
+        $base = Str::limit($base, 24, '');
+        $candidate = $base;
+        $index = 1;
+
+        while (SignalType::query()
+            ->where('application_id', $applicationId)
+            ->where('organization_id', $organizationId)
+            ->where('code', $candidate)
+            ->exists()) {
+            $suffix = '_'.str_pad((string) $index, 2, '0', STR_PAD_LEFT);
+            $candidate = Str::limit($base, 30 - strlen($suffix), '').$suffix;
+            $index++;
+        }
+
+        return $candidate;
     }
 }

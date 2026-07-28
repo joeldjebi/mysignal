@@ -1,8 +1,8 @@
 @extends('institution.layouts.app')
 
-@section('title', config('app.name').' | Modifier un role')
-@section('page-title', 'Modifier un role')
-@section('page-description', 'Mettre a jour un role local et ses permissions autorisees.')
+@section('title', config('app.name').' | Modifier un rôle')
+@section('page-title', 'Modifier un rôle')
+@section('page-description', 'Mettre à jour un rôle local et ses droits autorisés.')
 
 @section('content')
     @php
@@ -11,7 +11,7 @@
     @endphp
 
     <section class="panel-card">
-        <div class="fw-bold mb-3">Edition de {{ $role->name }}</div>
+        <div class="fw-bold mb-3">Édition de {{ $role->name }}</div>
         <form
             method="POST"
             action="{{ route('institution.roles.update', $role) }}"
@@ -21,11 +21,7 @@
         >
             @csrf
             @method('PUT')
-            <div class="col-md-3">
-                <label class="form-label">Code</label>
-                <input type="text" name="code" value="{{ old('code', $displayCode) }}" class="form-control" required>
-            </div>
-            <div class="col-md-5">
+            <div class="col-md-8">
                 <label class="form-label">Nom</label>
                 <input type="text" name="name" value="{{ old('name', $role->name) }}" class="form-control" required>
             </div>
@@ -46,10 +42,10 @@
                         <label class="form-label mb-0">Permissions</label>
                         <div class="d-flex gap-2">
                             <button type="button" class="btn btn-sm btn-outline-dark" data-check-all-permissions>Tout cocher</button>
-                            <button type="button" class="btn btn-sm btn-outline-secondary" data-uncheck-all-permissions>Tout decocher</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" data-uncheck-all-permissions>Tout décocher</button>
                         </div>
                     </div>
-                    <div class="small text-secondary mb-2">Ces permissions seront heritees automatiquement par chaque utilisateur auquel ce role local est attribue.</div>
+                    <div class="small text-secondary mb-2">Ces droits seront attribués automatiquement à chaque collaborateur de ce rôle.</div>
                     <div class="border rounded-3 p-3" style="max-height: 420px; overflow:auto;">
                         @foreach ($groupedPermissions as $groupLabel => $groupPermissions)
                             <div class="mb-3" data-permission-group>
@@ -71,8 +67,7 @@
                                                 >
                                                 <label class="form-check-label w-100" for="role-permission-edit-{{ $permission->id }}">
                                                     <div class="fw-semibold">{{ $permission->name }}</div>
-                                                    <div class="small text-secondary">{{ $permission->code }}</div>
-                                                    <div class="small text-secondary">{{ $permission->description ?: 'Aucune description renseignee.' }}</div>
+                                                    <div class="small text-secondary">{{ $permission->description ?: 'Droit disponible pour l’institution.' }}</div>
                                                 </label>
                                             </div>
                                         </div>

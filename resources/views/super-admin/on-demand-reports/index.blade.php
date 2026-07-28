@@ -5,8 +5,81 @@
 @section('page-description', 'Composez un rapport personnalisé, prévisualisez-le, puis exportez-le au format souhaité.')
 
 @section('content')
-    <form method="GET" action="{{ route('super-admin.reports-builder.index') }}" class="panel-card mb-4">
+    <style>
+        .reports-loader-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 1090;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            background: rgba(7, 18, 28, .42);
+            backdrop-filter: blur(10px);
+        }
+
+        .reports-loader-overlay.is-visible {
+            display: flex;
+        }
+
+        .reports-loader-card {
+            width: min(420px, 100%);
+            border: 1px solid rgba(255, 255, 255, .2);
+            border-radius: 18px;
+            background: rgba(255, 255, 255, .96);
+            box-shadow: 0 28px 80px rgba(7, 18, 28, .28);
+            padding: 1.4rem;
+            text-align: center;
+        }
+
+        .reports-loader-ring {
+            width: 52px;
+            height: 52px;
+            margin: 0 auto 1rem;
+            border-radius: 50%;
+            border: 4px solid rgba(25, 75, 112, .14);
+            border-top-color: #194b70;
+            animation: reportsLoaderSpin .82s linear infinite;
+        }
+
+        .reports-loader-bar {
+            height: 6px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: rgba(25, 75, 112, .1);
+        }
+
+        .reports-loader-bar span {
+            display: block;
+            width: 38%;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #194b70, #c49b48);
+            animation: reportsLoaderBar 1.18s ease-in-out infinite;
+        }
+
+        @keyframes reportsLoaderSpin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes reportsLoaderBar {
+            0% { transform: translateX(-110%); }
+            100% { transform: translateX(280%); }
+        }
+    </style>
+
+    <div class="reports-loader-overlay" data-reports-loader aria-hidden="true">
+        <div class="reports-loader-card" role="status" aria-live="polite">
+            <div class="reports-loader-ring" aria-hidden="true"></div>
+            <div class="fw-bold mb-1" data-reports-loader-title>Génération du rapport</div>
+            <div class="text-secondary small mb-3" data-reports-loader-message>Veuillez patienter pendant la préparation des données.</div>
+            <div class="reports-loader-bar" aria-hidden="true"><span></span></div>
+        </div>
+    </div>
+
+    <form method="GET" action="{{ route('super-admin.reports-builder.index') }}" class="panel-card mb-4" data-report-loader-form data-loader-title="Prévisualisation du rapport" data-loader-message="Nous appliquons vos filtres et préparons l’aperçu.">
         <input type="hidden" name="preview" value="1">
+        <input type="hidden" name="metrics_present" value="1">
         <div class="row g-3">
             <div class="col-lg-3">
                 <label class="form-label small fw-semibold">Sujet du rapport</label>
@@ -35,7 +108,11 @@
             </div>
             <div class="col-lg-2">
                 <label class="form-label small fw-semibold">Statut</label>
-                <input type="text" name="status" value="{{ $filters['status'] }}" class="form-control" placeholder="paid, active...">
+                <select name="status" class="form-select">
+                    @foreach ($options['statuses'] as $value => $label)
+                        <option value="{{ $value }}" @selected((string) $filters['status'] === (string) $value)>{{ $label }}</option>
+                    @endforeach
+                </select>
             </div>
             <div class="col-lg-4">
                 <label class="form-label small fw-semibold">Institution</label>
@@ -73,12 +150,8 @@
                     @endforeach
                 </div>
             </div>
-            <div class="col-12 d-flex flex-wrap align-items-center justify-content-between gap-3 pt-2">
-                <label class="form-check">
-                    <input type="checkbox" name="with_ai" value="1" class="form-check-input" @checked($filters['with_ai'])>
-                    <span class="form-check-label">Ajouter une synthèse OpenAI</span>
-                </label>
-                <button type="submit" class="btn btn-dark">Prévisualiser</button>
+            <div class="col-12 d-flex flex-wrap align-items-center justify-content-end gap-3 pt-2">
+                <button type="submit" class="btn btn-dark" data-loader-submit-label="Préparation...">Prévisualiser</button>
             </div>
         </div>
     </form>
@@ -96,11 +169,17 @@
                         @endif
                     </div>
                 </div>
+                <div class="d-flex flex-wrap gap-2 mt-2">
+                    @foreach ($report['filters'] as $filterLabel => $filterValue)
+                        <span class="badge-soft">{{ $filterLabel }} : {{ $filterValue }}</span>
+                    @endforeach
+                </div>
                 <div class="d-flex flex-wrap gap-2">
                     @foreach (['csv' => 'CSV', 'xls' => 'Excel', 'pdf' => 'PDF', 'pptx' => 'PowerPoint'] as $format => $label)
-                        <form method="POST" action="{{ route('super-admin.reports-builder.download') }}">
+                        <form method="POST" action="{{ route('super-admin.reports-builder.download') }}" data-report-loader-form data-loader-auto-hide="1" data-loader-title="Export {{ $label }}" data-loader-message="Le fichier est en cours de préparation.">
                             @csrf
-                            @foreach ($filters as $key => $value)
+                            <input type="hidden" name="metrics_present" value="1">
+                            @foreach (collect($filters)->except(['preview']) as $key => $value)
                                 @if (is_array($value))
                                     @foreach ($value as $item)
                                         <input type="hidden" name="{{ $key }}[]" value="{{ $item }}">
@@ -110,7 +189,7 @@
                                 @endif
                             @endforeach
                             <input type="hidden" name="format" value="{{ $format }}">
-                            <button type="submit" class="btn btn-outline-dark btn-sm">{{ $label }}</button>
+                            <button type="submit" class="btn btn-outline-dark btn-sm" data-loader-submit-label="Export...">{{ $label }}</button>
                         </form>
                     @endforeach
                 </div>
@@ -128,11 +207,8 @@
             </div>
 
             <div class="p-3 rounded-3 border bg-white mb-4">
-                <div class="small text-secondary fw-semibold mb-2">Synthèse</div>
+                <div class="small text-secondary fw-semibold mb-2">Analyse du rapport</div>
                 <div style="white-space: pre-line">{{ $analysis['text'] ?? 'Aucune synthèse disponible.' }}</div>
-                @if (! empty($analysis['notice']))
-                    <div class="small text-warning mt-2">{{ $analysis['notice'] }}</div>
-                @endif
             </div>
 
             <div class="table-responsive">
@@ -161,4 +237,63 @@
             </div>
         </section>
     @endif
+@endsection
+
+@section('scripts')
+    <script>
+        (() => {
+            const overlay = document.querySelector('[data-reports-loader]');
+            const title = document.querySelector('[data-reports-loader-title]');
+            const message = document.querySelector('[data-reports-loader-message]');
+
+            if (!overlay) {
+                return;
+            }
+
+            const hideLoader = () => {
+                overlay.classList.remove('is-visible');
+                overlay.setAttribute('aria-hidden', 'true');
+                document.querySelectorAll('[data-loader-disabled="1"]').forEach((button) => {
+                    button.disabled = false;
+                    delete button.dataset.loaderDisabled;
+                });
+                document.querySelectorAll('[data-original-text]').forEach((button) => {
+                    button.textContent = button.dataset.originalText;
+                    delete button.dataset.originalText;
+                });
+            };
+
+            const showLoader = (form) => {
+                title.textContent = form.dataset.loaderTitle || 'Génération du rapport';
+                message.textContent = form.dataset.loaderMessage || 'Veuillez patienter pendant la préparation des données.';
+                overlay.classList.add('is-visible');
+                overlay.setAttribute('aria-hidden', 'false');
+
+                form.querySelectorAll('button').forEach((button) => {
+                    button.dataset.loaderDisabled = '1';
+                    button.disabled = true;
+                });
+
+                const submitter = form.querySelector('button[type="submit"]');
+                if (submitter) {
+                    submitter.dataset.originalText = submitter.textContent.trim();
+                    submitter.textContent = submitter.dataset.loaderSubmitLabel || 'Préparation...';
+                }
+
+                if (form.dataset.loaderAutoHide === '1') {
+                    window.setTimeout(hideLoader, 3500);
+                }
+            };
+
+            window.addEventListener('pageshow', () => {
+                hideLoader();
+            });
+
+            document.querySelectorAll('[data-report-loader-form]').forEach((form) => {
+                form.addEventListener('submit', () => {
+                    showLoader(form);
+                });
+            });
+        })();
+    </script>
 @endsection

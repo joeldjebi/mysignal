@@ -1,12 +1,15 @@
 @extends('institution.layouts.app')
 
-@section('title', config('app.name').' | Mes activites')
-@section('page-title', 'Mes activites')
-@section('page-description', 'Consulter l historique des actions effectuees avec ce compte institutionnel.')
+@section('title', config('app.name').' | Mes activités')
+@section('page-title', 'Mes activités')
+@section('page-description', 'Consulter l’historique des actions effectuées avec ce compte.')
 
 @section('content')
+    @php
+        $label = \App\Support\Ui\InstitutionLabel::class;
+    @endphp
     <section class="panel-card">
-        <div class="fw-bold mb-3">Historique de mes activites</div>
+        <div class="fw-bold mb-3">Historique de mes activités</div>
         <form method="GET" class="filter-bar">
             <div class="row g-2 align-items-end">
                 <div class="col-md-4">
@@ -19,7 +22,7 @@
                 </div>
                 <div class="col-md-4 d-flex gap-2">
                     <button class="btn btn-dark w-100">Filtrer</button>
-                    <a href="{{ route('institution.activity-logs.index') }}" class="btn btn-outline-secondary">RAZ</a>
+                    <a href="{{ route('institution.activity-logs.index') }}" class="btn btn-outline-secondary">Réinitialiser</a>
                 </div>
             </div>
         </form>
@@ -30,7 +33,6 @@
                         <th>Date</th>
                         <th>Action</th>
                         <th>Description</th>
-                        <th>Sujet</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -38,21 +40,12 @@
                         <tr>
                             <td>{{ $log->created_at?->format('d/m/Y H:i:s') ?: '-' }}</td>
                             <td>
-                                <div class="fw-semibold">{{ $log->action }}</div>
-                                <div class="small text-secondary">{{ $log->ip_address ?: '-' }}</div>
+                                <div class="fw-semibold">{{ $label::action($log->action) }}</div>
                             </td>
                             <td>{{ $log->description ?: '-' }}</td>
-                            <td>
-                                @if ($log->subject)
-                                    <div class="fw-semibold">{{ class_basename($log->subject_type) }}</div>
-                                    <div class="small text-secondary">#{{ $log->subject_id }}</div>
-                                @else
-                                    <span class="text-secondary">-</span>
-                                @endif
-                            </td>
                         </tr>
                     @empty
-                        <tr><td colspan="4" class="text-center text-secondary">Aucune activite enregistree.</td></tr>
+                        <tr><td colspan="3" class="text-center text-secondary">Aucune activité enregistrée.</td></tr>
                     @endforelse
                 </tbody>
             </table>

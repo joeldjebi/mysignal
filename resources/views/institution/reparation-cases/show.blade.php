@@ -1,27 +1,27 @@
 @extends('institution.layouts.app')
 
-@section('title', config('app.name').' | Detail dossier')
-@section('page-title', 'Detail du dossier')
-@section('page-description', 'Historique et avancement du dossier rattache a votre organisation.')
+@section('title', config('app.name').' | Détail dossier')
+@section('page-title', 'Détail du dossier')
+@section('page-description', 'Historique et avancement du dossier rattaché à votre institution.')
 
 @section('content')
     @php
         $statusLabel = fn (?string $status) => [
             'submitted' => 'Soumis',
             'under_review' => 'Analyse',
-            'awaiting_documents' => 'Pieces attendues',
-            'sent_to_organization' => 'Transmis organisation',
-            'organization_responded' => 'Reponse organisation',
-            'approved' => 'Approuve',
-            'rejected' => 'Rejete',
-            'compensated' => 'Dedommage',
+            'awaiting_documents' => 'Pièces attendues',
+            'sent_to_organization' => 'Transmis à l’institution',
+            'organization_responded' => 'Réponse institutionnelle',
+            'approved' => 'Approuvé',
+            'rejected' => 'Rejeté',
+            'compensated' => 'Dédommagé',
             'closed' => 'Clos',
         ][$status] ?? ($status ?: '-');
         $stepStatusLabel = fn (?string $status) => [
             'pending' => 'En attente',
             'in_progress' => 'En cours',
-            'completed' => 'Terminee',
-            'cancelled' => 'Annulee',
+            'completed' => 'Terminée',
+            'cancelled' => 'Annulée',
         ][$status] ?? ($status ?: '-');
     @endphp
 
@@ -37,7 +37,7 @@
                 </div>
                 <div class="vstack gap-3">
                     <div>
-                        <div class="small text-secondary">Application / Organisation</div>
+                        <div class="small text-secondary">Catégorie métier / Institution</div>
                         <div class="fw-semibold">{{ $reparationCase->application?->name ?: '-' }} / {{ $reparationCase->organization?->name ?: '-' }}</div>
                     </div>
                     <div>
@@ -45,15 +45,15 @@
                         <div class="fw-semibold">{{ $reparationCase->case_type }}</div>
                     </div>
                     <div>
-                        <div class="small text-secondary">Priorite</div>
-                        <div class="fw-semibold">{{ $reparationCase->priority }}</div>
+                        <div class="small text-secondary">Priorité</div>
+                        <div class="fw-semibold">{{ \App\Support\Ui\InstitutionLabel::humanize($reparationCase->priority) }}</div>
                     </div>
                     <div>
                         <div class="small text-secondary">Ouvert le</div>
                         <div class="fw-semibold">{{ $reparationCase->opened_at?->format('d/m/Y H:i') ?: '-' }}</div>
                     </div>
                     <div>
-                        <div class="small text-secondary">Montant reclame / valide</div>
+                        <div class="small text-secondary">Montant réclamé / validé</div>
                         <div class="fw-semibold">
                             {{ $reparationCase->damage_amount_claimed ? number_format((float) $reparationCase->damage_amount_claimed, 0, ',', ' ').' FCFA' : '-' }}
                             /
@@ -97,7 +97,7 @@
             </section>
 
             <section class="panel-card">
-                <div class="fw-bold mb-3">Etapes d'avancement</div>
+                <div class="fw-bold mb-3">Étapes d’avancement</div>
                 <div class="vstack gap-3">
                     @forelse ($reparationCase->steps as $step)
                         <div class="surface-soft">
@@ -114,10 +114,10 @@
                                                 @endphp
                                                 @if ($attachmentUrl)
                                                     <a href="{{ $attachmentUrl }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-dark">
-                                                        {{ $attachment['name'] ?? 'Piece jointe' }}
+                                                        {{ $attachment['name'] ?? 'Pièce jointe' }}
                                                     </a>
                                                 @else
-                                                    <span class="badge text-bg-light border">{{ $attachment['name'] ?? 'Piece jointe' }}</span>
+                                                    <span class="badge text-bg-light border">{{ $attachment['name'] ?? 'Pièce jointe' }}</span>
                                                 @endif
                                             @endforeach
                                         </div>
@@ -130,7 +130,7 @@
                             </div>
                         </div>
                     @empty
-                        <div class="text-secondary">Aucune etape disponible.</div>
+                        <div class="text-secondary">Aucune étape disponible.</div>
                     @endforelse
                 </div>
             </section>

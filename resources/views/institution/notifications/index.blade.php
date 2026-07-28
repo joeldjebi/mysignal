@@ -1,7 +1,7 @@
 @extends('institution.layouts.app')
 
 @section('page-title', 'Notifications')
-@section('page-description', 'Historique des alertes liées à votre application et votre organisation.')
+@section('page-description', 'Historique des alertes liées à votre institution.')
 
 @section('content')
     @php
@@ -46,7 +46,7 @@
             <div class="stat-card h-100">
                 <div class="stat-kicker">Notifications</div>
                 <div class="stat-value">{{ number_format($totalCount, 0, ',', ' ') }}</div>
-                <div class="text-secondary small">Total reçu pour ce périmètre AI.</div>
+                <div class="text-secondary small">Total reçu pour votre institution.</div>
             </div>
         </div>
         <div class="col-md-4">
@@ -92,7 +92,7 @@
             </div>
             <div class="col-md-4">
                 <label class="form-label">Recherche</label>
-                <input type="search" name="search" value="{{ $filters['search'] }}" class="form-control" placeholder="Titre, message, type...">
+                <input type="search" name="search" value="{{ $filters['search'] }}" class="form-control" placeholder="Titre ou message">
             </div>
             <div class="col-md-2 d-grid">
                 <button type="submit" class="btn btn-dark">Filtrer</button>
@@ -126,7 +126,6 @@
                             <td style="min-width: 320px;">
                                 <div class="fw-bold">{{ $notification->title }}</div>
                                 <div class="text-secondary small">{{ $notification->body ?: 'Aucun détail complémentaire.' }}</div>
-                                <div class="text-secondary small mt-1">{{ $notification->type }}</div>
                             </td>
                             <td>
                                 <span class="status-chip">{{ $categoryLabel($notification) }}</span>

@@ -1,21 +1,16 @@
 @extends('institution.layouts.app')
 
-@section('title', config('app.name').' | Detail signalement')
-@section('page-title', 'Detail signalement')
-@section('page-description', 'Vue complete du signalement pour faciliter la prise en charge et la resolution.')
+@section('title', config('app.name').' | Détail signalement')
+@section('page-title', 'Détail signalement')
+@section('page-description', 'Informations utiles pour faciliter la prise en charge et la résolution.')
 
 @section('content')
     @php
         $canViewPaymentInfo = in_array('INSTITUTION_PAYMENT_INFO', $features ?? [], true);
         $canViewDamageInfo = in_array('INSTITUTION_REPORT_DAMAGE_ACCESS', $features ?? [], true);
         $canResolveDamage = in_array('INSTITUTION_REPORT_DAMAGE_RESOLUTION', $features ?? [], true);
-        $damageStatusLabel = match ($report->damage_resolution_status ?? 'submitted') {
-            'submitted' => 'Soumis',
-            'in_progress' => 'En cours',
-            'resolved' => 'Resolu',
-            'rejected' => 'Rejete',
-            default => 'Soumis',
-        };
+        $label = \App\Support\Ui\InstitutionLabel::class;
+        $damageStatusLabel = $label::damage($report->damage_resolution_status ?? 'submitted');
         $damageStatusClass = match ($report->damage_resolution_status ?? 'submitted') {
             'resolved' => 'chip-success',
             'in_progress' => 'chip-warning',
@@ -42,37 +37,37 @@
                 <div class="d-flex align-items-start justify-content-between mb-3">
                     <div>
                         <div class="fw-bold fs-5">{{ $report->reference }}</div>
-                        <div class="text-secondary small">{{ $report->signal_label ?: $report->signal_code }}</div>
+                        <div class="text-secondary small">{{ $report->signal_label ?: 'Signalement' }}</div>
                     </div>
                     <span class="status-chip {{ $chipClass }}">{{ $slaState['label'] }}</span>
                 </div>
 
                 <div class="vstack gap-3">
                     <div>
-                        <div class="small text-secondary">Type de signal</div>
-                        <div class="fw-semibold">{{ $report->signal_code }}</div>
+                        <div class="small text-secondary">Signalement</div>
+                        <div class="fw-semibold">{{ $report->signal_label ?: 'Signalement' }}</div>
                     </div>
                     <div>
-                        <div class="small text-secondary">Date de creation</div>
+                        <div class="small text-secondary">Date de création</div>
                         <div class="fw-semibold">{{ $report->created_at?->format('d/m/Y H:i') }}</div>
                     </div>
                     <div>
-                        <div class="small text-secondary">SLA cible</div>
+                        <div class="small text-secondary">Délai attendu</div>
                         <div class="fw-semibold">{{ $report->target_sla_hours ?: '-' }} h</div>
                     </div>
                     <div>
-                        <div class="small text-secondary">Temps ecoule</div>
+                        <div class="small text-secondary">Temps écoulé</div>
                         <div class="fw-semibold">{{ $slaState['elapsed_hours'] !== null ? $slaState['elapsed_hours'].' h' : '-' }}</div>
                     </div>
                     <div>
                         <div class="small text-secondary">Traitement</div>
-                        <div class="fw-semibold">{{ $report->status }}</div>
-                        <div class="text-secondary small">{{ $report->assignedTo?->name ?: 'Non assigne' }}</div>
+                        <div class="fw-semibold">{{ $label::status($report->status) }}</div>
+                        <div class="text-secondary small">{{ $report->assignedTo?->name ?: 'Non assigné' }}</div>
                     </div>
                     @if ($canViewPaymentInfo)
                         <div>
                             <div class="small text-secondary">Paiement</div>
-                            <div class="fw-semibold">{{ $report->payment_status }}</div>
+                            <div class="fw-semibold">{{ $label::payment($report->payment_status) }}</div>
                         </div>
                     @endif
                     @if ($reportGoogleMapsUrl)
@@ -86,7 +81,7 @@
 
         <div class="col-xl-8">
             <section class="panel-card mb-4">
-                <div class="fw-bold mb-3">Declarant</div>
+                <div class="fw-bold mb-3">Déclarant</div>
                 <div class="row g-3">
                     <div class="col-md-6">
                         <div class="surface-soft">
@@ -112,11 +107,11 @@
                     <div class="col-md-6">
                         <div class="surface-soft">
                             <div class="meta-title">{{ $report->meter?->meter_number ?: '-' }}</div>
-                            <div class="meta-subtitle">{{ $report->meter?->network_type ?: '-' }} · {{ $report->meter?->label ?: 'Sans libelle' }}</div>
-                            <div class="meta-subtitle mt-2">Commune identifiant: {{ $report->meter?->commune ?: '-' }}</div>
+                            <div class="meta-subtitle">{{ $label::humanize($report->meter?->network_type) }} · {{ $report->meter?->label ?: 'Sans libellé' }}</div>
+                            <div class="meta-subtitle mt-2">Commune: {{ $report->meter?->commune ?: '-' }}</div>
                             <div class="meta-subtitle">Adresse: {{ $report->meter?->address ?: '-' }}</div>
                             @if ($meterGoogleMapsUrl)
-                                <a href="{{ $meterGoogleMapsUrl }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-dark mt-3">Ouvrir l identifiant dans Google Maps</a>
+                                <a href="{{ $meterGoogleMapsUrl }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-dark mt-3">Ouvrir l’identifiant dans Google Maps</a>
                             @endif
                         </div>
                     </div>
@@ -128,10 +123,9 @@
                                 @if ($report->latitude && $report->longitude)
                                     GPS signalement: {{ $report->latitude }}, {{ $report->longitude }}
                                 @else
-                                    Position GPS non renseignee
+                                    Position GPS non renseignée
                                 @endif
                             </div>
-                            <div class="meta-subtitle">Source: {{ $report->location_source ?: '-' }}</div>
                             @if ($reportGoogleMapsUrl)
                                 <a href="{{ $reportGoogleMapsUrl }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-dark mt-3">Ouvrir le signalement dans Google Maps</a>
                             @endif
@@ -169,7 +163,7 @@
                 @endif
 
                 <div class="surface-soft">
-                    <div class="meta-subtitle mb-2">Donnees complementaires</div>
+                    <div class="meta-subtitle mb-2">Informations complémentaires</div>
                     @if (!empty($resolvedSignalPayload))
                         <div class="table-responsive">
                             <table class="table table-modern align-middle mb-0">
@@ -182,7 +176,7 @@
                                 <tbody>
                                     @foreach ($resolvedSignalPayload as $key => $value)
                                         <tr>
-                                            <td>{{ $key }}</td>
+                                            <td>{{ $label::humanize($key) }}</td>
                                             <td>
                                                 @if (is_array($value) && ($value['type'] ?? null) === 'image' && filled($value['temporary_url'] ?? null))
                                                     <div class="vstack gap-2">
@@ -190,7 +184,7 @@
                                                         <img src="{{ $value['temporary_url'] }}" alt="{{ $key }}" style="max-width: 240px; max-height: 240px; object-fit: cover; border-radius: 16px; border: 1px solid rgba(24, 52, 71, 0.12);">
                                                     </div>
                                                 @else
-                                                    {{ is_array($value) ? json_encode($value) : $value }}
+                                                    {{ is_array($value) ? (collect($value)->filter(fn ($item) => is_scalar($item))->map(fn ($item, $itemKey) => $label::humanize($itemKey).': '.$item)->implode(' · ') ?: 'Information jointe') : $value }}
                                                 @endif
                                             </td>
                                         </tr>
@@ -199,22 +193,22 @@
                             </table>
                         </div>
                     @else
-                        <div class="text-secondary">Aucune donnee complementaire.</div>
+                        <div class="text-secondary">Aucune information complémentaire.</div>
                     @endif
                 </div>
             </section>
 
             @if ($canViewPaymentInfo)
                 <section class="panel-card mb-4">
-                    <div class="fw-bold mb-3">Paiements associes</div>
+                    <div class="fw-bold mb-3">Paiements associés</div>
                     <div class="table-responsive">
                         <table class="table table-modern align-middle mb-0">
                             <thead>
                                 <tr>
-                                    <th>Reference</th>
+                                    <th>Référence</th>
                                     <th>Montant</th>
                                     <th>Statut</th>
-                                    <th>Provider</th>
+                                    <th>Service</th>
                                     <th>Date</th>
                                 </tr>
                             </thead>
@@ -223,12 +217,12 @@
                                     <tr>
                                         <td>{{ $payment->reference }}</td>
                                         <td>{{ number_format($payment->amount, 0, ',', ' ') }} {{ $payment->currency }}</td>
-                                        <td><span class="status-chip">{{ $payment->status }}</span></td>
-                                        <td>{{ $payment->provider }}</td>
+                                        <td><span class="status-chip">{{ $label::payment($payment->status) }}</span></td>
+                                        <td>{{ $label::humanize($payment->provider) }}</td>
                                         <td>{{ $payment->paid_at?->format('d/m/Y H:i') ?: '-' }}</td>
                                     </tr>
                                 @empty
-                                    <tr><td colspan="5" class="text-center text-secondary">Aucun paiement associe.</td></tr>
+                                    <tr><td colspan="5" class="text-center text-secondary">Aucun paiement associé.</td></tr>
                                 @endforelse
                             </tbody>
                         </table>
@@ -238,33 +232,33 @@
 
             @if ($canViewDamageInfo)
                 <section class="panel-card mb-4">
-                    <div class="fw-bold mb-3">Dommages declares par l usager</div>
+                    <div class="fw-bold mb-3">Dommages déclarés par l’usager</div>
 
                     @if ($report->damage_summary || $report->damage_declared_at || $report->damage_notes || !empty($report->damage_attachment))
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <div class="surface-soft h-100">
-                                    <div class="meta-subtitle mb-2">Synthese</div>
-                                    <div class="fw-semibold">{{ $report->damage_summary ?: 'Declaration de dommage enregistree' }}</div>
+                                    <div class="meta-subtitle mb-2">Synthèse</div>
+                                    <div class="fw-semibold">{{ $report->damage_summary ?: 'Déclaration de dommage enregistrée' }}</div>
                                     <div class="mt-2"><span class="status-chip {{ $damageStatusClass }}">{{ $damageStatusLabel }}</span></div>
-                                    <div class="meta-subtitle mt-2">Date de declaration</div>
+                                    <div class="meta-subtitle mt-2">Date de déclaration</div>
                                     <div>{{ $report->damage_declared_at?->format('d/m/Y H:i') ?: '-' }}</div>
-                                    <div class="meta-subtitle mt-2">Date de cloture dommage</div>
+                                    <div class="meta-subtitle mt-2">Date de clôture du dommage</div>
                                     <div>{{ $report->damage_resolved_at?->format('d/m/Y H:i') ?: '-' }}</div>
-                                    <div class="meta-subtitle mt-2">Montant estime</div>
+                                    <div class="meta-subtitle mt-2">Montant estimé</div>
                                     <div>
                                         {{ $report->damage_amount_estimated !== null
                                             ? number_format((float) $report->damage_amount_estimated, 0, ',', ' ').' FCFA'
-                                            : 'Non renseigne' }}
+                                            : 'Non renseigné' }}
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="surface-soft h-100">
-                                    <div class="meta-subtitle mb-2">Commentaires de l usager</div>
-                                    <div>{{ $report->damage_notes ?: 'Aucun detail complementaire fourni.' }}</div>
-                                    <div class="meta-subtitle mt-3 mb-2">Reponse institutionnelle sur le dommage</div>
-                                    <div>{{ $report->damage_resolution_notes ?: 'Aucune reponse institutionnelle sur le dommage pour le moment.' }}</div>
+                                    <div class="meta-subtitle mb-2">Commentaires de l’usager</div>
+                                    <div>{{ $report->damage_notes ?: 'Aucun détail complémentaire fourni.' }}</div>
+                                    <div class="meta-subtitle mt-3 mb-2">Réponse institutionnelle sur le dommage</div>
+                                    <div>{{ $report->damage_resolution_notes ?: 'Aucune réponse institutionnelle sur le dommage pour le moment.' }}</div>
                                 </div>
                             </div>
                             @if (!empty($resolvedDamageAttachment))
@@ -291,18 +285,18 @@
                                                     download="{{ $resolvedDamageAttachment['name'] ?? 'justificatif-dommage' }}"
                                                     class="btn btn-outline-dark btn-sm"
                                                 >
-                                                    Telecharger le justificatif
+                                                    Télécharger le justificatif
                                                 </a>
                                             </div>
                                         @else
-                                            <div class="text-secondary">Justificatif present mais non exploitable.</div>
+                                            <div class="text-secondary">Justificatif présent mais non disponible.</div>
                                         @endif
                                     </div>
                                 </div>
                             @endif
                         </div>
                     @else
-                        <div class="text-secondary">Aucun dommage n a ete declare pour ce signalement.</div>
+                        <div class="text-secondary">Aucun dommage n’a été déclaré pour ce signalement.</div>
                     @endif
 
                     @if ($canResolveDamage && $report->damage_declared_at)
@@ -311,20 +305,20 @@
                             @method('PATCH')
                             <div class="row g-3 align-items-end">
                                 <div class="col-md-4">
-                                    <label class="form-label small text-secondary">Statut de resolution du dommage</label>
+                                    <label class="form-label small text-secondary">Statut de résolution du dommage</label>
                                     <select name="damage_resolution_status" class="form-select">
                                         <option value="submitted" @selected(($report->damage_resolution_status ?? 'submitted') === 'submitted')>Soumis</option>
                                         <option value="in_progress" @selected(($report->damage_resolution_status ?? 'submitted') === 'in_progress')>En cours</option>
-                                        <option value="resolved" @selected(($report->damage_resolution_status ?? 'submitted') === 'resolved')>Resolu</option>
-                                        <option value="rejected" @selected(($report->damage_resolution_status ?? 'submitted') === 'rejected')>Rejete</option>
+                                        <option value="resolved" @selected(($report->damage_resolution_status ?? 'submitted') === 'resolved')>Résolu</option>
+                                        <option value="rejected" @selected(($report->damage_resolution_status ?? 'submitted') === 'rejected')>Rejeté</option>
                                     </select>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label small text-secondary">Notes institutionnelles</label>
-                                    <textarea name="damage_resolution_notes" class="form-control" rows="3" placeholder="Precisons sur l analyse, la prise en charge ou la decision institutionnelle.">{{ old('damage_resolution_notes', $report->damage_resolution_notes) }}</textarea>
+                                    <textarea name="damage_resolution_notes" class="form-control" rows="3" placeholder="Précisions sur l’analyse, la prise en charge ou la décision institutionnelle.">{{ old('damage_resolution_notes', $report->damage_resolution_notes) }}</textarea>
                                 </div>
                                 <div class="col-md-2 d-grid">
-                                    <button class="btn btn-outline-dark">Mettre a jour</button>
+                                    <button class="btn btn-outline-dark">Mettre à jour</button>
                                 </div>
                             </div>
                         </form>
@@ -347,13 +341,13 @@
                         <form method="POST" action="{{ route('institution.reports.resolve', $report) }}">
                             @csrf
                             @method('PATCH')
-                            <input type="hidden" name="official_response" value="Signalement resolu par l institution.">
-                            <button class="btn btn-outline-success">Marquer comme resolu</button>
+                            <input type="hidden" name="official_response" value="Signalement résolu par l’institution.">
+                            <button class="btn btn-outline-success">Marquer comme résolu</button>
                         </form>
                         <form method="POST" action="{{ route('institution.reports.reject', $report) }}">
                             @csrf
                             @method('PATCH')
-                            <input type="hidden" name="official_response" value="Signalement rejete apres analyse institutionnelle.">
+                            <input type="hidden" name="official_response" value="Signalement rejeté après analyse institutionnelle.">
                             <button class="btn btn-outline-danger">Rejeter</button>
                         </form>
                     @endif
@@ -361,7 +355,7 @@
 
                 @if ($report->official_response)
                     <div class="surface-soft mt-3">
-                        <div class="meta-subtitle mb-2">Reponse officielle enregistree</div>
+                        <div class="meta-subtitle mb-2">Réponse officielle enregistrée</div>
                         <div>{{ $report->official_response }}</div>
                     </div>
                 @endif

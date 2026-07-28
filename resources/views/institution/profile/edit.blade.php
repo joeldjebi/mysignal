@@ -2,7 +2,7 @@
 
 @section('title', config('app.name').' | Mon profil')
 @section('page-title', 'Mon profil')
-@section('page-description', 'Mettre a jour vos informations de connexion et visualiser votre perimetre d acces institutionnel.')
+@section('page-description', 'Mettre à jour vos informations et visualiser votre périmètre d’accès.')
 
 @section('content')
     <style>
@@ -156,7 +156,7 @@
                 </div>
                 <div class="d-flex gap-2 flex-wrap">
                     <span class="badge-soft">{{ $organization?->name }}</span>
-                    <span class="badge-soft">{{ $profileUser->status }}</span>
+                    <span class="badge-soft">{{ \App\Support\Ui\InstitutionLabel::status($profileUser->status) }}</span>
                 </div>
             </div>
 
@@ -166,15 +166,11 @@
                     <div class="summary-value">{{ $application?->name ?: '-' }}</div>
                 </div>
                 <div class="summary-card">
-                    <div class="summary-label">Organisation</div>
+                    <div class="summary-label">Institution</div>
                     <div class="summary-value">{{ $organization?->name ?: '-' }}</div>
                 </div>
                 <div class="summary-card">
-                    <div class="summary-label">Portail</div>
-                    <div class="summary-value">{{ $organization?->portal_key ?: '-' }}</div>
-                </div>
-                <div class="summary-card">
-                    <div class="summary-label">Roles internes</div>
+                    <div class="summary-label">Rôles internes</div>
                     <div class="summary-value">{{ $roleItems->count() }}</div>
                 </div>
             </div>
@@ -184,8 +180,8 @@
             <div class="col-12">
                 <section class="profile-form-card">
                     <div class="section-kicker">Informations personnelles</div>
-                    <div class="fw-bold fs-5 mb-2">Mettre a jour mon profil</div>
-                    <div class="section-copy">Ces informations sont utilisees pour votre connexion et votre identification dans le portail institutionnel.</div>
+                    <div class="fw-bold fs-5 mb-2">Mettre à jour mon profil</div>
+                    <div class="section-copy">Ces informations sont utilisées pour votre connexion et votre identification.</div>
 
                     <form method="POST" action="{{ route('institution.profile.update') }}" class="row g-3" enctype="multipart/form-data">
                         @csrf
@@ -203,10 +199,10 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Statut du compte</label>
-                            <input type="text" value="{{ $profileUser->status }}" class="form-control" readonly>
+                            <input type="text" value="{{ \App\Support\Ui\InstitutionLabel::status($profileUser->status) }}" class="form-control" readonly>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Logo de l'organisation</label>
+                            <label class="form-label">Logo de l’institution</label>
                             <input type="file" name="organization_logo" class="form-control" accept="image/png,image/jpeg,image/webp">
                             <div class="form-text">PNG, JPG ou WebP. Taille maximale: 4 Mo.</div>
                         </div>
@@ -216,7 +212,7 @@
                                 @if ($organization?->logoUrl())
                                     <img src="{{ $organization->logoUrl() }}" alt="{{ $organization->name }} logo" class="profile-logo-preview">
                                 @else
-                                    <div class="text-secondary small pt-2">Aucun logo enregistre.</div>
+                                    <div class="text-secondary small pt-2">Aucun logo enregistré.</div>
                                 @endif
                             </div>
                         </div>
@@ -227,7 +223,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Nouveau mot de passe</label>
-                            <input type="password" name="password" class="form-control" placeholder="Laisser vide pour conserver l actuel">
+                            <input type="password" name="password" class="form-control" placeholder="Laisser vide pour conserver l’actuel">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Confirmation du mot de passe</label>
@@ -235,26 +231,25 @@
                         </div>
                         <div class="col-12 d-flex gap-2">
                             <button type="submit" class="btn btn-dark">Enregistrer les modifications</button>
-                            <a href="{{ route('institution.dashboard') }}" class="btn btn-outline-secondary">Retour au dashboard</a>
+                            <a href="{{ route('institution.dashboard') }}" class="btn btn-outline-secondary">Retour au tableau de bord</a>
                         </div>
                     </form>
                 </section>
             </div>
             <div class="col-12">
                 <section class="profile-side-card mb-4">
-                    <div class="section-kicker">Perimetre du compte</div>
-                    <div class="fw-bold fs-5 mb-2">Roles internes affectes</div>
-                    <div class="section-copy">Chaque role interne regroupe un ensemble d’autorisations donnees par votre institution.</div>
+                    <div class="section-kicker">Périmètre du compte</div>
+                    <div class="fw-bold fs-5 mb-2">Rôles internes affectés</div>
+                    <div class="section-copy">Chaque rôle interne regroupe un ensemble de droits donnés par votre institution.</div>
 
                     @if ($roleItems->isEmpty())
-                        <div class="text-secondary small">Aucun role interne affecte.</div>
+                        <div class="text-secondary small">Aucun rôle interne affecté.</div>
                     @else
                         <div class="meaning-grid-landscape">
                             @foreach ($roleItems as $role)
                                 <div class="meaning-card">
                                     <div class="meaning-title">{{ $role->name }}</div>
-                                    <div class="meaning-code">{{ $role->code }}</div>
-                                    <div class="meaning-copy">{{ $role->description ?: 'Role interne defini par votre institution pour regrouper plusieurs autorisations.' }}</div>
+                                    <div class="meaning-copy">{{ $role->description ?: 'Rôle interne défini par votre institution.' }}</div>
                                 </div>
                             @endforeach
                         </div>
@@ -262,18 +257,18 @@
                 </section>
 
                 <section class="profile-side-card mb-4">
-                    <div class="section-kicker">Fonctionnalites visibles</div>
+                    <div class="section-kicker">Fonctions visibles</div>
                     <div class="fw-bold fs-5 mb-2">Ce que vous voyez dans le portail</div>
-                    <div class="section-copy">Ces fonctionnalites ont ete activees par le super admin puis rendues visibles pour votre compte.</div>
+                    <div class="section-copy">Ces fonctions ont été activées pour votre compte.</div>
 
                     @if ($featureDetails->isEmpty())
-                        <div class="text-secondary small">Aucune fonctionnalite active visible pour ce compte.</div>
+                        <div class="text-secondary small">Aucune fonction active visible pour ce compte.</div>
                     @else
                         <div class="meaning-grid-landscape">
                             @foreach ($featureDetails as $feature)
                                 <div class="meaning-card">
                                     <div class="meaning-title">{{ $feature->name }}</div>
-                                    <div class="meaning-copy">{{ $feature->description ?: 'Fonctionnalite rendue visible par le super admin puis autorisee pour votre compte.' }}</div>
+                                    <div class="meaning-copy">{{ $feature->description ?: 'Fonction disponible pour votre compte.' }}</div>
                                 </div>
                             @endforeach
                         </div>
@@ -281,18 +276,18 @@
                 </section>
 
                 <section class="profile-side-card">
-                    <div class="section-kicker">Autorisations</div>
+                    <div class="section-kicker">Droits</div>
                     <div class="fw-bold fs-5 mb-2">Droits concrets de ce compte</div>
-                    <div class="section-copy">Voici les actions precises que votre compte peut utiliser dans ce portail institutionnel.</div>
+                    <div class="section-copy">Voici les actions que votre compte peut utiliser.</div>
 
                     @if ($permissionDetails->isEmpty())
-                        <div class="text-secondary small">Aucune autorisation detaillee detectee pour ce compte.</div>
+                        <div class="text-secondary small">Aucun droit détaillé détecté pour ce compte.</div>
                     @else
                         <div class="meaning-grid-landscape">
                             @foreach ($permissionDetails as $permission)
                                 <div class="meaning-card">
                                     <div class="meaning-title">{{ $permission->name }}</div>
-                                    <div class="meaning-copy">{{ $permission->description ?: 'Autorisation precise accordee a votre compte ou heritee via un role interne.' }}</div>
+                                    <div class="meaning-copy">{{ $permission->description ?: 'Droit accordé à votre compte ou hérité via un rôle interne.' }}</div>
                                 </div>
                             @endforeach
                         </div>

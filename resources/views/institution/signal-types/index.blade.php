@@ -2,19 +2,22 @@
 
 @section('title', config('app.name').' | Types de signaux')
 @section('page-title', 'Types de signaux')
-@section('page-description', 'Referentiel des types de signaux pour votre application et votre organisation, avec TCM par defaut.')
+@section('page-description', 'Liste des signalements disponibles pour votre institution.')
 @section('header-badges')
     <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#createInstitutionSignalTypeModal">Nouveau type de signal</button>
 @endsection
 
 @section('content')
+    @php
+        $label = \App\Support\Ui\InstitutionLabel::class;
+    @endphp
     <section class="panel-card">
         <div class="d-flex align-items-center justify-content-between mb-3">
                     <div>
-                        <div class="fw-bold">Catalogue de l organisation</div>
-                        <div class="text-secondary small">Ces types de signaux sont visibles dans le parcours public de declaration pour {{ $application?->name ?: 'cette application' }} / {{ $organization?->name ?: 'cette organisation' }}.</div>
+                        <div class="fw-bold">Catalogue de l’institution</div>
+                        <div class="text-secondary small">Ces signalements sont visibles dans le parcours public.</div>
                     </div>
-                    <span class="status-chip">{{ $application?->name ?: '-' }} / {{ $organization?->code ?? '-' }}</span>
+                    <span class="status-chip">{{ $application?->name ?: '-' }} / {{ $organization?->name ?? '-' }}</span>
         </div>
 
                 <form method="GET" class="filter-bar">
@@ -29,7 +32,7 @@
                         </div>
                         <div class="col-md-8 d-flex gap-2">
                             <button class="btn btn-dark">Filtrer</button>
-                            <a href="{{ route('institution.signal-types.index') }}" class="btn btn-outline-secondary">RAZ</a>
+                            <a href="{{ route('institution.signal-types.index') }}" class="btn btn-outline-secondary">Réinitialiser</a>
                         </div>
                     </div>
                 </form>
@@ -39,8 +42,8 @@
                         <thead>
                             <tr>
                                 <th>Signal</th>
-                                <th>Perimetre</th>
-                                <th>SLA defaut</th>
+                                <th>Périmètre</th>
+                                <th>Délai par défaut</th>
                                 <th>Statut</th>
                                 <th class="text-end">Actions</th>
                             </tr>
@@ -50,7 +53,6 @@
                                 <tr>
                                     <td>
                                         <div>{{ $signalType->label }}</div>
-                                        <div class="small text-secondary">{{ $signalType->code }}</div>
                                         <div class="small text-secondary mt-1">{{ $signalType->description ?: '-' }}</div>
                                     </td>
                                     <td>
@@ -58,14 +60,14 @@
                                         <div class="small text-secondary">{{ $signalType->organization?->name ?: '-' }}</div>
                                     </td>
                                     <td><span class="status-chip">{{ $signalType->default_sla_hours ? $signalType->default_sla_hours.' h' : '-' }}</span></td>
-                                    <td><span class="status-chip">{{ $signalType->status }}</span></td>
+                                    <td><span class="status-chip">{{ $label::status($signalType->status) }}</span></td>
                                     <td class="text-end">
                                         <div class="actions-wrap">
                                             <a href="{{ route('institution.signal-types.edit', $signalType) }}" class="btn btn-sm btn-outline-dark">Modifier</a>
                                             <form method="POST" action="{{ route('institution.signal-types.toggle-status', $signalType) }}">
                                                 @csrf
                                                 @method('PATCH')
-                                                <button class="btn btn-sm btn-outline-warning">{{ $signalType->status === 'active' ? 'Desactiver' : 'Activer' }}</button>
+                                                <button class="btn btn-sm btn-outline-warning">{{ $signalType->status === 'active' ? 'Désactiver' : 'Activer' }}</button>
                                             </form>
                                         </div>
                                     </td>
@@ -84,7 +86,7 @@
                 <div class="modal-header px-4 py-3 border-0" style="background: linear-gradient(145deg, #0f2738, #1b4867); color: white;">
                     <div>
                         <div class="small text-white-50 fw-semibold mb-1">Nouveau type de signal</div>
-                        <div class="h5 fw-bold mb-0">Creer un type de signal</div>
+                        <div class="h5 fw-bold mb-0">Créer un type de signal</div>
                     </div>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -92,22 +94,18 @@
                     <form method="POST" action="{{ route('institution.signal-types.store') }}" class="vstack gap-3">
                         @csrf
                         <div>
-                            <label class="form-label">Code signal</label>
-                            <input type="text" name="code" class="form-control" placeholder="EL-01" required>
-                        </div>
-                        <div>
-                            <label class="form-label">Libelle</label>
+                            <label class="form-label">Libellé</label>
                             <input type="text" name="label" class="form-control" placeholder="Coupure totale de courant" required>
                         </div>
                         <div>
-                            <label class="form-label">SLA par defaut (heures)</label>
+                            <label class="form-label">Délai par défaut (heures)</label>
                             <input type="number" min="1" max="999" name="default_sla_hours" class="form-control" placeholder="4">
                         </div>
                         <div>
                             <label class="form-label">Description</label>
                             <textarea name="description" class="form-control" rows="3"></textarea>
                         </div>
-                        <button type="submit" class="btn btn-dark">Creer</button>
+                        <button type="submit" class="btn btn-dark">Créer</button>
                     </form>
                 </div>
             </div>

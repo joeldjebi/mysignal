@@ -480,6 +480,7 @@ Route::prefix('sa')->name('super-admin.')->group(function (): void {
         Route::post('payments/sessions/{paymentSession}/validate', [PaymentController::class, 'validateSession'])->middleware('super_admin_permission:SA_PAYMENTS_MANUAL_VALIDATE')->name('payments.sessions.validate');
         Route::get('maintenance/cleanup', [MaintenanceCleanupController::class, 'index'])->middleware('super_admin_permission:SA_MAINTENANCE_CLEANUP')->name('maintenance.cleanup.index');
         Route::patch('maintenance/nearby-report-notifications', [MaintenanceCleanupController::class, 'toggleNearbyReportNotifications'])->middleware('super_admin_permission:SA_MAINTENANCE_CLEANUP')->name('maintenance.nearby-report-notifications.toggle');
+        Route::patch('maintenance/reports-ai', [MaintenanceCleanupController::class, 'toggleReportsAi'])->middleware('super_admin_permission:SA_MAINTENANCE_CLEANUP')->name('maintenance.reports-ai.toggle');
         Route::delete('maintenance/cleanup', [MaintenanceCleanupController::class, 'destroy'])->middleware('super_admin_permission:SA_MAINTENANCE_CLEANUP')->name('maintenance.cleanup.destroy');
         Route::delete('maintenance/cleanup/table', [MaintenanceCleanupController::class, 'destroyTable'])->middleware('super_admin_permission:SA_MAINTENANCE_CLEANUP')->name('maintenance.cleanup.table.destroy');
         Route::get('discount-cards', [DiscountCardController::class, 'index'])->middleware('super_admin_permission:SA_DISCOUNT_CARDS_VIEW')->name('discount-cards.index');

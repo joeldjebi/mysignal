@@ -9,6 +9,7 @@ use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Illuminate\View\View;
@@ -42,6 +43,8 @@ class MaintenanceCleanupController extends Controller
             'cleanupEnabled' => (bool) config('app.maintenance_cleanup_enabled'),
             'confirmationText' => DatabaseCleanupService::CONFIRMATION,
             'nearbyReportNotificationsFeature' => $this->nearbyReportNotificationsFeature(),
+            'reportsAiEnabled' => (bool) config('openai.reports_enabled'),
+            'reportsAiConfigured' => filled(config('openai.api_key')),
         ]);
     }
 
@@ -74,6 +77,33 @@ class MaintenanceCleanupController extends Controller
         return redirect()
             ->route('super-admin.maintenance.cleanup.index')
             ->with('success', 'La notification de proximité a été '.($nextStatus === 'active' ? 'activée.' : 'désactivée.'));
+    }
+
+    public function toggleReportsAi(Request $request, ActivityLogger $activityLogger): RedirectResponse
+    {
+        $attributes = $request->validate([
+            'enabled' => ['required', 'boolean'],
+        ]);
+
+        $enabled = (bool) $attributes['enabled'];
+        $this->writeEnvValue('OPENAI_REPORTS_ENABLED', $enabled ? 'true' : 'false');
+        config(['openai.reports_enabled' => $enabled]);
+        Artisan::call('config:clear');
+
+        $activityLogger->log(
+            'maintenance.reports_ai.toggled',
+            'Mode d’analyse des rapports modifié depuis la maintenance.',
+            'reports_ai',
+            [
+                'enabled' => $enabled,
+            ],
+            $request,
+            portal: 'super_admin',
+        );
+
+        return redirect()
+            ->route('super-admin.maintenance.cleanup.index')
+            ->with('success', 'L’analyse des rapports utilise maintenant le mode '.($enabled ? 'avec IA.' : 'sans IA.'));
     }
 
     public function destroy(Request $request, DatabaseCleanupService $cleanupService, ActivityLogger $activityLogger): RedirectResponse
@@ -184,5 +214,20 @@ class MaintenanceCleanupController extends Controller
                 'status' => 'active',
             ],
         );
+    }
+
+    private function writeEnvValue(string $key, string $value): void
+    {
+        $path = base_path('.env');
+        $content = file_exists($path) ? (string) file_get_contents($path) : '';
+        $line = $key.'='.$value;
+
+        if (preg_match('/^'.preg_quote($key, '/').'=.*/m', $content)) {
+            $content = preg_replace('/^'.preg_quote($key, '/').'=.*/m', $line, $content) ?? $content;
+        } else {
+            $content = rtrim($content).PHP_EOL.$line.PHP_EOL;
+        }
+
+        file_put_contents($path, $content);
     }
 }

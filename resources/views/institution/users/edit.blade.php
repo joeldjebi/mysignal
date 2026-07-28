@@ -1,12 +1,12 @@
 @extends('institution.layouts.app')
 
-@section('title', config('app.name').' | Modifier un user')
-@section('page-title', 'Modifier un user')
-@section('page-description', 'Mettre a jour un collaborateur, ses roles et ses permissions directes.')
+@section('title', config('app.name').' | Modifier un collaborateur')
+@section('page-title', 'Modifier un collaborateur')
+@section('page-description', 'Mettre à jour un collaborateur, ses rôles et ses droits directs.')
 
 @section('content')
     <section class="panel-card">
-        <div class="fw-bold mb-3">Edition de {{ $userAccount->name }}</div>
+        <div class="fw-bold mb-3">Édition de {{ $userAccount->name }}</div>
         <form method="POST" action="{{ route('institution.users.update', $userAccount) }}" class="row g-3">
             @csrf
             @method('PUT')
@@ -34,7 +34,7 @@
             </div>
             @if ($authorization['canManageInstitutionRoles'])
                 <div class="col-md-6">
-                    <label class="form-label">Roles</label>
+                    <label class="form-label">Rôles</label>
                     <div class="border rounded-3 p-2" style="max-height: 220px; overflow:auto;">
                         @forelse ($roles as $role)
                             <div class="form-check">
@@ -42,14 +42,14 @@
                                 <label class="form-check-label" for="user-role-edit-{{ $role->id }}">{{ $role->name }}</label>
                             </div>
                         @empty
-                            <div class="text-secondary small">Aucun role local disponible.</div>
+                            <div class="text-secondary small">Aucun rôle local disponible.</div>
                         @endforelse
                     </div>
                 </div>
             @endif
             @if ($authorization['canManageInstitutionPermissions'])
                 <div class="col-12">
-                    <label class="form-label">Permissions directes</label>
+                    <label class="form-label">Droits directs</label>
                     <div class="border rounded-3 p-3" style="max-height: 320px; overflow:auto;">
                         @foreach ($groupedPermissions as $groupLabel => $groupPermissions)
                             <div class="mb-3">
@@ -61,7 +61,7 @@
                                                 <input class="form-check-input" type="checkbox" value="{{ $permission->id }}" name="permission_ids[]" id="user-permission-edit-{{ $permission->id }}" @checked(in_array($permission->id, old('permission_ids', $userAccount->permissions->pluck('id')->all())))>
                                                 <label class="form-check-label" for="user-permission-edit-{{ $permission->id }}">
                                                     <span class="d-block">{{ $permission->name }}</span>
-                                                    <span class="small text-secondary">{{ $permission->description ?: $permission->code }}</span>
+                                                    <span class="small text-secondary">{{ $permission->description ?: 'Droit disponible pour l’institution.' }}</span>
                                                 </label>
                                             </div>
                                         </div>

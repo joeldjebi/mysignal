@@ -1,12 +1,13 @@
 @extends('institution.layouts.app')
 
-@section('title', config('app.name').' | Detail usager public')
-@section('page-title', 'Detail usager public')
-@section('page-description', 'Vue detaillee d un usager public, de ses identifiants et de ses signalements par identifiant.')
+@section('title', config('app.name').' | Détail usager public')
+@section('page-title', 'Détail usager public')
+@section('page-description', 'Informations et signalements de cet usager.')
 
 @section('content')
     @php
         $canViewPaymentInfo = in_array('INSTITUTION_PAYMENT_INFO', $features ?? [], true);
+        $label = \App\Support\Ui\InstitutionLabel::class;
     @endphp
     <div class="row g-4">
         <div class="col-xl-4">
@@ -17,7 +18,7 @@
                         <div class="text-secondary small">{{ $reportUser->phone }}</div>
                         <div class="text-secondary small">{{ $reportUser->email ?: '-' }}</div>
                     </div>
-                    <span class="status-chip">{{ $reportUser->status }}</span>
+                    <span class="status-chip">{{ $label::status($reportUser->status) }}</span>
                 </div>
 
                 <div class="vstack gap-3">
@@ -26,7 +27,7 @@
                         <div class="fw-semibold">{{ $reportUser->commune ?: '-' }}</div>
                     </div>
                     <div>
-                        <div class="small text-secondary">Nombre d identifiants</div>
+                        <div class="small text-secondary">Nombre d’identifiants</div>
                         <div class="fw-semibold">{{ $reportUser->meters->count() }}</div>
                     </div>
                     <div>
@@ -44,8 +45,8 @@
                         <thead>
                             <tr>
                                 <th>Identifiant</th>
-                                <th>Reseau/Type</th>
-                                <th>Libelle</th>
+                                <th>Catégorie</th>
+                                <th>Libellé</th>
                                 <th>Commune</th>
                             </tr>
                         </thead>
@@ -53,12 +54,12 @@
                             @forelse ($reportUser->meters as $meter)
                                 <tr>
                                     <td class="fw-semibold">{{ $meter->meter_number }}</td>
-                                    <td>{{ $meter->network_type }}</td>
+                                    <td>{{ $label::humanize($meter->network_type) }}</td>
                                     <td>{{ $meter->label ?: '-' }}</td>
                                     <td>{{ $meter->commune ?: '-' }}</td>
                                 </tr>
                             @empty
-                                <tr><td colspan="4" class="text-center text-secondary">Aucun identifiant pour cet usager sur ce reseau.</td></tr>
+                                <tr><td colspan="4" class="text-center text-secondary">Aucun identifiant pour cet usager.</td></tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -73,10 +74,10 @@
                         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                             <div>
                                 <div class="fw-bold">
-                                    {{ $group['meter']?->meter_number ?: 'Sans identifiant associe' }}
+                                    {{ $group['meter']?->meter_number ?: 'Sans identifiant associé' }}
                                 </div>
                                 <div class="small text-secondary">
-                                    {{ $group['meter']?->network_type ?: '-' }}
+                                    {{ $label::humanize($group['meter']?->network_type) }}
                                     @if ($group['meter']?->label)
                                         · {{ $group['meter']->label }}
                                     @endif
@@ -89,7 +90,7 @@
                             <table class="table table-modern align-middle mb-0">
                                 <thead>
                                     <tr>
-                                        <th>Reference</th>
+                                        <th>Référence</th>
                                         <th>Signal</th>
                                         <th>Commune</th>
                                         <th>Traitement</th>
@@ -103,16 +104,16 @@
                                         <tr>
                                             <td class="fw-semibold">{{ $report->reference }}</td>
                                             <td>
-                                                <div>{{ $report->signal_label ?: $report->signal_code }}</div>
+                                                <div>{{ $report->signal_label ?: 'Signalement' }}</div>
                                                 <div class="small text-secondary">{{ $report->created_at?->format('d/m/Y H:i') }}</div>
                                             </td>
                                             <td>{{ $report->commune?->name ?: '-' }}</td>
                                             <td>
-                                                <div><span class="status-chip">{{ $report->status }}</span></div>
-                                                <div class="small text-secondary mt-1">{{ $report->assignedTo?->name ?: 'Non assigne' }}</div>
+                                                <div><span class="status-chip">{{ $label::status($report->status) }}</span></div>
+                                                <div class="small text-secondary mt-1">{{ $report->assignedTo?->name ?: 'Non assigné' }}</div>
                                             </td>
                                             @if ($canViewPaymentInfo)
-                                                <td><span class="status-chip">{{ $report->payment_status }}</span></td>
+                                                <td><span class="status-chip">{{ $label::payment($report->payment_status) }}</span></td>
                                             @endif
                                         </tr>
                                     @endforeach
@@ -121,7 +122,7 @@
                         </div>
                     </div>
                 @empty
-                    <div class="text-secondary">Aucun signalement disponible pour cet usager sur ce reseau.</div>
+                    <div class="text-secondary">Aucun signalement disponible pour cet usager.</div>
                 @endforelse
             </section>
         </div>

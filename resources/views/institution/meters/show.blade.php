@@ -1,11 +1,12 @@
 @extends('institution.layouts.app')
 
-@section('title', config('app.name').' | Detail identifiant')
-@section('page-title', 'Detail identifiant')
-@section('page-description', 'Vue detaillee de l identifiant et de son historique recent.')
+@section('title', config('app.name').' | Détail identifiant')
+@section('page-title', 'Détail identifiant')
+@section('page-description', 'Informations et historique récent de cet identifiant.')
 
 @section('content')
     @php
+        $label = \App\Support\Ui\InstitutionLabel::class;
         $meterGoogleMapsUrl = ($meter->latitude && $meter->longitude)
             ? 'https://www.google.com/maps/search/?api=1&query='.$meter->latitude.','.$meter->longitude
             : null;
@@ -16,10 +17,10 @@
                 <div class="d-flex justify-content-between align-items-start mb-3">
                     <div>
                         <div class="fw-bold fs-5">{{ $meter->label ?: $meter->meter_number }}</div>
-                        <div class="text-secondary small">{{ $meter->network_type }} · {{ $meter->meter_number }}</div>
+                        <div class="text-secondary small">{{ $label::humanize($meter->network_type) }} · {{ $meter->meter_number }}</div>
                         <div class="text-secondary small">{{ $meter->application?->name ?: '-' }} / {{ $meter->organization?->name ?: '-' }}</div>
                     </div>
-                    <span class="status-chip">{{ $meter->status }}</span>
+                    <span class="status-chip">{{ $label::status($meter->status) }}</span>
                 </div>
 
                 <div class="vstack gap-3">
@@ -43,13 +44,11 @@
                             @if ($meter->latitude && $meter->longitude)
                                 {{ $meter->latitude }}, {{ $meter->longitude }}
                             @else
-                                Non renseignee
+                                Non renseignée
                             @endif
                         </div>
                     </div>
                     <div>
-                        <div class="small text-secondary">Source localisation</div>
-                        <div class="fw-semibold">{{ $meter->location_source ?: '-' }}</div>
                     </div>
                     @if ($meterGoogleMapsUrl)
                         <div>
@@ -61,13 +60,13 @@
         </div>
         <div class="col-xl-7">
             <section class="panel-card mb-4">
-                <div class="fw-bold mb-3">Usagers rattaches</div>
+                <div class="fw-bold mb-3">Usagers rattachés</div>
                 <div class="table-responsive">
                     <table class="table table-modern align-middle mb-0">
                         <thead>
                             <tr>
                                 <th>Nom</th>
-                                <th>Telephone</th>
+                                <th>Téléphone</th>
                                 <th>Commune</th>
                             </tr>
                         </thead>
@@ -79,7 +78,7 @@
                                     <td>{{ $user->commune ?: '-' }}</td>
                                 </tr>
                             @empty
-                                <tr><td colspan="3" class="text-center text-secondary">Aucun usager rattache.</td></tr>
+                                <tr><td colspan="3" class="text-center text-secondary">Aucun usager rattaché.</td></tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -92,7 +91,7 @@
                     <table class="table table-modern align-middle mb-0">
                         <thead>
                             <tr>
-                                <th>Reference</th>
+                                <th>Référence</th>
                                 <th>Signal</th>
                                 <th>Commune</th>
                                 <th>Statut</th>
@@ -102,12 +101,12 @@
                             @forelse ($meter->incidentReports as $report)
                                 <tr>
                                     <td>{{ $report->reference }}</td>
-                                    <td>{{ $report->signal_label ?: $report->signal_code }}</td>
+                                    <td>{{ $report->signal_label ?: 'Signalement' }}</td>
                                     <td>{{ $report->commune?->name ?: '-' }}</td>
-                                    <td><span class="status-chip">{{ $report->status }}</span></td>
+                                    <td><span class="status-chip">{{ $label::status($report->status) }}</span></td>
                                 </tr>
                             @empty
-                                <tr><td colspan="4" class="text-center text-secondary">Aucun signalement lie a cet identifiant.</td></tr>
+                                <tr><td colspan="4" class="text-center text-secondary">Aucun signalement lié à cet identifiant.</td></tr>
                             @endforelse
                         </tbody>
                     </table>
