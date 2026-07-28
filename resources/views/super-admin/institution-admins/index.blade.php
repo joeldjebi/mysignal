@@ -162,9 +162,9 @@
                                 <div class="actions-wrap">
                                     <a href="{{ route('super-admin.institution-admins.edit', $admin) }}" class="btn btn-sm btn-outline-dark">Modifier</a>
                                     @if (auth()->user()?->is_super_admin || auth()->user()?->hasPermissionCode('SA_INSTITUTION_ADMINS_UPDATE') || auth()->user()?->hasPermissionCode('SA_INSTITUTION_ADMINS_MANAGE'))
-                                        <form method="POST" action="{{ route('super-admin.institution-admins.send-access', $admin) }}" onsubmit="return confirm('Un nouveau mot de passe temporaire sera généré puis envoyé par SMS. L’envoi e-mail sera activé dès que le service sera configuré. Continuer ?')">
+                                        <form method="POST" action="{{ route('super-admin.institution-admins.send-access', $admin) }}" onsubmit="return confirm('Un nouveau mot de passe temporaire sera généré puis envoyé par SMS et par e-mail. Continuer ?')">
                                             @csrf
-                                            <button class="btn btn-sm btn-outline-primary">Envoyer accès SMS / e-mail</button>
+                                            <button class="btn btn-sm btn-outline-primary">Envoyer les accès</button>
                                         </form>
                                     @endif
                                     @if (auth()->user()?->hasPermissionCode('SA_INSTITUTION_ADMINS_TOGGLE_STATUS'))

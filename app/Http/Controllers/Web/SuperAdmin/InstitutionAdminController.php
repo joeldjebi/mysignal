@@ -8,6 +8,7 @@ use App\Models\Organization;
 use App\Models\User;
 use App\Models\UserType;
 use App\Services\SmsService;
+use App\Services\TopTeaserEmailService;
 use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -230,13 +231,13 @@ class InstitutionAdminController extends Controller
         return back()->with('success', 'Le statut de l’admin institutionnel a été mis à jour.');
     }
 
-    public function sendAccess(Request $request, User $institutionAdmin, SmsService $smsService, ActivityLogger $activityLogger): RedirectResponse
+    public function sendAccess(Request $request, User $institutionAdmin, SmsService $smsService, TopTeaserEmailService $emailService, ActivityLogger $activityLogger): RedirectResponse
     {
         $this->abortIfNotInstitutionAdmin($institutionAdmin);
 
-        if (blank($institutionAdmin->phone)) {
+        if (blank($institutionAdmin->phone) && blank($institutionAdmin->email)) {
             return back()->withErrors([
-                'access' => 'Le compte doit avoir un numéro de téléphone avant l’envoi des accès.',
+                'access' => 'Le compte doit avoir un numéro de téléphone ou une adresse email avant l’envoi des accès.',
             ]);
         }
 
@@ -251,47 +252,85 @@ class InstitutionAdminController extends Controller
         ]);
 
         $message = "My-Signal: accès portail institutionnel. Lien: {$loginUrl} Identifiant: {$institutionAdmin->email} Mot de passe temporaire: {$password}";
+        $smsSent = false;
+        $mailSent = false;
+        $errors = [];
 
-        try {
-            $smsService->sendSmsMtarget($message, (string) $institutionAdmin->phone);
-        } catch (Throwable $exception) {
+        if (filled($institutionAdmin->phone)) {
+            try {
+                $smsService->sendSmsMtarget($message, (string) $institutionAdmin->phone);
+                $smsSent = true;
+            } catch (Throwable $exception) {
+                $errors[] = 'SMS: '.$exception->getMessage();
+            }
+        }
+
+        if (filled($institutionAdmin->email)) {
+            try {
+                $emailService->send(
+                    (string) $institutionAdmin->email,
+                    'Vos accès au portail institutionnel My-Signal',
+                    $this->accessEmailHtml($institutionAdmin, $loginUrl, $password),
+                    $this->accessEmailText($institutionAdmin, $loginUrl, $password),
+                );
+                $mailSent = true;
+            } catch (Throwable $exception) {
+                $errors[] = 'Email: '.$exception->getMessage();
+            }
+        }
+
+        if (! $smsSent && ! $mailSent) {
             $institutionAdmin->forceFill([
                 'password' => $previousPasswordHash,
                 'status' => $previousStatus,
             ])->save();
 
             $activityLogger->log(
-                'institution_admin.access_sms_failed',
-                'Échec d’envoi des accès admin institutionnel par SMS.',
+                'institution_admin.access_send_failed',
+                'Échec d’envoi des accès admin institutionnel.',
                 $institutionAdmin,
                 [
                     'phone' => $institutionAdmin->phone,
-                    'error' => $exception->getMessage(),
+                    'email' => $institutionAdmin->email,
+                    'errors' => $errors,
                 ],
                 $request,
                 $request->user(),
             );
 
             return back()->withErrors([
-                'access' => 'L’envoi SMS a échoué. Le mot de passe précédent a été conservé.',
+                'access' => 'L’envoi des accès a échoué. Le mot de passe précédent a été conservé. Cause: '.implode(' | ', $errors),
             ]);
         }
 
         $activityLogger->log(
             'institution_admin.access_sent',
-            'Envoi des accès admin institutionnel par SMS.',
+            'Envoi des accès admin institutionnel.',
             $institutionAdmin,
             [
                 'phone' => $institutionAdmin->phone,
                 'email' => $institutionAdmin->email,
                 'login_url' => $loginUrl,
-                'mail_sent' => false,
+                'sms_sent' => $smsSent,
+                'mail_sent' => $mailSent,
+                'errors' => $errors,
             ],
             $request,
             $request->user(),
         );
 
-        return back()->with('success', 'Les accès ont été envoyés par SMS. L’email sera activé dès que le service d’envoi sera configuré.');
+        $channels = collect([
+            $smsSent ? 'SMS' : null,
+            $mailSent ? 'email' : null,
+        ])->filter()->implode(' et ');
+
+        $message = 'Les accès ont été envoyés par '.$channels.'.';
+
+        if ($errors !== []) {
+            $message .= ' Un canal n’a pas abouti. Cause: '.implode(' | ', $errors);
+        }
+
+        return back()->with('success', $message);
     }
 
     private function validateRequest(Request $request, ?User $user = null): array
@@ -354,6 +393,33 @@ class InstitutionAdminController extends Controller
     private function temporaryPassword(): string
     {
         return 'MS-'.Str::upper(Str::random(4)).'-'.random_int(1000, 9999);
+    }
+
+    private function accessEmailHtml(User $institutionAdmin, string $loginUrl, string $password): string
+    {
+        $name = e($institutionAdmin->name ?: 'Admin institutionnel');
+        $email = e($institutionAdmin->email);
+        $url = e($loginUrl);
+        $temporaryPassword = e($password);
+
+        return <<<HTML
+<div style="font-family:Arial,sans-serif;color:#152536;line-height:1.55">
+  <h2 style="margin:0 0 12px">Vos accès My-Signal</h2>
+  <p>Bonjour {$name},</p>
+  <p>Votre compte administrateur institutionnel est prêt.</p>
+  <p><strong>Lien de connexion :</strong> <a href="{$url}">{$url}</a><br>
+  <strong>Identifiant :</strong> {$email}<br>
+  <strong>Mot de passe temporaire :</strong> {$temporaryPassword}</p>
+  <p>Pour des raisons de sécurité, veuillez modifier ce mot de passe après votre première connexion.</p>
+</div>
+HTML;
+    }
+
+    private function accessEmailText(User $institutionAdmin, string $loginUrl, string $password): string
+    {
+        $name = $institutionAdmin->name ?: 'Admin institutionnel';
+
+        return "Bonjour {$name},\n\nVotre compte administrateur institutionnel est prêt.\nLien de connexion: {$loginUrl}\nIdentifiant: {$institutionAdmin->email}\nMot de passe temporaire: {$password}\n\nVeuillez modifier ce mot de passe après votre première connexion.";
     }
 
     private function institutionOrganizationsQuery()

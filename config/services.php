@@ -87,4 +87,10 @@ return [
         'password' => env('MTARGET_PASSWORD', 'x7jyKG0IJRNH'),
     ],
 
+    'top_teaser' => [
+        'email_url' => env('TOP_TEASER_EMAIL_URL', 'https://top-teaser.com/api/external/v1/emails/send'),
+        'key' => env('TOP_TEASER_KEY'),
+        'token' => env('TOP_TEASER_TOKEN'),
+    ],
+
 ];
