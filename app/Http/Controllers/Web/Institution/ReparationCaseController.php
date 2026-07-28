@@ -40,10 +40,22 @@ class ReparationCaseController extends Controller
             $query->where('case_type', request('case_type'));
         }
 
+        $statsQuery = clone $query;
+        $reparationCaseStats = [
+            'total' => (clone $statsQuery)->count(),
+            'active' => (clone $statsQuery)
+                ->whereNotIn('status', ['approved', 'rejected', 'compensated', 'closed'])
+                ->count(),
+            'compensated' => (clone $statsQuery)->where('status', 'compensated')->count(),
+            'precontentieux' => (clone $statsQuery)->where('case_type', 'precontentieux')->count(),
+            'judiciaire' => (clone $statsQuery)->where('case_type', 'judiciaire')->count(),
+        ];
+
         return view('institution.reparation-cases.index', [
             'organization' => $context['organization'],
             'features' => $context['feature_codes'],
             'activeNav' => 'reparation-cases',
+            'reparationCaseStats' => $reparationCaseStats,
             'reparationCases' => $query->latest()->paginate(15)->withQueryString(),
         ]);
     }

@@ -58,10 +58,20 @@ class DamageController extends Controller
             }
         }
 
+        $statsQuery = clone $query;
+        $damagesStats = [
+            'total' => (clone $statsQuery)->count(),
+            'in_progress' => (clone $statsQuery)->where('damage_resolution_status', 'in_progress')->count(),
+            'resolved' => (clone $statsQuery)->where('damage_resolution_status', 'resolved')->count(),
+            'with_attachment' => (clone $statsQuery)->whereNotNull('damage_attachment')->count(),
+            'estimated_amount' => (float) (clone $statsQuery)->sum('damage_amount_estimated'),
+        ];
+
         return view('institution.damages.index', [
             'organization' => $context['organization'],
             'features' => $context['feature_codes'],
             'activeNav' => 'damages',
+            'damagesStats' => $damagesStats,
             'damages' => $query->latest('damage_declared_at')->paginate(15)->withQueryString(),
             'communes' => Commune::query()
                 ->whereIn(

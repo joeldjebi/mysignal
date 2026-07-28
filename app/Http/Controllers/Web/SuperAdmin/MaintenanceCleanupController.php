@@ -45,6 +45,7 @@ class MaintenanceCleanupController extends Controller
             'nearbyReportNotificationsFeature' => $this->nearbyReportNotificationsFeature(),
             'reportsAiEnabled' => (bool) config('openai.reports_enabled'),
             'reportsAiConfigured' => filled(config('openai.api_key')),
+            'reportGroupingSurfaceSquareMeters' => (int) config('app.report_identifier_group_surface_square_meters', 1000),
         ]);
     }
 
@@ -104,6 +105,33 @@ class MaintenanceCleanupController extends Controller
         return redirect()
             ->route('super-admin.maintenance.cleanup.index')
             ->with('success', 'L’analyse des rapports utilise maintenant le mode '.($enabled ? 'avec IA.' : 'sans IA.'));
+    }
+
+    public function updateReportGrouping(Request $request, ActivityLogger $activityLogger): RedirectResponse
+    {
+        $attributes = $request->validate([
+            'surface_square_meters' => ['required', 'integer', 'min:25', 'max:1000000'],
+        ]);
+
+        $surface = (int) $attributes['surface_square_meters'];
+        $this->writeEnvValue('REPORT_IDENTIFIER_GROUP_SURFACE_SQUARE_METERS', (string) $surface);
+        config(['app.report_identifier_group_surface_square_meters' => $surface]);
+        Artisan::call('config:clear');
+
+        $activityLogger->log(
+            'maintenance.report_grouping.updated',
+            'Surface de regroupement des signalements modifiée depuis la maintenance.',
+            'report_grouping',
+            [
+                'surface_square_meters' => $surface,
+            ],
+            $request,
+            portal: 'super_admin',
+        );
+
+        return redirect()
+            ->route('super-admin.maintenance.cleanup.index')
+            ->with('success', 'La surface de regroupement des signalements est maintenant de '.number_format($surface, 0, ',', ' ').' m².');
     }
 
     public function destroy(Request $request, DatabaseCleanupService $cleanupService, ActivityLogger $activityLogger): RedirectResponse

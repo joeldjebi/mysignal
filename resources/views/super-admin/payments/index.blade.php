@@ -10,6 +10,11 @@
 @endsection
 
 @section('content')
+    @include('partials.page-loader', [
+        'title' => 'Chargement des paiements',
+        'message' => 'Nous préparons les paiements et sessions demandés.',
+    ])
+
     <section class="panel-card mb-4">
         <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 mb-3">
             <div>

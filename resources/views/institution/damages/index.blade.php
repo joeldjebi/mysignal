@@ -5,6 +5,11 @@
 @section('page-description', 'Dommages déclarés par les usagers publics.')
 
 @section('content')
+    @include('partials.page-loader', [
+        'title' => 'Chargement des dommages',
+        'message' => 'Nous préparons la liste selon vos filtres.',
+    ])
+
     @php
         $label = \App\Support\Ui\InstitutionLabel::class;
         $statusClass = fn (?string $status) => match ($status) {
@@ -14,6 +19,35 @@
             default => 'chip-neutral',
         };
     @endphp
+
+    @include('institution.partials.stats-cards', [
+        'cards' => [
+            [
+                'label' => 'Dommages',
+                'value' => number_format($damagesStats['total'] ?? 0, 0, ',', ' '),
+                'help' => 'Total affiché avec les filtres actifs.',
+                'tone' => 'blue',
+            ],
+            [
+                'label' => 'En cours',
+                'value' => number_format($damagesStats['in_progress'] ?? 0, 0, ',', ' '),
+                'help' => 'Dossiers de dommages en traitement.',
+                'tone' => 'orange',
+            ],
+            [
+                'label' => 'Justificatifs',
+                'value' => number_format($damagesStats['with_attachment'] ?? 0, 0, ',', ' '),
+                'help' => 'Déclarations avec fichier joint.',
+                'tone' => 'pink',
+            ],
+            [
+                'label' => 'Montant estimé',
+                'value' => number_format($damagesStats['estimated_amount'] ?? 0, 0, ',', ' '),
+                'help' => 'Total estimé en FCFA.',
+                'tone' => 'green',
+            ],
+        ],
+    ])
 
     <section class="panel-card">
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">

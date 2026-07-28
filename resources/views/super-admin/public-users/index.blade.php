@@ -15,6 +15,11 @@
 @endsection
 
 @section('content')
+    @include('partials.page-loader', [
+        'title' => 'Chargement des usagers',
+        'message' => 'Nous préparons les données demandées.',
+    ])
+
     <section class="panel-card">
         <div class="fw-bold mb-3">Liste des usagers publics</div>
         <form method="GET" class="filter-bar">

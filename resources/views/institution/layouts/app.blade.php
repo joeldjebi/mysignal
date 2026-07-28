@@ -9,18 +9,18 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         :root {
-            --acepen-navy: #0f2940;
-            --acepen-blue: #194b70;
-            --acepen-gold: #c49b48;
-            --acepen-mist: #edf3f8;
+            --acepen-navy: #183447;
+            --acepen-blue: #6791ff;
+            --acepen-gold: #ffa117;
+            --acepen-pink: #ff0068;
+            --acepen-green: #5bebaf;
+            --acepen-mist: #fff7ec;
             --acepen-card: rgba(255, 255, 255, .92);
             --acepen-ink: #1f2933;
             --acepen-muted: #6b7c93;
         }
         body {
-            background:
-                radial-gradient(circle at top right, rgba(196,155,72,.14), transparent 24%),
-                linear-gradient(180deg, var(--acepen-mist) 0%, #f7f2e8 100%);
+            background: #f5f8ff;
             color: var(--acepen-ink);
         }
         .dashboard-shell {
@@ -36,9 +36,7 @@
             height: calc(100vh - 2.2rem);
             border-radius: 26px;
             padding: 1rem;
-            background:
-                linear-gradient(180deg, rgba(12,34,52,.98), rgba(22,63,92,.96)),
-                var(--acepen-navy);
+            background: var(--acepen-navy);
             color: rgba(255,255,255,.9);
             box-shadow: 0 28px 80px rgba(12,34,52,.28);
             display: flex;
@@ -57,10 +55,10 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, var(--acepen-gold), #a97824);
-            color: #fff;
+            background: var(--acepen-gold);
+            color: var(--acepen-navy);
             font-weight: 800;
-            box-shadow: 0 16px 32px rgba(196,155,72,.28);
+            box-shadow: 0 16px 32px rgba(255,161,23,.24);
         }
         .brand-logo {
             width: 40px;
@@ -69,7 +67,7 @@
             object-fit: contain;
             background: rgba(255,255,255,.94);
             padding: .28rem;
-            box-shadow: 0 16px 32px rgba(196,155,72,.18);
+            box-shadow: 0 16px 32px rgba(255,161,23,.18);
         }
         .sidebar-menu {
             flex: 1 1 auto;
@@ -113,9 +111,9 @@
             color: #fff;
         }
         .nav-pill.active {
-            background: linear-gradient(135deg, rgba(196,155,72,.26), rgba(196,155,72,.12));
+            background: rgba(255,161,23,.20);
             color: #fff;
-            border: 1px solid rgba(196,155,72,.24);
+            border: 1px solid rgba(255,161,23,.28);
         }
         .nav-icon {
             width: 32px;
@@ -162,7 +160,7 @@
             backdrop-filter: blur(18px);
         }
         .hero-card {
-            background: linear-gradient(145deg, var(--acepen-navy), var(--acepen-blue));
+            background: var(--acepen-blue);
             color: #fff;
             overflow: hidden;
             position: relative;
@@ -175,7 +173,7 @@
             top: -120px;
             right: -120px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(255,255,255,.18), transparent 62%);
+            background: rgba(255,255,255,.12);
         }
         .hero-strip {
             border-radius: 16px;
@@ -223,7 +221,7 @@
             display: block;
             height: 100%;
             border-radius: 999px;
-            background: linear-gradient(90deg, var(--acepen-gold), var(--acepen-blue));
+            background: var(--acepen-gold);
         }
         .stat-kicker {
             color: var(--acepen-muted);
@@ -430,6 +428,15 @@
                 ->count()
             : 0;
         $activeNav = $activeNav ?? 'dashboard';
+        $institutionCode = trim((string) ($organization?->code ?? ''));
+        $institutionInitials = $institutionCode !== ''
+            ? mb_strtoupper(mb_substr($institutionCode, 0, 6))
+            : collect(preg_split('/\s+/', trim((string) ($organization?->name ?: 'Institution'))))
+                ->filter()
+                ->map(fn ($word) => mb_strtoupper(mb_substr((string) $word, 0, 1)))
+                ->take(4)
+                ->implode('');
+        $institutionPortalTitle = 'Portail '.($institutionInitials ?: 'IN');
     @endphp
     <div class="dashboard-shell">
         <aside class="sidebar">
@@ -442,7 +449,7 @@
                     @endif
                     <div>
                         <div class="small text-white-50 fw-semibold">{{ $application?->name ?? 'SIGNAL ALERTE' }}</div>
-                        <div class="fw-bold fs-5">Portail institutionnel</div>
+                        <div class="fw-bold fs-5">{{ $institutionPortalTitle }}</div>
                     </div>
                 </div>
             </div>

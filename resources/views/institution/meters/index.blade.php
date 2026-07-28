@@ -5,6 +5,11 @@
 @section('page-description', 'Liste des références rattachées aux signalements.')
 
 @section('content')
+    @include('partials.page-loader', [
+        'title' => 'Chargement des identifiants',
+        'message' => 'Nous préparons la liste selon vos filtres.',
+    ])
+
     @php
         $label = \App\Support\Ui\InstitutionLabel::class;
     @endphp

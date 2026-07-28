@@ -7,18 +7,18 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         :root {
-            --partner-deep: #16362f;
-            --partner-green: #2d6a5a;
-            --partner-gold: #d8b36a;
-            --partner-mist: #eef3ef;
+            --partner-deep: #183447;
+            --partner-green: #5bebaf;
+            --partner-gold: #ffa117;
+            --partner-blue: #6791ff;
+            --partner-pink: #ff0068;
+            --partner-mist: #fff7ec;
             --partner-card: rgba(255,255,255,.93);
             --partner-ink: #20312d;
             --partner-muted: #667b74;
         }
         body {
-            background:
-                radial-gradient(circle at top left, rgba(216,179,106,.16), transparent 24%),
-                linear-gradient(180deg, var(--partner-mist) 0%, #f7f3ea 100%);
+            background: #f5f8ff;
             color: var(--partner-ink);
         }
         .dashboard-shell {
@@ -34,7 +34,7 @@
             height: calc(100vh - 2.2rem);
             border-radius: 26px;
             padding: 1rem;
-            background: linear-gradient(180deg, rgba(12,41,35,.98), rgba(39,93,79,.96)), var(--partner-deep);
+            background: var(--partner-deep);
             color: rgba(255,255,255,.92);
             box-shadow: 0 28px 80px rgba(12,41,35,.24);
             display: flex;
@@ -48,8 +48,8 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, var(--partner-gold), #b88834);
-            color: #fff;
+            background: var(--partner-gold);
+            color: var(--partner-deep);
             font-weight: 800;
         }
         .sidebar-label {
@@ -80,9 +80,9 @@
         }
         .nav-pill:hover { background: rgba(255,255,255,.08); color: #fff; }
         .nav-pill.active {
-            background: linear-gradient(135deg, rgba(216,179,106,.24), rgba(216,179,106,.10));
+            background: rgba(255,161,23,.20);
             color: #fff;
-            border: 1px solid rgba(216,179,106,.24);
+            border: 1px solid rgba(255,161,23,.28);
         }
         .nav-icon {
             width: 32px;
@@ -195,14 +195,23 @@
         $canManageUsers = $isRoot || $permissionCodes->contains('PARTNER_USERS_MANAGE');
         $canViewHistory = $isRoot || $permissionCodes->contains('PARTNER_DISCOUNT_HISTORY_VIEW');
         $activeNav = $activeNav ?? 'dashboard';
+        $partnerCode = trim((string) ($organization?->code ?? ''));
+        $partnerInitials = $partnerCode !== ''
+            ? mb_strtoupper(mb_substr($partnerCode, 0, 6))
+            : collect(preg_split('/\s+/', trim((string) ($organization?->name ?: 'Partenaire'))))
+                ->filter()
+                ->map(fn ($word) => mb_strtoupper(mb_substr((string) $word, 0, 1)))
+                ->take(4)
+                ->implode('');
+        $partnerPortalTitle = 'Portail '.($partnerInitials ?: 'PT');
     @endphp
     <div class="dashboard-shell">
         <aside class="sidebar">
             <div class="d-flex align-items-center gap-3 mb-3">
-                <div class="brand-mark">{{ strtoupper(substr((string) ($organization?->code ?? 'PT'), 0, 2)) }}</div>
+                <div class="brand-mark">{{ $partnerInitials ?: 'PT' }}</div>
                 <div>
                     <div class="small text-white-50 fw-semibold">SIGNAL ALERTE</div>
-                    <div class="fw-bold fs-5">Portail partenaire</div>
+                    <div class="fw-bold fs-5">{{ $partnerPortalTitle }}</div>
                 </div>
             </div>
 

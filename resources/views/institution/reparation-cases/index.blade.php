@@ -5,6 +5,11 @@
 @section('page-description', 'Historique des dossiers liés aux signalements de votre institution.')
 
 @section('content')
+    @include('partials.page-loader', [
+        'title' => 'Chargement des dossiers',
+        'message' => 'Nous préparons la liste selon vos filtres.',
+    ])
+
     @php
         $statusLabel = fn (?string $status) => [
             'submitted' => 'Soumis',
@@ -24,6 +29,35 @@
             default => 'chip-neutral',
         };
     @endphp
+
+    @include('institution.partials.stats-cards', [
+        'cards' => [
+            [
+                'label' => 'Dossiers',
+                'value' => number_format($reparationCaseStats['total'] ?? 0, 0, ',', ' '),
+                'help' => 'Total affiché avec les filtres actifs.',
+                'tone' => 'blue',
+            ],
+            [
+                'label' => 'Actifs',
+                'value' => number_format($reparationCaseStats['active'] ?? 0, 0, ',', ' '),
+                'help' => 'Dossiers encore ouverts.',
+                'tone' => 'orange',
+            ],
+            [
+                'label' => 'Précontentieux',
+                'value' => number_format($reparationCaseStats['precontentieux'] ?? 0, 0, ',', ' '),
+                'help' => 'Dossiers en phase amiable.',
+                'tone' => 'pink',
+            ],
+            [
+                'label' => 'Dédommagés',
+                'value' => number_format($reparationCaseStats['compensated'] ?? 0, 0, ',', ' '),
+                'help' => 'Dossiers ayant abouti à un dédommagement.',
+                'tone' => 'green',
+            ],
+        ],
+    ])
 
     <section class="panel-card">
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">

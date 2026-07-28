@@ -9,18 +9,18 @@
     @stack('styles')
     <style>
         :root {
-            --acepen-navy: #0f2940;
-            --acepen-blue: #194b70;
-            --acepen-gold: #c49b48;
-            --acepen-mist: #edf3f8;
+            --acepen-navy: #183447;
+            --acepen-blue: #6791ff;
+            --acepen-gold: #ffa117;
+            --acepen-pink: #ff0068;
+            --acepen-green: #5bebaf;
+            --acepen-mist: #fff7ec;
             --acepen-card: rgba(255, 255, 255, .92);
             --acepen-ink: #1f2933;
             --acepen-muted: #6b7c93;
         }
         body {
-            background:
-                radial-gradient(circle at top right, rgba(196,155,72,.14), transparent 24%),
-                linear-gradient(180deg, var(--acepen-mist) 0%, #f7f2e8 100%);
+            background: #f5f8ff;
             color: var(--acepen-ink);
         }
         .dashboard-shell {
@@ -36,7 +36,7 @@
             height: calc(100vh - 2.2rem);
             border-radius: 26px;
             padding: 1rem;
-            background: linear-gradient(180deg, rgba(12,34,52,.98), rgba(22,63,92,.96)), var(--acepen-navy);
+            background: var(--acepen-navy);
             color: rgba(255,255,255,.9);
             box-shadow: 0 28px 80px rgba(12,34,52,.28);
             display: flex;
@@ -55,10 +55,10 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, var(--acepen-gold), #a97824);
-            color: #fff;
+            background: var(--acepen-gold);
+            color: var(--acepen-navy);
             font-weight: 800;
-            box-shadow: 0 16px 32px rgba(196,155,72,.28);
+            box-shadow: 0 16px 32px rgba(255,161,23,.24);
         }
         .sidebar-brand .fw-bold,
         .sidebar .fw-bold,
@@ -90,9 +90,9 @@
         }
         .nav-pill:hover { background: rgba(255,255,255,.08); color: #fff; }
         .nav-pill.active {
-            background: linear-gradient(135deg, rgba(196,155,72,.26), rgba(196,155,72,.12));
+            background: rgba(255,161,23,.20);
             color: #fff;
-            border: 1px solid rgba(196,155,72,.24);
+            border: 1px solid rgba(255,161,23,.28);
         }
         .nav-dropdown {
             margin-bottom: .16rem;
@@ -111,8 +111,8 @@
             text-align: left;
         }
         .nav-dropdown .nav-pill.active {
-            background: linear-gradient(135deg, rgba(196,155,72,.26), rgba(196,155,72,.12));
-            border: 1px solid rgba(196,155,72,.24);
+            background: rgba(255,161,23,.20);
+            border: 1px solid rgba(255,161,23,.28);
         }
         .nav-submenu {
             display: grid;
@@ -301,7 +301,15 @@
             'avocat' => 'Avocat',
         ];
         $isInternalPortalUser = $authUser && ! $authUser->is_super_admin;
-        $portalTitle = $isInternalPortalUser ? ($internalPortalLabels[$activePortal] ?? 'Backoffice') : 'Super Admin';
+        $portalInitials = $isInternalPortalUser
+            ? collect(preg_split('/\s+/', (string) ($internalPortalLabels[$activePortal] ?? 'Backoffice')))
+                ->filter()
+                ->map(fn ($word) => mb_strtoupper(mb_substr((string) $word, 0, 1)))
+                ->take(4)
+                ->implode('')
+            : 'SA';
+        $portalInitials = $portalInitials ?: 'BO';
+        $portalTitle = 'Portail '.$portalInitials;
         $portalDescription = $isInternalPortalUser
             ? 'Espace opérationnel réservé aux utilisateurs internes autorisés.'
             : 'Paramétrage global, gouvernance et référentiels de la plateforme.';
@@ -313,7 +321,7 @@
         <aside class="sidebar">
             <div class="sidebar-brand">
                 <div class="d-flex align-items-center gap-3 mb-3">
-                    <div class="brand-mark">SA</div>
+                    <div class="brand-mark">{{ $portalInitials }}</div>
                     <div>
                         <div class="small text-white-50 fw-semibold">My-Signal by UFC</div>
                         <div class="fw-bold fs-5">{{ $portalTitle }}</div>

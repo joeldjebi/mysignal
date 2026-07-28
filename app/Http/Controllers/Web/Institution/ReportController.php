@@ -10,6 +10,7 @@ use App\Models\IncidentReport;
 use App\Models\Meter;
 use App\Services\Notifications\IncidentReportNotificationService;
 use App\Support\Audit\ActivityLogger;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -19,45 +20,49 @@ class ReportController extends Controller
 {
     use InteractsWithInstitutionContext;
 
-    private const AUTOMATIC_RESOLUTION_RADIUS_METERS = 1000;
-
     public function index(): View
     {
         $context = $this->institutionContext();
         $query = $this->institutionReportsQuery($context['network_type'], $context['application_id'], $context['organization_id']);
         $canViewPaymentInfo = in_array('INSTITUTION_PAYMENT_INFO', $context['feature_codes'], true);
 
-        if (filled(request('search'))) {
-            $search = trim((string) request('search'));
-            $query->where(function ($builder) use ($search): void {
-                $builder->where('reference', 'like', '%'.$search.'%')
-                    ->orWhere('signal_label', 'like', '%'.$search.'%')
-                    ->orWhere('signal_code', 'like', '%'.$search.'%')
-                    ->orWhere('description', 'like', '%'.$search.'%');
-            });
+        $this->applyReportListFilters($query, request(), $canViewPaymentInfo);
+
+        $groupingSurfaceSquareMeters = $this->reportGroupingSurfaceSquareMeters();
+        $groupingSideMeters = $this->reportGroupingSideMeters($groupingSurfaceSquareMeters);
+        $identifierGroups = $this->identifierReportGroups(clone $query, $groupingSideMeters);
+        $selectedIdentifierGroup = $this->selectedIdentifierGroup($identifierGroups, (string) request('identifier_group'));
+
+        if ($selectedIdentifierGroup !== null) {
+            $this->applyIdentifierGroupFilter($query, $selectedIdentifierGroup['latitude_cell'], $selectedIdentifierGroup['longitude_cell'], $groupingSideMeters);
         }
 
-        if ($canViewPaymentInfo && filled(request('payment_status'))) {
-            $query->where('payment_status', request('payment_status'));
+        $statsQuery = clone $query;
+        $reportsStats = [
+            'total' => (clone $statsQuery)->count(),
+            'submitted' => (clone $statsQuery)->where('incident_reports.status', IncidentReportStatus::Submitted->value)->count(),
+            'in_progress' => (clone $statsQuery)->where('incident_reports.status', IncidentReportStatus::InProgress->value)->count(),
+            'resolved' => (clone $statsQuery)->where('incident_reports.status', IncidentReportStatus::Resolved->value)->count(),
+            'with_damage' => (clone $statsQuery)->whereNotNull('incident_reports.damage_declared_at')->count(),
+        ];
+
+        if ($canViewPaymentInfo) {
+            $reportsStats['paid'] = (clone $statsQuery)->where('incident_reports.payment_status', 'paid')->count();
+            $reportsStats['pending_payment'] = (clone $statsQuery)->where('incident_reports.payment_status', 'pending')->count();
         }
 
-        if (filled(request('status'))) {
-            $query->where('status', request('status'));
-        }
-
-        if (filled(request('commune_id'))) {
-            $query->where('commune_id', request('commune_id'));
-        }
-
-        if (filled(request('meter_id'))) {
-            $query->where('meter_id', request('meter_id'));
-        }
+        $query->select('incident_reports.*');
 
         return view('institution.reports.index', [
             'organization' => $context['organization'],
             'features' => $context['feature_codes'],
             'activeNav' => 'reports',
-            'reports' => $query->latest()->paginate(15)->withQueryString(),
+            'reportsStats' => $reportsStats,
+            'reports' => $query->latest('incident_reports.created_at')->paginate(15)->withQueryString(),
+            'identifierGroups' => $identifierGroups,
+            'selectedIdentifierGroup' => $selectedIdentifierGroup,
+            'groupingSurfaceSquareMeters' => $groupingSurfaceSquareMeters,
+            'groupingSideMeters' => $groupingSideMeters,
             'meters' => Meter::query()
                 ->when($context['organization_id'] !== null, fn ($builder) => $builder->where('organization_id', $context['organization_id']))
                 ->when($context['application_id'] !== null, fn ($builder) => $builder->where('application_id', $context['application_id']))
@@ -195,21 +200,86 @@ class ReportController extends Controller
         );
         $notificationService->notifyCommunityReportResolved($report);
 
-        $nearbyResolvedCount = $this->resolveNearbySimilarReports(
-            $report,
-            $attributes['official_response'],
-            $request,
-            $activityLogger,
-            $notificationService,
-        );
+        return back()->with('success', 'Le signalement a été marqué comme résolu.');
+    }
 
-        $message = 'Le signalement a ete marque comme resolu.';
+    public function resolveIdentifierGroup(Request $request, ActivityLogger $activityLogger, IncidentReportNotificationService $notificationService): RedirectResponse
+    {
+        $context = $this->institutionContext();
+        $canViewPaymentInfo = in_array('INSTITUTION_PAYMENT_INFO', $context['feature_codes'], true);
 
-        if ($nearbyResolvedCount > 0) {
-            $message .= ' '.$nearbyResolvedCount.' signalement(s) similaire(s) dans un rayon de 1 km ont aussi ete resolu(s).';
+        $attributes = $request->validate([
+            'identifier_group' => ['required', 'string', 'max:80'],
+            'official_response' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $groupingSideMeters = $this->reportGroupingSideMeters($this->reportGroupingSurfaceSquareMeters());
+        $groupCells = $this->parseIdentifierGroupKey($attributes['identifier_group']);
+
+        abort_if($groupCells === null, 422, 'Le regroupement sélectionné est invalide.');
+
+        $query = $this->institutionReportsQuery($context['network_type'], $context['application_id'], $context['organization_id']);
+        $this->applyReportListFilters($query, $request, $canViewPaymentInfo, applyStatus: false);
+        $this->applyIdentifierGroupFilter($query, $groupCells['latitude_cell'], $groupCells['longitude_cell'], $groupingSideMeters);
+
+        $reports = $query
+            ->select('incident_reports.*')
+            ->whereIn('incident_reports.status', [
+                IncidentReportStatus::Submitted->value,
+                IncidentReportStatus::InProgress->value,
+            ])
+            ->get();
+
+        if ($reports->isEmpty()) {
+            return back()->withErrors([
+                'identifier_group' => 'Aucun signalement ouvert n’est disponible dans ce regroupement.',
+            ]);
         }
 
-        return back()->with('success', $message);
+        $officialResponse = $attributes['official_response'] ?: 'Signalements résolus par l’institution pour cette zone.';
+        $resolvedAt = now();
+
+        $reports->each(function (IncidentReport $report) use ($officialResponse, $request, $notificationService, $resolvedAt): void {
+            $wasConfirmedByPublicUser = $report->resolution_confirmation_status === 'confirmed';
+
+            $report->update([
+                'status' => IncidentReportStatus::Resolved->value,
+                'assigned_to_user_id' => $request->user()->id,
+                'taken_in_charge_at' => $report->taken_in_charge_at ?? $resolvedAt,
+                'resolved_at' => $resolvedAt,
+                'official_response' => $officialResponse,
+                'resolution_confirmation_status' => $wasConfirmedByPublicUser ? 'confirmed' : 'pending',
+                'resolution_confirmed_at' => $wasConfirmedByPublicUser ? $report->resolution_confirmed_at : null,
+                'resolution_confirmed_without_ai_validation' => false,
+            ]);
+
+            $notificationService->notifyPublicReportAction(
+                $report,
+                'report_resolved_by_identifier_group',
+                'Signalement résolu',
+                'Votre signalement '.$report->reference.' a été marqué comme résolu par l’institution.',
+            );
+            $notificationService->notifyCommunityReportResolved($report);
+        });
+
+        $activityLogger->log(
+            'institution.report.identifier_group_resolved',
+            'Résolution groupée des signalements liés à des identifiants géolocalisés.',
+            'incident_report_identifier_group',
+            [
+                'identifier_group' => $attributes['identifier_group'],
+                'surface_square_meters' => $this->reportGroupingSurfaceSquareMeters(),
+                'resolved_report_count' => $reports->count(),
+                'resolved_report_ids' => $reports->pluck('id')->values()->all(),
+            ],
+            $request,
+            $request->user(),
+            'institution',
+        );
+
+        return redirect()
+            ->route('institution.reports.index', $request->except(['page']))
+            ->with('success', number_format($reports->count(), 0, ',', ' ').' signalement(s) résolu(s) dans ce regroupement.');
     }
 
     public function reject(Request $request, IncidentReport $report, ActivityLogger $activityLogger, IncidentReportNotificationService $notificationService): RedirectResponse
@@ -308,152 +378,178 @@ class ReportController extends Controller
         return true;
     }
 
-    private function resolveNearbySimilarReports(
-        IncidentReport $sourceReport,
-        string $officialResponse,
-        Request $request,
-        ActivityLogger $activityLogger,
-        IncidentReportNotificationService $notificationService,
-    ): int {
-        $nearbyReports = $this->nearbySimilarOpenReports($sourceReport);
-
-        if ($nearbyReports->isEmpty()) {
-            return 0;
+    private function applyReportListFilters(Builder $query, Request $request, bool $canViewPaymentInfo, bool $applyStatus = true): void
+    {
+        if (filled($request->input('search'))) {
+            $search = trim((string) $request->input('search'));
+            $query->where(function ($builder) use ($search): void {
+                $builder->where('incident_reports.reference', 'like', '%'.$search.'%')
+                    ->orWhere('incident_reports.signal_label', 'like', '%'.$search.'%')
+                    ->orWhere('incident_reports.signal_code', 'like', '%'.$search.'%')
+                    ->orWhere('incident_reports.description', 'like', '%'.$search.'%');
+            });
         }
 
-        $resolvedAt = now();
+        if ($canViewPaymentInfo && filled($request->input('payment_status'))) {
+            $query->where('incident_reports.payment_status', $request->input('payment_status'));
+        }
 
-        $nearbyReports->each(function (IncidentReport $nearbyReport) use ($officialResponse, $request, $notificationService, $resolvedAt): void {
-            $wasConfirmedByPublicUser = $nearbyReport->resolution_confirmation_status === 'confirmed';
+        if ($applyStatus && filled($request->input('status'))) {
+            $query->where('incident_reports.status', $request->input('status'));
+        }
 
-            $nearbyReport->update([
-                'status' => IncidentReportStatus::Resolved->value,
-                'assigned_to_user_id' => $request->user()->id,
-                'taken_in_charge_at' => $nearbyReport->taken_in_charge_at ?? $resolvedAt,
-                'resolved_at' => $resolvedAt,
-                'official_response' => $officialResponse,
-                'resolution_confirmation_status' => $wasConfirmedByPublicUser ? 'confirmed' : 'pending',
-                'resolution_confirmed_at' => $wasConfirmedByPublicUser ? $nearbyReport->resolution_confirmed_at : null,
-                'resolution_confirmed_without_ai_validation' => false,
-            ]);
+        if (filled($request->input('commune_id'))) {
+            $query->where('incident_reports.commune_id', $request->input('commune_id'));
+        }
 
-            $notificationService->notifyPublicReportAction(
-                $nearbyReport,
-                'report_resolved_nearby',
-                'Signalement resolu',
-                'Votre signalement '.$nearbyReport->reference.' a ete marque comme resolu car un probleme similaire a ete resolu dans votre zone.',
-            );
-        });
-
-        $activityLogger->log(
-            'institution.report.nearby_auto_resolved',
-            'Resolution automatique des signalements similaires dans un rayon de 1 km.',
-            $sourceReport,
-            [
-                'source_report_reference' => $sourceReport->reference,
-                'radius_meters' => self::AUTOMATIC_RESOLUTION_RADIUS_METERS,
-                'resolved_report_count' => $nearbyReports->count(),
-                'resolved_report_ids' => $nearbyReports->pluck('id')->values()->all(),
-                'signal_code' => $sourceReport->signal_code,
-            ],
-            $request,
-            $request->user(),
-            'institution',
-        );
-
-        return $nearbyReports->count();
+        if (filled($request->input('meter_id'))) {
+            $query->where('incident_reports.meter_id', $request->input('meter_id'));
+        }
     }
 
-    /**
-     * @return Collection<int, IncidentReport>
-     */
-    private function nearbySimilarOpenReports(IncidentReport $sourceReport): Collection
+    private function identifierReportGroups(Builder $query, int $sideMeters): Collection
     {
-        $coordinates = $this->reportCoordinates($sourceReport);
+        $meterAlias = 'grouping_meters';
+        $latitudeExpression = $this->identifierLatitudeExpression($meterAlias);
+        $longitudeExpression = $this->identifierLongitudeExpression($meterAlias);
+        $latitudeCellExpression = $this->identifierLatitudeCellExpression($sideMeters, $meterAlias);
+        $longitudeCellExpression = $this->identifierLongitudeCellExpression($sideMeters, $meterAlias);
 
-        if (
-            $coordinates === null
-            || blank($sourceReport->signal_code)
-            || $sourceReport->application_id === null
-            || $sourceReport->organization_id === null
-        ) {
-            return collect();
-        }
-
-        $latitude = $coordinates['latitude'];
-        $longitude = $coordinates['longitude'];
-        $deltaLatitude = self::AUTOMATIC_RESOLUTION_RADIUS_METERS / 111_320;
-        $deltaLongitude = self::AUTOMATIC_RESOLUTION_RADIUS_METERS / max(1, abs(111_320 * cos(deg2rad($latitude))));
-
-        return IncidentReport::query()
-            ->whereKeyNot($sourceReport->id)
-            ->where('application_id', $sourceReport->application_id)
-            ->where('organization_id', $sourceReport->organization_id)
-            ->where('signal_code', $sourceReport->signal_code)
-            ->whereIn('status', [
-                IncidentReportStatus::Submitted->value,
-                IncidentReportStatus::InProgress->value,
-            ])
-            ->where(function ($query) use ($latitude, $longitude, $deltaLatitude, $deltaLongitude): void {
-                $query
-                    ->where(function ($reportQuery) use ($latitude, $longitude, $deltaLatitude, $deltaLongitude): void {
-                        $reportQuery
-                            ->whereNotNull('latitude')
-                            ->whereNotNull('longitude')
-                            ->whereBetween('latitude', [$latitude - $deltaLatitude, $latitude + $deltaLatitude])
-                            ->whereBetween('longitude', [$longitude - $deltaLongitude, $longitude + $deltaLongitude]);
-                    })
-                    ->orWhereHas('meter', function ($meterQuery) use ($latitude, $longitude, $deltaLatitude, $deltaLongitude): void {
-                        $meterQuery
-                            ->whereNotNull('latitude')
-                            ->whereNotNull('longitude')
-                            ->whereBetween('latitude', [$latitude - $deltaLatitude, $latitude + $deltaLatitude])
-                            ->whereBetween('longitude', [$longitude - $deltaLongitude, $longitude + $deltaLongitude]);
-                    });
-            })
-            ->when($sourceReport->network_type !== null, fn ($query) => $query->where('network_type', $sourceReport->network_type))
-            ->with(['publicUser', 'meter'])
+        return $query
+            ->leftJoin('meters as '.$meterAlias, $meterAlias.'.id', '=', 'incident_reports.meter_id')
+            ->whereNotNull('incident_reports.meter_id')
+            ->whereRaw($latitudeExpression.' IS NOT NULL')
+            ->whereRaw($longitudeExpression.' IS NOT NULL')
+            ->selectRaw($latitudeCellExpression.' as latitude_cell')
+            ->selectRaw($longitudeCellExpression.' as longitude_cell')
+            ->selectRaw('COUNT(*) as reports_count')
+            ->selectRaw(
+                'SUM(CASE WHEN incident_reports.status IN (?, ?) THEN 1 ELSE 0 END) as open_reports_count',
+                [IncidentReportStatus::Submitted->value, IncidentReportStatus::InProgress->value],
+            )
+            ->selectRaw('MIN('.$latitudeExpression.') as min_latitude')
+            ->selectRaw('MAX('.$latitudeExpression.') as max_latitude')
+            ->selectRaw('MIN('.$longitudeExpression.') as min_longitude')
+            ->selectRaw('MAX('.$longitudeExpression.') as max_longitude')
+            ->selectRaw('MIN(NULLIF('.$meterAlias.'.commune, \'\')) as commune_name')
+            ->groupByRaw($latitudeCellExpression.', '.$longitudeCellExpression)
+            ->orderByDesc('open_reports_count')
+            ->orderByDesc('reports_count')
+            ->limit(30)
             ->get()
-            ->filter(function (IncidentReport $report) use ($latitude, $longitude): bool {
-                $reportCoordinates = $this->reportCoordinates($report);
+            ->map(function ($group, int $index): array {
+                $latitudeCell = (int) $group->latitude_cell;
+                $longitudeCell = (int) $group->longitude_cell;
 
-                return $reportCoordinates !== null
-                    && $this->distanceInMeters(
-                        $latitude,
-                        $longitude,
-                        $reportCoordinates['latitude'],
-                        $reportCoordinates['longitude'],
-                    ) <= self::AUTOMATIC_RESOLUTION_RADIUS_METERS;
-            })
-            ->values();
+                return [
+                    'key' => $this->identifierGroupKey($latitudeCell, $longitudeCell),
+                    'label' => 'Zone '.($index + 1),
+                    'area_label' => $group->commune_name ?: 'Secteur géolocalisé',
+                    'latitude_cell' => $latitudeCell,
+                    'longitude_cell' => $longitudeCell,
+                    'reports_count' => (int) $group->reports_count,
+                    'open_reports_count' => (int) $group->open_reports_count,
+                    'min_latitude' => $group->min_latitude,
+                    'max_latitude' => $group->max_latitude,
+                    'min_longitude' => $group->min_longitude,
+                    'max_longitude' => $group->max_longitude,
+                ];
+            });
     }
 
-    private function reportCoordinates(IncidentReport $report): ?array
+    private function selectedIdentifierGroup(Collection $groups, string $groupKey): ?array
     {
-        $report->loadMissing('meter');
+        if (blank($groupKey)) {
+            return null;
+        }
 
-        $latitude = $report->latitude ?? $report->meter?->latitude;
-        $longitude = $report->longitude ?? $report->meter?->longitude;
+        $selectedGroup = $groups->firstWhere('key', $groupKey);
 
-        if ($latitude === null || $longitude === null) {
+        if ($selectedGroup !== null) {
+            return $selectedGroup;
+        }
+
+        $cells = $this->parseIdentifierGroupKey($groupKey);
+
+        return $cells === null
+            ? null
+            : [
+                'key' => $groupKey,
+                'label' => 'Zone sélectionnée',
+                'area_label' => 'Secteur géolocalisé',
+                'latitude_cell' => $cells['latitude_cell'],
+                'longitude_cell' => $cells['longitude_cell'],
+                'reports_count' => null,
+                'open_reports_count' => null,
+            ];
+    }
+
+    private function applyIdentifierGroupFilter(Builder $query, int $latitudeCell, int $longitudeCell, int $sideMeters): void
+    {
+        $meterAlias = 'selected_group_meters';
+        $latitudeExpression = $this->identifierLatitudeExpression($meterAlias);
+        $longitudeExpression = $this->identifierLongitudeExpression($meterAlias);
+        $latitudeCellExpression = $this->identifierLatitudeCellExpression($sideMeters, $meterAlias);
+        $longitudeCellExpression = $this->identifierLongitudeCellExpression($sideMeters, $meterAlias);
+
+        $query
+            ->leftJoin('meters as '.$meterAlias, $meterAlias.'.id', '=', 'incident_reports.meter_id')
+            ->whereNotNull('incident_reports.meter_id')
+            ->whereRaw($latitudeExpression.' IS NOT NULL')
+            ->whereRaw($longitudeExpression.' IS NOT NULL')
+            ->whereRaw($latitudeCellExpression.' = ?', [$latitudeCell])
+            ->whereRaw($longitudeCellExpression.' = ?', [$longitudeCell]);
+    }
+
+    private function reportGroupingSurfaceSquareMeters(): int
+    {
+        return max(1, (int) config('app.report_identifier_group_surface_square_meters', 1000));
+    }
+
+    private function reportGroupingSideMeters(int $surfaceSquareMeters): int
+    {
+        return max(5, (int) round(sqrt($surfaceSquareMeters)));
+    }
+
+    private function identifierLatitudeExpression(string $meterAlias): string
+    {
+        return 'COALESCE(incident_reports.latitude, '.$meterAlias.'.latitude)';
+    }
+
+    private function identifierLongitudeExpression(string $meterAlias): string
+    {
+        return 'COALESCE(incident_reports.longitude, '.$meterAlias.'.longitude)';
+    }
+
+    private function identifierLatitudeCellExpression(int $sideMeters, string $meterAlias): string
+    {
+        $delta = number_format($sideMeters / 111_320, 12, '.', '');
+
+        return 'FLOOR(CAST('.$this->identifierLatitudeExpression($meterAlias).' AS NUMERIC) / '.$delta.')';
+    }
+
+    private function identifierLongitudeCellExpression(int $sideMeters, string $meterAlias): string
+    {
+        $delta = number_format($sideMeters / 111_320, 12, '.', '');
+
+        return 'FLOOR(CAST('.$this->identifierLongitudeExpression($meterAlias).' AS NUMERIC) / '.$delta.')';
+    }
+
+    private function identifierGroupKey(int $latitudeCell, int $longitudeCell): string
+    {
+        return $latitudeCell.'_'.$longitudeCell;
+    }
+
+    private function parseIdentifierGroupKey(string $groupKey): ?array
+    {
+        if (! preg_match('/^(-?\d+)_(-?\d+)$/', $groupKey, $matches)) {
             return null;
         }
 
         return [
-            'latitude' => (float) $latitude,
-            'longitude' => (float) $longitude,
+            'latitude_cell' => (int) $matches[1],
+            'longitude_cell' => (int) $matches[2],
         ];
-    }
-
-    private function distanceInMeters(float $lat1, float $lng1, float $lat2, float $lng2): float
-    {
-        $earthRadius = 6_371_000;
-        $latDelta = deg2rad($lat2 - $lat1);
-        $lngDelta = deg2rad($lng2 - $lng1);
-        $a = sin($latDelta / 2) ** 2
-            + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($lngDelta / 2) ** 2;
-
-        return $earthRadius * 2 * atan2(sqrt($a), sqrt(1 - $a));
     }
 
     private function resolveSlaState(IncidentReport $report): array

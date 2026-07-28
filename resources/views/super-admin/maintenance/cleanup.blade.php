@@ -68,6 +68,36 @@
     </section>
 
     <section class="panel-card mb-4">
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
+            <div>
+                <div class="fw-bold mb-1">Regroupement des signalements</div>
+                <div class="text-secondary small">
+                    Définissez la surface utilisée pour rassembler les signalements liés aux identifiants géolocalisés. Cette valeur aide les institutions à traiter ensemble les signalements proches.
+                </div>
+            </div>
+            <form method="POST" action="{{ route('super-admin.maintenance.report-grouping.update') }}" class="d-flex flex-column flex-sm-row gap-2 align-items-sm-end">
+                @csrf
+                @method('PATCH')
+                <div>
+                    <label class="form-label small text-secondary">Surface en m²</label>
+                    <input
+                        type="number"
+                        min="25"
+                        max="1000000"
+                        step="1"
+                        name="surface_square_meters"
+                        value="{{ old('surface_square_meters', $reportGroupingSurfaceSquareMeters) }}"
+                        class="form-control"
+                        style="max-width: 180px;"
+                        required
+                    >
+                </div>
+                <button class="btn btn-dark">Enregistrer</button>
+            </form>
+        </div>
+    </section>
+
+    <section class="panel-card mb-4">
         <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
             <div>
                 <div class="fw-bold mb-1">Nettoyage des données</div>

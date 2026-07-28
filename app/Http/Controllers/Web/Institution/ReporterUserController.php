@@ -89,10 +89,31 @@ class ReporterUserController extends Controller
             }
         }
 
+        $statsQuery = clone $query;
+        $reportUsersStats = [
+            'total' => (clone $statsQuery)->count(),
+            'active' => (clone $statsQuery)->where('status', 'active')->count(),
+            'inactive' => (clone $statsQuery)->where('status', 'inactive')->count(),
+            'with_reports' => (clone $statsQuery)->whereHas('incidentReports', function ($builder) use ($context): void {
+                if ($context['application_id'] !== null) {
+                    $builder->where('application_id', $context['application_id']);
+                }
+
+                if ($context['organization_id'] !== null) {
+                    $builder->where('organization_id', $context['organization_id']);
+                }
+
+                if ($context['network_type'] !== null) {
+                    $builder->where('network_type', $context['network_type']);
+                }
+            })->count(),
+        ];
+
         return view('institution.report-users.index', [
             'organization' => $context['organization'],
             'features' => $context['feature_codes'],
             'activeNav' => 'report-users',
+            'reportUsersStats' => $reportUsersStats,
             'users' => $query->latest()->paginate(15)->withQueryString(),
             'communes' => Meter::query()
                 ->whereHas('publicUsers')

@@ -58,15 +58,15 @@ trait InteractsWithInstitutionContext
         $query = IncidentReport::query()->with(['meter', 'publicUser', 'commune', 'assignedTo']);
 
         if ($organizationId !== null) {
-            $query->where('organization_id', $organizationId);
+            $query->where('incident_reports.organization_id', $organizationId);
         }
 
         if ($applicationId !== null) {
-            $query->where('application_id', $applicationId);
+            $query->where('incident_reports.application_id', $applicationId);
         }
 
         if ($networkType !== null) {
-            $query->where('network_type', $networkType);
+            $query->where('incident_reports.network_type', $networkType);
         }
 
         return $query;

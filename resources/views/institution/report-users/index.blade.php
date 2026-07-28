@@ -5,10 +5,45 @@
 @section('page-description', 'Usagers publics liés aux signalements de votre institution.')
 
 @section('content')
+    @include('partials.page-loader', [
+        'title' => 'Chargement des usagers',
+        'message' => 'Nous préparons la liste selon vos filtres.',
+    ])
+
     @php
         $canViewPaymentInfo = in_array('INSTITUTION_PAYMENT_INFO', $features ?? [], true);
         $label = \App\Support\Ui\InstitutionLabel::class;
     @endphp
+
+    @include('institution.partials.stats-cards', [
+        'cards' => [
+            [
+                'label' => 'Usagers',
+                'value' => number_format($reportUsersStats['total'] ?? 0, 0, ',', ' '),
+                'help' => 'Total affiché avec les filtres actifs.',
+                'tone' => 'blue',
+            ],
+            [
+                'label' => 'Actifs',
+                'value' => number_format($reportUsersStats['active'] ?? 0, 0, ',', ' '),
+                'help' => 'Comptes usagers actifs.',
+                'tone' => 'orange',
+            ],
+            [
+                'label' => 'Avec signalement',
+                'value' => number_format($reportUsersStats['with_reports'] ?? 0, 0, ',', ' '),
+                'help' => 'Usagers ayant déjà signalé.',
+                'tone' => 'pink',
+            ],
+            [
+                'label' => 'Inactifs',
+                'value' => number_format($reportUsersStats['inactive'] ?? 0, 0, ',', ' '),
+                'help' => 'Comptes non actifs.',
+                'tone' => 'green',
+            ],
+        ],
+    ])
+
     <section class="panel-card">
         <div class="fw-bold mb-3">Usagers publics</div>
         <form method="GET" class="filter-bar">

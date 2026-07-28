@@ -92,11 +92,35 @@
             border-radius: 22px;
         }
         .compact-ai-dashboard .stat-card {
+            position: relative;
+            overflow: hidden;
+            background: rgba(255,255,255,.96);
             border-top: 4px solid var(--dash-blue);
+        }
+        .compact-ai-dashboard .stat-card::after {
+            content: "";
+            position: absolute;
+            width: 86px;
+            height: 86px;
+            right: -38px;
+            top: -42px;
+            border-radius: 50%;
+            background: rgba(103,145,255,.12);
         }
         .compact-ai-dashboard .row.g-2 > div:nth-child(4n+2) .stat-card { border-top-color: var(--dash-pink); }
         .compact-ai-dashboard .row.g-2 > div:nth-child(4n+3) .stat-card { border-top-color: var(--dash-orange); }
         .compact-ai-dashboard .row.g-2 > div:nth-child(4n+4) .stat-card { border-top-color: var(--dash-green); }
+        .compact-ai-dashboard .row.g-2 > div:nth-child(4n+2) .stat-card::after { background: rgba(255,0,104,.10); }
+        .compact-ai-dashboard .row.g-2 > div:nth-child(4n+3) .stat-card::after { background: rgba(255,161,23,.14); }
+        .compact-ai-dashboard .row.g-2 > div:nth-child(4n+4) .stat-card::after { background: rgba(91,235,175,.16); }
+        .compact-ai-dashboard .stat-card > * {
+            position: relative;
+            z-index: 1;
+        }
+        .compact-ai-dashboard .filter-bar {
+            background: rgba(255,161,23,.08);
+            border-color: rgba(255,161,23,.20);
+        }
         .compact-ai-dashboard .chart-card {
             position: relative;
             overflow: hidden;
@@ -107,6 +131,13 @@
             inset: 0 0 auto 0;
             height: 4px;
             background: var(--dash-blue);
+        }
+        .compact-ai-dashboard .row.g-3 > div:nth-child(4n+2) .chart-card::before { background: var(--dash-pink); }
+        .compact-ai-dashboard .row.g-3 > div:nth-child(4n+3) .chart-card::before { background: var(--dash-orange); }
+        .compact-ai-dashboard .row.g-3 > div:nth-child(4n+4) .chart-card::before { background: var(--dash-green); }
+        .compact-ai-dashboard .insight-row {
+            background: rgba(103,145,255,.08);
+            border-color: rgba(103,145,255,.12);
         }
     </style>
 

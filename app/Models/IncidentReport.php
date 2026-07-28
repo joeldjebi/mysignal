@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class IncidentReport extends Model
 {
@@ -36,6 +38,7 @@ class IncidentReport extends Model
         'incident_type',
         'reference',
         'description',
+        'signal_payload',
         'signal_attachment',
         'target_sla_hours',
         'occurred_at',
@@ -70,6 +73,7 @@ class IncidentReport extends Model
             'resolution_confirmed_without_ai_validation' => 'boolean',
             'damage_declared_at' => 'datetime',
             'damage_resolved_at' => 'datetime',
+            'signal_payload' => 'array',
             'signal_attachment' => 'array',
             'damage_attachment' => 'array',
             'latitude' => 'decimal:7',
@@ -154,6 +158,17 @@ class IncidentReport extends Model
         return $this->resolveStoredFilePayload($this->signal_attachment);
     }
 
+    public function resolvedSignalPayload(): array
+    {
+        if (! is_array($this->signal_payload)) {
+            return [];
+        }
+
+        return collect($this->signal_payload)
+            ->map(fn (mixed $value): mixed => $this->resolveStoredFilePayload($value))
+            ->all();
+    }
+
     private function resolveStoredFilePayload(mixed $value): mixed
     {
         if (! is_array($value)) {
@@ -161,9 +176,31 @@ class IncidentReport extends Model
         }
 
         $resolvedValue = $value;
-        $resolvedValue['temporary_url'] = $value['temporary_url']
-            ?? $value['data_url']
-            ?? (filled($value['path'] ?? null) ? app(WasabiService::class)->temporaryUrl($value['path']) : null);
+
+        if (filled($value['temporary_url'] ?? null) || filled($value['data_url'] ?? null)) {
+            $resolvedValue['temporary_url'] = $value['temporary_url'] ?? $value['data_url'];
+
+            return $resolvedValue;
+        }
+
+        if (blank($value['path'] ?? null)) {
+            $resolvedValue['temporary_url'] = null;
+
+            return $resolvedValue;
+        }
+
+        try {
+            $resolvedValue['temporary_url'] = app(WasabiService::class)->temporaryUrl($value['path']);
+        } catch (Throwable $exception) {
+            Log::warning('Impossible de generer le lien temporaire d une piece jointe de signalement.', [
+                'incident_report_id' => $this->id,
+                'path' => $value['path'] ?? null,
+                'message' => $exception->getMessage(),
+            ]);
+
+            $resolvedValue['temporary_url'] = null;
+            $resolvedValue['unavailable'] = true;
+        }
 
         return $resolvedValue;
     }

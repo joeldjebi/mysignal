@@ -5,6 +5,11 @@
 @section('page-description', 'Signalements reçus par votre institution.')
 
 @section('content')
+    @include('partials.page-loader', [
+        'title' => 'Chargement des signalements',
+        'message' => 'Nous préparons la liste selon vos filtres.',
+    ])
+
     @php
         $canViewPaymentInfo = in_array('INSTITUTION_PAYMENT_INFO', $features ?? [], true);
         $canViewDamageInfo = in_array('INSTITUTION_REPORT_DAMAGE_ACCESS', $features ?? [], true);
@@ -15,7 +20,115 @@
             'rejected', 'failed' => 'chip-danger',
             default => 'chip-neutral',
         };
+        $filterQuery = request()->except(['page', 'identifier_group']);
     @endphp
+
+    @include('institution.partials.stats-cards', [
+        'cards' => [
+            [
+                'label' => 'Signalements',
+                'value' => number_format($reportsStats['total'] ?? 0, 0, ',', ' '),
+                'help' => 'Total affiché avec les filtres actifs.',
+                'tone' => 'blue',
+            ],
+            [
+                'label' => 'À traiter',
+                'value' => number_format($reportsStats['submitted'] ?? 0, 0, ',', ' '),
+                'help' => 'Signalements encore non pris en charge.',
+                'tone' => 'orange',
+            ],
+            [
+                'label' => 'En cours',
+                'value' => number_format($reportsStats['in_progress'] ?? 0, 0, ',', ' '),
+                'help' => 'Signalements déjà en traitement.',
+                'tone' => 'pink',
+            ],
+            [
+                'label' => $canViewPaymentInfo ? 'Payés' : 'Résolus',
+                'value' => number_format($canViewPaymentInfo ? ($reportsStats['paid'] ?? 0) : ($reportsStats['resolved'] ?? 0), 0, ',', ' '),
+                'help' => $canViewPaymentInfo ? 'Signalements avec paiement validé.' : 'Signalements clôturés par l’institution.',
+                'tone' => 'green',
+            ],
+        ],
+    ])
+
+    <section class="panel-card mb-4">
+        <div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-3">
+            <div>
+                <div class="fw-bold">Regroupements par identifiant</div>
+                <div class="small text-secondary">
+                    Les zones ci-dessous regroupent les signalements liés aux identifiants géolocalisés sur une surface de {{ number_format($groupingSurfaceSquareMeters, 0, ',', ' ') }} m².
+                </div>
+            </div>
+            @if ($selectedIdentifierGroup)
+                <a href="{{ route('institution.reports.index', $filterQuery) }}" class="btn btn-sm btn-outline-secondary">Afficher tous les signalements</a>
+            @endif
+        </div>
+
+        @if ($selectedIdentifierGroup)
+            <div class="alert alert-info d-flex flex-column flex-md-row justify-content-between gap-3 align-items-md-center">
+                <div>
+                    <div class="fw-semibold">{{ $selectedIdentifierGroup['label'] }} sélectionnée</div>
+                    <div class="small">La liste affiche uniquement les signalements de ce regroupement.</div>
+                </div>
+                @if (($selectedIdentifierGroup['open_reports_count'] ?? 1) > 0)
+                    <form method="POST" action="{{ route('institution.reports.identifier-groups.resolve') }}" class="d-flex flex-column flex-sm-row gap-2 align-items-sm-center">
+                        @csrf
+                        @method('PATCH')
+                        @foreach (request()->except(['page']) as $key => $value)
+                            @if (is_scalar($value))
+                                <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                            @endif
+                        @endforeach
+                        <input type="hidden" name="identifier_group" value="{{ $selectedIdentifierGroup['key'] }}">
+                        <input type="hidden" name="official_response" value="Signalements résolus par l’institution pour cette zone.">
+                        <button class="btn btn-success">Résoudre ce regroupement</button>
+                    </form>
+                @endif
+            </div>
+        @endif
+
+        <div class="row g-3">
+            @forelse ($identifierGroups as $group)
+                <div class="col-md-6 col-xl-4">
+                    <div class="surface-soft h-100 p-3 border rounded-3 {{ ($selectedIdentifierGroup['key'] ?? null) === $group['key'] ? 'border-primary' : '' }}">
+                        <div class="d-flex justify-content-between gap-3 mb-2">
+                            <div>
+                                <div class="fw-semibold">{{ $group['label'] }}</div>
+                                <div class="small text-secondary">{{ $group['area_label'] }}</div>
+                            </div>
+                            <span class="status-chip">{{ number_format($group['reports_count'], 0, ',', ' ') }}</span>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2 mb-3">
+                            <span class="status-chip chip-warning">{{ number_format($group['open_reports_count'], 0, ',', ' ') }} à traiter</span>
+                            <span class="status-chip chip-neutral">{{ number_format($groupingSideMeters, 0, ',', ' ') }} m de côté</span>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <a href="{{ route('institution.reports.index', array_merge($filterQuery, ['identifier_group' => $group['key']])) }}" class="btn btn-sm btn-dark">Voir la liste</a>
+                            @if ($group['open_reports_count'] > 0)
+                                <form method="POST" action="{{ route('institution.reports.identifier-groups.resolve') }}">
+                                    @csrf
+                                    @method('PATCH')
+                                    @foreach ($filterQuery as $key => $value)
+                                        @if (is_scalar($value))
+                                            <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                                        @endif
+                                    @endforeach
+                                    <input type="hidden" name="identifier_group" value="{{ $group['key'] }}">
+                                    <input type="hidden" name="official_response" value="Signalements résolus par l’institution pour cette zone.">
+                                    <button class="btn btn-sm btn-outline-success">Résoudre</button>
+                                </form>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            @empty
+                <div class="col-12">
+                    <div class="text-center text-secondary py-4">Aucun regroupement disponible avec les filtres actifs.</div>
+                </div>
+            @endforelse
+        </div>
+    </section>
 
     <section class="panel-card">
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">

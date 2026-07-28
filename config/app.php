@@ -124,5 +124,6 @@ return [
     ],
 
     'maintenance_cleanup_enabled' => (bool) env('MAINTENANCE_CLEANUP_ENABLED', false),
+    'report_identifier_group_surface_square_meters' => max(1, (int) env('REPORT_IDENTIFIER_GROUP_SURFACE_SQUARE_METERS', 1000)),
 
 ];
