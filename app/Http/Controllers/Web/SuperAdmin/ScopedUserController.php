@@ -6,13 +6,17 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\Web\SuperAdmin\Concerns\InteractsWithScopedSaAdminManagement;
 use App\Models\User;
 use App\Models\UserType;
+use App\Services\SmsService;
+use App\Support\Audit\ActivityLogger;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Throwable;
 
 class ScopedUserController extends Controller
 {
@@ -129,6 +133,72 @@ class ScopedUserController extends Controller
         return back()->with('success', 'L’utilisateur a été supprimé.');
     }
 
+    public function sendAccess(Request $request, User $scopedUser, SmsService $smsService, ActivityLogger $activityLogger): RedirectResponse
+    {
+        $actor = $request->user()->loadMissing(['roles.permissions', 'permissions']);
+        $this->authorizeScopedManagement($actor, 'SA_SCOPED_USERS_MANAGE');
+        $this->abortIfUserIsNotOwnedBy($scopedUser, $actor->id, $actor->is_super_admin);
+
+        if (blank($scopedUser->phone)) {
+            return back()->withErrors([
+                'access' => 'Le compte doit avoir un numéro de téléphone avant l’envoi des accès.',
+            ]);
+        }
+
+        $password = $this->temporaryPassword();
+        $loginUrl = route('super-admin.login');
+        $previousPasswordHash = $scopedUser->password;
+        $previousStatus = $scopedUser->status;
+
+        $scopedUser->update([
+            'password' => Hash::make($password),
+            'status' => 'active',
+        ]);
+
+        $message = "My-Signal: accès portail SA. Lien: {$loginUrl} Identifiant: {$scopedUser->email} Mot de passe temporaire: {$password}";
+
+        try {
+            $smsService->sendSmsMtarget($message, (string) $scopedUser->phone);
+        } catch (Throwable $exception) {
+            $scopedUser->forceFill([
+                'password' => $previousPasswordHash,
+                'status' => $previousStatus,
+            ])->save();
+
+            $activityLogger->log(
+                'scoped_user.access_sms_failed',
+                'Échec d’envoi des accès utilisateur SA par SMS.',
+                $scopedUser,
+                [
+                    'phone' => $scopedUser->phone,
+                    'error' => $exception->getMessage(),
+                ],
+                $request,
+                $actor,
+            );
+
+            return back()->withErrors([
+                'access' => 'L’envoi SMS a échoué. Le mot de passe précédent a été conservé.',
+            ]);
+        }
+
+        $activityLogger->log(
+            'scoped_user.access_sent',
+            'Envoi des accès utilisateur SA par SMS.',
+            $scopedUser,
+            [
+                'phone' => $scopedUser->phone,
+                'email' => $scopedUser->email,
+                'login_url' => $loginUrl,
+                'mail_sent' => false,
+            ],
+            $request,
+            $actor,
+        );
+
+        return back()->with('success', 'Les accès ont été envoyés par SMS. L’email sera activé dès que le service d’envoi sera configuré.');
+    }
+
     private function validatePayload(Request $request, ?User $user = null): array
     {
         return $request->validate([
@@ -151,12 +221,21 @@ class ScopedUserController extends Controller
             ->all();
     }
 
+    private function temporaryPassword(): string
+    {
+        return 'MS-'.Str::upper(Str::random(4)).'-'.random_int(1000, 9999);
+    }
+
     private function scopedUserQuery(User $actor): Builder
     {
         $query = User::query()
             ->where('user_type_id', UserType::idFor(UserType::SA_USER))
             ->where('is_super_admin', false)
-            ->whereNotNull('created_by');
+            ->whereNotNull('created_by')
+            ->where(function (Builder $builder): void {
+                $builder->whereHas('roles', fn (Builder $roleQuery) => $roleQuery->whereNotNull('roles.created_by'))
+                    ->orWhereHas('permissions');
+            });
 
         if (! $actor->is_super_admin) {
             $query->where('created_by', $actor->id);
@@ -171,6 +250,7 @@ class ScopedUserController extends Controller
             $user->is_super_admin
                 || (int) $user->user_type_id !== (int) UserType::idFor(UserType::SA_USER)
                 || $user->created_by === null
+                || (! $user->roles()->whereNotNull('roles.created_by')->exists() && ! $user->permissions()->exists())
                 || (! $actorIsSuperAdmin && (int) $user->created_by !== $actorId),
             404
         );

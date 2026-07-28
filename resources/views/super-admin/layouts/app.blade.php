@@ -339,6 +339,10 @@
                         <span class="nav-icon">DB</span>
                         <span><span class="d-block fw-semibold">Tableau de bord</span><span class="small text-white-50">Vue d'ensemble</span></span>
                     </a>
+                    <a href="{{ route('super-admin.reports-builder.index') }}" class="nav-pill {{ request()->routeIs('super-admin.reports-builder.*') ? 'active' : '' }}">
+                        <span class="nav-icon">RP</span>
+                        <span><span class="d-block fw-semibold">Rapports à la demande</span><span class="small text-white-50">Exports et analyses</span></span>
+                    </a>
                 @endif
                 @if ($canAccess('SA_LANDING_PAGE_MANAGE'))
                     <a href="{{ route('super-admin.landing-page.edit') }}" class="nav-pill {{ request()->routeIs('super-admin.landing-page.*') ? 'active' : '' }}">

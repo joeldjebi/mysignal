@@ -13,7 +13,7 @@
         @endif
     </a>
     <a href="{{ route('institution.login') }}" class="btn btn-outline-dark" target="_blank" rel="noopener">
-        Connexion AI
+        Page login AI
     </a>
     <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#createInstitutionAdminModal">
         Créer une institution
@@ -161,6 +161,12 @@
                             <td class="text-end">
                                 <div class="actions-wrap">
                                     <a href="{{ route('super-admin.institution-admins.edit', $admin) }}" class="btn btn-sm btn-outline-dark">Modifier</a>
+                                    @if (auth()->user()?->is_super_admin || auth()->user()?->hasPermissionCode('SA_INSTITUTION_ADMINS_UPDATE') || auth()->user()?->hasPermissionCode('SA_INSTITUTION_ADMINS_MANAGE'))
+                                        <form method="POST" action="{{ route('super-admin.institution-admins.send-access', $admin) }}" onsubmit="return confirm('Un nouveau mot de passe temporaire sera généré puis envoyé par SMS. L’envoi e-mail sera activé dès que le service sera configuré. Continuer ?')">
+                                            @csrf
+                                            <button class="btn btn-sm btn-outline-primary">Envoyer accès SMS / e-mail</button>
+                                        </form>
+                                    @endif
                                     @if (auth()->user()?->hasPermissionCode('SA_INSTITUTION_ADMINS_TOGGLE_STATUS'))
                                         <form method="POST" action="{{ route('super-admin.institution-admins.toggle-status', $admin) }}">
                                             @csrf

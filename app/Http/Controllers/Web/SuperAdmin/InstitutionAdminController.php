@@ -7,12 +7,15 @@ use App\Models\Feature;
 use App\Models\Organization;
 use App\Models\User;
 use App\Models\UserType;
+use App\Services\SmsService;
 use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Throwable;
 
 class InstitutionAdminController extends Controller
 {
@@ -227,6 +230,70 @@ class InstitutionAdminController extends Controller
         return back()->with('success', 'Le statut de l’admin institutionnel a été mis à jour.');
     }
 
+    public function sendAccess(Request $request, User $institutionAdmin, SmsService $smsService, ActivityLogger $activityLogger): RedirectResponse
+    {
+        $this->abortIfNotInstitutionAdmin($institutionAdmin);
+
+        if (blank($institutionAdmin->phone)) {
+            return back()->withErrors([
+                'access' => 'Le compte doit avoir un numéro de téléphone avant l’envoi des accès.',
+            ]);
+        }
+
+        $password = $this->temporaryPassword();
+        $loginUrl = route('institution.login');
+        $previousPasswordHash = $institutionAdmin->password;
+        $previousStatus = $institutionAdmin->status;
+
+        $institutionAdmin->update([
+            'password' => Hash::make($password),
+            'status' => 'active',
+        ]);
+
+        $message = "My-Signal: accès portail institutionnel. Lien: {$loginUrl} Identifiant: {$institutionAdmin->email} Mot de passe temporaire: {$password}";
+
+        try {
+            $smsService->sendSmsMtarget($message, (string) $institutionAdmin->phone);
+        } catch (Throwable $exception) {
+            $institutionAdmin->forceFill([
+                'password' => $previousPasswordHash,
+                'status' => $previousStatus,
+            ])->save();
+
+            $activityLogger->log(
+                'institution_admin.access_sms_failed',
+                'Échec d’envoi des accès admin institutionnel par SMS.',
+                $institutionAdmin,
+                [
+                    'phone' => $institutionAdmin->phone,
+                    'error' => $exception->getMessage(),
+                ],
+                $request,
+                $request->user(),
+            );
+
+            return back()->withErrors([
+                'access' => 'L’envoi SMS a échoué. Le mot de passe précédent a été conservé.',
+            ]);
+        }
+
+        $activityLogger->log(
+            'institution_admin.access_sent',
+            'Envoi des accès admin institutionnel par SMS.',
+            $institutionAdmin,
+            [
+                'phone' => $institutionAdmin->phone,
+                'email' => $institutionAdmin->email,
+                'login_url' => $loginUrl,
+                'mail_sent' => false,
+            ],
+            $request,
+            $request->user(),
+        );
+
+        return back()->with('success', 'Les accès ont été envoyés par SMS. L’email sera activé dès que le service d’envoi sera configuré.');
+    }
+
     private function validateRequest(Request $request, ?User $user = null): array
     {
         return $request->validate([
@@ -282,6 +349,11 @@ class InstitutionAdminController extends Controller
         // No direct assignment means the root AI inherits the organization's
         // full feature perimeter, including future app/org feature updates.
         $institutionAdmin->features()->sync($inheritsAllOrganizationFeatures ? [] : $selectedFeatureIds->all());
+    }
+
+    private function temporaryPassword(): string
+    {
+        return 'MS-'.Str::upper(Str::random(4)).'-'.random_int(1000, 9999);
     }
 
     private function institutionOrganizationsQuery()

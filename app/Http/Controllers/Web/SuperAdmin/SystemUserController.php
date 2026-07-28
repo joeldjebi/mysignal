@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\UserAccess;
 use App\Models\UserType;
 use App\Support\Audit\ActivityLogger;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -30,6 +31,8 @@ class SystemUserController extends Controller
                 UserType::idFor(UserType::PARTNER_MANAGER),
                 UserType::idFor(UserType::PARTNER_SCAN_AGENT),
             ]));
+
+        $this->excludeScopedSaUsers($query);
 
         if (filled(request('search'))) {
             $search = trim((string) request('search'));
@@ -69,6 +72,7 @@ class SystemUserController extends Controller
                     UserType::idFor(UserType::PARTNER_MANAGER),
                     UserType::idFor(UserType::PARTNER_SCAN_AGENT),
                 ]))
+                ->tap(fn (Builder $query) => $this->excludeScopedSaUsers($query))
                 ->orderBy('name')
                 ->get(['id', 'name', 'email']),
         ]);
@@ -132,6 +136,7 @@ class SystemUserController extends Controller
                     UserType::idFor(UserType::PARTNER_MANAGER),
                     UserType::idFor(UserType::PARTNER_SCAN_AGENT),
                 ]))
+                ->tap(fn (Builder $query) => $this->excludeScopedSaUsers($query))
                 ->whereKeyNot($systemUser->id)
                 ->orderBy('name')
                 ->get(['id', 'name', 'email']),
@@ -285,9 +290,36 @@ class SystemUserController extends Controller
         abort_if(
             $user->is_super_admin
                 || $user->organization_id !== null
-                || (int) $user->user_type_id === (int) UserType::idFor(UserType::INSTITUTION_ADMIN),
+                || (int) $user->user_type_id === (int) UserType::idFor(UserType::INSTITUTION_ADMIN)
+                || $this->isScopedSaUser($user),
             404
         );
+    }
+
+    private function excludeScopedSaUsers(Builder $query): Builder
+    {
+        $saUserTypeId = UserType::idFor(UserType::SA_USER);
+
+        return $query->where(function (Builder $builder) use ($saUserTypeId): void {
+            $builder->where('user_type_id', '!=', $saUserTypeId)
+                ->orWhere(function (Builder $saUserQuery): void {
+                    $saUserQuery
+                        ->whereDoesntHave('roles', fn (Builder $roleQuery) => $roleQuery->whereNotNull('roles.created_by'))
+                        ->whereDoesntHave('permissions');
+                });
+        });
+    }
+
+    private function isScopedSaUser(User $user): bool
+    {
+        return ! $user->is_super_admin
+            && $user->organization_id === null
+            && (int) $user->user_type_id === (int) UserType::idFor(UserType::SA_USER)
+            && $user->created_by !== null
+            && (
+                $user->roles()->whereNotNull('roles.created_by')->exists()
+                || $user->permissions()->exists()
+            );
     }
 
     private function userTypeIdForPayload(array $attributes): ?int
@@ -407,6 +439,6 @@ class SystemUserController extends Controller
 
     private function abortIfProfileAccessIsNotManageable(User $user): void
     {
-        abort_if($user->is_super_admin, 404);
+        abort_if($user->is_super_admin || $this->isScopedSaUser($user), 404);
     }
 }

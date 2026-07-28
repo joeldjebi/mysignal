@@ -46,6 +46,7 @@ use App\Http\Controllers\Web\SuperAdmin\NeighborhoodController;
 use App\Http\Controllers\Web\SuperAdmin\OrganizationController;
 use App\Http\Controllers\Web\SuperAdmin\OrganizationTypeSignalSlaController;
 use App\Http\Controllers\Web\SuperAdmin\OrganizationTypeController;
+use App\Http\Controllers\Web\SuperAdmin\OnDemandReportController;
 use App\Http\Controllers\Web\SuperAdmin\PermissionController;
 use App\Http\Controllers\Web\SuperAdmin\PaymentController;
 use App\Http\Controllers\Web\SuperAdmin\PricingRuleController;
@@ -315,6 +316,12 @@ Route::prefix('sa')->name('super-admin.')->group(function (): void {
         Route::get('dashboard', SuperAdminDashboardController::class)
             ->middleware('super_admin_permission:SA_DASHBOARD_VIEW')
             ->name('dashboard');
+        Route::get('reports-builder', [OnDemandReportController::class, 'index'])
+            ->middleware('super_admin_permission:SA_DASHBOARD_VIEW')
+            ->name('reports-builder.index');
+        Route::post('reports-builder/download', [OnDemandReportController::class, 'download'])
+            ->middleware('super_admin_permission:SA_DASHBOARD_VIEW')
+            ->name('reports-builder.download');
         Route::post('push-tokens', [SuperAdminDeviceTokenController::class, 'store'])->name('push-tokens.store');
         Route::post('logout', [SuperAdminAuthController::class, 'destroy'])->name('logout');
 
@@ -427,6 +434,7 @@ Route::prefix('sa')->name('super-admin.')->group(function (): void {
         Route::get('institution-admins/{institutionAdmin}/edit', [InstitutionAdminController::class, 'edit'])->middleware('super_admin_permission:SA_INSTITUTION_ADMINS_UPDATE,SA_INSTITUTION_ADMINS_MANAGE')->name('institution-admins.edit');
         Route::put('institution-admins/{institutionAdmin}', [InstitutionAdminController::class, 'update'])->middleware('super_admin_permission:SA_INSTITUTION_ADMINS_UPDATE,SA_INSTITUTION_ADMINS_MANAGE')->name('institution-admins.update');
         Route::patch('institution-admins/{institutionAdmin}', [InstitutionAdminController::class, 'update'])->middleware('super_admin_permission:SA_INSTITUTION_ADMINS_UPDATE,SA_INSTITUTION_ADMINS_MANAGE');
+        Route::post('institution-admins/{institutionAdmin}/send-access', [InstitutionAdminController::class, 'sendAccess'])->middleware('super_admin_permission:SA_INSTITUTION_ADMINS_UPDATE,SA_INSTITUTION_ADMINS_MANAGE')->name('institution-admins.send-access');
         Route::delete('institution-admins/{institutionAdmin}', [InstitutionAdminController::class, 'destroy'])->middleware('super_admin_permission:SA_INSTITUTION_ADMINS_DELETE,SA_INSTITUTION_ADMINS_MANAGE')->name('institution-admins.destroy');
         Route::patch('institution-admins/{institutionAdmin}/toggle-status', [InstitutionAdminController::class, 'toggleStatus'])->middleware('super_admin_permission:SA_INSTITUTION_ADMINS_TOGGLE_STATUS,SA_INSTITUTION_ADMINS_MANAGE')->name('institution-admins.toggle-status');
 
@@ -496,6 +504,7 @@ Route::prefix('sa')->name('super-admin.')->group(function (): void {
         Route::post('my-users', [ScopedUserController::class, 'store'])->middleware('super_admin_permission:SA_SCOPED_USERS_MANAGE')->name('scoped-users.store');
         Route::get('my-users/{scopedUser}/edit', [ScopedUserController::class, 'edit'])->middleware('super_admin_permission:SA_SCOPED_USERS_MANAGE')->name('scoped-users.edit');
         Route::put('my-users/{scopedUser}', [ScopedUserController::class, 'update'])->middleware('super_admin_permission:SA_SCOPED_USERS_MANAGE')->name('scoped-users.update');
+        Route::post('my-users/{scopedUser}/send-access', [ScopedUserController::class, 'sendAccess'])->middleware('super_admin_permission:SA_SCOPED_USERS_MANAGE')->name('scoped-users.send-access');
         Route::delete('my-users/{scopedUser}', [ScopedUserController::class, 'destroy'])->middleware('super_admin_permission:SA_SCOPED_USERS_MANAGE')->name('scoped-users.destroy');
 
         Route::get('roles', [RoleController::class, 'index'])->middleware('super_admin_permission:SA_ROLES_VIEW,SA_ROLES_MANAGE')->name('roles.index');
