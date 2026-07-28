@@ -418,22 +418,21 @@ class ReportController extends Controller
         return $query
             ->leftJoin('meters as '.$meterAlias, $meterAlias.'.id', '=', 'incident_reports.meter_id')
             ->whereNotNull('incident_reports.meter_id')
+            ->whereIn('incident_reports.status', [
+                IncidentReportStatus::Submitted->value,
+                IncidentReportStatus::InProgress->value,
+            ])
             ->whereRaw($latitudeExpression.' IS NOT NULL')
             ->whereRaw($longitudeExpression.' IS NOT NULL')
             ->selectRaw($latitudeCellExpression.' as latitude_cell')
             ->selectRaw($longitudeCellExpression.' as longitude_cell')
             ->selectRaw('COUNT(*) as reports_count')
-            ->selectRaw(
-                'SUM(CASE WHEN incident_reports.status IN (?, ?) THEN 1 ELSE 0 END) as open_reports_count',
-                [IncidentReportStatus::Submitted->value, IncidentReportStatus::InProgress->value],
-            )
             ->selectRaw('MIN('.$latitudeExpression.') as min_latitude')
             ->selectRaw('MAX('.$latitudeExpression.') as max_latitude')
             ->selectRaw('MIN('.$longitudeExpression.') as min_longitude')
             ->selectRaw('MAX('.$longitudeExpression.') as max_longitude')
             ->selectRaw('MIN(NULLIF('.$meterAlias.'.commune, \'\')) as commune_name')
             ->groupByRaw($latitudeCellExpression.', '.$longitudeCellExpression)
-            ->orderByDesc('open_reports_count')
             ->orderByDesc('reports_count')
             ->limit(30)
             ->get()
@@ -448,7 +447,7 @@ class ReportController extends Controller
                     'latitude_cell' => $latitudeCell,
                     'longitude_cell' => $longitudeCell,
                     'reports_count' => (int) $group->reports_count,
-                    'open_reports_count' => (int) $group->open_reports_count,
+                    'open_reports_count' => (int) $group->reports_count,
                     'min_latitude' => $group->min_latitude,
                     'max_latitude' => $group->max_latitude,
                     'min_longitude' => $group->min_longitude,
