@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Services\WasabiService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class Meter extends Model
 {
@@ -27,6 +30,7 @@ class Meter extends Model
         'longitude',
         'location_accuracy',
         'location_source',
+        'identifier_photo_path',
         'status',
     ];
 
@@ -64,5 +68,27 @@ class Meter extends Model
     public function incidentReports(): HasMany
     {
         return $this->hasMany(IncidentReport::class);
+    }
+
+    public function identifierPhotoUrl(): ?string
+    {
+        if (! filled($this->identifier_photo_path)) {
+            return null;
+        }
+
+        if (filter_var((string) $this->identifier_photo_path, FILTER_VALIDATE_URL)) {
+            return (string) $this->identifier_photo_path;
+        }
+
+        try {
+            return app(WasabiService::class)->temporaryUrl((string) $this->identifier_photo_path);
+        } catch (Throwable $exception) {
+            Log::warning('Impossible de generer l URL temporaire de la photo identifiant.', [
+                'meter_id' => $this->id,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return null;
+        }
     }
 }

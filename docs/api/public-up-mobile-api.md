@@ -352,15 +352,15 @@ Quand un type de signal a des sous-types, l API ajoute automatiquement l option 
 L app mobile doit envoyer `signal_sub_type_code` uniquement quand `requires_sub_type` vaut `true`. Utiliser `OTHER` si le motif voulu n existe pas dans la liste.
 - `precise_gps` et `gps_location` sont pre-remplis avec la position GPS courante quand elle est disponible.
 
-### Compteurs
+### Identifiants
 
 #### GET `/v1/public/meters`
-Liste les compteurs du compte courant.
+Liste les identifiants du compte courant.
 
 #### POST `/v1/public/meters`
-Ajoute un compteur.
+Ajoute un identifiant.
 
-Un UP peut ajouter plusieurs compteurs, y compris pour la meme application ou la meme organisation. Chaque appel cree un nouveau rattachement tant que le compteur n est pas deja rattache au compte courant.
+Un UP peut ajouter plusieurs identifiants, y compris pour la meme categorie ou la meme institution. Chaque appel cree un nouveau rattachement tant que l identifiant n est pas deja rattache au compte courant.
 
 Body d exemple :
 ```json
@@ -376,21 +376,41 @@ Body d exemple :
 }
 ```
 
+Si la categorie choisie retourne `requires_public_user_identifier: true`, l app peut ajouter une photo optionnelle de l identifiant. Dans ce cas, envoyer le payload en `multipart/form-data` avec la cle `identifier_photo`.
+
+Exemple `multipart/form-data` :
+```text
+application_id=1
+organization_id=1
+meter_number=AB12345678
+label=Identifiant principal
+city=Abidjan
+commune=Cocody
+address=Rue 12
+is_primary=true
+identifier_photo=@photo-identifiant.jpg
+```
+
+`identifier_photo` est optionnel. Formats acceptes : image `jpg`, `jpeg`, `png` ou `webp`. Taille max : 4 Mo. Le fichier est stocke sur Wasabi et retourne dans `identifier_photo_url`.
+
 #### GET `/v1/public/meters/{meter}`
-Retourne un compteur possede par l usager.
+Retourne un identifiant possede par l usager.
 
 #### PATCH `/v1/public/meters/{meter}`
-Met a jour un compteur.
+Met a jour un identifiant. Envoyer `identifier_photo` en `multipart/form-data` pour remplacer la photo stockee sur Wasabi.
+
+Pour une mise a jour avec fichier, le mobile peut aussi appeler `POST /v1/public/meters/{meter}` en `multipart/form-data`.
 
 #### DELETE `/v1/public/meters/{meter}`
 Supprime l identifiant du compte courant.
 
 La suppression retire le rattachement entre l usager connecte et l identifiant. Les signalements historiques et les rattachements d autres usagers restent conserves.
 
-Les compteurs retournes par l API incluent aussi :
+Les identifiants retournes par l API incluent aussi :
 - `assignment_type` : `personal` ou `gbonhi`
 - `is_gbonhi` : booleen
 - `assignment_label` : libelle pret a afficher cote mobile
+- `identifier_photo_url` : URL temporaire Wasabi de la photo, ou `null`
 
 ### Recus d achat
 
@@ -525,6 +545,41 @@ Refuse une invitation.
 
 #### GET `/v1/public/reports`
 Liste les signalements du compte.
+
+#### GET `/v1/public/reports/monthly-category-stats`
+Retourne les statistiques globales de la plateforme pour le mois précédent et le mois en cours. Cette route est disponible pour le web UP et le mobile UP, mais les chiffres ne sont pas limites au compte connecte.
+
+Reponse :
+```json
+{
+  "success": true,
+  "data": {
+    "previous_month": {
+      "month": "2026-06",
+      "label": "juin 2026",
+      "date_from": "2026-06-01",
+      "date_to": "2026-06-30",
+      "total_reports": 12,
+      "categories": [
+        {
+          "application_id": 1,
+          "category_code": "SERVICE_PUBLIC",
+          "category_name": "Service public",
+          "reports_count": 7
+        }
+      ]
+    },
+    "current_month": {
+      "month": "2026-07",
+      "label": "juillet 2026",
+      "date_from": "2026-07-01",
+      "date_to": "2026-07-31",
+      "total_reports": 18,
+      "categories": []
+    }
+  }
+}
+```
 
 #### POST `/v1/public/reports`
 Initialise le paiement FineoPay d un signalement. Le signalement n est cree en base qu apres callback FineoPay avec `status: success`.

@@ -38,6 +38,7 @@ class MeterResource extends JsonResource
             'longitude' => $this->longitude !== null ? (float) $this->longitude : null,
             'location_accuracy' => $this->location_accuracy,
             'location_source' => $this->location_source,
+            'identifier_photo_url' => $this->identifierPhotoUrl(),
             'status' => $this->status,
             'is_primary' => (bool) ($this->pivot?->is_primary ?? false),
             'assignment_source' => $assignmentSource,

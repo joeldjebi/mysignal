@@ -93,6 +93,7 @@ Route::prefix('v1/public')->group(function (): void {
         Route::get('meters', [PublicMeterController::class, 'index']);
         Route::post('meters', [PublicMeterController::class, 'store']);
         Route::get('meters/{meter}', [PublicMeterController::class, 'show']);
+        Route::post('meters/{meter}', [PublicMeterController::class, 'update']);
         Route::patch('meters/{meter}', [PublicMeterController::class, 'update']);
         Route::delete('meters/{meter}', [PublicMeterController::class, 'destroy']);
 
@@ -113,6 +114,7 @@ Route::prefix('v1/public')->group(function (): void {
         Route::post('households/invitations/decline', [PublicHouseholdController::class, 'decline']);
 
         Route::get('reports', [PublicIncidentReportController::class, 'index']);
+        Route::get('reports/monthly-category-stats', [PublicIncidentReportController::class, 'monthlyCategoryStats']);
         Route::post('reports', [PublicIncidentReportController::class, 'store']);
         Route::get('reports/{report}', [PublicIncidentReportController::class, 'show']);
         Route::post('reports/{report}/confirm-resolution', [PublicIncidentReportController::class, 'confirmResolution']);

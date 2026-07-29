@@ -17,6 +17,7 @@ use App\Models\PurchaseReceipt;
 use App\Services\WasabiService;
 use App\Support\Api\ApiResponse;
 use App\Support\Audit\ActivityLogger;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\ValidationException;
@@ -35,6 +36,17 @@ class PublicIncidentReportController extends Controller
 
         return ApiResponse::success([
             'reports' => IncidentReportResource::collection($reports),
+        ]);
+    }
+
+    public function monthlyCategoryStats(Request $request)
+    {
+        $currentMonth = CarbonImmutable::now()->startOfMonth();
+        $previousMonth = $currentMonth->subMonth();
+
+        return ApiResponse::success([
+            'previous_month' => $this->monthlyCategoryStatsPayload($previousMonth),
+            'current_month' => $this->monthlyCategoryStatsPayload($currentMonth),
         ]);
     }
 
@@ -244,6 +256,39 @@ class PublicIncidentReportController extends Controller
             'payment_session' => new IncidentReportPaymentSessionResource($paymentSession),
             'checkout_link' => $paymentSession->checkout_link,
         ], 'Lien de paiement généré avec succès. Le dommage sera enregistré après paiement.', 201);
+    }
+
+    private function monthlyCategoryStatsPayload(CarbonImmutable $month): array
+    {
+        $start = $month->startOfMonth();
+        $end = $month->endOfMonth();
+        $categories = IncidentReport::query()
+            ->leftJoin('applications', 'applications.id', '=', 'incident_reports.application_id')
+            ->whereBetween('incident_reports.created_at', [$start, $end])
+            ->selectRaw('incident_reports.application_id')
+            ->selectRaw("COALESCE(applications.name, 'Sans catégorie') as category_name")
+            ->selectRaw("COALESCE(applications.code, 'UNKNOWN') as category_code")
+            ->selectRaw('COUNT(*) as reports_count')
+            ->groupBy('incident_reports.application_id', 'applications.name', 'applications.code')
+            ->orderByDesc('reports_count')
+            ->orderBy('category_name')
+            ->get()
+            ->map(fn ($row): array => [
+                'application_id' => $row->application_id !== null ? (int) $row->application_id : null,
+                'category_code' => $row->category_code,
+                'category_name' => $row->category_name,
+                'reports_count' => (int) $row->reports_count,
+            ])
+            ->values();
+
+        return [
+            'month' => $start->format('Y-m'),
+            'label' => $start->locale('fr')->translatedFormat('F Y'),
+            'date_from' => $start->toDateString(),
+            'date_to' => $end->toDateString(),
+            'total_reports' => (int) $categories->sum('reports_count'),
+            'categories' => $categories->all(),
+        ];
     }
 
     private function resolveDamagePurchaseReceipt(Request $request, array $attributes): ?PurchaseReceipt

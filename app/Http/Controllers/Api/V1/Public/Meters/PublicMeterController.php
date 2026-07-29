@@ -30,7 +30,10 @@ class PublicMeterController extends Controller
 
     public function store(StoreMeterRequest $request, CreateMeterAction $action)
     {
-        $meter = $action->handle($request->user('public_api'), $request->validated());
+        $attributes = $request->validated();
+        unset($attributes['identifier_photo']);
+
+        $meter = $action->handle($request->user('public_api'), $attributes, $request->file('identifier_photo'));
 
         $meter = $request->user('public_api')
             ->meters()
@@ -64,7 +67,10 @@ class PublicMeterController extends Controller
             ->whereKey($meter->id)
             ->firstOrFail();
 
-        $action->handle($request->user('public_api'), $ownedMeter, $request->validated());
+        $attributes = $request->validated();
+        unset($attributes['identifier_photo']);
+
+        $action->handle($request->user('public_api'), $ownedMeter, $attributes, $request->file('identifier_photo'));
 
         $ownedMeter = $request->user('public_api')
             ->meters()

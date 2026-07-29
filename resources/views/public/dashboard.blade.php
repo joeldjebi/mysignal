@@ -1565,6 +1565,11 @@
                                     <div class="col-md-4"><label class="form-label fw-semibold">Commune</label><select class="form-select" name="commune" id="meterCommuneSelect"></select></div>
                                     <div class="col-md-4"><label class="form-label fw-semibold">Quartier</label><select class="form-select" name="neighborhood" id="meterNeighborhoodSelect"></select></div>
                                     <div class="col-md-4"><label class="form-label fw-semibold">Sous-quartier</label><select class="form-select" name="sub_neighborhood" id="meterSubNeighborhoodSelect"></select></div>
+                                    <div class="col-md-4 d-none" id="meterIdentifierPhotoWrap">
+                                        <label class="form-label fw-semibold">Photo de l’identifiant</label>
+                                        <input class="form-control" type="file" name="identifier_photo" id="meterIdentifierPhoto" accept="image/jpeg,image/png,image/webp">
+                                        <div class="location-search-hint">Optionnel. Formats acceptés : JPG, PNG ou WebP.</div>
+                                    </div>
                                     <div class="col-md-12">
                                         <label class="form-label fw-semibold">Situation géographique</label>
                                         <input class="form-control" name="address" id="meterAddressSearch" placeholder="Ex: Abatta carrefour Ab Center">
@@ -3664,6 +3669,20 @@
                     populateMeterOrganizationOptions();
                 }
 
+                function syncMeterIdentifierPhotoField() {
+                    const applicationId = String(document.getElementById('meterApplicationId')?.value || '');
+                    const application = serviceApplications.find((item) => String(item.id) === applicationId);
+                    const photoWrap = document.getElementById('meterIdentifierPhotoWrap');
+                    const photoInput = document.getElementById('meterIdentifierPhoto');
+                    const shouldShow = application?.requires_public_user_identifier === true;
+
+                    photoWrap?.classList.toggle('d-none', !shouldShow);
+
+                    if (!shouldShow && photoInput) {
+                        photoInput.value = '';
+                    }
+                }
+
                 function populateMeterOrganizationOptions(preferredOrganizationId = null) {
                     const applicationId = String(document.getElementById('meterApplicationId')?.value || '');
                     const organizationSelect = document.getElementById('meterOrganizationId');
@@ -3678,12 +3697,14 @@
                     if (!organizations.length) {
                         organizationSelect.value = '';
                         networkTypeInput.value = application?.network_type || '';
+                        syncMeterIdentifierPhotoField();
                         return;
                     }
 
                     const preferredExists = preferredOrganizationId && organizations.some((organization) => String(organization.id) === String(preferredOrganizationId));
                     organizationSelect.value = preferredExists ? String(preferredOrganizationId) : String(organizations[0]?.id || '');
                     networkTypeInput.value = application?.network_type || organizations[0]?.network_type || '';
+                    syncMeterIdentifierPhotoField();
                 }
 
                 function renderReportMeterOptions(preferredMeterId = null) {
@@ -4118,6 +4139,7 @@
                                 <div class="muted-label mb-2">${meter.application_name || 'Catégorie non définie'}</div>
                                 <div class="muted-label mb-3">${[meter.city, meter.commune, meter.neighborhood, meter.sub_neighborhood].filter(Boolean).join(' · ') || 'Localisation non renseignée'}${meter.address ? ' · ' + meter.address : ''}</div>
                                 <div class="muted-label mb-3">${meter.latitude && meter.longitude ? 'Position renseignée' : 'Position non renseignée'}</div>
+                                ${meter.identifier_photo_url ? '<div class="muted-label mb-3">Photo de l’identifiant disponible</div>' : ''}
                                 <button class="btn btn-ghost-premium w-100" type="button" onclick="window.AcepenPortal.prefillMeter(${meter.id})">Modifier</button>
                             </div>
                         </div>
@@ -6552,11 +6574,15 @@
                         form.neighborhood.value = meter.neighborhood || '';
                         form.sub_neighborhood.value = meter.sub_neighborhood || '';
                         form.address.value = meter.address || '';
+                        if (form.identifier_photo) {
+                            form.identifier_photo.value = '';
+                        }
                         document.getElementById('meterLatitude').value = meter.latitude || '';
                         document.getElementById('meterLongitude').value = meter.longitude || '';
                         document.getElementById('meterAccuracy').value = meter.location_accuracy || '';
                         document.getElementById('meterLocationSource').value = meter.location_source || '';
                         form.is_primary.checked = Boolean(meter.is_primary);
+                        syncMeterIdentifierPhotoField();
                         form.querySelector('button[type="submit"]').textContent = 'Mettre à jour l’identifiant';
                         bootstrap.Collapse.getOrCreateInstance(document.getElementById('meterFormWrap')).show();
                     },
@@ -7149,7 +7175,10 @@
                 document.getElementById('meterNeighborhoodSelect').addEventListener('change', () => {
                     populateMeterNeighborhoodOptions(document.getElementById('meterNeighborhoodSelect').value);
                 });
-                document.getElementById('meterApplicationId').addEventListener('change', () => populateMeterOrganizationOptions());
+                document.getElementById('meterApplicationId').addEventListener('change', () => {
+                    populateMeterOrganizationOptions();
+                    syncMeterIdentifierPhotoField();
+                });
                 document.getElementById('meterOrganizationId').addEventListener('change', () => populateMeterOrganizationOptions(document.getElementById('meterOrganizationId').value));
                 document.getElementById('reportApplicationId').addEventListener('change', () => {
                     renderReportOrganizationTypeOptions();
@@ -7272,12 +7301,22 @@
                     const form = event.currentTarget;
                     setLoading(form, true);
                     try {
-                        const payload = Object.fromEntries(new FormData(form).entries());
-                        payload.application_id = document.getElementById('meterApplicationId').value;
-                        payload.organization_id = document.getElementById('meterOrganizationId').value;
-                        payload.is_primary = new FormData(form).get('is_primary') === '1';
+                        const payload = new FormData(form);
+                        payload.set('application_id', document.getElementById('meterApplicationId').value);
+                        payload.set('organization_id', document.getElementById('meterOrganizationId').value);
+                        payload.set('is_primary', form.is_primary.checked ? '1' : '0');
+
+                        const photo = payload.get('identifier_photo');
+                        if (photo instanceof File && photo.size === 0) {
+                            payload.delete('identifier_photo');
+                        }
+
                         const editId = form.dataset.editId;
-                        const response = await apiFetch(editId ? `/meters/${editId}` : '/meters', { method: editId ? 'PATCH' : 'POST', body: JSON.stringify(payload) });
+                        if (editId) {
+                            payload.set('_method', 'PATCH');
+                        }
+
+                        const response = await apiFetch(editId ? `/meters/${editId}` : '/meters', { method: 'POST', body: payload });
                         form.reset();
                         delete form.dataset.editId;
                         document.getElementById('meterApplicationId').disabled = false;
@@ -7291,6 +7330,7 @@
                         form.neighborhood.value = '';
                         form.sub_neighborhood.value = '';
                         populateMeterNeighborhoodOptions();
+                        syncMeterIdentifierPhotoField();
                         state.autoGeoAttempts.meter = false;
                         showToast(response.message);
                         await refreshDashboard();

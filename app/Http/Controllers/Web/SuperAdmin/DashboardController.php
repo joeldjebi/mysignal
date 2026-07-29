@@ -210,6 +210,7 @@ class DashboardController extends Controller
                 'signal_label',
                 'latitude',
                 'longitude',
+                'meter_id',
                 'application_id',
                 'organization_id',
                 'status',
@@ -223,12 +224,14 @@ class DashboardController extends Controller
                 }
 
                 return [
+                    'id' => $report->id,
                     'reference' => $report->reference,
                     'signal_label' => $this->displayLabel($report->signal_label ?: $report->signal_code, 'Signal'),
                     'status' => $report->status,
                     'status_label' => $this->displayStatus($report->status),
                     'latitude' => (float) $latitude,
                     'longitude' => (float) $longitude,
+                    'detail_url' => route('super-admin.public-reports.show', $report),
                 ];
             })
             ->filter()

@@ -74,6 +74,7 @@ class StoreMeterRequest extends FormRequest
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
             'location_accuracy' => ['nullable', 'integer', 'min:0', 'max:10000'],
             'location_source' => ['nullable', 'string', 'max:30'],
+            'identifier_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             'is_primary' => ['sometimes', 'boolean'],
         ];
     }

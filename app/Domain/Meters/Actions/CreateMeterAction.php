@@ -9,15 +9,19 @@ use App\Models\MeterAssignment;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\PublicUser;
+use App\Services\WasabiService;
 use App\Support\ApplicationCatalog;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class CreateMeterAction
 {
-    public function handle(PublicUser $user, array $payload): Meter
+    public function __construct(private readonly WasabiService $wasabiService) {}
+
+    public function handle(PublicUser $user, array $payload, ?UploadedFile $identifierPhoto = null): Meter
     {
-        return DB::transaction(function () use ($user, $payload): Meter {
+        return DB::transaction(function () use ($user, $payload, $identifierPhoto): Meter {
             $networkType = strtoupper((string) ($payload['network_type'] ?? ''));
 
             $application = $this->resolveApplication($payload, $networkType);
@@ -30,6 +34,7 @@ class CreateMeterAction
             }
 
             $networkType = $networkType !== '' ? $networkType : ($organization->code ?: $application->code);
+            $identifierPhotoPath = $this->storeIdentifierPhoto($user, $application, $identifierPhoto);
 
             $meter = Meter::query()->firstOrCreate(
                 [
@@ -50,6 +55,7 @@ class CreateMeterAction
                     'longitude' => $payload['longitude'] ?? null,
                     'location_accuracy' => $payload['location_accuracy'] ?? null,
                     'location_source' => $payload['location_source'] ?? null,
+                    'identifier_photo_path' => $identifierPhotoPath,
                     'status' => MeterStatus::Active->value,
                 ],
             );
@@ -68,6 +74,7 @@ class CreateMeterAction
                 'longitude' => $meter->longitude ?? ($payload['longitude'] ?? null),
                 'location_accuracy' => $meter->location_accuracy ?? ($payload['location_accuracy'] ?? null),
                 'location_source' => $meter->location_source ?? ($payload['location_source'] ?? null),
+                'identifier_photo_path' => $meter->identifier_photo_path ?? $identifierPhotoPath,
             ]);
             $meter->save();
 
@@ -191,4 +198,22 @@ class CreateMeterAction
         );
     }
 
+    private function storeIdentifierPhoto(PublicUser $user, Application $application, ?UploadedFile $identifierPhoto): ?string
+    {
+        if (! $identifierPhoto instanceof UploadedFile) {
+            return null;
+        }
+
+        if (! $application->requires_public_user_identifier) {
+            throw ValidationException::withMessages([
+                'identifier_photo' => ['La photo est disponible uniquement pour une catégorie qui demande un identifiant.'],
+            ]);
+        }
+
+        return $this->wasabiService->uploadFile(
+            $identifierPhoto,
+            'meters/identifier-photos/'.$user->id,
+            'identifier-photo',
+        );
+    }
 }

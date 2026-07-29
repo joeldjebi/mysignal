@@ -230,6 +230,7 @@ class StatisticController extends Controller
             ->take(200)
             ->map(function (IncidentReport $report): array {
                 return [
+                    'id' => $report->id,
                     'reference' => $report->reference,
                     'status' => $report->status,
                     'signal_code' => $report->signal_code,
@@ -238,6 +239,7 @@ class StatisticController extends Controller
                     'longitude' => (float) $report->longitude,
                     'target_sla_hours' => $report->target_sla_hours,
                     'created_at' => $report->created_at?->toIso8601String(),
+                    'detail_url' => route('institution.reports.show', $report),
                 ];
             })
             ->values();

@@ -4,13 +4,20 @@ namespace App\Domain\Meters\Actions;
 
 use App\Models\Meter;
 use App\Models\PublicUser;
+use App\Services\WasabiService;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class UpdateMeterAction
 {
-    public function handle(PublicUser $user, Meter $meter, array $payload): Meter
+    public function __construct(private readonly WasabiService $wasabiService) {}
+
+    public function handle(PublicUser $user, Meter $meter, array $payload, ?UploadedFile $identifierPhoto = null): Meter
     {
-        return DB::transaction(function () use ($user, $meter, $payload): Meter {
+        return DB::transaction(function () use ($user, $meter, $payload, $identifierPhoto): Meter {
+            $identifierPhotoPath = $this->storeIdentifierPhoto($user, $meter, $identifierPhoto);
+
             $meter->fill([
                 'application_id' => $payload['application_id'] ?? $meter->application_id,
                 'organization_id' => $payload['organization_id'] ?? $meter->organization_id,
@@ -25,6 +32,7 @@ class UpdateMeterAction
                 'longitude' => array_key_exists('longitude', $payload) ? $payload['longitude'] : $meter->longitude,
                 'location_accuracy' => array_key_exists('location_accuracy', $payload) ? $payload['location_accuracy'] : $meter->location_accuracy,
                 'location_source' => array_key_exists('location_source', $payload) ? $payload['location_source'] : $meter->location_source,
+                'identifier_photo_path' => $identifierPhotoPath ?? $meter->identifier_photo_path,
             ]);
             $meter->save();
 
@@ -40,5 +48,30 @@ class UpdateMeterAction
 
             return $meter->fresh();
         });
+    }
+
+    private function storeIdentifierPhoto(PublicUser $user, Meter $meter, ?UploadedFile $identifierPhoto): ?string
+    {
+        if (! $identifierPhoto instanceof UploadedFile) {
+            return null;
+        }
+
+        $application = $meter->application;
+
+        if (! $application?->requires_public_user_identifier) {
+            throw ValidationException::withMessages([
+                'identifier_photo' => ['La photo est disponible uniquement pour une catégorie qui demande un identifiant.'],
+            ]);
+        }
+
+        if (filled($meter->identifier_photo_path)) {
+            $this->wasabiService->deleteFile($meter->identifier_photo_path);
+        }
+
+        return $this->wasabiService->uploadFile(
+            $identifierPhoto,
+            'meters/identifier-photos/'.$user->id,
+            'identifier-photo',
+        );
     }
 }

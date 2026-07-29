@@ -92,4 +92,24 @@ class PublicIncidentReportController extends Controller
             'organizations' => Organization::query()->where('status', 'active')->orderBy('name')->get(['id', 'name']),
         ]);
     }
+
+    public function show(IncidentReport $report): View
+    {
+        $report->load([
+            'publicUser.publicUserType',
+            'application',
+            'organization.organizationType',
+            'meter.organization',
+            'country',
+            'city',
+            'commune',
+            'purchaseReceipt',
+            'payments.pricingRule',
+            'reparationCase',
+        ]);
+
+        return view('super-admin.public-reports.show', [
+            'report' => $report,
+        ]);
+    }
 }

@@ -619,7 +619,7 @@
       ]
     },
     {
-      "name": "04 - Compteurs",
+      "name": "04 - Identifiants",
       "item": [
         {
           "name": "List Meters",
@@ -654,6 +654,51 @@
               "raw": "{\n  \"application_id\": {{applicationId}},\n  \"organization_id\": {{organizationId}},\n  \"network_type\": \"CIE\",\n  \"meter_number\": \"{{meterNumber}}\",\n  \"label\": \"Compteur principal\",\n  \"city\": \"{{cityName}}\",\n  \"commune\": \"{{communeName}}\",\n  \"neighborhood\": \"{{neighborhoodName}}\",\n  \"sub_neighborhood\": \"{{subNeighborhoodName}}\",\n  \"address\": \"{{address}}\",\n  \"latitude\": {{latitude}},\n  \"longitude\": {{longitude}},\n  \"location_accuracy\": {{locationAccuracy}},\n  \"location_source\": \"gps\",\n  \"is_primary\": true\n}"
             },
             "url": "{{baseUrl}}/v1/public/meters"
+          }
+        },
+        {
+          "name": "Create Identifier With Optional Photo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json?.data?.meter?.id) pm.environment.set('meterId', json.data.meter.id);",
+                  "pm.test('Identifier photo URL exposed', function () { pm.expect(json?.data?.meter).to.have.property('identifier_photo_url'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "application_id", "value": "{{applicationId}}", "type": "text" },
+                { "key": "organization_id", "value": "{{organizationId}}", "type": "text" },
+                { "key": "network_type", "value": "CIE", "type": "text" },
+                { "key": "meter_number", "value": "{{meterNumber}}", "type": "text", "description": "Identifiant saisi par le UP." },
+                { "key": "label", "value": "Identifiant principal", "type": "text" },
+                { "key": "city", "value": "{{cityName}}", "type": "text" },
+                { "key": "commune", "value": "{{communeName}}", "type": "text" },
+                { "key": "neighborhood", "value": "{{neighborhoodName}}", "type": "text" },
+                { "key": "sub_neighborhood", "value": "{{subNeighborhoodName}}", "type": "text" },
+                { "key": "address", "value": "{{address}}", "type": "text" },
+                { "key": "latitude", "value": "{{latitude}}", "type": "text" },
+                { "key": "longitude", "value": "{{longitude}}", "type": "text" },
+                { "key": "location_accuracy", "value": "{{locationAccuracy}}", "type": "text" },
+                { "key": "location_source", "value": "gps", "type": "text" },
+                { "key": "is_primary", "value": "true", "type": "text" },
+                { "key": "identifier_photo", "type": "file", "src": "{{identifierPhotoPath}}", "description": "Optionnel. A envoyer uniquement si la categorie retourne requires_public_user_identifier=true. Fichier stocke sur Wasabi." }
+              ]
+            },
+            "url": "{{baseUrl}}/v1/public/meters",
+            "description": "Cree un identifiant avec photo optionnelle. Formats acceptes: jpg, jpeg, png, webp. Taille max: 4 Mo. La reponse contient identifier_photo_url."
           }
         },
         {
@@ -962,6 +1007,33 @@
             "method": "GET",
             "header": [{ "key": "Accept", "value": "application/json" }],
             "url": "{{baseUrl}}/v1/public/reports"
+          }
+        },
+        {
+          "name": "Global Monthly Category Stats",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Monthly stats returned', function () {",
+                  "  pm.expect(json?.data?.previous_month).to.be.an('object');",
+                  "  pm.expect(json?.data?.current_month).to.be.an('object');",
+                  "  pm.expect(json.data.previous_month).to.have.property('categories');",
+                  "  pm.expect(json.data.current_month).to.have.property('categories');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/reports/monthly-category-stats",
+            "description": "Retourne les statistiques globales de toute la plateforme pour le mois precedent et le mois en cours, avec le nombre de signalements par categorie."
           }
         },
         {

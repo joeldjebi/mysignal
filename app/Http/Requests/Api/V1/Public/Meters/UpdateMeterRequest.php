@@ -26,6 +26,7 @@ class UpdateMeterRequest extends FormRequest
             'longitude' => ['sometimes', 'nullable', 'numeric', 'between:-180,180'],
             'location_accuracy' => ['sometimes', 'nullable', 'integer', 'min:0', 'max:10000'],
             'location_source' => ['sometimes', 'nullable', 'string', 'max:30'],
+            'identifier_photo' => ['sometimes', 'nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             'is_primary' => ['sometimes', 'boolean'],
         ];
     }

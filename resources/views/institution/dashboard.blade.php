@@ -78,6 +78,19 @@
         .compact-ai-dashboard .map-frame {
             min-height: 280px;
         }
+        .compact-ai-dashboard .map-modal-frame {
+            height: calc(100vh - 170px);
+            min-height: 520px;
+            border-radius: 18px;
+            overflow: hidden;
+            border: 1px solid rgba(16,42,67,.08);
+        }
+        .compact-ai-dashboard .map-actions {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            flex-wrap: wrap;
+        }
         .compact-ai-dashboard .table-modern tbody td {
             padding-top: .55rem;
             padding-bottom: .55rem;
@@ -371,11 +384,31 @@
                         <div class="fw-bold mb-1">Carte des signalements</div>
                         <div class="text-secondary small">Localisation des signalements de la période sélectionnée.</div>
                     </div>
-                    <span class="status-chip">{{ $stats['geo_points'] }} point(s)</span>
+                    <div class="map-actions">
+                        <span class="status-chip">{{ $stats['geo_points'] }} point(s)</span>
+                        <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#reportsMapModal">Agrandir</button>
+                    </div>
                 </div>
                 <div id="reportsMap" class="map-frame"></div>
             </div>
         </section>
+
+        <div class="modal fade" id="reportsMapModal" tabindex="-1" aria-labelledby="reportsMapModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-fullscreen-lg-down modal-xl modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div>
+                            <h5 class="modal-title" id="reportsMapModalLabel">Carte des signalements</h5>
+                            <div class="text-secondary small">Cliquez sur un numéro de signalement pour ouvrir son détail.</div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="reportsMapLarge" class="map-modal-frame"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
     @endif
 
     @if ($canViewInsightPanel || $canViewRecentReports)
@@ -627,54 +660,69 @@
         @endif
 
         @if ($canViewReportsMap)
-        const mapElement = document.querySelector('#reportsMap');
+        const reportStatusMeta = {
+            submitted: { label: 'Soumis', color: '#ffa117', shadow: 'rgba(255,161,23,.35)' },
+            in_progress: { label: 'En cours', color: '#6791ff', shadow: 'rgba(103,145,255,.35)' },
+            rejected: { label: 'Rejeté', color: '#ff0068', shadow: 'rgba(255,0,104,.32)' },
+            resolved: { label: 'Résolu', color: '#5bebaf', shadow: 'rgba(91,235,175,.35)' }
+        };
 
-        if (mapElement) {
-            const map = L.map('reportsMap', {
-                scrollWheelZoom: false
+        const escapeMapText = (value) => String(value ?? '-')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+
+        function buildSignalIcon(status) {
+            const meta = reportStatusMeta[status] || reportStatusMeta.submitted;
+
+            return L.divIcon({
+                className: 'signal-map-icon',
+                html: `
+                    <div style="
+                        width: 22px;
+                        height: 22px;
+                        border-radius: 50% 50% 50% 0;
+                        background: ${meta.color};
+                        transform: rotate(-45deg);
+                        border: 2px solid #ffffff;
+                        box-shadow: 0 8px 18px ${meta.shadow};
+                        position: relative;
+                    ">
+                        <span style="
+                            position: absolute;
+                            inset: 0;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            transform: rotate(45deg);
+                            color: #ffffff;
+                            font-size: 11px;
+                            font-weight: 800;
+                            line-height: 1;
+                        ">!</span>
+                    </div>
+                `,
+                iconSize: [22, 22],
+                iconAnchor: [11, 22],
+                popupAnchor: [0, -18]
+            });
+        }
+
+        function renderReportsMap(elementId, options = {}) {
+            const element = document.getElementById(elementId);
+
+            if (!element || element.dataset.ready === '1') {
+                return element?._leafletMap || null;
+            }
+
+            const map = L.map(elementId, {
+                scrollWheelZoom: Boolean(options.scrollWheelZoom)
             });
 
-            const reportStatusMeta = {
-                submitted: { label: 'Soumis', color: '#ffa117', shadow: 'rgba(255,161,23,.35)' },
-                in_progress: { label: 'En cours', color: '#6791ff', shadow: 'rgba(103,145,255,.35)' },
-                rejected: { label: 'Rejeté', color: '#ff0068', shadow: 'rgba(255,0,104,.32)' }
-            };
-
-            function buildSignalIcon(status) {
-                const meta = reportStatusMeta[status] || reportStatusMeta.submitted;
-
-                return L.divIcon({
-                    className: 'signal-map-icon',
-                    html: `
-                        <div style="
-                            width: 22px;
-                            height: 22px;
-                            border-radius: 50% 50% 50% 0;
-                            background: ${meta.color};
-                            transform: rotate(-45deg);
-                            border: 2px solid #ffffff;
-                            box-shadow: 0 8px 18px ${meta.shadow};
-                            position: relative;
-                        ">
-                            <span style="
-                                position: absolute;
-                                inset: 0;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                transform: rotate(45deg);
-                                color: #ffffff;
-                                font-size: 11px;
-                                font-weight: 800;
-                                line-height: 1;
-                            ">!</span>
-                        </div>
-                    `,
-                    iconSize: [22, 22],
-                    iconAnchor: [11, 22],
-                    popupAnchor: [0, -18]
-                });
-            }
+            element.dataset.ready = '1';
+            element._leafletMap = map;
 
             L.tileLayer(@json(url('/map-tiles').'/{s}/{z}/{x}/{y}.png'), {
                 maxZoom: 19,
@@ -691,11 +739,12 @@
                     }).addTo(map);
 
                     marker.bindPopup(`
-                        <div style="min-width: 180px;">
-                            <div style="font-weight: 700; margin-bottom: 4px;">${report.reference}</div>
-                            <div style="font-size: 12px; color: #5b6b7a;">${report.signal_label || 'Signalement'}</div>
-                            <div style="font-size: 12px; margin-top: 6px;">Statut: ${statusMeta.label}</div>
-                            <div style="font-size: 12px; margin-top: 6px;">Délai attendu: ${report.target_sla_hours ?? '-'} h</div>
+                        <div style="min-width: 200px;">
+                            <a href="${escapeMapText(report.detail_url)}" target="_blank" rel="noopener" style="font-weight: 700; margin-bottom: 4px; display: inline-block; color: #183447; text-decoration: none;">${escapeMapText(report.reference || ('#' + report.id))}</a>
+                            <div style="font-size: 12px; color: #5b6b7a;">${escapeMapText(report.signal_label || 'Signalement')}</div>
+                            <div style="font-size: 12px; margin-top: 6px;">État : ${escapeMapText(statusMeta.label)}</div>
+                            <div style="font-size: 12px; margin-top: 6px;">Délai attendu : ${escapeMapText(report.target_sla_hours ?? '-')} h</div>
+                            <a href="${escapeMapText(report.detail_url)}" target="_blank" rel="noopener" style="font-size: 12px; margin-top: 8px; display: inline-block;">Voir le détail</a>
                         </div>
                     `);
 
@@ -706,7 +755,16 @@
             } else {
                 map.setView([5.3364, -4.0267], 11);
             }
+
+            return map;
         }
+
+        renderReportsMap('reportsMap');
+
+        document.getElementById('reportsMapModal')?.addEventListener('shown.bs.modal', () => {
+            const map = renderReportsMap('reportsMapLarge', { scrollWheelZoom: true });
+            setTimeout(() => map?.invalidateSize(), 120);
+        });
         @endif
     </script>
 @endsection
