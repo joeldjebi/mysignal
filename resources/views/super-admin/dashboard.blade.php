@@ -81,14 +81,14 @@
             min-height: 280px;
         }
         .compact-sa-dashboard .map-frame {
-            min-height: 360px;
+            min-height: 520px;
             border-radius: 18px;
             overflow: hidden;
             border: 1px solid rgba(16,42,67,.08);
         }
         .compact-sa-dashboard .map-modal-frame {
-            height: calc(100vh - 170px);
-            min-height: 520px;
+            height: calc(100vh - 140px);
+            min-height: 640px;
             border-radius: 18px;
             overflow: hidden;
             border: 1px solid rgba(16,42,67,.08);
@@ -572,9 +572,9 @@
                     bounds.push([report.latitude, report.longitude]);
                 });
 
-                map.fitBounds(bounds, { padding: [30, 30] });
+                map.fitBounds(bounds, { padding: [28, 28], maxZoom: 13 });
             } else {
-                map.setView([5.3364, -4.0267], 6);
+                map.setView([7.54, -5.55], 7);
             }
 
             return map;

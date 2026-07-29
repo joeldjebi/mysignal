@@ -44,7 +44,7 @@ class SlaController extends Controller
             'organization' => $context['organization'],
             'features' => $context['feature_codes'],
             'activeNav' => 'sla',
-            'slaPolicies' => $query->orderBy('network_type')->orderBy('signal_code')->get(),
+            'slaPolicies' => $query->orderBy('network_type')->orderBy('signal_code')->paginate(15)->withQueryString(),
             'signalTypes' => $signalTypes,
         ]);
     }

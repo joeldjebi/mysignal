@@ -193,6 +193,7 @@ class DashboardController extends Controller
 
         $mapReports = IncidentReport::query()
             ->with('meter')
+            ->where('status', '!=', 'resolved')
             ->where(function ($query): void {
                 $query->whereNotNull('latitude')
                     ->whereNotNull('longitude')

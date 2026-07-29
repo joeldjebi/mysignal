@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers\Web\Institution;
 
+use App\Domain\Reports\Enums\IncidentReportStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Web\Institution\Concerns\InteractsWithInstitutionContext;
 use App\Models\IncidentReport;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -189,6 +192,10 @@ class DashboardController extends Controller
             })
             ->values();
 
+        $groupingSurfaceSquareMeters = $this->reportGroupingSurfaceSquareMeters();
+        $groupingSideMeters = $this->reportGroupingSideMeters($groupingSurfaceSquareMeters);
+        $identifierGroups = $this->identifierReportGroups(clone $reportsQuery, $groupingSideMeters, 6);
+
         $paidReports = 0;
         $pendingReports = 0;
         $collectedAmount = 0;
@@ -258,6 +265,88 @@ class DashboardController extends Controller
             'slaBreakdown' => $slaBreakdown,
             'damageResolutionBreakdown' => $damageResolutionBreakdown,
             'mapReports' => $mapReports,
+            'identifierGroups' => $identifierGroups,
+            'groupingSurfaceSquareMeters' => $groupingSurfaceSquareMeters,
+            'groupingSideMeters' => $groupingSideMeters,
+            'dashboardReportFilterQuery' => request()->only(['period', 'date_from', 'date_to', 'commune_id']),
         ]);
+    }
+
+    private function identifierReportGroups(Builder $query, int $sideMeters, int $limit = 6): Collection
+    {
+        $meterAlias = 'dashboard_grouping_meters';
+        $latitudeExpression = $this->identifierLatitudeExpression($meterAlias);
+        $longitudeExpression = $this->identifierLongitudeExpression($meterAlias);
+        $latitudeCellExpression = $this->identifierLatitudeCellExpression($sideMeters, $meterAlias);
+        $longitudeCellExpression = $this->identifierLongitudeCellExpression($sideMeters, $meterAlias);
+
+        return $query
+            ->leftJoin('meters as '.$meterAlias, $meterAlias.'.id', '=', 'incident_reports.meter_id')
+            ->whereNotNull('incident_reports.meter_id')
+            ->whereIn('incident_reports.status', [
+                IncidentReportStatus::Submitted->value,
+                IncidentReportStatus::InProgress->value,
+            ])
+            ->whereRaw($latitudeExpression.' IS NOT NULL')
+            ->whereRaw($longitudeExpression.' IS NOT NULL')
+            ->selectRaw($latitudeCellExpression.' as latitude_cell')
+            ->selectRaw($longitudeCellExpression.' as longitude_cell')
+            ->selectRaw('COUNT(*) as reports_count')
+            ->selectRaw('MIN(NULLIF('.$meterAlias.'.commune, \'\')) as commune_name')
+            ->groupByRaw($latitudeCellExpression.', '.$longitudeCellExpression)
+            ->orderByDesc('reports_count')
+            ->limit($limit)
+            ->get()
+            ->map(function ($group, int $index): array {
+                $latitudeCell = (int) $group->latitude_cell;
+                $longitudeCell = (int) $group->longitude_cell;
+
+                return [
+                    'key' => $this->identifierGroupKey($latitudeCell, $longitudeCell),
+                    'label' => 'Zone '.($index + 1),
+                    'area_label' => $group->commune_name ?: 'Secteur géolocalisé',
+                    'reports_count' => (int) $group->reports_count,
+                    'open_reports_count' => (int) $group->reports_count,
+                ];
+            });
+    }
+
+    private function reportGroupingSurfaceSquareMeters(): int
+    {
+        return max(1, (int) config('app.report_identifier_group_surface_square_meters', 1000));
+    }
+
+    private function reportGroupingSideMeters(int $surfaceSquareMeters): int
+    {
+        return max(5, (int) round(sqrt($surfaceSquareMeters)));
+    }
+
+    private function identifierLatitudeExpression(string $meterAlias): string
+    {
+        return 'COALESCE(incident_reports.latitude, '.$meterAlias.'.latitude)';
+    }
+
+    private function identifierLongitudeExpression(string $meterAlias): string
+    {
+        return 'COALESCE(incident_reports.longitude, '.$meterAlias.'.longitude)';
+    }
+
+    private function identifierLatitudeCellExpression(int $sideMeters, string $meterAlias): string
+    {
+        $delta = number_format($sideMeters / 111_320, 12, '.', '');
+
+        return 'FLOOR(CAST('.$this->identifierLatitudeExpression($meterAlias).' AS NUMERIC) / '.$delta.')';
+    }
+
+    private function identifierLongitudeCellExpression(int $sideMeters, string $meterAlias): string
+    {
+        $delta = number_format($sideMeters / 111_320, 12, '.', '');
+
+        return 'FLOOR(CAST('.$this->identifierLongitudeExpression($meterAlias).' AS NUMERIC) / '.$delta.')';
+    }
+
+    private function identifierGroupKey(int $latitudeCell, int $longitudeCell): string
+    {
+        return $latitudeCell.'_'.$longitudeCell;
     }
 }

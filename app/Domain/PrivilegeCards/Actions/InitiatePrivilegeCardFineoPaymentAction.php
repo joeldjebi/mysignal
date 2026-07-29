@@ -24,6 +24,8 @@ class InitiatePrivilegeCardFineoPaymentAction
             ]);
         }
 
+        $cardAmount = $this->cardAmount($type);
+
         $existingPending = PrivilegeCardPaymentSession::query()
             ->where('public_user_id', $publicUser->id)
             ->where('privilege_card_type_id', $type->id)
@@ -32,7 +34,19 @@ class InitiatePrivilegeCardFineoPaymentAction
             ->first();
 
         if ($existingPending !== null && filled($existingPending->checkout_link)) {
-            return $existingPending->load('type', 'card');
+            if ((int) $existingPending->amount === $cardAmount && $existingPending->currency === $type->currency) {
+                return $existingPending->load('type', 'card');
+            }
+
+            $existingPending->update([
+                'status' => PaymentStatus::Failed->value,
+                'metadata' => [
+                    ...($existingPending->metadata ?? []),
+                    'failure_reason' => 'card_price_changed',
+                    'expected_card_amount' => $cardAmount,
+                    'previous_session_amount' => (int) $existingPending->amount,
+                ],
+            ]);
         }
 
         $syncRef = $this->generateSyncRef();
@@ -41,7 +55,7 @@ class InitiatePrivilegeCardFineoPaymentAction
             'public_user_id' => $publicUser->id,
             'privilege_card_type_id' => $type->id,
             'sync_ref' => $syncRef,
-            'amount' => $type->price,
+            'amount' => $cardAmount,
             'currency' => $type->currency,
             'status' => PaymentStatus::Pending->value,
             'provider' => 'fineopay',
@@ -50,7 +64,7 @@ class InitiatePrivilegeCardFineoPaymentAction
 
         $checkoutLink = $this->fineoPayClient->createCheckoutLink([
             'title' => 'Achat carte privilege '.$type->name,
-            'amount' => (int) $type->price,
+            'amount' => $cardAmount,
             'callbackUrl' => $this->callbackUrl(),
             'syncRef' => $syncRef,
         ]);
@@ -72,6 +86,19 @@ class InitiatePrivilegeCardFineoPaymentAction
         $token = (string) config('services.fineopay.callback_token');
 
         return $token !== '' ? $url.'?token='.urlencode($token) : $url;
+    }
+
+    private function cardAmount(PrivilegeCardType $type): int
+    {
+        $amount = (int) round((float) $type->price);
+
+        if ($amount < 1) {
+            throw ValidationException::withMessages([
+                'privilege_card_type_id' => ['Le montant de cette carte privilège est invalide.'],
+            ]);
+        }
+
+        return $amount;
     }
 
     private function generateSyncRef(): string

@@ -76,11 +76,11 @@
             min-height: 240px;
         }
         .compact-ai-dashboard .map-frame {
-            min-height: 280px;
+            min-height: 480px;
         }
         .compact-ai-dashboard .map-modal-frame {
-            height: calc(100vh - 170px);
-            min-height: 520px;
+            height: calc(100vh - 140px);
+            min-height: 640px;
             border-radius: 18px;
             overflow: hidden;
             border: 1px solid rgba(16,42,67,.08);
@@ -192,43 +192,6 @@
                 </div>
             </div>
         </form>
-    </section>
-
-    <section class="hero-card p-4 p-lg-5 mb-3">
-        <div class="row g-3 align-items-center">
-            <div class="col-lg-8">
-                <h1 class="h2 fw-bold mb-3">{{ $organization?->name }}</h1>
-                <p class="mb-4 text-white-50 small">
-                    {{ $canViewPaymentInfo
-                        ? 'Une vue claire pour suivre les signalements, les paiements et les priorités de traitement.'
-                        : 'Une vue claire pour suivre les signalements et les priorités de traitement.' }}
-                </p>
-                <div class="hero-strip">
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <div class="small text-white-50">Signalements</div>
-                            <div class="h4 fw-bold mb-0">{{ $canViewReports ? $stats['reports'] : '-' }}</div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="small text-white-50">{{ $canViewPaymentInfo ? 'En attente' : 'En cours' }}</div>
-                            <div class="h4 fw-bold mb-0">{{ $canViewDashboardKpis ? ($canViewPaymentInfo ? $stats['pending_reports'] : $stats['in_progress_reports']) : '-' }}</div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="small text-white-50">{{ $canViewPaymentInfo ? 'Taux de paiement' : 'Résolus' }}</div>
-                            <div class="h4 fw-bold mb-0">{{ $canViewPaymentInfo ? $stats['paid_rate'].'%' : ($canViewStatistics ? $stats['resolved_reports'] : '-') }}</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-4">
-                <div class="panel-card text-dark">
-                    <div class="small text-secondary fw-semibold mb-2">Compte connecté</div>
-                    <div class="fw-bold">{{ auth()->user()->name }}</div>
-                    <div class="small text-secondary mb-3">{{ auth()->user()->email }}</div>
-                    <div class="status-chip">{{ $organization?->name }}</div>
-                </div>
-            </div>
-        </div>
     </section>
 
     @if ($canViewDashboardKpis)
@@ -409,6 +372,40 @@
                 </div>
             </div>
         </div>
+    @endif
+
+    @if (($identifierGroups ?? collect())->isNotEmpty())
+        <section class="panel-card mb-3">
+            <div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-3">
+                <div>
+                    <div class="fw-bold mb-1">Regroupements par identifiant</div>
+                    <div class="text-secondary small">
+                        Signalements ouverts liés aux identifiants géolocalisés sur une surface de {{ number_format($groupingSurfaceSquareMeters, 0, ',', ' ') }} m².
+                    </div>
+                </div>
+                <a href="{{ route('institution.reports.index', $dashboardReportFilterQuery ?? []) }}" class="btn btn-sm btn-outline-secondary">Voir tous les signalements</a>
+            </div>
+
+            <div class="row g-3">
+                @foreach ($identifierGroups as $group)
+                    <div class="col-md-6 col-xl-4">
+                        <div class="surface-soft h-100 p-3 border rounded-3">
+                            <div class="d-flex justify-content-between gap-3 mb-2">
+                                <div>
+                                    <div class="fw-semibold">{{ $group['label'] }}</div>
+                                    <div class="small text-secondary">{{ $group['area_label'] }}</div>
+                                </div>
+                                <span class="status-chip chip-warning">{{ number_format($group['open_reports_count'], 0, ',', ' ') }} à traiter</span>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2 align-items-center justify-content-between">
+                                <span class="status-chip chip-neutral">{{ number_format($groupingSideMeters, 0, ',', ' ') }} m de côté</span>
+                                <a href="{{ route('institution.reports.index', array_merge($dashboardReportFilterQuery ?? [], ['identifier_group' => $group['key']])) }}" class="btn btn-sm btn-dark">Voir la liste</a>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </section>
     @endif
 
     @if ($canViewInsightPanel || $canViewRecentReports)
@@ -751,9 +748,9 @@
                     bounds.push([report.latitude, report.longitude]);
                 });
 
-                map.fitBounds(bounds, { padding: [30, 30] });
+                map.fitBounds(bounds, { padding: [28, 28], maxZoom: 14 });
             } else {
-                map.setView([5.3364, -4.0267], 11);
+                map.setView([7.54, -5.55], 7);
             }
 
             return map;

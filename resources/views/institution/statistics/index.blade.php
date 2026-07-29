@@ -30,9 +30,12 @@
             gap: .5rem;
             flex-wrap: wrap;
         }
-        .statistics-map-modal-frame {
-            height: calc(100vh - 170px);
+        .statistics-map-frame {
             min-height: 520px;
+        }
+        .statistics-map-modal-frame {
+            height: calc(100vh - 140px);
+            min-height: 640px;
             border-radius: 18px;
             overflow: hidden;
             border: 1px solid rgba(16,42,67,.08);
@@ -232,7 +235,7 @@
                                 <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#reportsMapModal">Agrandir</button>
                             </div>
                         </div>
-                        <div id="reportsMap" class="map-frame"></div>
+                        <div id="reportsMap" class="map-frame statistics-map-frame"></div>
                     </div>
                 </section>
             </div>
@@ -539,9 +542,9 @@
                     bounds.push([report.latitude, report.longitude]);
                 });
 
-                map.fitBounds(bounds, { padding: [30, 30] });
+                map.fitBounds(bounds, { padding: [28, 28], maxZoom: 14 });
             } else {
-                map.setView([5.3364, -4.0267], 11);
+                map.setView([7.54, -5.55], 7);
             }
 
             return map;
