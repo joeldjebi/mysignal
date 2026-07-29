@@ -152,6 +152,7 @@ class SignalTypeController extends Controller
                     'code' => $this->uniqueSignalTypeCode($application),
                     'label' => $label,
                     'default_sla_hours' => $defaultSlaHours,
+                    'requires_public_user_identifier' => $this->normalizeImportedBoolean($row['identifiant_requis'] ?? $row['requires_public_user_identifier'] ?? null),
                     'description' => $this->normalizeImportedText($row['description'] ?? null) ?: null,
                     'status' => 'active',
                 ]);
@@ -183,8 +184,8 @@ class SignalTypeController extends Controller
         $response = new StreamedResponse(function (): void {
             $output = fopen('php://output', 'wb');
             fwrite($output, "\xEF\xBB\xBF");
-            fputcsv($output, ['Libelle', 'Description', 'SLA_defaut_heures'], ';');
-            fputcsv($output, ['Frais bancaires abusifs', 'Commissions injustifiees ou frais non annonces.', '24'], ';');
+            fputcsv($output, ['Libelle', 'Description', 'SLA_defaut_heures', 'Identifiant_requis'], ';');
+            fputcsv($output, ['Frais bancaires abusifs', 'Commissions injustifiees ou frais non annonces.', '24', 'non'], ';');
             fclose($output);
         }, 200, [
             'Content-Type' => 'text/csv; charset=UTF-8',
@@ -362,7 +363,7 @@ class SignalTypeController extends Controller
     public function update(Request $request, SignalType $signalType, ActivityLogger $activityLogger): RedirectResponse
     {
         $before = $signalType->only([
-            'code', 'label', 'application_id', 'organization_id', 'default_sla_hours', 'description', 'status',
+            'code', 'label', 'application_id', 'organization_id', 'default_sla_hours', 'requires_public_user_identifier', 'description', 'status',
         ]);
         $attributes = $this->validatedAttributes($request, $signalType);
         $organizationIds = $attributes['organization_ids'];
@@ -378,7 +379,7 @@ class SignalTypeController extends Controller
             [
                 'before' => $before,
                 'after' => $signalType->only([
-                    'code', 'label', 'application_id', 'organization_id', 'default_sla_hours', 'description', 'status',
+                    'code', 'label', 'application_id', 'organization_id', 'default_sla_hours', 'requires_public_user_identifier', 'description', 'status',
                 ]),
                 'organization_ids' => $organizationIds,
             ],
@@ -657,6 +658,7 @@ class SignalTypeController extends Controller
             'organization_ids.*' => ['integer', 'exists:organizations,id'],
             'label' => ['required', 'string', 'max:180'],
             'default_sla_hours' => ['nullable', 'integer', 'min:1', 'max:999'],
+            'requires_public_user_identifier' => ['nullable', 'boolean'],
             'description' => ['nullable', 'string'],
         ]);
 
@@ -693,6 +695,7 @@ class SignalTypeController extends Controller
             'code' => $this->uniqueSignalTypeCode($application, $signalType),
             'label' => $attributes['label'],
             'default_sla_hours' => $attributes['default_sla_hours'] ?? null,
+            'requires_public_user_identifier' => (bool) ($attributes['requires_public_user_identifier'] ?? false),
             'description' => $attributes['description'] ?? null,
         ];
     }
@@ -834,7 +837,7 @@ class SignalTypeController extends Controller
     {
         if (collect(['libelle', 'label', 'nom'])->intersect($headers)->isEmpty()) {
             throw ValidationException::withMessages([
-                'csv_file' => ['Le fichier doit contenir une colonne Libelle. Colonnes optionnelles : Description, SLA_defaut_heures.'],
+                'csv_file' => ['Le fichier doit contenir une colonne Libelle. Colonnes optionnelles : Description, SLA_defaut_heures, Identifiant_requis.'],
             ]);
         }
     }
@@ -918,6 +921,17 @@ class SignalTypeController extends Controller
         }
 
         return $sla;
+    }
+
+    private function normalizeImportedBoolean(mixed $value): bool
+    {
+        $text = Str::of((string) ($value ?? ''))
+            ->ascii()
+            ->lower()
+            ->trim()
+            ->toString();
+
+        return in_array($text, ['1', 'true', 'oui', 'yes', 'y', 'obligatoire', 'requis'], true);
     }
 
     private function normalizeImportedSortOrder(mixed $value, int $rowIndex): ?int

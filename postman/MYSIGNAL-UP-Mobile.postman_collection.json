@@ -322,6 +322,8 @@
                   "pm.test('Signal types returned', function () { pm.expect(signalTypes.length).to.be.greaterThan(0); });",
                   "const selected = signalTypes.find((type) => type.code === (pm.environment.get('signalCode') || 'EL-01')) || signalTypes[0];",
                   "if (selected?.code) pm.environment.set('signalCode', selected.code);",
+                  "if (selected && Object.prototype.hasOwnProperty.call(selected, 'requires_public_user_identifier')) pm.environment.set('signalTypeRequiresPublicUserIdentifier', selected.requires_public_user_identifier ? 'true' : 'false');",
+                  "pm.test('Signal type identifier requirement exposed', function () { pm.expect(selected).to.have.property('requires_public_user_identifier'); });",
                   "const subTypes = selected?.sub_types || [];",
                   "const selectedSubType = subTypes.find((subType) => subType.code === (pm.environment.get('signalSubTypeCode') || 'OTHER')) || subTypes[0];",
                   "if (selectedSubType?.code) pm.environment.set('signalSubTypeCode', selectedSubType.code);"
@@ -333,7 +335,7 @@
             "method": "GET",
             "header": [{ "key": "Accept", "value": "application/json" }],
             "url": "{{baseUrl}}/v1/public/signal-types",
-            "description": "Retourne les types de signaux actifs avec sub_types et requires_sub_type. Le test Postman renseigne signalCode et signalSubTypeCode."
+            "description": "Retourne les types de signaux actifs avec requires_public_user_identifier, sub_types et requires_sub_type. Le test Postman renseigne signalCode, signalTypeRequiresPublicUserIdentifier et signalSubTypeCode."
           }
         },
         {
@@ -985,10 +987,10 @@
             "body": {
               "mode": "formdata",
               "formdata": [
-                { "key": "application_id", "value": "{{applicationId}}", "type": "text", "description": "Obligatoire si meter_id est absent. Utiliser requires_public_user_identifier du catalogue applications pour savoir si meter_id doit etre affiche/requis." },
+                { "key": "application_id", "value": "{{applicationId}}", "type": "text", "description": "Obligatoire si meter_id est absent. Utiliser requires_public_user_identifier du catalogue applications et du type de signal choisi pour savoir si meter_id doit etre affiche/requis." },
                 { "key": "organization_type_id", "value": "{{organizationTypeId}}", "type": "text", "description": "Sous categorie. Obligatoire si la categorie retourne requires_organization_type_on_report=true et si meter_id est absent." },
                 { "key": "organization_id", "value": "{{organizationId}}", "type": "text", "description": "Organisation concernee pour l application selectionnee." },
-                { "key": "meter_id", "value": "{{meterId}}", "type": "text", "description": "Obligatoire uniquement si l application retourne requires_public_user_identifier=true. Sinon retirer ce champ du payload." },
+                { "key": "meter_id", "value": "{{meterId}}", "type": "text", "description": "Obligatoire si l application ou le type de signal choisi retourne requires_public_user_identifier=true. Sinon retirer ce champ du payload." },
                 { "key": "signal_code", "value": "{{signalCode}}", "type": "text", "description": "Code retourne par GET /v1/public/signal-types et compatible avec l application/organisation selectionnee." },
                 { "key": "signal_sub_type_code", "value": "{{signalSubTypeCode}}", "type": "text", "disabled": true, "description": "Facultatif. Activer uniquement si le type de signal retourne requires_sub_type=true." },
                 { "key": "description", "value": "Coupure depuis 2 heures", "type": "text" },
@@ -1001,7 +1003,7 @@
               ]
             },
             "url": "{{baseUrl}}/v1/public/reports",
-            "description": "Payload sans sous-type: utiliser cette requete quand le type de signal n a pas de sous-types actifs. Nouveau flux: initialise une session FineoPay et retourne data.checkout_link. Le signalement est cree uniquement apres callback FineoPay success. Si requires_public_user_identifier=true, meter_id est obligatoire et le backend deduit la localisation depuis l identifiant; sinon meter_id doit etre omis et la localisation vient du profil UP/GPS."
+            "description": "Payload sans sous-type: utiliser cette requete quand le type de signal n a pas de sous-types actifs. Nouveau flux: initialise une session FineoPay et retourne data.checkout_link. Le signalement est cree uniquement apres callback FineoPay success. Si l application ou le type de signal choisi retourne requires_public_user_identifier=true, meter_id est obligatoire et le backend deduit la localisation depuis l identifiant; sinon meter_id doit etre omis et la localisation vient du profil UP/GPS."
           }
         },
         {
@@ -1030,7 +1032,7 @@
                 { "key": "application_id", "value": "{{applicationId}}", "type": "text", "description": "Obligatoire si meter_id est absent." },
                 { "key": "organization_type_id", "value": "{{organizationTypeId}}", "type": "text", "description": "Sous categorie. Obligatoire si la categorie retourne requires_organization_type_on_report=true et si meter_id est absent." },
                 { "key": "organization_id", "value": "{{organizationId}}", "type": "text", "description": "Organisation concernee pour l application selectionnee." },
-                { "key": "meter_id", "value": "{{meterId}}", "type": "text", "description": "Obligatoire uniquement si l application retourne requires_public_user_identifier=true. Sinon retirer ce champ du payload." },
+                { "key": "meter_id", "value": "{{meterId}}", "type": "text", "description": "Obligatoire si l application ou le type de signal choisi retourne requires_public_user_identifier=true. Sinon retirer ce champ du payload." },
                 { "key": "signal_code", "value": "{{signalCode}}", "type": "text", "description": "Code retourne par GET /v1/public/signal-types et compatible avec l application/organisation selectionnee." },
                 { "key": "signal_sub_type_code", "value": "{{signalSubTypeCode}}", "type": "text", "description": "Obligatoire uniquement si le type de signal retourne requires_sub_type=true. Utiliser OTHER pour Autre." },
                 { "key": "description", "value": "Coupure depuis 2 heures", "type": "text" },
@@ -1067,7 +1069,7 @@
               "formdata": [
                 { "key": "application_id", "value": "{{applicationId}}", "type": "text", "description": "Obligatoire si meter_id est absent." },
                 { "key": "organization_id", "value": "{{organizationId}}", "type": "text", "description": "Organisation concernee pour l application selectionnee." },
-                { "key": "meter_id", "value": "{{meterId}}", "type": "text", "description": "Obligatoire uniquement si l application retourne requires_public_user_identifier=true. Sinon retirer ce champ du payload." },
+                { "key": "meter_id", "value": "{{meterId}}", "type": "text", "description": "Obligatoire si l application ou le type de signal choisi retourne requires_public_user_identifier=true. Sinon retirer ce champ du payload." },
                 { "key": "signal_code", "value": "{{signalCode}}", "type": "text", "description": "Code retourne par GET /v1/public/signal-types et compatible avec l application/organisation selectionnee." },
                 { "key": "signal_sub_type_code", "value": "{{signalSubTypeCode}}", "type": "text", "disabled": true, "description": "Facultatif. Activer uniquement si le type de signal retourne requires_sub_type=true." },
                 { "key": "description", "value": "Compteur illisible", "type": "text" },

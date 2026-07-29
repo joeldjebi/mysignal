@@ -95,7 +95,7 @@ Ces endpoints servent a alimenter :
 - secteurs d activite pour les profils UPE/UPTI
 - types de signaux
 
-`GET /v1/public/applications` retourne les categories dans l ordre d affichage configure par le SA (`sort_order`, puis `name`). Chaque categorie expose aussi `identifier_label`, a utiliser comme libelle du champ identifiant quand `requires_public_user_identifier` vaut `true` : par exemple `Identifiant`, `Police d'assurance`, etc.
+`GET /v1/public/applications` retourne les categories dans l ordre d affichage configure par le SA (`sort_order`, puis `name`). Chaque categorie expose aussi `identifier_label`, a utiliser comme libelle du champ identifiant : par exemple `Identifiant`, `Police d'assurance`, etc. Le champ identifiant doit etre affiche si la categorie retourne `requires_public_user_identifier: true` ou si le type de signal choisi retourne `requires_public_user_identifier: true`.
 
 ### 2. OTP et creation de compte
 - `POST /v1/public/auth/request-otp`
@@ -335,7 +335,8 @@ Retourne l arbre geographique complet :
 Retourne le catalogue des types de signaux actifs avec :
 - application
 - organisation
--TCM cible
+- TCM cible
+- `requires_public_user_identifier` : `true` quand ce type de signal impose le choix d un identifiant, meme si la categorie ne l impose pas.
 - `sub_types` : sous-types actifs du type de signal. Quand ce tableau est non vide, l app doit afficher un champ sous-type obligatoire.
 - `requires_sub_type` : `true` quand `sub_types` est non vide.
 
@@ -542,7 +543,7 @@ Payload attendu sans fichier :
 
 | Champ | Obligatoire | Description |
 | --- | --- | --- |
-| `meter_id` | conditionnel | Identifiant rattache au UP. Obligatoire si la catégorie retourne `requires_public_user_identifier: true`. Afficher le libelle retourne dans `identifier_label`. |
+| `meter_id` | conditionnel | Identifiant rattache au UP. Obligatoire si la catégorie retourne `requires_public_user_identifier: true` ou si le type choisi retourne `requires_public_user_identifier: true`. Afficher le libelle retourne dans `identifier_label`. |
 | `application_id` | conditionnel | Catégorie concernée. Requis si `meter_id` n est pas envoye. |
 | `organization_type_id` | conditionnel | Sous Catégorie concernée, anciennement Type d organisation. Obligatoire si la catégorie retourne `requires_organization_type_on_report: true` et si `meter_id` n est pas envoye. |
 | `organization_id` | conditionnel | Institution concernée. Requise quand le parcours UP demande une institution ou pour filtrer les types de signaux institutionnels. |
@@ -624,6 +625,11 @@ signal_attachment=@preuve.jpg
 Ajouter `signal_sub_type_code=OTHER` ou le code du sous-type selectionne uniquement si le type de signal retourne `requires_sub_type: true`.
 
 Si `meter_id` est envoye, l API peut deduire la catégorie et l institution depuis l identifiant. Si `meter_id` n est pas envoye, envoyer `application_id`, `organization_type_id` si requis, et `organization_id`.
+
+Regle d affichage mobile pour l identifiant :
+- afficher le champ si `application.requires_public_user_identifier === true`
+- ou afficher le champ si `selectedSignalType.requires_public_user_identifier === true`
+- sinon, ne pas afficher le champ
 
 `signal_attachment` est optionnel. Formats acceptes : images `jpeg`, `png`, `webp`, `gif`, `heic`, `heif` et videos `mp4`, `mov/quicktime`, `avi`, `mpeg`. Taille max : 50 Mo.
 

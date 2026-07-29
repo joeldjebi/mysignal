@@ -3512,10 +3512,19 @@
                     return serviceApplications.find((item) => String(item.id) === applicationId) || null;
                 }
 
+                function getSelectedReportSignalType() {
+                    const signalCode = String(document.getElementById('reportSignalCode')?.value || '');
+                    const availableSignals = getSignalTypesForCurrentMeter();
+
+                    return availableSignals.find((item) => String(item.code) === signalCode) || availableSignals[0] || null;
+                }
+
                 function reportRequiresIdentifier() {
                     const application = getSelectedReportApplication();
+                    const signalType = getSelectedReportSignalType();
 
-                    return application ? application.requires_public_user_identifier !== false : true;
+                    return (application ? application.requires_public_user_identifier !== false : true)
+                        || signalType?.requires_public_user_identifier === true;
                 }
 
                 function reportRequiresOrganizationType() {
@@ -7145,26 +7154,30 @@
                 document.getElementById('reportApplicationId').addEventListener('change', () => {
                     renderReportOrganizationTypeOptions();
                     renderReportOrganizationOptions();
-                    renderReportMeterOptions();
                     renderSignalOptions();
+                    renderReportMeterOptions();
                     applyReportMeterLocationIfAvailable(true);
                 });
                 document.getElementById('reportOrganizationTypeId').addEventListener('change', () => {
                     renderReportOrganizationOptions();
-                    renderReportMeterOptions();
                     renderSignalOptions();
+                    renderReportMeterOptions();
                     applyReportMeterLocationIfAvailable(true);
                 });
                 document.getElementById('reportOrganizationType').addEventListener('change', () => {
-                    renderReportMeterOptions();
                     renderSignalOptions();
+                    renderReportMeterOptions();
                     applyReportMeterLocationIfAvailable(true);
                 });
                 document.getElementById('reportMeterId').addEventListener('change', () => {
                     renderSignalOptions();
                     applyReportMeterLocationIfAvailable(true);
                 });
-                document.getElementById('reportSignalCode').addEventListener('change', renderSignalPayloadFields);
+                document.getElementById('reportSignalCode').addEventListener('change', () => {
+                    renderReportMeterOptions();
+                    renderSignalPayloadFields();
+                    applyReportMeterLocationIfAvailable(true);
+                });
                 document.getElementById('captureProfileLocationButton').addEventListener('click', () => captureCurrentPosition('profile', { force: true }));
                 document.getElementById('sidebarRequestGpsButton')?.addEventListener('click', () => {
                     activatePanel('profile');

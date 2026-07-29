@@ -22,6 +22,7 @@ class SignalTypeResource extends JsonResource
             'network_type' => $this['network_type'],
             'label' => $this['label'],
             'description' => $this['description'],
+            'requires_public_user_identifier' => (bool) ($this['requires_public_user_identifier'] ?? false),
             'sla_target' => $this['sla_target'],
             'sla_targets' => $this['sla_targets'] ?? [],
             'sub_types' => $this['sub_types'] ?? [],

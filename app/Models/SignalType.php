@@ -20,6 +20,7 @@ class SignalType extends Model
         'label',
         'description',
         'default_sla_hours',
+        'requires_public_user_identifier',
         'status',
     ];
 
@@ -27,6 +28,7 @@ class SignalType extends Model
     {
         return [
             'default_sla_hours' => 'integer',
+            'requires_public_user_identifier' => 'boolean',
         ];
     }
 

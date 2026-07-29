@@ -60,6 +60,7 @@ class GetSignalTypeCatalogAction
                     'network_type' => $signalType->network_type,
                     'label' => $signalType->label,
                     'description' => $signalType->description,
+                    'requires_public_user_identifier' => (bool) $signalType->requires_public_user_identifier,
                     'sla_target' => $signalType->default_sla_hours !== null
                         ? ['hours' => $signalType->default_sla_hours, 'label' => $signalType->default_sla_hours.'h']
                         : null,

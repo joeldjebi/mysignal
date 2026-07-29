@@ -138,6 +138,7 @@
                                 <th>Institution concernée</th>
                                 <th>Signal</th>
                                 <th>SLA defaut</th>
+                                <th>Identifiant</th>
                                 <th>Statut</th>
                                 <th class="text-end">Actions</th>
                             </tr>
@@ -169,6 +170,11 @@
                                         <div class="small text-secondary mt-1">{{ $signalType->description ?: '-' }}</div>
                                     </td>
                                     <td><span class="status-chip">{{ $signalType->default_sla_hours ? $signalType->default_sla_hours.' h' : '-' }}</span></td>
+                                    <td>
+                                        <span class="status-chip {{ $signalType->requires_public_user_identifier ? 'chip-warning' : 'chip-neutral' }}">
+                                            {{ $signalType->requires_public_user_identifier ? 'Requis' : 'Selon catégorie' }}
+                                        </span>
+                                    </td>
                                     <td><span class="status-chip">{{ $signalType->status }}</span></td>
                                     <td class="text-end">
                                         <div class="actions-wrap">
@@ -188,7 +194,7 @@
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="7" class="text-center text-secondary">Aucun type de signal enregistre.</td></tr>
+                                <tr><td colspan="8" class="text-center text-secondary">Aucun type de signal enregistre.</td></tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -240,6 +246,14 @@
                         <div>
                             <label class="form-label">SLA par defaut (heures)</label>
                             <input type="number" min="1" max="999" name="default_sla_hours" class="form-control" placeholder="4">
+                        </div>
+                        <div>
+                            <label class="form-label">Identifiant lors du signalement</label>
+                            <select name="requires_public_user_identifier" class="form-select">
+                                <option value="0" @selected(old('requires_public_user_identifier', '0') === '0')>Selon la catégorie</option>
+                                <option value="1" @selected(old('requires_public_user_identifier') === '1')>Requis pour ce type</option>
+                            </select>
+                            <div class="small text-secondary mt-1">Si rien n’est forcé ici, l’affichage dépend uniquement de la catégorie.</div>
                         </div>
                         <div>
                             <label class="form-label">Description</label>

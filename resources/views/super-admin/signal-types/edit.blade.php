@@ -59,6 +59,7 @@
                 <div class="d-flex flex-wrap gap-2 mb-3">
                     <span class="status-chip">{{ $signalType->status }}</span>
                     <span class="status-chip">{{ $signalType->default_sla_hours ? $signalType->default_sla_hours.' h' : 'SansTCM defaut' }}</span>
+                    <span class="status-chip">{{ $signalType->requires_public_user_identifier ? 'Identifiant requis' : 'Identifiant selon catégorie' }}</span>
                 </div>
                 <div class="text-secondary small">{{ $signalType->description ?: 'Aucune description detaillee pour le moment.' }}</div>
             </section>
@@ -92,6 +93,14 @@
                     <div class="col-md-4">
                         <label class="form-label">SLA par defaut (heures)</label>
                         <input type="number" min="1" max="999" name="default_sla_hours" value="{{ old('default_sla_hours', $signalType->default_sla_hours) }}" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Identifiant lors du signalement</label>
+                        <select name="requires_public_user_identifier" class="form-select">
+                            <option value="0" @selected(! old('requires_public_user_identifier', $signalType->requires_public_user_identifier))>Selon la catégorie</option>
+                            <option value="1" @selected(old('requires_public_user_identifier', $signalType->requires_public_user_identifier))>Requis pour ce type</option>
+                        </select>
+                        <div class="small text-secondary mt-1">Si rien n’est forcé ici, l’affichage dépend uniquement de la catégorie.</div>
                     </div>
                     <div class="col-12">
                         <label class="form-label">Libelle</label>

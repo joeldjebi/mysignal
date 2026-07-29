@@ -215,6 +215,12 @@ class CreateIncidentReportAction
             ]);
         }
 
+        if ($signalType->requires_public_user_identifier && $meter === null) {
+            throw ValidationException::withMessages([
+                'meter_id' => ['Un identifiant est obligatoire pour ce type de signalement.'],
+            ]);
+        }
+
         [$signalSubType, $signalSubTypeCode, $signalSubTypeLabel] = $this->resolveSignalSubType($signalType, $payload);
 
         $organizationTypeId = $organizationType?->id;
