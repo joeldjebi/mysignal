@@ -2093,7 +2093,7 @@
       <div class="col-6 col-lg-2">
         <h6>{{ $blockMeta('footer', 'column_3_title', 'Légal') }}</h6>
         <ul>
-          @foreach ($lines($blockMeta('footer', 'column_3_links', "Conditions générales d'utilisation | /conditions-generales-utilisation\nPolitique de confidentialité | /politique-confidentialite\nContact | /contactez-nous")) as $footerLine)
+          @foreach ($lines($blockMeta('footer', 'column_3_links', "Conditions générales d’utilisation | /conditions-generales-utilisation\nPolitique de confidentialité | /politique-confidentialite\nContact | /contactez-nous")) as $footerLine)
             @php
               [$footerLabel, $footerUrl] = $parts($footerLine, 2);
             @endphp

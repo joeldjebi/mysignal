@@ -371,19 +371,19 @@ class PublicPortalController extends Controller
             'page_about' => [
                 'title' => 'Qui sommes-nous ?',
                 'subtitle' => 'My-Signal',
-                'body' => '<p>My-Signal accompagne les consommateurs, les unites partenaires et les institutions dans le signalement, le suivi et la resolution des difficultes liees aux services du quotidien.</p>',
+                'body' => '<p>My-Signal accompagne les consommateurs, les unités partenaires et les institutions dans le signalement, le suivi et la résolution des difficultés liées aux services du quotidien.</p>',
                 'meta' => ['icon' => 'bi-people-fill'],
             ],
             'page_tv' => [
                 'title' => 'My-Signal TV',
-                'subtitle' => 'Videos et informations',
+                'subtitle' => 'Vidéos et informations',
                 'body' => "Retrouvez ici les contenus videos, les campagnes d'information et les annonces importantes autour de My-Signal.",
                 'meta' => ['icon' => 'bi-play-btn-fill', 'video_url' => ''],
             ],
             'page_faq' => [
                 'title' => 'FAQ',
-                'subtitle' => 'Questions frequentes',
-                'body' => 'Les reponses aux questions les plus courantes sur le compte UP, les signalements, les notifications, les reductions et les espaces partenaires.',
+                'subtitle' => 'Questions fréquentes',
+                'body' => 'Les réponses aux questions les plus courantes sur le compte UP, les signalements, les notifications, les réductions et les espaces partenaires.',
                 'meta' => ['icon' => 'bi-question-circle-fill'],
             ],
             'page_contact' => [
@@ -398,15 +398,15 @@ class PublicPortalController extends Controller
                 ],
             ],
             'page_terms' => [
-                'title' => 'Conditions generales d utilisation',
-                'subtitle' => 'Cadre d utilisation',
-                'body' => '<p>Renseignez ici les conditions generales d utilisation de My-Signal.</p>',
+                'title' => 'Conditions générales d’utilisation',
+                'subtitle' => 'Cadre d’utilisation',
+                'body' => '<p>Renseignez ici les conditions générales d’utilisation de My-Signal.</p>',
                 'meta' => ['icon' => 'bi-file-earmark-text-fill'],
             ],
             'page_privacy' => [
-                'title' => 'Politique de confidentialite',
-                'subtitle' => 'Protection des donnees',
-                'body' => '<p>Renseignez ici la politique de confidentialite et de protection des donnees personnelles.</p>',
+                'title' => 'Politique de confidentialité',
+                'subtitle' => 'Protection des données',
+                'body' => '<p>Renseignez ici la politique de confidentialité et de protection des données personnelles.</p>',
                 'meta' => ['icon' => 'bi-shield-lock-fill'],
             ],
         ];

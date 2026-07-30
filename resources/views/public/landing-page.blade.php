@@ -405,7 +405,7 @@
                   @error('email')<div class="small text-danger mt-1">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label">Telephone</label>
+                  <label class="form-label">Téléphone</label>
                   <input class="form-control" name="phone" value="{{ old('phone') }}">
                 </div>
                 <div class="col-md-6">
@@ -470,7 +470,7 @@
         <div class="col-6 col-lg-2">
           <h6>{{ $blockMeta('footer', 'column_3_title', 'Légal') }}</h6>
           <ul>
-            @foreach ($lines($blockMeta('footer', 'column_3_links', "Conditions générales d'utilisation | /conditions-generales-utilisation\nPolitique de confidentialité | /politique-confidentialite\nContact | /contactez-nous")) as $footerLine)
+            @foreach ($lines($blockMeta('footer', 'column_3_links', "Conditions générales d’utilisation | /conditions-generales-utilisation\nPolitique de confidentialité | /politique-confidentialite\nContact | /contactez-nous")) as $footerLine)
               @php
                 [$footerLabel, $footerUrl] = $parts($footerLine, 2);
               @endphp
