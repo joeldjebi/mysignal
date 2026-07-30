@@ -1,8 +1,8 @@
 @extends('super-admin.layouts.app')
 
-@section('title', config('app.name').' | Page d’accueil')
-@section('page-title', 'Page d’accueil')
-@section('page-description', 'Mettre à jour chaque rubrique de la page publique avec des champs simples.')
+@section('title', config('app.name').' | Landing page et pages publiques')
+@section('page-title', 'Landing page et pages publiques')
+@section('page-description', 'Mettre à jour l’accueil public, les pages d’information, la FAQ, les conditions et la politique de confidentialité.')
 
 @push('styles')
     <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
@@ -34,6 +34,7 @@
 @section('content')
     @php
         $settingsMeta = $settings->meta ?? [];
+        $publicPages = $publicPages ?? [];
         $inputType = fn (string $field): string => in_array($field, ['url'], true) ? 'text' : 'text';
     @endphp
 
@@ -45,9 +46,9 @@
             <section class="panel-card">
                 <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
                     <div>
-                        <div class="fw-bold">Rubriques de la page publique</div>
+                        <div class="fw-bold">Contenus publics</div>
                         <div class="small text-secondary">
-                            Chaque rubrique est organisée en champs et tableaux. Les lignes vides ne sont pas enregistrées.
+                            Modifiez les blocs de l’accueil et les pages publiques affichées aux visiteurs.
                         </div>
                     </div>
                     <div class="d-flex gap-2">
@@ -56,17 +57,42 @@
                     </div>
                 </div>
 
+                <div class="alert alert-info d-flex align-items-start gap-3">
+                    <i class="bi bi-pencil-square fs-5"></i>
+                    <div>
+                        <div class="fw-semibold">Les pages publiques sont modifiables ici.</div>
+                        <div class="small">
+                            Ouvrez une rubrique marquée “Page” pour modifier son titre, son texte, ses informations et ses contenus associés.
+                        </div>
+                    </div>
+                </div>
+
                 <div class="accordion" id="landingSectionsAccordion">
                     @foreach ($sections as $key => $section)
+                        @php
+                            $publicPage = $publicPages[$key] ?? null;
+                        @endphp
                         <div class="accordion-item border-0 rounded-4 overflow-hidden shadow-sm mb-3">
                             <h2 class="accordion-header">
                                 <button class="accordion-button {{ $loop->first ? '' : 'collapsed' }}" type="button" data-bs-toggle="collapse" data-bs-target="#landing-section-{{ $key }}">
                                     <span class="fw-bold">{{ $section['label'] }}</span>
-                                    <span class="small text-secondary ms-2">Rubrique {{ $loop->iteration }}</span>
+                                    <span class="small text-secondary ms-2">{{ $publicPage ? 'Page publique' : 'Rubrique '.$loop->iteration }}</span>
                                 </button>
                             </h2>
                             <div id="landing-section-{{ $key }}" class="accordion-collapse collapse {{ $loop->first ? 'show' : '' }}" data-bs-parent="#landingSectionsAccordion">
                                 <div class="accordion-body">
+                                    @if ($publicPage)
+                                        <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap border rounded-4 p-3 mb-3 bg-light">
+                                            <div>
+                                                <div class="fw-semibold">{{ $publicPage['label'] }}</div>
+                                                <div class="small text-secondary">Cette page est visible sur le site public.</div>
+                                            </div>
+                                            <a href="{{ route($publicPage['route']) }}" target="_blank" class="btn btn-outline-dark btn-sm">
+                                                Prévisualiser la page
+                                            </a>
+                                        </div>
+                                    @endif
+
                                     <div class="form-check form-switch mb-3">
                                         <input type="hidden" name="sections[{{ $key }}][is_active]" value="0">
                                         <input class="form-check-input" type="checkbox" name="sections[{{ $key }}][is_active]" value="1" id="section-active-{{ $key }}" @checked($section['is_active_value'])>
@@ -191,6 +217,15 @@
                 <div class="fw-bold mb-3">Paramètres visuels</div>
                 <div class="alert alert-info small">
                     Le Super Admin modifie les contenus dans des champs lisibles. Le design de la page reste protégé.
+                </div>
+
+                <div class="fw-bold mb-2">Pages publiques</div>
+                <div class="d-grid gap-2 mb-4">
+                    @foreach ($publicPages as $key => $page)
+                        <a href="#landing-section-{{ $key }}" class="btn btn-outline-dark btn-sm text-start" data-bs-toggle="collapse" data-bs-target="#landing-section-{{ $key }}">
+                            {{ $page['label'] }}
+                        </a>
+                    @endforeach
                 </div>
 
                 @php

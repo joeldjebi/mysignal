@@ -355,7 +355,7 @@
                 @if ($canAccess('SA_LANDING_PAGE_MANAGE'))
                     <a href="{{ route('super-admin.landing-page.edit') }}" class="nav-pill {{ request()->routeIs('super-admin.landing-page.*') ? 'active' : '' }}">
                         <span class="nav-icon">LP</span>
-                        <span><span class="d-block fw-semibold">Landing page</span><span class="small text-white-50">Accueil public</span></span>
+                        <span><span class="d-block fw-semibold">Pages publiques</span><span class="small text-white-50">Accueil et contenu</span></span>
                     </a>
                 @endif
                 @if ($canAccess('SA_MAINTENANCE_CLEANUP'))

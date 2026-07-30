@@ -28,6 +28,7 @@ class LandingPageController extends Controller
                 ->map(fn (array $definition, string $key): array => $this->sectionForForm($key, $definition, $storedSections->get($key)))
                 ->all(),
             'settings' => $this->settingsSection($storedSections->get('settings')),
+            'publicPages' => $this->publicPages(),
             'defaultLogoUrl' => asset('image/logo/logo-my-signal.png'),
         ]);
     }
@@ -249,6 +250,18 @@ class LandingPageController extends Controller
             'value' => null,
             'is_active' => true,
         ]);
+    }
+
+    private function publicPages(): array
+    {
+        return [
+            'page_about' => ['label' => 'Qui sommes-nous ?', 'route' => 'public.pages.about'],
+            'page_tv' => ['label' => 'My-Signal TV', 'route' => 'public.pages.tv'],
+            'page_faq' => ['label' => 'FAQ', 'route' => 'public.pages.faq'],
+            'page_contact' => ['label' => 'Contactez-nous', 'route' => 'public.pages.contact'],
+            'page_terms' => ['label' => 'Conditions générales d’utilisation', 'route' => 'public.pages.terms'],
+            'page_privacy' => ['label' => 'Politique de confidentialité', 'route' => 'public.pages.privacy'],
+        ];
     }
 
     private function sections(): array
