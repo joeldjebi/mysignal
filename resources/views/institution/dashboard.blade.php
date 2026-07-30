@@ -36,6 +36,10 @@
         <span class="badge-soft">{{ $stats['sla_breached'] }} délai(s) dépassé(s)</span>
         <span class="badge-soft">{{ $stats['resolved_reports'] }} résolus</span>
     @endif
+    <button type="button" class="btn btn-sm btn-outline-dark" data-presentation-button>
+        <i class="bi bi-arrows-fullscreen me-1"></i>
+        Mode présentation
+    </button>
 @endsection
 
 @section('content')
@@ -529,6 +533,37 @@
         <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     @endif
     <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const presentationButton = document.querySelector('[data-presentation-button]');
+
+            if (!presentationButton || !document.documentElement.requestFullscreen) {
+                presentationButton?.classList.add('d-none');
+                return;
+            }
+
+            const updatePresentationButton = () => {
+                const isFullscreen = Boolean(document.fullscreenElement);
+                presentationButton.innerHTML = isFullscreen
+                    ? '<i class="bi bi-fullscreen-exit me-1"></i> Quitter le mode présentation'
+                    : '<i class="bi bi-arrows-fullscreen me-1"></i> Mode présentation';
+            };
+
+            presentationButton.addEventListener('click', async () => {
+                try {
+                    if (document.fullscreenElement) {
+                        await document.exitFullscreen();
+                    } else {
+                        await document.documentElement.requestFullscreen();
+                    }
+                } catch (error) {
+                    console.warn('Mode présentation indisponible.', error);
+                }
+            });
+
+            document.addEventListener('fullscreenchange', updatePresentationButton);
+            updatePresentationButton();
+        });
+
         @if ($canViewReportsMap)
             const mapReports = @json($mapReports);
         @endif
