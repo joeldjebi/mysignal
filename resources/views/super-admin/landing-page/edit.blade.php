@@ -5,8 +5,14 @@
 @section('page-description', 'Mettre à jour l’accueil public, les pages d’information, la FAQ, les conditions et la politique de confidentialité.')
 
 @push('styles')
-    <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
     <style>
+        .rich-editor-wrap:not(.is-ready) .rich-editor {
+            display: none;
+        }
+        .rich-editor-wrap:not(.is-ready) textarea.rich-editor-input {
+            min-height: 260px;
+        }
         .rich-editor-wrap .ql-toolbar {
             border-top-left-radius: 8px;
             border-top-right-radius: 8px;
@@ -21,7 +27,7 @@
             font-size: .95rem;
             background: #fff;
         }
-        .rich-editor-wrap textarea.rich-editor-input {
+        .rich-editor-wrap.is-ready textarea.rich-editor-input {
             display: none;
         }
     </style>
@@ -258,11 +264,15 @@
 @endsection
 
 @push('scripts')
-    <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const form = document.getElementById('landingPageForm');
             const editors = [];
+
+            if (typeof Quill === 'undefined') {
+                return;
+            }
 
             document.querySelectorAll('.rich-editor-wrap').forEach((wrap) => {
                 const editorNode = wrap.querySelector('.rich-editor');
@@ -279,6 +289,8 @@
                         ]
                     }
                 });
+
+                wrap.classList.add('is-ready');
 
                 const syncEditor = () => {
                     input.value = editor.root.innerHTML;
