@@ -13,6 +13,7 @@ use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -58,6 +59,44 @@ class PublicUserController extends Controller
             $query->whereDoesntHave('activeDeviceTokens');
         }
 
+        $this->applyPeriodFilter($query, request(), 'public_users.created_at');
+
+        $statsQuery = clone $query;
+        $publicUserStats = [
+            'total' => (clone $statsQuery)->count(),
+            'active' => (clone $statsQuery)->where('status', 'active')->count(),
+            'inactive' => (clone $statsQuery)->where('status', 'inactive')->count(),
+            'with_push' => (clone $statsQuery)->whereHas('activeDeviceTokens')->count(),
+        ];
+        $statusBreakdown = [
+            ['label' => 'Actifs', 'value' => $publicUserStats['active']],
+            ['label' => 'Inactifs', 'value' => $publicUserStats['inactive']],
+        ];
+        $typeBreakdown = (clone $statsQuery)
+            ->selectRaw('public_user_type_id, COUNT(*) as total')
+            ->with('publicUserType:id,name')
+            ->groupBy('public_user_type_id')
+            ->orderByDesc('total')
+            ->limit(8)
+            ->get()
+            ->map(fn ($row): array => [
+                'label' => $row->publicUserType?->name ?: 'Non renseigné',
+                'value' => (int) $row->total,
+            ])
+            ->values()
+            ->all();
+        $trend = (clone $statsQuery)
+            ->selectRaw('DATE(created_at) as period_label')
+            ->selectRaw('COUNT(*) as total')
+            ->groupByRaw('DATE(created_at)')
+            ->orderByRaw('DATE(created_at)')
+            ->get()
+            ->map(fn ($row): array => [
+                'label' => Carbon::parse($row->period_label)->format('d/m'),
+                'value' => (int) $row->total,
+            ])
+            ->all();
+
         return view('super-admin.public-users.index', [
             'publicUsers' => $query
                 ->withCount([
@@ -67,11 +106,59 @@ class PublicUserController extends Controller
                 ->latest()
                 ->paginate($perPage)
                 ->withQueryString(),
+            'publicUserStats' => $publicUserStats,
+            'statusBreakdown' => $statusBreakdown,
+            'typeBreakdown' => $typeBreakdown,
+            'trend' => $trend,
+            'perPage' => $perPage,
             'publicUserTypes' => PublicUserType::query()->with('pricingRule')->where('status', 'active')->orderBy('sort_order')->orderBy('name')->get(),
             'communes' => Commune::query()->where('status', 'active')->orderBy('name')->get(),
             'businessSectors' => BusinessSector::query()->where('status', 'active')->orderBy('sort_order')->orderBy('name')->get(),
             'pushEligibleUsersCount' => PublicUser::query()->whereHas('activeDeviceTokens')->count(),
         ]);
+    }
+
+    private function applyPeriodFilter($query, Request $request, string $column): void
+    {
+        [$startDate, $endDate] = $this->periodBounds($request);
+
+        if ($startDate !== null) {
+            $query->where($column, '>=', $startDate);
+        }
+
+        if ($endDate !== null) {
+            $query->where($column, '<=', $endDate);
+        }
+    }
+
+    private function periodBounds(Request $request): array
+    {
+        $period = (string) $request->input('period', '30d');
+
+        if ($period === 'today') {
+            return [now()->startOfDay(), now()->endOfDay()];
+        }
+
+        if ($period === '7d') {
+            return [now()->subDays(6)->startOfDay(), now()->endOfDay()];
+        }
+
+        if ($period === 'month') {
+            return [now()->startOfMonth(), now()->endOfMonth()];
+        }
+
+        if ($period === 'year') {
+            return [now()->startOfYear(), now()->endOfYear()];
+        }
+
+        if ($period === 'custom') {
+            $start = filled($request->input('date_from')) ? Carbon::parse($request->input('date_from'))->startOfDay() : null;
+            $end = filled($request->input('date_to')) ? Carbon::parse($request->input('date_to'))->endOfDay() : null;
+
+            return [$start, $end];
+        }
+
+        return [now()->subDays(29)->startOfDay(), now()->endOfDay()];
     }
 
     public function create(): View

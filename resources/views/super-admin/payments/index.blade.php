@@ -1,257 +1,364 @@
 @extends('super-admin.layouts.app')
 
-@section('title', config('app.name').' | Historique des paiements')
-@section('page-title', 'Historique des paiements')
-@section('page-description', 'Consulter tous les paiements effectues par les usagers publics, suivre leur statut et retrouver rapidement le signalement ou l usager associe.')
+@section('title', config('app.name').' | Suivi des paiements')
+@section('page-title', 'Suivi des paiements')
+@section('page-description', 'Consulter les paiements, suivre les statuts et contrôler les validations en attente.')
 
 @section('header-badges')
-    <span class="badge-soft">{{ $payments->total() }} paiement{{ $payments->total() > 1 ? 's' : '' }}</span>
-    <span class="badge-soft">{{ $paymentSessions->total() }} session{{ $paymentSessions->total() > 1 ? 's' : '' }} FineoPay</span>
+    <span class="badge-soft">{{ $transactions->total() }} opération{{ $transactions->total() > 1 ? 's' : '' }}</span>
+    <span class="badge-soft">{{ number_format($paymentStats['paid_amount'] ?? 0, 0, ',', ' ') }} FCFA encaissés</span>
 @endsection
 
 @section('content')
     @include('partials.page-loader', [
         'title' => 'Chargement des paiements',
-        'message' => 'Nous préparons les paiements et sessions demandés.',
+        'message' => 'Nous préparons les statuts, graphiques et opérations demandés.',
     ])
 
-    <section class="panel-card mb-4">
-        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 mb-3">
-            <div>
-                <div class="fw-bold">Sessions FineoPay en attente</div>
-                <div class="small text-secondary">Ces lignes existent avant la creation du signalement ou l enregistrement du dommage. Elles sont traitees apres callback FineoPay succes ou validation manuelle SA.</div>
-            </div>
-            <span class="badge-soft align-self-lg-start">{{ $paymentSessions->total() }} session{{ $paymentSessions->total() > 1 ? 's' : '' }}</span>
-        </div>
+    @php
+        $statusLabels = [
+            'pending' => 'En attente',
+            'paid' => 'Payé',
+            'failed' => 'Échoué',
+            'cancelled' => 'Annulé',
+        ];
+        $statusClass = fn (?string $status): string => match ($status) {
+            'paid' => 'chip-success',
+            'failed', 'cancelled' => 'chip-danger',
+            'pending' => 'chip-warning',
+            default => 'chip-neutral',
+        };
+        $contextLabels = [
+            'report' => 'Signalement',
+            'damage' => 'Dommage',
+        ];
+    @endphp
 
-        <form method="GET" class="filter-bar">
-            <div class="row g-2 align-items-end">
-                <div class="col-md-5">
-                    <label class="form-label small text-secondary">Recherche session</label>
-                    <input type="text" name="session_search" value="{{ request('session_search') }}" class="form-control" placeholder="Sync ref, reference, usager, telephone...">
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label small text-secondary">Statut session</label>
-                    <select name="session_status" class="form-select">
-                        <option value="">En attente et echouees</option>
-                        @foreach (['pending' => 'En attente', 'paid' => 'Payee', 'failed' => 'Echouee'] as $status => $label)
-                            <option value="{{ $status }}" @selected(request('session_status') === $status)>{{ $label }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label small text-secondary">Type</label>
-                    <select name="session_context" class="form-select">
-                        <option value="">Tous</option>
-                        <option value="report" @selected(request('session_context') === 'report')>Signalement</option>
-                        <option value="damage" @selected(request('session_context') === 'damage')>Dommage</option>
-                    </select>
-                </div>
-                <div class="col-md-2 d-flex gap-2">
-                    <button class="btn btn-dark w-100">Filtrer</button>
-                    <a href="{{ route('super-admin.payments.index') }}" class="btn btn-outline-secondary">RAZ</a>
+    <style>
+        .payments-dashboard .metric-card {
+            border: 1px solid rgba(16,42,67,.08);
+            border-radius: 8px;
+            background: #fff;
+            padding: 1rem;
+            height: 100%;
+            border-top: 4px solid #6791ff;
+            box-shadow: 0 18px 44px rgba(16,42,67,.06);
+        }
+        .payments-dashboard .row.g-2 > div:nth-child(4n+2) .metric-card { border-top-color: #ff0068; }
+        .payments-dashboard .row.g-2 > div:nth-child(4n+3) .metric-card { border-top-color: #ffa117; }
+        .payments-dashboard .row.g-2 > div:nth-child(4n+4) .metric-card { border-top-color: #5bebaf; }
+        .payments-dashboard .metric-label {
+            color: #6b7c93;
+            font-size: .72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+        }
+        .payments-dashboard .metric-value {
+            color: #183447;
+            font-size: 1.55rem;
+            font-weight: 700;
+            line-height: 1.1;
+            margin-top: .35rem;
+        }
+        .payments-dashboard .chart-card {
+            border: 1px solid rgba(16,42,67,.08);
+            border-radius: 8px;
+            background: #fff;
+            padding: 1rem;
+            height: 100%;
+            box-shadow: 0 18px 44px rgba(16,42,67,.06);
+        }
+        .payments-dashboard .chart-frame {
+            min-height: 280px;
+        }
+    </style>
+
+    <div class="payments-dashboard">
+        <section class="row g-2 mb-3">
+            <div class="col-md-6 col-xl-3">
+                <div class="metric-card">
+                    <div class="metric-label">Opérations</div>
+                    <div class="metric-value">{{ number_format($paymentStats['total'] ?? 0, 0, ',', ' ') }}</div>
+                    <div class="small text-secondary">Paiements et validations à traiter.</div>
                 </div>
             </div>
-        </form>
+            <div class="col-md-6 col-xl-3">
+                <div class="metric-card">
+                    <div class="metric-label">Payés</div>
+                    <div class="metric-value">{{ number_format($paymentStats['paid'] ?? 0, 0, ',', ' ') }}</div>
+                    <div class="small text-secondary">{{ number_format($paymentStats['paid_amount'] ?? 0, 0, ',', ' ') }} FCFA encaissés.</div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="metric-card">
+                    <div class="metric-label">En attente</div>
+                    <div class="metric-value">{{ number_format($paymentStats['pending'] ?? 0, 0, ',', ' ') }}</div>
+                    <div class="small text-secondary">Opérations non confirmées.</div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="metric-card">
+                    <div class="metric-label">Échoués</div>
+                    <div class="metric-value">{{ number_format($paymentStats['failed'] ?? 0, 0, ',', ' ') }}</div>
+                    <div class="small text-secondary">Paiements ou sessions non aboutis.</div>
+                </div>
+            </div>
+        </section>
 
-        <div class="table-responsive">
-            <table class="table table-modern align-middle">
-                <thead>
-                    <tr>
-                        <th>Session</th>
-                        <th>Usager public</th>
-                        <th>Operation</th>
-                        <th>Montant</th>
-                        <th>Statut</th>
-                        <th class="text-end">Validation SA</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($paymentSessions as $session)
-                        @php
-                            $payload = $session->report_payload ?? [];
-                            $payloadApplication = $applications->firstWhere('id', (int) ($payload['application_id'] ?? 0));
-                            $payloadOrganization = $organizations->firstWhere('id', (int) ($payload['organization_id'] ?? 0));
-                            $isDamageSession = ($session->payment_context ?? 'report') === 'damage';
-                        @endphp
+        <section class="row g-3 mb-4">
+            <div class="col-xl-4">
+                <div class="chart-card">
+                    <div class="fw-bold">Statuts des paiements</div>
+                    <div class="small text-secondary mb-3">Répartition sur la période sélectionnée.</div>
+                    <div id="paymentStatusChart" class="chart-frame"></div>
+                </div>
+            </div>
+            <div class="col-xl-4">
+                <div class="chart-card">
+                    <div class="fw-bold">Types d’opérations</div>
+                    <div class="small text-secondary mb-3">Signalements et dommages.</div>
+                    <div id="paymentContextChart" class="chart-frame"></div>
+                </div>
+            </div>
+            <div class="col-xl-4">
+                <div class="chart-card">
+                    <div class="fw-bold">Montants encaissés</div>
+                    <div class="small text-secondary mb-3">Évolution journalière.</div>
+                    <div id="paymentTrendChart" class="chart-frame"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel-card">
+            <div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-3">
+                <div>
+                    <div class="fw-bold">Paiements et validations</div>
+                    <div class="small text-secondary">Un seul tableau pour les paiements confirmés et les sessions encore à traiter.</div>
+                </div>
+                <span class="badge-soft">{{ $transactions->total() }} résultat{{ $transactions->total() > 1 ? 's' : '' }}</span>
+            </div>
+
+            <form method="GET" class="filter-bar">
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label small text-secondary">Recherche</label>
+                        <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Référence, usager, fournisseur...">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-secondary">Période</label>
+                        <select name="period" class="form-select" onchange="this.form.submit()">
+                            <option value="today" @selected(request('period') === 'today')>Aujourd’hui</option>
+                            <option value="7d" @selected(request('period') === '7d')>7 jours</option>
+                            <option value="30d" @selected(blank(request('period')) || request('period') === '30d')>30 jours</option>
+                            <option value="month" @selected(request('period') === 'month')>Mois en cours</option>
+                            <option value="year" @selected(request('period') === 'year')>Année en cours</option>
+                            <option value="custom" @selected(request('period') === 'custom')>Personnalisée</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-secondary">Du</label>
+                        <input type="date" name="date_from" value="{{ request('date_from') }}" class="form-control">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-secondary">Au</label>
+                        <input type="date" name="date_to" value="{{ request('date_to') }}" class="form-control">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-secondary">Statut</label>
+                        <select name="status" class="form-select">
+                            <option value="">Tous</option>
+                            @foreach ($statusLabels as $status => $label)
+                                <option value="{{ $status }}" @selected(request('status') === $status)>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-secondary">Fournisseur</label>
+                        <select name="provider" class="form-select">
+                            <option value="">Tous</option>
+                            @foreach ($providers as $provider)
+                                <option value="{{ $provider }}" @selected(request('provider') === $provider)>{{ $provider }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-secondary">Type</label>
+                        <select name="payment_context" class="form-select">
+                            <option value="">Tous</option>
+                            @foreach ($contextLabels as $context => $label)
+                                <option value="{{ $context }}" @selected(request('payment_context') === $context)>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-secondary">Catégorie</label>
+                        <select name="application_id" class="form-select">
+                            <option value="">Toutes</option>
+                            @foreach ($applications as $application)
+                                <option value="{{ $application->id }}" @selected((string) request('application_id') === (string) $application->id)>{{ $application->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-secondary">Institution</label>
+                        <select name="organization_id" class="form-select">
+                            <option value="">Toutes</option>
+                            @foreach ($organizations as $organization)
+                                <option value="{{ $organization->id }}" @selected((string) request('organization_id') === (string) $organization->id)>{{ $organization->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-secondary">Par page</label>
+                        <select name="per_page" class="form-select" onchange="this.form.submit()">
+                            @foreach ([15, 25, 50, 100] as $pageSize)
+                                <option value="{{ $pageSize }}" @selected((int) ($perPage ?? 15) === $pageSize)>{{ $pageSize }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex gap-2">
+                        <button class="btn btn-dark w-100">Filtrer</button>
+                        <a href="{{ route('super-admin.payments.index') }}" class="btn btn-outline-secondary">Réinitialiser</a>
+                    </div>
+                </div>
+            </form>
+
+            <div class="table-responsive">
+                <table class="table table-modern align-middle">
+                    <thead>
                         <tr>
-                            <td>
-                                <div class="fw-semibold">{{ $session->sync_ref }}</div>
-                                <div class="small text-secondary">{{ $session->initiated_at?->format('d/m/Y H:i') ?: '-' }}</div>
-                                <div class="small text-secondary">Ref fournisseur : {{ $session->provider_reference ?: '-' }}</div>
-                            </td>
-                            <td>
-                                <div class="fw-semibold">{{ trim(($session->publicUser?->first_name ?? '').' '.($session->publicUser?->last_name ?? '')) ?: '-' }}</div>
-                                <div class="small text-secondary">{{ $session->publicUser?->phone ?: '-' }}</div>
-                                <div class="small text-secondary">{{ $session->publicUser?->publicUserType?->name ?: '-' }}</div>
-                            </td>
-                            <td>
-                                <div class="fw-semibold">{{ $isDamageSession ? 'Declaration de dommage' : ($payload['signal_label'] ?? $payload['signal_code'] ?? $payload['incident_type'] ?? '-') }}</div>
-                                <div class="small text-secondary">{{ $payloadApplication?->name ?: $session->incidentReport?->application?->name ?: 'Application inconnue' }} / {{ $payloadOrganization?->name ?: $session->incidentReport?->organization?->name ?: 'Organisation inconnue' }}</div>
-                                <div class="small text-secondary">{{ $isDamageSession ? 'Signalement '.$session->incidentReport?->reference : 'Compteur #'.($payload['meter_id'] ?? '-') }}</div>
-                                @if ($session->incidentReport)
-                                    <div class="small text-success">Signalement : {{ $session->incidentReport->reference }}</div>
-                                @endif
-                            </td>
-                            <td>
-                                <div class="fw-semibold">{{ number_format((float) $session->amount, 0, ',', ' ') }} {{ $session->currency ?: 'XOF' }}</div>
-                                <div class="small text-secondary">{{ $session->pricingRule?->label ?: 'Tarification non renseignee' }}</div>
-                            </td>
-                            <td><span class="status-chip">{{ $session->status }}</span></td>
-                            <td class="text-end">
-                                @if (($session->status !== 'paid' || $session->incident_report_id === null) && $canManuallyValidatePayments)
-                                    <form method="POST" action="{{ route('super-admin.payments.sessions.validate', $session) }}" class="d-inline-flex flex-column gap-2 align-items-end" onsubmit="return confirm('Valider manuellement ce paiement et traiter cette session ?');">
-                                        @csrf
-                                        <input type="text" name="reason" class="form-control form-control-sm" placeholder="Motif optionnel" style="max-width: 220px;">
-                                        <div class="d-inline-flex gap-2">
-                                            <input type="text" name="confirmation" class="form-control form-control-sm" placeholder="VALIDER" style="width: 110px;" required>
-                                            <button class="btn btn-sm btn-outline-danger">Valider</button>
-                                        </div>
-                                    </form>
-                                @elseif ($session->status !== 'paid' || $session->incident_report_id === null)
-                                    <span class="small text-secondary">Validation reservee</span>
-                                @else
-                                    <span class="small text-success">Deja confirmee</span>
-                                @endif
-                            </td>
+                            <th>Opération</th>
+                            <th>Usager public</th>
+                            <th>Dossier</th>
+                            <th>Montant</th>
+                            <th>Fournisseur</th>
+                            <th>Statut</th>
+                            <th class="text-end">Actions</th>
                         </tr>
-                    @empty
-                        <tr><td colspan="6" class="text-center text-secondary">Aucune session FineoPay trouvee.</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-        <div class="d-flex justify-content-between align-items-center mt-3">
-            <div class="table-meta">Page {{ $paymentSessions->currentPage() }} sur {{ $paymentSessions->lastPage() }}</div>
-            {{ $paymentSessions->links() }}
-        </div>
-    </section>
-
-    <section class="panel-card">
-        <div class="fw-bold mb-3">Historique des paiements</div>
-        <form method="GET" class="filter-bar">
-            <div class="row g-2 align-items-end">
-                <div class="col-md-4">
-                    <label class="form-label small text-secondary">Recherche</label>
-                    <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Reference, fournisseur, usager, signalement...">
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label small text-secondary">Statut</label>
-                    <select name="status" class="form-select">
-                        <option value="">Tous</option>
-                        @foreach (['pending' => 'En attente', 'paid' => 'Paye', 'failed' => 'Echoue', 'cancelled' => 'Annule'] as $status => $label)
-                            <option value="{{ $status }}" @selected(request('status') === $status)>{{ $label }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label small text-secondary">Fournisseur</label>
-                    <select name="provider" class="form-select">
-                        <option value="">Tous</option>
-                        @foreach ($providers as $provider)
-                            <option value="{{ $provider }}" @selected(request('provider') === $provider)>{{ $provider }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label small text-secondary">Type</label>
-                    <select name="payment_context" class="form-select">
-                        <option value="">Tous</option>
-                        <option value="report" @selected(request('payment_context') === 'report')>Signalement</option>
-                        <option value="damage" @selected(request('payment_context') === 'damage')>Dommage</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label small text-secondary">Application</label>
-                    <select name="application_id" class="form-select">
-                        <option value="">Toutes</option>
-                        @foreach ($applications as $application)
-                            <option value="{{ $application->id }}" @selected((string) request('application_id') === (string) $application->id)>{{ $application->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label small text-secondary">Organisation</label>
-                    <select name="organization_id" class="form-select">
-                        <option value="">Toutes</option>
-                        @foreach ($organizations as $organization)
-                            <option value="{{ $organization->id }}" @selected((string) request('organization_id') === (string) $organization->id)>{{ $organization->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-2 d-flex gap-2">
-                    <button class="btn btn-dark w-100">Filtrer</button>
-                    <a href="{{ route('super-admin.payments.index') }}" class="btn btn-outline-secondary">RAZ</a>
-                </div>
+                    </thead>
+                    <tbody>
+                        @forelse ($transactions as $transaction)
+                            @php
+                                $isSession = $transaction['type'] === 'session';
+                                $record = $transaction['model'];
+                                $payload = $isSession ? ($record->report_payload ?? []) : [];
+                                $payloadApplication = $isSession ? $applications->firstWhere('id', (int) ($payload['application_id'] ?? 0)) : null;
+                                $payloadOrganization = $isSession ? $organizations->firstWhere('id', (int) ($payload['organization_id'] ?? 0)) : null;
+                                $reference = $isSession ? $record->sync_ref : $record->reference;
+                                $report = $record->incidentReport;
+                                $context = $record->payment_context ?? 'report';
+                                $operationLabel = $isSession
+                                    ? 'Validation en attente'
+                                    : ($contextLabels[$context] ?? 'Paiement');
+                            @endphp
+                            <tr>
+                                <td>
+                                    <div class="fw-semibold">{{ $reference }}</div>
+                                    <div class="small text-secondary">{{ $record->initiated_at?->format('d/m/Y H:i') ?: '-' }}</div>
+                                    <div class="small text-secondary">{{ $operationLabel }}</div>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold">{{ trim(($record->publicUser?->first_name ?? '').' '.($record->publicUser?->last_name ?? '')) ?: '-' }}</div>
+                                    <div class="small text-secondary">{{ $record->publicUser?->phone ?: '-' }}</div>
+                                    <div class="small text-secondary">{{ $record->publicUser?->publicUserType?->name ?: '-' }}</div>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold">{{ $report?->reference ?: ($payload['signal_label'] ?? $payload['signal_code'] ?? '-') }}</div>
+                                    <div class="small text-secondary">{{ $report?->signal_label ?: $payload['incident_type'] ?? '-' }}</div>
+                                    <div class="small text-secondary">
+                                        {{ $report?->application?->name ?: $payloadApplication?->name ?: '-' }}
+                                        /
+                                        {{ $report?->organization?->name ?: $payloadOrganization?->name ?: '-' }}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold">{{ number_format((float) $record->amount, 0, ',', ' ') }} {{ $record->currency ?: 'XOF' }}</div>
+                                    <div class="small text-secondary">{{ $record->pricingRule?->label ?: 'Tarification non renseignée' }}</div>
+                                </td>
+                                <td>
+                                    <div>{{ $record->provider ?: '-' }}</div>
+                                    <div class="small text-secondary">Réf. fournisseur : {{ $record->provider_reference ?: '-' }}</div>
+                                    <div class="small text-secondary">{{ $record->paid_at?->format('d/m/Y H:i') ?: 'Non confirmé' }}</div>
+                                </td>
+                                <td>
+                                    <span class="status-chip {{ $statusClass($record->status) }}">{{ $statusLabels[$record->status] ?? $record->status }}</span>
+                                </td>
+                                <td class="text-end">
+                                    <div class="actions-wrap">
+                                        @if ($isSession && ($record->status !== 'paid' || $record->incident_report_id === null) && $canManuallyValidatePayments)
+                                            <form method="POST" action="{{ route('super-admin.payments.sessions.validate', $record) }}" class="d-inline-flex flex-column gap-2 align-items-end" onsubmit="return confirm('Valider manuellement ce paiement et traiter cette session ?');">
+                                                @csrf
+                                                <input type="text" name="reason" class="form-control form-control-sm" placeholder="Motif optionnel" style="max-width: 220px;">
+                                                <div class="d-inline-flex gap-2">
+                                                    <input type="text" name="confirmation" class="form-control form-control-sm" placeholder="VALIDER" style="width: 110px;" required>
+                                                    <button class="btn btn-sm btn-outline-danger">Valider</button>
+                                                </div>
+                                            </form>
+                                        @endif
+                                        @if ($record->publicUser)
+                                            <a href="{{ route('super-admin.public-users.show', $record->publicUser) }}" class="btn btn-sm btn-outline-dark">Voir l’usager</a>
+                                        @endif
+                                        @if (! $isSession && $report?->reparationCase)
+                                            <a href="{{ route('super-admin.reparation-cases.show', $report->reparationCase) }}" class="btn btn-sm btn-outline-secondary">Voir le dossier</a>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="7" class="text-center text-secondary py-4">Aucun paiement trouvé.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
-        </form>
-
-        <div class="table-toolbar">
-            <div class="table-meta">{{ $payments->total() }} resultat{{ $payments->total() > 1 ? 's' : '' }}</div>
-        </div>
-        <div class="table-responsive">
-            <table class="table table-modern align-middle">
-                <thead>
-                    <tr>
-                        <th>Paiement</th>
-                        <th>Usager public</th>
-                        <th>Signalement</th>
-                        <th>Montant</th>
-                        <th>Fournisseur</th>
-                        <th>Statut</th>
-                        <th class="text-end">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($payments as $payment)
-                        <tr>
-                            <td>
-                                <div class="fw-semibold">{{ $payment->reference }}</div>
-                                <div class="small text-secondary">{{ $payment->initiated_at?->format('d/m/Y H:i') ?: '-' }}</div>
-                                <div class="small text-secondary">{{ ($payment->payment_context ?? 'report') === 'damage' ? 'Declaration de dommage' : 'Signalement' }}</div>
-                                <div class="small text-secondary">Ref fournisseur : {{ $payment->provider_reference ?: '-' }}</div>
-                            </td>
-                            <td>
-                                <div class="fw-semibold">{{ trim(($payment->publicUser?->first_name ?? '').' '.($payment->publicUser?->last_name ?? '')) ?: '-' }}</div>
-                                <div class="small text-secondary">{{ $payment->publicUser?->phone ?: '-' }}</div>
-                                <div class="small text-secondary">{{ $payment->publicUser?->publicUserType?->name ?: '-' }}</div>
-                            </td>
-                            <td>
-                                <div class="fw-semibold">{{ $payment->incidentReport?->reference ?: '-' }}</div>
-                                <div class="small text-secondary">{{ $payment->incidentReport?->signal_label ?: $payment->incidentReport?->signal_code ?: $payment->incidentReport?->incident_type ?: '-' }}</div>
-                                <div class="small text-secondary">{{ $payment->incidentReport?->application?->name ?: '-' }} / {{ $payment->incidentReport?->organization?->name ?: '-' }}</div>
-                            </td>
-                            <td>
-                                <div class="fw-semibold">{{ number_format((float) $payment->amount, 0, ',', ' ') }} {{ $payment->currency ?: 'XOF' }}</div>
-                                <div class="small text-secondary">{{ $payment->pricingRule?->label ?: 'Tarification non renseignee' }}</div>
-                            </td>
-                            <td>
-                                <div>{{ $payment->provider ?: '-' }}</div>
-                                <div class="small text-secondary">{{ $payment->paid_at?->format('d/m/Y H:i') ?: 'Paiement non confirme' }}</div>
-                            </td>
-                            <td>
-                                <span class="status-chip">{{ $payment->status }}</span>
-                            </td>
-                            <td class="text-end">
-                                <div class="actions-wrap">
-                                    @if ($payment->publicUser)
-                                        <a href="{{ route('super-admin.public-users.show', $payment->publicUser) }}" class="btn btn-sm btn-outline-dark">Voir l usager</a>
-                                    @endif
-                                    @if ($payment->incidentReport?->reparationCase)
-                                        <a href="{{ route('super-admin.reparation-cases.show', $payment->incidentReport->reparationCase) }}" class="btn btn-sm btn-outline-secondary">Voir le dossier</a>
-                                    @endif
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr><td colspan="7" class="text-center text-secondary">Aucun paiement trouve.</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-        <div class="d-flex justify-content-between align-items-center mt-3">
-            <div class="table-meta">Page {{ $payments->currentPage() }} sur {{ $payments->lastPage() }}</div>
-            {{ $payments->links() }}
-        </div>
-    </section>
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <div class="table-meta">Page {{ $transactions->currentPage() }} sur {{ $transactions->lastPage() }}</div>
+                {{ $transactions->links() }}
+            </div>
+        </section>
+    </div>
 @endsection
+
+@push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const statusBreakdown = @json($statusBreakdown);
+            const contextBreakdown = @json($contextBreakdown);
+            const trend = @json($trend);
+            const palette = ['#ffa117', '#5bebaf', '#ff0068', '#6791ff'];
+
+            new ApexCharts(document.querySelector('#paymentStatusChart'), {
+                chart: { type: 'donut', height: 280 },
+                labels: statusBreakdown.map((item) => item.label),
+                series: statusBreakdown.map((item) => Number(item.value || 0)),
+                colors: palette,
+                legend: { position: 'bottom' },
+                dataLabels: { enabled: false },
+            }).render();
+
+            new ApexCharts(document.querySelector('#paymentContextChart'), {
+                chart: { type: 'bar', height: 280, toolbar: { show: false } },
+                series: [{ name: 'Opérations', data: contextBreakdown.map((item) => Number(item.value || 0)) }],
+                xaxis: { categories: contextBreakdown.map((item) => item.label) },
+                colors: ['#6791ff'],
+                plotOptions: { bar: { borderRadius: 6, columnWidth: '44%' } },
+                dataLabels: { enabled: false },
+            }).render();
+
+            new ApexCharts(document.querySelector('#paymentTrendChart'), {
+                chart: { type: 'area', height: 280, toolbar: { show: false }, zoom: { enabled: false } },
+                series: [{ name: 'Montant', data: trend.map((item) => Number(item.amount || 0)) }],
+                xaxis: { categories: trend.map((item) => item.label) },
+                colors: ['#5bebaf'],
+                stroke: { curve: 'smooth', width: 3 },
+                dataLabels: { enabled: false },
+                yaxis: {
+                    labels: {
+                        formatter: (value) => `${Number(value || 0).toLocaleString('fr-FR')} FCFA`,
+                    },
+                },
+            }).render();
+        });
+    </script>
+@endpush

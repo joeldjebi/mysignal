@@ -6,6 +6,7 @@
 
 @section('header-badges')
     <span class="badge-soft">{{ $publicUsers->total() }} usagers</span>
+    <span class="badge-soft">{{ number_format($publicUserStats['with_push'] ?? 0, 0, ',', ' ') }} avec notifications</span>
     <a href="{{ route('super-admin.public-users.push-notifications.index') }}" class="btn btn-outline-dark">
         Notifications UP
     </a>
@@ -20,15 +21,122 @@
         'message' => 'Nous préparons les données demandées.',
     ])
 
+    <style>
+        .sa-period-dashboard .metric-card,
+        .sa-period-dashboard .chart-card {
+            border: 1px solid rgba(16,42,67,.08);
+            border-radius: 8px;
+            background: #fff;
+            padding: 1rem;
+            height: 100%;
+            box-shadow: 0 18px 44px rgba(16,42,67,.06);
+        }
+        .sa-period-dashboard .metric-card { border-top: 4px solid #6791ff; }
+        .sa-period-dashboard .row.g-2 > div:nth-child(4n+2) .metric-card { border-top-color: #ff0068; }
+        .sa-period-dashboard .row.g-2 > div:nth-child(4n+3) .metric-card { border-top-color: #ffa117; }
+        .sa-period-dashboard .row.g-2 > div:nth-child(4n+4) .metric-card { border-top-color: #5bebaf; }
+        .sa-period-dashboard .metric-label {
+            color: #6b7c93;
+            font-size: .72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+        }
+        .sa-period-dashboard .metric-value {
+            color: #183447;
+            font-size: 1.55rem;
+            font-weight: 700;
+            line-height: 1.1;
+            margin-top: .35rem;
+        }
+        .sa-period-dashboard .chart-frame { min-height: 280px; }
+    </style>
+
+    <div class="sa-period-dashboard">
+        <section class="row g-2 mb-3">
+            <div class="col-md-6 col-xl-3">
+                <div class="metric-card">
+                    <div class="metric-label">Usagers</div>
+                    <div class="metric-value">{{ number_format($publicUserStats['total'] ?? 0, 0, ',', ' ') }}</div>
+                    <div class="small text-secondary">Comptes créés sur la période.</div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="metric-card">
+                    <div class="metric-label">Actifs</div>
+                    <div class="metric-value">{{ number_format($publicUserStats['active'] ?? 0, 0, ',', ' ') }}</div>
+                    <div class="small text-secondary">Usagers publics actifs.</div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="metric-card">
+                    <div class="metric-label">Inactifs</div>
+                    <div class="metric-value">{{ number_format($publicUserStats['inactive'] ?? 0, 0, ',', ' ') }}</div>
+                    <div class="small text-secondary">Comptes désactivés.</div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="metric-card">
+                    <div class="metric-label">Notifications</div>
+                    <div class="metric-value">{{ number_format($publicUserStats['with_push'] ?? 0, 0, ',', ' ') }}</div>
+                    <div class="small text-secondary">Usagers avec token actif.</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="row g-3 mb-4">
+            <div class="col-xl-4">
+                <div class="chart-card">
+                    <div class="fw-bold">Statut des usagers</div>
+                    <div class="small text-secondary mb-3">Répartition sur la période sélectionnée.</div>
+                    <div id="publicUserStatusChart" class="chart-frame"></div>
+                </div>
+            </div>
+            <div class="col-xl-4">
+                <div class="chart-card">
+                    <div class="fw-bold">Types d’usagers</div>
+                    <div class="small text-secondary mb-3">Principaux profils enregistrés.</div>
+                    <div id="publicUserTypeChart" class="chart-frame"></div>
+                </div>
+            </div>
+            <div class="col-xl-4">
+                <div class="chart-card">
+                    <div class="fw-bold">Nouveaux usagers</div>
+                    <div class="small text-secondary mb-3">Évolution journalière.</div>
+                    <div id="publicUserTrendChart" class="chart-frame"></div>
+                </div>
+            </div>
+        </section>
+    </div>
+
     <section class="panel-card">
         <div class="fw-bold mb-3">Liste des usagers publics</div>
         <form method="GET" class="filter-bar">
             <div class="row g-2 align-items-end">
-                <div class="col-md-5">
+                <div class="col-md-4">
                     <label class="form-label small text-secondary">Recherche</label>
                     <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Nom, téléphone, email, entreprise">
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
+                    <label class="form-label small text-secondary">Période</label>
+                    <select name="period" class="form-select" onchange="this.form.submit()">
+                        <option value="today" @selected(request('period') === 'today')>Aujourd’hui</option>
+                        <option value="7d" @selected(request('period') === '7d')>7 jours</option>
+                        <option value="30d" @selected(blank(request('period')) || request('period') === '30d')>30 jours</option>
+                        <option value="month" @selected(request('period') === 'month')>Mois en cours</option>
+                        <option value="year" @selected(request('period') === 'year')>Année en cours</option>
+                        <option value="custom" @selected(request('period') === 'custom')>Personnalisée</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small text-secondary">Du</label>
+                    <input type="date" name="date_from" value="{{ request('date_from') }}" class="form-control">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small text-secondary">Au</label>
+                    <input type="date" name="date_to" value="{{ request('date_to') }}" class="form-control">
+                </div>
+                <div class="col-md-2">
                     <label class="form-label small text-secondary">Type</label>
                     <select name="public_user_type_id" class="form-select">
                         <option value="">Tous</option>
@@ -55,9 +163,9 @@
                 </div>
                 <div class="col-md-2">
                     <label class="form-label small text-secondary">Par page</label>
-                    <select name="per_page" class="form-select">
+                    <select name="per_page" class="form-select" onchange="this.form.submit()">
                         @foreach ([12, 25, 50, 100] as $perPageOption)
-                            <option value="{{ $perPageOption }}" @selected((int) request('per_page', 12) === $perPageOption)>{{ $perPageOption }}</option>
+                            <option value="{{ $perPageOption }}" @selected((int) ($perPage ?? request('per_page', 12)) === $perPageOption)>{{ $perPageOption }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -184,3 +292,41 @@
         </div>
     </section>
 @endsection
+
+@push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const statusBreakdown = @json($statusBreakdown);
+            const typeBreakdown = @json($typeBreakdown);
+            const trend = @json($trend);
+
+            new ApexCharts(document.querySelector('#publicUserStatusChart'), {
+                chart: { type: 'donut', height: 280 },
+                labels: statusBreakdown.map((item) => item.label),
+                series: statusBreakdown.map((item) => Number(item.value || 0)),
+                colors: ['#5bebaf', '#ff0068'],
+                legend: { position: 'bottom' },
+                dataLabels: { enabled: false },
+            }).render();
+
+            new ApexCharts(document.querySelector('#publicUserTypeChart'), {
+                chart: { type: 'bar', height: 280, toolbar: { show: false } },
+                series: [{ name: 'Usagers', data: typeBreakdown.map((item) => Number(item.value || 0)) }],
+                xaxis: { categories: typeBreakdown.map((item) => item.label) },
+                colors: ['#6791ff'],
+                plotOptions: { bar: { borderRadius: 6, columnWidth: '44%' } },
+                dataLabels: { enabled: false },
+            }).render();
+
+            new ApexCharts(document.querySelector('#publicUserTrendChart'), {
+                chart: { type: 'area', height: 280, toolbar: { show: false }, zoom: { enabled: false } },
+                series: [{ name: 'Nouveaux usagers', data: trend.map((item) => Number(item.value || 0)) }],
+                xaxis: { categories: trend.map((item) => item.label) },
+                colors: ['#ffa117'],
+                stroke: { curve: 'smooth', width: 3 },
+                dataLabels: { enabled: false },
+            }).render();
+        });
+    </script>
+@endpush
