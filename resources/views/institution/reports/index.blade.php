@@ -72,7 +72,7 @@
                     <div class="small">La liste affiche uniquement les signalements de ce regroupement.</div>
                 </div>
                 @if (($selectedIdentifierGroup['open_reports_count'] ?? 1) > 0)
-                    <form method="POST" action="{{ route('institution.reports.identifier-groups.resolve') }}" class="d-flex flex-column flex-sm-row gap-2 align-items-sm-center">
+                    <form method="POST" action="{{ route('institution.reports.identifier-groups.resolve') }}" class="d-flex flex-column flex-sm-row gap-2 align-items-sm-center" data-confirm-message="Voulez-vous vraiment marquer tous les signalements ouverts de ce regroupement comme résolus ?" data-confirm-button="Résoudre le regroupement" data-confirm-class="btn btn-success">
                         @csrf
                         @method('PATCH')
                         @foreach (request()->except(['page']) as $key => $value)
@@ -90,7 +90,7 @@
 
         <div class="row g-3">
             @forelse ($identifierGroups as $group)
-                <div class="col-md-6 col-xl-4">
+                <div class="col-md-6 col-xl-3">
                     <div class="surface-soft h-100 p-3 border rounded-3 {{ ($selectedIdentifierGroup['key'] ?? null) === $group['key'] ? 'border-primary' : '' }}">
                         <div class="d-flex justify-content-between gap-3 mb-2">
                             <div>
@@ -106,7 +106,7 @@
                         <div class="d-flex flex-wrap gap-2">
                             <a href="{{ route('institution.reports.index', array_merge($filterQuery, ['identifier_group' => $group['key']])) }}" class="btn btn-sm btn-dark">Voir la liste</a>
                             @if ($group['open_reports_count'] > 0)
-                                <form method="POST" action="{{ route('institution.reports.identifier-groups.resolve') }}">
+                                <form method="POST" action="{{ route('institution.reports.identifier-groups.resolve') }}" data-confirm-message="Voulez-vous vraiment marquer tous les signalements ouverts de ce regroupement comme résolus ?" data-confirm-button="Résoudre" data-confirm-class="btn btn-success">
                                     @csrf
                                     @method('PATCH')
                                     @foreach ($filterQuery as $key => $value)
@@ -184,6 +184,14 @@
                         <option value="rejected" @selected(request('status') === 'rejected')>Rejetés</option>
                     </select>
                 </div>
+                <div class="col-md-2">
+                    <label class="form-label small text-secondary">Éléments par page</label>
+                    <select name="per_page" class="form-select" onchange="this.form.submit()">
+                        @foreach ([15, 25, 50, 100] as $pageSize)
+                            <option value="{{ $pageSize }}" @selected((int) ($perPage ?? request('per_page', 15)) === $pageSize)>{{ $pageSize }}</option>
+                        @endforeach
+                    </select>
+                </div>
                 <div class="col-md-2 d-flex gap-2">
                     <button class="btn btn-dark w-100">Filtrer</button>
                     <a href="{{ route('institution.reports.index') }}" class="btn btn-outline-secondary">Réinitialiser</a>
@@ -251,7 +259,7 @@
                                         <a href="{{ route('institution.reports.show', $report) }}" class="btn btn-sm btn-outline-dark">Détails</a>
 
                                         @if ($report->status === 'submitted')
-                                            <form method="POST" action="{{ route('institution.reports.take-over', $report) }}">
+                                            <form method="POST" action="{{ route('institution.reports.take-over', $report) }}" data-confirm-message="Confirmer la prise en charge du signalement {{ $report->reference }} ?" data-confirm-button="Prendre en charge" data-confirm-class="btn btn-dark">
                                                 @csrf
                                                 @method('PATCH')
                                                 <button class="btn btn-sm btn-outline-dark">Prendre en charge</button>
@@ -259,13 +267,13 @@
                                         @endif
 
                                         @if (in_array($report->status, ['submitted', 'in_progress'], true))
-                                            <form method="POST" action="{{ route('institution.reports.resolve', $report) }}">
+                                            <form method="POST" action="{{ route('institution.reports.resolve', $report) }}" data-confirm-message="Voulez-vous vraiment marquer le signalement {{ $report->reference }} comme résolu ?" data-confirm-button="Résoudre" data-confirm-class="btn btn-success">
                                                 @csrf
                                                 @method('PATCH')
                                                 <input type="hidden" name="official_response" value="Signalement résolu par l’institution.">
                                                 <button class="btn btn-sm btn-outline-success">Résoudre</button>
                                             </form>
-                                            <form method="POST" action="{{ route('institution.reports.reject', $report) }}">
+                                            <form method="POST" action="{{ route('institution.reports.reject', $report) }}" data-confirm-message="Voulez-vous vraiment rejeter le signalement {{ $report->reference }} ?" data-confirm-button="Rejeter" data-confirm-class="btn btn-danger">
                                                 @csrf
                                                 @method('PATCH')
                                                 <input type="hidden" name="official_response" value="Signalement rejeté après analyse institutionnelle.">
@@ -287,4 +295,73 @@
             {{ $reports->links() }}
         </div>
     </section>
+
+    <div class="modal fade" id="institutionReportConfirmModal" tabindex="-1" aria-labelledby="institutionReportConfirmTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header border-0 pb-0">
+                    <div>
+                        <h5 class="modal-title fw-bold" id="institutionReportConfirmTitle">Confirmer l’action</h5>
+                        <div class="small text-secondary">Cette opération mettra à jour le suivi du signalement.</div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="surface-soft d-flex gap-3 align-items-start">
+                        <span class="status-chip chip-warning"><i class="bi bi-shield-check"></i></span>
+                        <p class="mb-0" id="institutionReportConfirmMessage">Voulez-vous confirmer cette action ?</p>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-dark" id="institutionReportConfirmSubmit">Confirmer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection
+
+@section('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const modalElement = document.getElementById('institutionReportConfirmModal');
+
+            if (!modalElement || typeof bootstrap === 'undefined') {
+                return;
+            }
+
+            const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+            const messageElement = document.getElementById('institutionReportConfirmMessage');
+            const confirmButton = document.getElementById('institutionReportConfirmSubmit');
+            let pendingForm = null;
+
+            document.querySelectorAll('form[data-confirm-message]').forEach((form) => {
+                form.addEventListener('submit', (event) => {
+                    if (form.dataset.confirmed === '1') {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    pendingForm = form;
+                    messageElement.textContent = form.dataset.confirmMessage || 'Voulez-vous confirmer cette action ?';
+                    confirmButton.textContent = form.dataset.confirmButton || 'Confirmer';
+                    confirmButton.className = form.dataset.confirmClass || 'btn btn-dark';
+                    modal.show();
+                });
+            });
+
+            confirmButton.addEventListener('click', () => {
+                if (!pendingForm) {
+                    return;
+                }
+
+                pendingForm.dataset.confirmed = '1';
+                pendingForm.submit();
+            });
+
+            modalElement.addEventListener('hidden.bs.modal', () => {
+                pendingForm = null;
+            });
+        });
+    </script>
 @endsection

@@ -25,6 +25,7 @@ class ReportController extends Controller
         $context = $this->institutionContext();
         $query = $this->institutionReportsQuery($context['network_type'], $context['application_id'], $context['organization_id']);
         $canViewPaymentInfo = in_array('INSTITUTION_PAYMENT_INFO', $context['feature_codes'], true);
+        $perPage = min(max((int) request()->integer('per_page', 15), 1), 100);
 
         $this->applyReportListFilters($query, request(), $canViewPaymentInfo);
 
@@ -58,7 +59,8 @@ class ReportController extends Controller
             'features' => $context['feature_codes'],
             'activeNav' => 'reports',
             'reportsStats' => $reportsStats,
-            'reports' => $query->latest('incident_reports.created_at')->paginate(15)->withQueryString(),
+            'reports' => $query->latest('incident_reports.created_at')->paginate($perPage)->withQueryString(),
+            'perPage' => $perPage,
             'identifierGroups' => $identifierGroups,
             'selectedIdentifierGroup' => $selectedIdentifierGroup,
             'groupingSurfaceSquareMeters' => $groupingSurfaceSquareMeters,

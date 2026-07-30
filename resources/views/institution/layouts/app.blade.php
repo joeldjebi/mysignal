@@ -428,14 +428,19 @@
                 ->count()
             : 0;
         $activeNav = $activeNav ?? 'dashboard';
-        $institutionCode = trim((string) ($organization?->code ?? ''));
-        $institutionInitials = $institutionCode !== ''
-            ? mb_strtoupper(mb_substr($institutionCode, 0, 6))
-            : collect(preg_split('/\s+/', trim((string) ($organization?->name ?: 'Institution'))))
-                ->filter()
-                ->map(fn ($word) => mb_strtoupper(mb_substr((string) $word, 0, 1)))
-                ->take(4)
-                ->implode('');
+        $institutionName = trim((string) ($organization?->name ?: 'Institution'));
+        $institutionCode = preg_replace('/[^A-Za-z0-9]/', '', trim((string) ($organization?->code ?? '')));
+        preg_match('/\(([^)]+)\)/', $institutionName, $institutionAcronymMatches);
+        $institutionNameAcronym = preg_replace('/[^A-Za-z0-9]/', '', (string) ($institutionAcronymMatches[1] ?? ''));
+        $institutionInitials = $institutionNameAcronym !== ''
+            ? mb_strtoupper($institutionNameAcronym)
+            : ($institutionCode !== '' && mb_strlen($institutionCode) <= 4
+                ? mb_strtoupper($institutionCode)
+                : collect(preg_split('/\s+/', str_replace(['’', '\''], ' ', $institutionName)))
+                    ->filter(fn ($word) => ! in_array(mb_strtolower((string) $word), ['de', 'du', 'des', 'd', 'la', 'le', 'les', 'l', 'et', 'a', 'au', 'aux'], true))
+                    ->map(fn ($word) => mb_strtoupper(mb_substr((string) $word, 0, 1)))
+                    ->take(4)
+                    ->implode(''));
         $institutionPortalTitle = 'Portail '.($institutionInitials ?: 'IN');
     @endphp
     <div class="dashboard-shell">

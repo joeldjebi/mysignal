@@ -437,7 +437,7 @@
                             @if ($canViewStatistics)
                                 <div class="insight-row">
                                     <div>
-                                        <div class="fw-semibold">Pression par commune</div>
+                                        <div class="fw-semibold">Zone critique</div>
                                         <div class="small text-secondary">Permet d’identifier rapidement les zones critiques.</div>
                                     </div>
                                     <div class="fw-bold">{{ $topCommunes->first()->label ?? '-' }}</div>
