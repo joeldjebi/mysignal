@@ -296,6 +296,7 @@
             ?: $activeAccess?->portal;
         $internalPortalLabels = [
             'backoffice' => 'Backoffice',
+            'callcenter' => 'Centre d’appels',
             'huissier' => 'Huissier',
             'aoda' => 'Ordre des avocats',
             'avocat' => 'Avocat',
@@ -313,7 +314,9 @@
         $portalDescription = $isInternalPortalUser
             ? 'Espace opérationnel réservé aux utilisateurs internes autorisés.'
             : 'Paramétrage global, gouvernance et référentiels de la plateforme.';
-        $logoutRoute = $isInternalPortalUser ? 'backoffice.logout' : 'super-admin.logout';
+        $logoutRoute = $activePortal === 'callcenter'
+            ? 'callcenter.logout'
+            : ($isInternalPortalUser ? 'backoffice.logout' : 'super-admin.logout');
         $layoutPermissionCodes = $authUser?->effectivePermissionCodes() ?? collect();
         $canAccess = fn (string $permissionCode): bool => (bool) ($authUser?->is_super_admin || $layoutPermissionCodes->contains($permissionCode));
     @endphp

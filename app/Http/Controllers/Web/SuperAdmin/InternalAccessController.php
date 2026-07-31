@@ -22,6 +22,15 @@ class InternalAccessController extends Controller
         return view('super-admin.auth.internal-login');
     }
 
+    public function createCallCenter(): View|RedirectResponse
+    {
+        if (Auth::check() && $this->isCallCenterPortalUser(Auth::user())) {
+            return redirect()->route($this->resolveRedirectRoute(Auth::user()));
+        }
+
+        return view('super-admin.auth.callcenter-login');
+    }
+
     public function store(Request $request, ActivityLogger $activityLogger): RedirectResponse
     {
         $credentials = $request->validate([
@@ -66,19 +75,64 @@ class InternalAccessController extends Controller
         return redirect()->intended(route($this->resolveRedirectRoute($user)));
     }
 
+    public function storeCallCenter(Request $request, ActivityLogger $activityLogger): RedirectResponse
+    {
+        $credentials = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required', 'string'],
+        ]);
+
+        if (! Auth::attempt($credentials, $request->boolean('remember'))) {
+            return back()
+                ->withErrors([
+                    'email' => 'Les identifiants fournis sont invalides.',
+                ])
+                ->onlyInput('email');
+        }
+
+        $request->session()->regenerate();
+
+        $user = $request->user();
+
+        if (! $this->isCallCenterPortalUser($user)) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return back()
+                ->withErrors([
+                    'email' => 'Ce compte n’a pas accès au portail centre d’appels.',
+                ])
+                ->onlyInput('email');
+        }
+
+        $activityLogger->log(
+            'callcenter.login',
+            'Connexion au portail centre d’appels.',
+            $user,
+            [],
+            $request,
+            $user,
+            'callcenter',
+        );
+
+        return redirect()->intended(route($this->resolveRedirectRoute($user)));
+    }
+
     public function destroy(Request $request, ActivityLogger $activityLogger): RedirectResponse
     {
         $user = $request->user();
+        $isCallCenterUser = $this->isCallCenterPortalUser($user);
 
         if ($user instanceof User) {
             $activityLogger->log(
-                'backoffice.logout',
-                'Deconnexion du portail backoffice.',
+                $isCallCenterUser ? 'callcenter.logout' : 'backoffice.logout',
+                $isCallCenterUser ? 'Déconnexion du portail centre d’appels.' : 'Déconnexion du portail backoffice.',
                 $user,
                 [],
                 $request,
                 $user,
-                'backoffice',
+                $isCallCenterUser ? 'callcenter' : 'backoffice',
             );
         }
 
@@ -87,7 +141,7 @@ class InternalAccessController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('backoffice.login');
+        return redirect()->route($isCallCenterUser ? 'callcenter.login' : 'backoffice.login');
     }
 
     private function isInternalPortalUser(?User $user): bool
@@ -104,6 +158,29 @@ class InternalAccessController extends Controller
 
         return $access !== null
             && in_array($access->portal, ['backoffice', 'huissier', 'aoda', 'avocat'], true)
+            && $user->hasEffectivePermissionCode('SA_ACCESS_PORTAL');
+    }
+
+    private function isCallCenterPortalUser(?User $user): bool
+    {
+        if ($user === null || $user->is_super_admin || $user->status !== 'active') {
+            return false;
+        }
+
+        $user->loadMissing(['roles', 'roles.permissions', 'permissions']);
+
+        if (! $user->roles->contains('code', 'CALLCENTER')) {
+            return false;
+        }
+
+        $access = app(SuperAdminAccessResolver::class)->resolve($user);
+
+        if ($access !== null) {
+            app(SuperAdminAccessResolver::class)->apply($user, $access);
+        }
+
+        return $access !== null
+            && $access->portal === 'callcenter'
             && $user->hasEffectivePermissionCode('SA_ACCESS_PORTAL');
     }
 
@@ -128,6 +205,7 @@ class InternalAccessController extends Controller
             'SA_ACTIVITY_LOGS_VIEW_INSTITUTION' => 'super-admin.activity-logs.index',
             'SA_ACTIVITY_LOGS_VIEW_PUBLIC' => 'super-admin.activity-logs.index',
             'SA_ACTIVITY_LOGS_VIEW_INTERNAL' => 'super-admin.activity-logs.index',
+            'SA_PUBLIC_USERS_VIEW' => 'super-admin.public-users.index',
             'SA_PUBLIC_USERS_MANAGE' => 'super-admin.public-users.index',
             'SA_PUBLIC_REPORTS_VIEW' => 'super-admin.public-reports.index',
             'SA_ORGANIZATIONS_MANAGE' => 'super-admin.organizations.index',

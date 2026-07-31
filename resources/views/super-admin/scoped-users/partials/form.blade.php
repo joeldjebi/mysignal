@@ -1,19 +1,25 @@
 <div class="row g-3">
     <div class="col-md-6"><label class="form-label">Nom complet</label><input class="form-control" name="name" value="{{ old('name', $managedUser?->name) }}" required></div>
     <div class="col-md-6"><label class="form-label">Email</label><input class="form-control" type="email" name="email" value="{{ old('email', $managedUser?->email) }}" required></div>
-    <div class="col-md-6"><label class="form-label">Telephone</label><input class="form-control" name="phone" value="{{ old('phone', $managedUser?->phone) }}"></div>
-    <div class="col-md-6"><label class="form-label">Mot de passe</label><input class="form-control" type="password" name="password" @required($managedUser === null)></div>
+    <div class="col-md-6"><label class="form-label">Téléphone</label><input class="form-control" name="phone" value="{{ old('phone', $managedUser?->phone) }}"></div>
     <div class="col-md-6">
-        <label class="form-label">Roles</label>
+        <label class="form-label">Mot de passe</label>
+        <input class="form-control" type="password" name="password">
+        <div class="form-text">Obligatoire sauf pour un compte centre d’appels. Dans ce cas, il est généré automatiquement puis envoyé par SMS.</div>
+    </div>
+    <div class="col-md-6">
+        <label class="form-label">Rôles</label>
         <div class="border rounded-3 p-3" style="max-height: 260px; overflow:auto;">
-            @forelse ($roles as $role)
+            @if ($roles->isNotEmpty())
+                @foreach ($roles as $role)
                 <div class="form-check mb-2">
                     <input class="form-check-input" type="checkbox" name="role_ids[]" value="{{ $role->id }}" id="scoped-user-role-{{ $role->id }}" @checked(in_array($role->id, $assignedRoleIds))>
                     <label class="form-check-label" for="scoped-user-role-{{ $role->id }}">{{ $role->name }}</label>
                 </div>
-            @empty
-                <div class="text-secondary small">Creez d abord un role.</div>
-            @endforelse
+                @endforeach
+            @else
+                <div class="text-secondary small">Créez d’abord un rôle.</div>
+            @endif
         </div>
     </div>
     <div class="col-md-6">

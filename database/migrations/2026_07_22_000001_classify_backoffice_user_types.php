@@ -11,6 +11,7 @@ return new class extends Migration
         $types = [
             'SUPER_ADMIN' => ['Super admin', 'Compte principal du portail SA.'],
             'SA_USER' => ['Utilisateur SA', 'Utilisateur créé pour le back-office SA.'],
+            'CALLCENTER' => ['Call center', 'Compte interne dédié à l’assistance des usagers publics.'],
             'INSTITUTION_ADMIN' => ['Admin institutionnel', 'Compte admin ou collaborateur rattaché à une institution.'],
             'PARTNER_MANAGER' => ['Responsable partenaire', 'Compte responsable du portail partenaire.'],
             'PARTNER_SCAN_AGENT' => ['Agent de scan partenaire', 'Compte chargé du scan des cartes privilèges.'],

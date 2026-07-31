@@ -145,7 +145,8 @@
                     </div>
                 </form>
 
-                @forelse ($systemUser->accesses->sortBy('portal') as $access)
+                @if ($systemUser->accesses->isNotEmpty())
+                    @foreach ($systemUser->accesses->sortBy('portal') as $access)
                     @php
                         $accessRoleIds = $access->roles->pluck('id')->all();
                         $accessPermissionIds = $access->permissions->pluck('id')->all();
@@ -256,9 +257,10 @@
                             </div>
                         </form>
                     </div>
-                @empty
+                    @endforeach
+                @else
                     <div class="text-secondary">Aucun profil d acces specifique n est encore configure pour cet utilisateur.</div>
-                @endforelse
+                @endif
             </section>
         </div>
 
@@ -282,16 +284,18 @@
         <div class="col-lg-4">
             <section class="panel-card h-100">
                 <div class="fw-bold mb-3">Roles attribues</div>
-                @forelse ($systemUser->roles as $role)
+                @if ($systemUser->roles->isNotEmpty())
+                    @foreach ($systemUser->roles as $role)
                     <div class="border rounded-3 p-3 mb-3">
                         <div class="fw-semibold">{{ $role->name }}</div>
                         <div class="small text-secondary">{{ $role->code }}</div>
                         <div class="small text-secondary mt-1">{{ $role->description ?: 'Aucune description renseignee.' }}</div>
                         <div class="small text-secondary mt-2">{{ $role->permissions->count() }} permission{{ $role->permissions->count() > 1 ? 's' : '' }} via ce role</div>
                     </div>
-                @empty
+                    @endforeach
+                @else
                     <div class="text-secondary">Aucun role attribue.</div>
-                @endforelse
+                @endif
             </section>
         </div>
 

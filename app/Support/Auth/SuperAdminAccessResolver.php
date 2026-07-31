@@ -7,7 +7,7 @@ use App\Models\UserAccess;
 
 class SuperAdminAccessResolver
 {
-    public const INTERNAL_PORTALS = ['super_admin', 'backoffice', 'huissier', 'aoda', 'avocat'];
+    public const INTERNAL_PORTALS = ['super_admin', 'backoffice', 'callcenter', 'huissier', 'aoda', 'avocat'];
 
     private const LEGAL_PORTAL_PERMISSIONS = [
         'huissier' => 'BO_REPARATION_CASES_HUISSIER',
@@ -17,6 +17,15 @@ class SuperAdminAccessResolver
 
     public function resolve(User $user): ?UserAccess
     {
+        if (! $user->is_super_admin && $this->isCallCenterUser($user) && $user->organization_id === null && $user->hasPermissionCode('SA_ACCESS_PORTAL')) {
+            return new UserAccess([
+                'user_id' => $user->id,
+                'organization_id' => null,
+                'portal' => 'callcenter',
+                'status' => 'active',
+            ]);
+        }
+
         $access = $user->accesses()
             ->whereIn('portal', self::INTERNAL_PORTALS)
             ->where('status', 'active')
@@ -32,7 +41,7 @@ class SuperAdminAccessResolver
             return new UserAccess([
                 'user_id' => $user->id,
                 'organization_id' => null,
-                'portal' => $user->is_super_admin ? 'super_admin' : 'backoffice',
+                'portal' => $this->defaultPortalFor($user),
                 'status' => 'active',
             ]);
         }
@@ -78,5 +87,25 @@ class SuperAdminAccessResolver
         }
 
         return null;
+    }
+
+    private function defaultPortalFor(User $user): string
+    {
+        if ($user->is_super_admin) {
+            return 'super_admin';
+        }
+
+        if ($this->isCallCenterUser($user)) {
+            return 'callcenter';
+        }
+
+        return 'backoffice';
+    }
+
+    private function isCallCenterUser(User $user): bool
+    {
+        $user->loadMissing('roles');
+
+        return $user->roles->contains('code', 'CALLCENTER');
     }
 }

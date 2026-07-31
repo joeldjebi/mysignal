@@ -111,7 +111,8 @@
                 <label class="form-label">Rôles</label>
                 <div class="small text-secondary mb-2">Les rôles regroupent plusieurs permissions. C’est désormais la seule méthode d’attribution des droits.</div>
                 <div class="border rounded-3 p-3" style="max-height: 460px; overflow:auto;">
-                    @forelse ($roles as $role)
+                    @if ($roles->isNotEmpty())
+                        @foreach ($roles as $role)
                         <div class="border rounded-3 p-2 mb-2">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" value="{{ $role->id }}" name="role_ids[]" id="edit-role-{{ $role->id }}" @checked(in_array($role->id, old('role_ids', $systemUser->roles->pluck('id')->all())))>
@@ -122,9 +123,10 @@
                                 </label>
                             </div>
                         </div>
-                    @empty
+                        @endforeach
+                    @else
                         <div class="text-secondary small">Aucun rôle actif disponible.</div>
-                    @endforelse
+                    @endif
                 </div>
             </div>
             <div class="col-md-6">
@@ -142,7 +144,8 @@
                 <div class="small text-secondary mb-1">Ce paramètre sert seulement si ce compte reçoit le droit de voir les activités des utilisateurs internes.</div>
                 <div class="small text-secondary mb-2">Le rôle attribué doit inclure <span class="fw-semibold">Voir les activités des utilisateurs internes</span> dans la catégorie <span class="fw-semibold">Journaux d’activité</span>.</div>
                 <div class="border rounded-3 p-3" style="max-height: 240px; overflow:auto;">
-                    @forelse ($visibleActivityUsers as $visibleUser)
+                    @if ($visibleActivityUsers->isNotEmpty())
+                        @foreach ($visibleActivityUsers as $visibleUser)
                         <div class="form-check mb-2">
                             <input class="form-check-input" type="checkbox" value="{{ $visibleUser->id }}" name="activity_visible_user_ids[]" id="activity-visible-user-{{ $visibleUser->id }}" @checked(in_array($visibleUser->id, old('activity_visible_user_ids', $systemUser->activityLogVisibleUsers->pluck('id')->all())))>
                             <label class="form-check-label" for="activity-visible-user-{{ $visibleUser->id }}">
@@ -150,9 +153,10 @@
                                 <span class="small text-secondary">{{ $visibleUser->email }}</span>
                             </label>
                         </div>
-                    @empty
+                        @endforeach
+                    @else
                         <div class="text-secondary small">Aucun autre utilisateur interne disponible.</div>
-                    @endforelse
+                    @endif
                 </div>
             </div>
             <div class="col-12 d-flex gap-2 flex-wrap">

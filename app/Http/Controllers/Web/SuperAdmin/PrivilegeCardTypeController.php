@@ -14,6 +14,7 @@ use App\Services\Wallet\WalletConfigurationException;
 use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -86,11 +87,13 @@ class PrivilegeCardTypeController extends Controller
 
     public function purchases(): View
     {
+        $request = request();
+        $perPage = min(max((int) $request->integer('per_page', 12), 1), 100);
         $purchaseQuery = PrivilegeCardPaymentSession::query()
             ->with(['publicUser', 'type', 'card']);
 
-        if (filled(request('purchase_search'))) {
-            $search = trim((string) request('purchase_search'));
+        if (filled($request->input('purchase_search'))) {
+            $search = trim((string) $request->input('purchase_search'));
             $purchaseQuery->where(function ($builder) use ($search): void {
                 $builder->where('sync_ref', 'like', '%'.$search.'%')
                     ->orWhere('provider_reference', 'like', '%'.$search.'%')
@@ -107,16 +110,24 @@ class PrivilegeCardTypeController extends Controller
             });
         }
 
-        if (filled(request('purchase_status'))) {
-            $purchaseQuery->where('status', request('purchase_status'));
+        if (filled($request->input('purchase_status'))) {
+            $purchaseQuery->where('status', $request->input('purchase_status'));
         }
 
-        if (filled(request('purchase_type_id'))) {
-            $purchaseQuery->where('privilege_card_type_id', request('purchase_type_id'));
+        if (filled($request->input('purchase_type_id'))) {
+            $purchaseQuery->where('privilege_card_type_id', $request->input('purchase_type_id'));
         }
+
+        $this->applyPurchasePeriodFilter($purchaseQuery, $request, 'privilege_card_payment_sessions.initiated_at');
+        $statsQuery = clone $purchaseQuery;
 
         return view('super-admin.privilege-card-types.purchases', [
-            'purchases' => $purchaseQuery->latest('id')->paginate(12)->withQueryString(),
+            'purchases' => (clone $purchaseQuery)->latest('id')->paginate($perPage)->withQueryString(),
+            'purchaseStats' => $this->purchaseStats(clone $statsQuery),
+            'purchaseStatusBreakdown' => $this->purchaseStatusBreakdown(clone $statsQuery),
+            'purchaseTypeBreakdown' => $this->purchaseTypeBreakdown(clone $statsQuery),
+            'purchaseTrend' => $this->purchaseTrend(clone $statsQuery),
+            'perPage' => $perPage,
             ...$this->commonViewData(),
         ]);
     }
@@ -204,6 +215,115 @@ class PrivilegeCardTypeController extends Controller
                 'rejected' => 'Rejeté',
             ],
         ];
+    }
+
+    private function applyPurchasePeriodFilter($query, Request $request, string $column): void
+    {
+        [$startDate, $endDate] = $this->purchasePeriodBounds($request);
+
+        if ($startDate !== null) {
+            $query->where($column, '>=', $startDate);
+        }
+
+        if ($endDate !== null) {
+            $query->where($column, '<=', $endDate);
+        }
+    }
+
+    private function purchasePeriodBounds(Request $request): array
+    {
+        $period = (string) $request->input('period', '30d');
+
+        if ($period === 'today') {
+            return [now()->startOfDay(), now()->endOfDay()];
+        }
+
+        if ($period === '7d') {
+            return [now()->subDays(6)->startOfDay(), now()->endOfDay()];
+        }
+
+        if ($period === 'month') {
+            return [now()->startOfMonth(), now()->endOfMonth()];
+        }
+
+        if ($period === 'year') {
+            return [now()->startOfYear(), now()->endOfYear()];
+        }
+
+        if ($period === 'custom') {
+            $start = filled($request->input('date_from')) ? Carbon::parse($request->input('date_from'))->startOfDay() : null;
+            $end = filled($request->input('date_to')) ? Carbon::parse($request->input('date_to'))->endOfDay() : null;
+
+            return [$start, $end];
+        }
+
+        return [now()->subDays(29)->startOfDay(), now()->endOfDay()];
+    }
+
+    private function purchaseStats($purchaseQuery): array
+    {
+        $paidPurchases = (clone $purchaseQuery)->where('status', PaymentStatus::Paid->value);
+
+        return [
+            'total' => (clone $purchaseQuery)->count(),
+            'paid' => (clone $paidPurchases)->count(),
+            'pending' => (clone $purchaseQuery)->where('status', PaymentStatus::Pending->value)->count(),
+            'failed' => (clone $purchaseQuery)->where('status', PaymentStatus::Failed->value)->count(),
+            'paid_amount' => (float) (clone $paidPurchases)->sum('amount'),
+        ];
+    }
+
+    private function purchaseStatusBreakdown($purchaseQuery): array
+    {
+        $statuses = [
+            PaymentStatus::Pending->value => 'En attente',
+            PaymentStatus::Paid->value => 'Payés',
+            PaymentStatus::Failed->value => 'Échoués',
+        ];
+
+        return collect($statuses)
+            ->map(fn (string $label, string $status): array => [
+                'label' => $label,
+                'value' => (clone $purchaseQuery)->where('status', $status)->count(),
+            ])
+            ->values()
+            ->all();
+    }
+
+    private function purchaseTypeBreakdown($purchaseQuery): array
+    {
+        return (clone $purchaseQuery)
+            ->reorder()
+            ->selectRaw('privilege_card_type_id, COUNT(*) as total')
+            ->with('type:id,name')
+            ->groupBy('privilege_card_type_id')
+            ->orderByDesc('total')
+            ->limit(8)
+            ->get()
+            ->map(fn ($row): array => [
+                'label' => $row->type?->name ?: 'Carte non renseignée',
+                'value' => (int) $row->total,
+            ])
+            ->values()
+            ->all();
+    }
+
+    private function purchaseTrend($purchaseQuery): array
+    {
+        return (clone $purchaseQuery)
+            ->reorder()
+            ->where('status', PaymentStatus::Paid->value)
+            ->selectRaw('DATE(privilege_card_payment_sessions.initiated_at) as period_label')
+            ->selectRaw('SUM(amount) as paid_amount')
+            ->groupByRaw('DATE(privilege_card_payment_sessions.initiated_at)')
+            ->orderByRaw('DATE(privilege_card_payment_sessions.initiated_at)')
+            ->get()
+            ->map(fn ($row): array => [
+                'label' => Carbon::parse($row->period_label)->format('d/m'),
+                'amount' => (float) $row->paid_amount,
+            ])
+            ->values()
+            ->all();
     }
 
     private function issueFormViewData(): array

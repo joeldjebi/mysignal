@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web\SuperAdmin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Web\SuperAdmin\Concerns\InteractsWithScopedSaAdminManagement;
+use App\Models\Role;
 use App\Models\User;
 use App\Models\UserType;
 use App\Services\SmsService;
@@ -50,33 +51,40 @@ class ScopedUserController extends Controller
 
         return view('super-admin.scoped-users.index', [
             'users' => $query->latest()->paginate($perPage)->withQueryString(),
-            'roles' => $this->scopedRoleQuery($actor)->where('status', 'active')->orderBy('name')->get(),
+            'roles' => $this->assignableScopedRoles($actor),
             'permissions' => $this->assignablePermissions($actor),
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, SmsService $smsService, ActivityLogger $activityLogger): RedirectResponse
     {
         $actor = $request->user()->loadMissing(['roles.permissions', 'permissions']);
         $this->authorizeScopedManagement($actor, 'SA_SCOPED_USERS_MANAGE');
         $attributes = $this->validatePayload($request);
+        $isCallCenterUser = $this->selectedRolesContainCallCenter($actor, $attributes['role_ids'] ?? []);
+        $password = $isCallCenterUser ? $this->temporaryPassword() : $attributes['password'];
+        $createdUser = null;
 
-        DB::transaction(function () use ($attributes, $actor): void {
-            $user = User::query()->create([
+        DB::transaction(function () use ($attributes, $actor, $password, &$createdUser): void {
+            $createdUser = User::query()->create([
                 'user_type_id' => UserType::idFor(UserType::SA_USER),
                 'organization_id' => null,
                 'name' => $attributes['name'],
                 'email' => $attributes['email'],
                 'phone' => $attributes['phone'] ?? null,
-                'password' => Hash::make($attributes['password']),
+                'password' => Hash::make($password),
                 'is_super_admin' => false,
                 'status' => 'active',
                 'created_by' => $actor->id,
             ]);
 
-            $user->roles()->sync($this->validOwnedRoleIds($actor, $attributes['role_ids'] ?? []));
-            $user->permissions()->sync($this->validAssignablePermissionIds($actor, $attributes['permission_ids'] ?? []));
+            $createdUser->roles()->sync($this->validOwnedRoleIds($actor, $attributes['role_ids'] ?? []));
+            $createdUser->permissions()->sync($this->validAssignablePermissionIds($actor, $attributes['permission_ids'] ?? []));
         });
+
+        if ($isCallCenterUser && $createdUser instanceof User) {
+            return $this->sendGeneratedAccessToCallCenterUser($request, $createdUser, $password, $smsService, $activityLogger);
+        }
 
         return redirect()->route('super-admin.scoped-users.index')->with('success', 'L’utilisateur a été créé.');
     }
@@ -89,7 +97,7 @@ class ScopedUserController extends Controller
 
         return view('super-admin.scoped-users.edit', [
             'managedUser' => $scopedUser->load(['roles', 'permissions']),
-            'roles' => $this->scopedRoleQuery($actor)->where('status', 'active')->orderBy('name')->get(),
+            'roles' => $this->assignableScopedRoles($actor),
             'permissions' => $this->assignablePermissions($actor),
             'assignedRoleIds' => $scopedUser->roles->pluck('id')->all(),
             'assignedPermissionIds' => $scopedUser->permissions->pluck('id')->all(),
@@ -146,7 +154,7 @@ class ScopedUserController extends Controller
         }
 
         $password = $this->temporaryPassword();
-        $loginUrl = route('super-admin.login');
+        $loginUrl = $this->loginUrlFor($scopedUser);
         $previousPasswordHash = $scopedUser->password;
         $previousStatus = $scopedUser->status;
 
@@ -155,7 +163,7 @@ class ScopedUserController extends Controller
             'status' => 'active',
         ]);
 
-        $message = "My-Signal: accès portail SA. Lien: {$loginUrl} Identifiant: {$scopedUser->email} Mot de passe temporaire: {$password}";
+        $message = "My-Signal: accès portail. Lien: {$loginUrl} Identifiant: {$scopedUser->email} Mot de passe temporaire: {$password}";
 
         try {
             $smsService->sendSmsMtarget($message, (string) $scopedUser->phone);
@@ -205,7 +213,7 @@ class ScopedUserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user?->id)],
             'phone' => ['nullable', 'string', 'max:30'],
-            'password' => [$user ? 'nullable' : 'required', 'string', 'min:8'],
+            'password' => [$user ? 'nullable' : Rule::requiredIf(fn () => ! $this->selectedRolesContainCallCenter($request->user(), $request->input('role_ids', []))), 'nullable', 'string', 'min:8'],
             'role_ids' => ['nullable', 'array'],
             'role_ids.*' => ['integer', 'exists:roles,id'],
             'permission_ids' => ['nullable', 'array'],
@@ -215,15 +223,121 @@ class ScopedUserController extends Controller
 
     private function validOwnedRoleIds(User $actor, array $roleIds): array
     {
-        return $this->scopedRoleQuery($actor)
-            ->whereIn('id', array_map('intval', $roleIds))
+        $roleIds = array_map('intval', $roleIds);
+
+        if ($roleIds === []) {
+            return [];
+        }
+
+        return $this->assignableScopedRoles($actor)
+            ->whereIn('id', $roleIds)
             ->pluck('id')
             ->all();
+    }
+
+    private function selectedRolesContainCallCenter(User $actor, array $roleIds): bool
+    {
+        $roleIds = collect($roleIds)->filter()->map(fn ($roleId) => (int) $roleId)->all();
+
+        if ($roleIds === []) {
+            return false;
+        }
+
+        return $this->assignableScopedRoles($actor)
+            ->whereIn('id', $roleIds)
+            ->contains('code', 'CALLCENTER');
+    }
+
+    private function assignableScopedRoles(User $actor)
+    {
+        $query = Role::query()
+            ->whereNull('organization_id')
+            ->where('status', 'active')
+            ->where(function (Builder $builder) use ($actor): void {
+                $builder->whereNotNull('created_by');
+
+                if ($actor->is_super_admin) {
+                    $builder->orWhere('code', 'CALLCENTER');
+                }
+            });
+
+        if (! $actor->is_super_admin) {
+            $query->where('created_by', $actor->id);
+        }
+
+        return $query
+            ->orderBy('name')
+            ->get();
     }
 
     private function temporaryPassword(): string
     {
         return 'MS-'.Str::upper(Str::random(4)).'-'.random_int(1000, 9999);
+    }
+
+    private function sendGeneratedAccessToCallCenterUser(
+        Request $request,
+        User $user,
+        string $password,
+        SmsService $smsService,
+        ActivityLogger $activityLogger
+    ): RedirectResponse {
+        if (blank($user->phone)) {
+            return redirect()
+                ->route('super-admin.scoped-users.index')
+                ->with('warning', 'Le compte centre d’appels a été créé, mais aucun SMS n’a été envoyé car le numéro de téléphone est absent.');
+        }
+
+        $loginUrl = $this->loginUrlFor($user);
+        $message = "My-Signal: accès centre d’appels. Lien: {$loginUrl} Identifiant: {$user->email} Mot de passe temporaire: {$password}";
+
+        try {
+            $smsService->sendSmsMtarget($message, (string) $user->phone);
+        } catch (Throwable $exception) {
+            $activityLogger->log(
+                'scoped_user.callcenter_access_sms_failed',
+                'Échec d’envoi des accès centre d’appels par SMS.',
+                $user,
+                [
+                    'phone' => $user->phone,
+                    'error' => $exception->getMessage(),
+                ],
+                $request,
+                $request->user(),
+            );
+
+            return redirect()
+                ->route('super-admin.scoped-users.index')
+                ->with('warning', 'Le compte centre d’appels a été créé, mais l’envoi SMS a échoué. Utilisez le bouton d’envoi des accès pour générer un nouveau mot de passe.');
+        }
+
+        $activityLogger->log(
+            'scoped_user.callcenter_access_sent',
+            'Envoi des accès centre d’appels par SMS.',
+            $user,
+            [
+                'phone' => $user->phone,
+                'email' => $user->email,
+                'login_url' => $loginUrl,
+            ],
+            $request,
+            $request->user(),
+        );
+
+        return redirect()
+            ->route('super-admin.scoped-users.index')
+            ->with('success', 'Le compte centre d’appels a été créé et les accès ont été envoyés par SMS.');
+    }
+
+    private function loginUrlFor(User $user): string
+    {
+        $user->loadMissing('roles');
+
+        if ($user->roles->contains('code', 'CALLCENTER')) {
+            return route('callcenter.login');
+        }
+
+        return route('super-admin.login');
     }
 
     private function scopedUserQuery(User $actor): Builder
@@ -234,6 +348,7 @@ class ScopedUserController extends Controller
             ->whereNotNull('created_by')
             ->where(function (Builder $builder): void {
                 $builder->whereHas('roles', fn (Builder $roleQuery) => $roleQuery->whereNotNull('roles.created_by'))
+                    ->orWhereHas('roles', fn (Builder $roleQuery) => $roleQuery->where('roles.code', 'CALLCENTER'))
                     ->orWhereHas('permissions');
             })
             ->whereDoesntHave('roles.permissions', fn (Builder $permissionQuery) => $this->nonScopedPortalPermissions($permissionQuery))
@@ -252,7 +367,9 @@ class ScopedUserController extends Controller
             $user->is_super_admin
                 || (int) $user->user_type_id !== (int) UserType::idFor(UserType::SA_USER)
                 || $user->created_by === null
-                || (! $user->roles()->whereNotNull('roles.created_by')->exists() && ! $user->permissions()->exists())
+                || (! $user->roles()->whereNotNull('roles.created_by')->exists()
+                    && ! $user->roles()->where('roles.code', 'CALLCENTER')->exists()
+                    && ! $user->permissions()->exists())
                 || $this->hasNonScopedPortalAccess($user)
                 || (! $actorIsSuperAdmin && (int) $user->created_by !== $actorId),
             404

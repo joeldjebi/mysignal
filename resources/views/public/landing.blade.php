@@ -1963,35 +1963,28 @@
       <p class="section-sub">{{ $blockBody('clients', 'My-Signal accompagne plusieurs univers de consommation et de services.') }}</p>
     </div>
     <div class="row g-4">
-      @forelse ($applications as $application)
-        @php
-          $domainTitle = $application->name;
-          $domainText = $application->short_description
-              ?: $application->tagline
-              ?: 'Suivez vos signalements et déclenchez vos démarches depuis cet univers My-Signal.';
-          $domainImage = $application->heroImageUrl()
-              ?: $application->logoUrl()
-              ?: asset('image/logo/logo-my-signal.png');
-        @endphp
+      @if ($applications->isNotEmpty())
+        @foreach ($applications as $application)
         <div class="col-md-6 col-xl-4">
           <article class="domain-card">
             <div class="domain-image">
-              <img src="{{ $domainImage }}" alt="{{ $domainTitle }}">
-              <div class="domain-badge">{{ $domainTitle }}</div>
+              <img src="{{ $application->heroImageUrl() ?: $application->logoUrl() ?: asset('image/logo/logo-my-signal.png') }}" alt="{{ $application->name }}">
+              <div class="domain-badge">{{ $application->name }}</div>
             </div>
             <div class="domain-body">
-              <p>{{ $domainText }}</p>
+              <p>{{ $application->short_description ?: $application->tagline ?: 'Suivez vos signalements et déclenchez vos démarches depuis cet univers My-Signal.' }}</p>
               <a class="domain-action" href="{{ route('public.auth') }}">Faire un signalement <i class="bi bi-arrow-right"></i></a>
             </div>
           </article>
         </div>
-      @empty
+        @endforeach
+      @else
         <div class="col-12">
           <div class="alert alert-light border-0 shadow-sm rounded-4 text-center mb-0">
             Aucune catégorie active n’est disponible pour le moment.
           </div>
         </div>
-      @endforelse
+      @endif
     </div>
   </div>
 </section>

@@ -57,7 +57,8 @@
             <table class="table table-modern align-middle">
                 <thead><tr><th>Utilisateur</th><th>Rôles</th><th>Statut</th><th class="text-end">Actions</th></tr></thead>
                 <tbody>
-                    @forelse ($users as $managedUser)
+                    @if ($users->isNotEmpty())
+                        @foreach ($users as $managedUser)
                         <tr>
                             <td><div class="fw-semibold">{{ $managedUser->name }}</div><div class="small text-secondary">{{ $managedUser->email }}</div></td>
                             <td>{{ $managedUser->roles->pluck('name')->join(', ') ?: '-' }}</td>
@@ -65,7 +66,7 @@
                             <td class="text-end">
                                 <div class="actions-wrap">
                                     <a class="btn btn-sm btn-outline-dark" href="{{ route('super-admin.scoped-users.edit', $managedUser) }}">Modifier</a>
-                                    <a class="btn btn-sm btn-outline-secondary" href="{{ route('super-admin.login') }}" target="_blank" rel="noopener">Connexion</a>
+                                    <a class="btn btn-sm btn-outline-secondary" href="{{ $managedUser->roles->contains('code', 'CALLCENTER') ? route('callcenter.login') : route('super-admin.login') }}" target="_blank" rel="noopener">Connexion</a>
                                     <form method="POST" action="{{ route('super-admin.scoped-users.send-access', $managedUser) }}" onsubmit="return confirm('Un nouveau mot de passe temporaire sera généré puis envoyé par SMS. L’envoi e-mail sera activé dès que le service sera configuré. Continuer ?')">
                                         @csrf
                                         <button class="btn btn-sm btn-outline-primary">Envoyer accès SMS / e-mail</button>
@@ -77,9 +78,10 @@
                                 </div>
                             </td>
                         </tr>
-                    @empty
+                        @endforeach
+                    @else
                         <tr><td colspan="4" class="text-center text-secondary">Aucun utilisateur créé.</td></tr>
-                    @endforelse
+                    @endif
                 </tbody>
             </table>
         </div>

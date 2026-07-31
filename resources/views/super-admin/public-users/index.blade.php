@@ -5,17 +5,33 @@
 @section('page-description', 'Créer et piloter les comptes publics particuliers et entreprises.')
 
 @section('header-badges')
+    @php
+        $authUser = auth()->user();
+        $canManagePublicUsers = $authUser?->hasEffectivePermissionCode('SA_PUBLIC_USERS_MANAGE') ?? false;
+        $canCreatePublicUsers = ($authUser?->hasEffectivePermissionCode('SA_PUBLIC_USERS_CREATE') ?? false) || $canManagePublicUsers;
+    @endphp
     <span class="badge-soft">{{ $publicUsers->total() }} usagers</span>
     <span class="badge-soft">{{ number_format($publicUserStats['with_push'] ?? 0, 0, ',', ' ') }} avec notifications</span>
-    <a href="{{ route('super-admin.public-users.push-notifications.index') }}" class="btn btn-outline-dark">
-        Notifications UP
-    </a>
-    <a href="{{ route('super-admin.public-users.create') }}" class="btn btn-dark">
-        Nouvel usager
-    </a>
+    @if ($canManagePublicUsers)
+        <a href="{{ route('super-admin.public-users.push-notifications.index') }}" class="btn btn-outline-dark">
+            Notifications UP
+        </a>
+    @endif
+    @if ($canCreatePublicUsers)
+        <a href="{{ route('super-admin.public-users.create') }}" class="btn btn-dark">
+            Nouvel usager
+        </a>
+    @endif
 @endsection
 
 @section('content')
+    @php
+        $authUser = auth()->user();
+        $canManagePublicUsers = $authUser?->hasEffectivePermissionCode('SA_PUBLIC_USERS_MANAGE') ?? false;
+        $canUpdatePublicUsers = ($authUser?->hasEffectivePermissionCode('SA_PUBLIC_USERS_UPDATE') ?? false) || $canManagePublicUsers;
+        $canDeletePublicUsers = ($authUser?->hasEffectivePermissionCode('SA_PUBLIC_USERS_DELETE') ?? false) || $canManagePublicUsers;
+        $canTogglePublicUsers = ($authUser?->hasEffectivePermissionCode('SA_PUBLIC_USERS_TOGGLE_STATUS') ?? false) || $canManagePublicUsers;
+    @endphp
     @include('partials.page-loader', [
         'title' => 'Chargement des usagers',
         'message' => 'Nous préparons les données demandées.',
@@ -190,7 +206,8 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse ($publicUsers as $publicUser)
+                    @if ($publicUsers->isNotEmpty())
+                        @foreach ($publicUsers as $publicUser)
                         <tr>
                             <td>
                                 <div class="fw-semibold">{{ $publicUser->first_name }} {{ $publicUser->last_name }}</div>
@@ -264,25 +281,30 @@
                             <td class="text-end">
                                 <div class="actions-wrap">
                                     <a href="{{ route('super-admin.public-users.show', $publicUser) }}" class="btn btn-sm btn-dark">Détails</a>
-                                    <a href="{{ route('super-admin.public-users.edit', $publicUser) }}" class="btn btn-sm btn-outline-dark">Modifier</a>
-                                    @if (auth()->user()?->hasPermissionCode('SA_PUBLIC_USERS_TOGGLE_STATUS'))
+                                    @if ($canUpdatePublicUsers)
+                                        <a href="{{ route('super-admin.public-users.edit', $publicUser) }}" class="btn btn-sm btn-outline-dark">Modifier</a>
+                                    @endif
+                                    @if ($canTogglePublicUsers)
                                         <form method="POST" action="{{ route('super-admin.public-users.toggle-status', $publicUser) }}">
                                             @csrf
                                             @method('PATCH')
                                             <button class="btn btn-sm btn-outline-warning">{{ $publicUser->status === 'active' ? 'Désactiver' : 'Activer' }}</button>
                                         </form>
                                     @endif
-                                    <form method="POST" action="{{ route('super-admin.public-users.destroy', $publicUser) }}">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button class="btn btn-sm btn-outline-danger">Supprimer</button>
-                                    </form>
+                                    @if ($canDeletePublicUsers)
+                                        <form method="POST" action="{{ route('super-admin.public-users.destroy', $publicUser) }}">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button class="btn btn-sm btn-outline-danger">Supprimer</button>
+                                        </form>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
-                    @empty
+                        @endforeach
+                    @else
                         <tr><td colspan="8" class="text-center text-secondary">Aucun usager public enregistré.</td></tr>
-                    @endforelse
+                    @endif
                 </tbody>
             </table>
         </div>

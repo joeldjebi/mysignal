@@ -17,6 +17,10 @@ class AuthController extends Controller
     {
         $user = Auth::user();
 
+        if ($this->isCallCenterUser($user)) {
+            return redirect()->route('callcenter.login');
+        }
+
         if ($user instanceof User && app(SuperAdminAccessResolver::class)->resolve($user) !== null) {
             return redirect()->route($this->resolveRedirectRoute($user));
         }
@@ -44,14 +48,16 @@ class AuthController extends Controller
         $user = $request->user();
         $superAdminAccess = $user instanceof User ? $superAdminAccessResolver->resolve($user) : null;
 
-        if (! $user instanceof User || $user->status !== 'active' || $superAdminAccess === null) {
+        if (! $user instanceof User || $user->status !== 'active' || $superAdminAccess === null || $this->isCallCenterUser($user)) {
             Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
 
             return back()
                 ->withErrors([
-                    'email' => 'Ce compte ne dispose pas d un acces super admin.',
+                    'email' => $this->isCallCenterUser($user)
+                        ? 'Ce compte doit utiliser le portail centre d’appels.'
+                        : 'Ce compte ne dispose pas d’un accès super admin.',
                 ])
                 ->onlyInput('email');
         }
@@ -116,7 +122,9 @@ class AuthController extends Controller
             'SA_ACTIVITY_LOGS_VIEW_INSTITUTION' => 'super-admin.activity-logs.index',
             'SA_ACTIVITY_LOGS_VIEW_PUBLIC' => 'super-admin.activity-logs.index',
             'SA_ACTIVITY_LOGS_VIEW_INTERNAL' => 'super-admin.activity-logs.index',
+            'SA_PUBLIC_USERS_VIEW' => 'super-admin.public-users.index',
             'SA_PUBLIC_USERS_MANAGE' => 'super-admin.public-users.index',
+            'SA_PUBLIC_REPORTS_VIEW' => 'super-admin.public-reports.index',
             'SA_ORGANIZATIONS_MANAGE' => 'super-admin.organizations.index',
             'SA_APPLICATIONS_MANAGE' => 'super-admin.applications.index',
             'SA_ROLES_MANAGE' => 'super-admin.roles.index',
@@ -128,5 +136,16 @@ class AuthController extends Controller
         }
 
         return 'super-admin.login';
+    }
+
+    private function isCallCenterUser(?User $user): bool
+    {
+        if (! $user instanceof User) {
+            return false;
+        }
+
+        $user->loadMissing('roles');
+
+        return $user->roles->contains('code', 'CALLCENTER');
     }
 }

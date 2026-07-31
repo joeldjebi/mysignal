@@ -5,7 +5,9 @@
 @section('page-description', 'Gerer les permissions disponibles pour les futurs roles et profils.')
 
 @section('header-badges')
-    @php($canManagePermissions = auth()->user()?->hasEffectivePermissionCode('SA_PERMISSIONS_MANAGE') ?? false)
+    @php
+        $canManagePermissions = auth()->user()?->hasEffectivePermissionCode('SA_PERMISSIONS_MANAGE') ?? false;
+    @endphp
     <span class="badge-soft">{{ $permissions->total() }} permissions</span>
     @if ($canManagePermissions)
         <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#createPermissionModal">
@@ -15,7 +17,9 @@
 @endsection
 
 @section('content')
-    @php($canManagePermissions = auth()->user()?->hasEffectivePermissionCode('SA_PERMISSIONS_MANAGE') ?? false)
+    @php
+        $canManagePermissions = auth()->user()?->hasEffectivePermissionCode('SA_PERMISSIONS_MANAGE') ?? false;
+    @endphp
 
     <section class="panel-card">
         <div class="fw-bold mb-3">Liste des permissions</div>

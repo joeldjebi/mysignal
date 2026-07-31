@@ -11,6 +11,7 @@ class UserType extends Model
 {
     public const SUPER_ADMIN = 'SUPER_ADMIN';
     public const SA_USER = 'SA_USER';
+    public const CALLCENTER = 'CALLCENTER';
     public const INSTITUTION_ADMIN = 'INSTITUTION_ADMIN';
     public const PARTNER_MANAGER = 'PARTNER_MANAGER';
     public const PARTNER_SCAN_AGENT = 'PARTNER_SCAN_AGENT';

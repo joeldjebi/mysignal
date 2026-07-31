@@ -10,7 +10,9 @@
 @endsection
 
 @section('content')
-    @php($canManageRoles = auth()->user()?->hasEffectivePermissionCode('SA_ROLES_MANAGE') ?? false)
+    @php
+        $canManageRoles = auth()->user()?->hasEffectivePermissionCode('SA_ROLES_MANAGE') ?? false;
+    @endphp
     <div class="row g-4">
         <div class="col-lg-4">
             <section class="panel-card h-100">

@@ -62,7 +62,7 @@ class SystemUserController extends Controller
 
         return view('super-admin.system-users.index', [
             'systemUsers' => $systemUsers,
-            'roles' => Role::query()->whereNull('organization_id')->where('status', 'active')->orderBy('name')->get(),
+            'roles' => $this->systemAssignableRoles(),
             'partnerOrganizations' => $this->partnerOrganizations(),
             'visibleActivityUsers' => User::query()
                 ->whereNull('organization_id')
@@ -126,7 +126,7 @@ class SystemUserController extends Controller
 
         return view('super-admin.system-users.edit', [
             'systemUser' => $systemUser->load(['roles.permissions', 'activityLogVisibleUsers', 'accesses.organization.organizationType']),
-            'roles' => Role::query()->whereNull('organization_id')->where('status', 'active')->orderBy('name')->get(),
+            'roles' => $this->systemAssignableRoles(),
             'partnerOrganizations' => $this->partnerOrganizations(),
             'visibleActivityUsers' => User::query()
                 ->whereNull('organization_id')
@@ -156,7 +156,7 @@ class SystemUserController extends Controller
                 'accesses.roles.permissions',
                 'accesses.permissions',
             ]),
-            'accessRoles' => Role::query()->whereNull('organization_id')->where('status', 'active')->orderBy('name')->get(),
+            'accessRoles' => $this->systemAssignableRoles(),
             'accessPermissions' => Permission::query()->where('status', 'active')->orderBy('name')->get(),
             'permissionProfileScopes' => Permission::PROFILE_SCOPES,
             'permissionCategories' => Permission::CATEGORIES,
@@ -307,6 +307,7 @@ class SystemUserController extends Controller
                 ->orWhere(function (Builder $saUserQuery): void {
                     $saUserQuery
                         ->whereDoesntHave('roles', fn (Builder $roleQuery) => $roleQuery->whereNotNull('roles.created_by'))
+                        ->whereDoesntHave('roles', fn (Builder $roleQuery) => $roleQuery->where('roles.code', 'CALLCENTER'))
                         ->whereDoesntHave('permissions');
                 });
         });
@@ -320,6 +321,7 @@ class SystemUserController extends Controller
             && $user->created_by !== null
             && (
                 $user->roles()->whereNotNull('roles.created_by')->exists()
+                || $user->roles()->where('roles.code', 'CALLCENTER')->exists()
                 || $user->permissions()->exists()
             )
             && ! $this->hasSystemPortalAccess($user);
@@ -400,6 +402,16 @@ class SystemUserController extends Controller
             ->whereIn('id', $roleIds)
             ->where('code', 'like', 'PARTNER_%')
             ->exists();
+    }
+
+    private function systemAssignableRoles()
+    {
+        return Role::query()
+            ->whereNull('organization_id')
+            ->where('status', 'active')
+            ->where('code', '!=', 'CALLCENTER')
+            ->orderBy('name')
+            ->get();
     }
 
     private function selectedRolesContainPartnerScanAgent(array $roleIds): bool

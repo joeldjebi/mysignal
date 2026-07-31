@@ -201,6 +201,18 @@ Route::redirect('/admin', '/sa/login');
 Route::redirect('/admin/login', '/sa/login');
 Route::redirect('/backoffice', '/backoffice/login');
 Route::redirect('/partenaire', '/partner/login');
+Route::redirect('/centre-appels', '/callcenter/login');
+
+Route::prefix('callcenter')->name('callcenter.')->group(function (): void {
+    Route::middleware('guest')->group(function (): void {
+        Route::get('login', [InternalAccessController::class, 'createCallCenter'])->name('login');
+        Route::post('login', [InternalAccessController::class, 'storeCallCenter'])->name('login.store');
+    });
+
+    Route::middleware(['auth', 'super_admin_access'])->group(function (): void {
+        Route::post('logout', [InternalAccessController::class, 'destroy'])->name('logout');
+    });
+});
 
 Route::prefix('institution')->name('institution.')->group(function (): void {
     Route::middleware('guest')->group(function (): void {

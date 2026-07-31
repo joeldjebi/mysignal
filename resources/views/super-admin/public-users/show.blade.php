@@ -5,6 +5,11 @@
 @section('page-description', 'Consulter le profil, les notifications, les abonnements et les signalements de l usager.')
 
 @section('content')
+    @php
+        $authUser = auth()->user();
+        $canUpdatePublicUser = ($authUser?->hasEffectivePermissionCode('SA_PUBLIC_USERS_UPDATE') ?? false)
+            || ($authUser?->hasEffectivePermissionCode('SA_PUBLIC_USERS_MANAGE') ?? false);
+    @endphp
     <section class="panel-card">
         <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
             <div>
@@ -13,7 +18,9 @@
                 <div class="small text-secondary mt-1">{{ $publicUser->publicUserType?->name ?: '-' }} · {{ $publicUser->commune ?: 'Commune non renseignee' }}</div>
             </div>
             <div class="d-flex gap-2 flex-wrap">
-                <a href="{{ route('super-admin.public-users.edit', $publicUser) }}" class="btn btn-outline-dark">Modifier le compte</a>
+                @if ($canUpdatePublicUser)
+                    <a href="{{ route('super-admin.public-users.edit', $publicUser) }}" class="btn btn-outline-dark">Modifier le compte</a>
+                @endif
                 <a href="{{ route('super-admin.public-users.index') }}" class="btn btn-outline-secondary">Retour</a>
             </div>
         </div>
@@ -99,7 +106,8 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse ($publicUser->deviceTokens as $deviceToken)
+                    @if ($publicUser->deviceTokens->isNotEmpty())
+                        @foreach ($publicUser->deviceTokens as $deviceToken)
                         <tr>
                             <td>{{ strtoupper($deviceToken->platform ?: '-') }}</td>
                             <td>
@@ -110,9 +118,10 @@
                             <td>{{ $deviceToken->last_seen_at?->format('d/m/Y H:i') ?: '-' }}</td>
                             <td><span class="status-chip">{{ $deviceToken->revoked_at ? 'Revoque' : 'Actif' }}</span></td>
                         </tr>
-                    @empty
+                        @endforeach
+                    @else
                         <tr><td colspan="5" class="text-center text-secondary">Aucun token notification enregistre.</td></tr>
-                    @endforelse
+                    @endif
                 </tbody>
             </table>
         </div>
@@ -139,7 +148,8 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse ($subscriptions as $subscription)
+                    @if ($subscriptions->isNotEmpty())
+                        @foreach ($subscriptions as $subscription)
                         @php
                             $latestPayment = $subscription->payments->sortByDesc('id')->first();
                             $subscriptionLabels = [
@@ -183,9 +193,10 @@
                                 @endif
                             </td>
                         </tr>
-                    @empty
+                        @endforeach
+                    @else
                         <tr><td colspan="5" class="text-center text-secondary">Aucun abonnement enregistre pour cet usager.</td></tr>
-                    @endforelse
+                    @endif
                 </tbody>
             </table>
         </div>

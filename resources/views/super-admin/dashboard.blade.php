@@ -262,14 +262,16 @@
                     <div class="fw-bold mb-2">Top types de signaux</div>
                     <div class="small text-secondary mb-3">Les incidents les plus fréquemment déclarés.</div>
                     <div class="vstack gap-2">
-                        @forelse ($topSignals as $signal)
+                        @if ($topSignals->isNotEmpty())
+                            @foreach ($topSignals as $signal)
                             <div class="d-flex justify-content-between align-items-center border rounded-4 p-3">
                                 <div class="fw-semibold">{{ $signal->label }}</div>
                                 <span class="status-chip">{{ $signal->total }}</span>
                             </div>
-                        @empty
+                            @endforeach
+                        @else
                             <div class="text-secondary">Aucune donnée disponible.</div>
-                        @endforelse
+                        @endif
                     </div>
                 </div>
             </div>
@@ -278,14 +280,16 @@
                     <div class="fw-bold mb-2">Top communes</div>
                     <div class="small text-secondary mb-3">Les zones qui concentrent le plus de signalements.</div>
                     <div class="vstack gap-2">
-                        @forelse ($topCommunes as $commune)
+                        @if ($topCommunes->isNotEmpty())
+                            @foreach ($topCommunes as $commune)
                             <div class="d-flex justify-content-between align-items-center border rounded-4 p-3">
                                 <div class="fw-semibold">{{ $commune->label }}</div>
                                 <span class="status-chip">{{ $commune->total }}</span>
                             </div>
-                        @empty
+                            @endforeach
+                        @else
                             <div class="text-secondary">Aucune donnée disponible.</div>
-                        @endforelse
+                        @endif
                     </div>
                 </div>
             </div>
@@ -294,7 +298,8 @@
                     <div class="fw-bold mb-2">Usagers par type</div>
                     <div class="small text-secondary mb-3">Répartition des comptes publics selon le type d’usager.</div>
                     <div class="vstack gap-2">
-                        @forelse ($publicUserTypeBreakdown as $publicUserType)
+                        @if ($publicUserTypeBreakdown->isNotEmpty())
+                            @foreach ($publicUserTypeBreakdown as $publicUserType)
                             <div class="d-flex justify-content-between align-items-center border rounded-4 p-3">
                                 <div>
                                     <div class="fw-semibold">{{ $publicUserType->name }}</div>
@@ -302,9 +307,10 @@
                                 </div>
                                 <span class="status-chip">{{ $publicUserType->public_users_count }}</span>
                             </div>
-                        @empty
+                            @endforeach
+                        @else
                             <div class="text-secondary">Aucun type d’usager configuré.</div>
-                        @endforelse
+                        @endif
                     </div>
                 </div>
             </div>

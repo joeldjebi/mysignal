@@ -5,7 +5,9 @@
 @section('page-description', 'Créer les comptes internes, puis leur attribuer des rôles pour le pilotage des dossiers et opérations.')
 
 @section('header-badges')
-    @php($canManageSystemUsers = auth()->user()?->hasEffectivePermissionCode('SA_SYSTEM_USERS_MANAGE') ?? false)
+    @php
+        $canManageSystemUsers = auth()->user()?->hasEffectivePermissionCode('SA_SYSTEM_USERS_MANAGE') ?? false;
+    @endphp
     <span class="badge-soft">{{ $systemUsers->total() }} utilisateurs</span>
     <span class="badge-soft">{{ $roles->count() }} rôle{{ $roles->count() > 1 ? 's' : '' }} actif{{ $roles->count() > 1 ? 's' : '' }}</span>
     @if ($canManageSystemUsers)
@@ -14,7 +16,10 @@
 @endsection
 
 @section('content')
-    @php($canManageSystemUsers = auth()->user()?->hasEffectivePermissionCode('SA_SYSTEM_USERS_MANAGE') ?? false)
+    @php
+        $canManageSystemUsers = auth()->user()?->hasEffectivePermissionCode('SA_SYSTEM_USERS_MANAGE') ?? false;
+        $canToggleSystemUsers = auth()->user()?->hasEffectivePermissionCode('SA_SYSTEM_USERS_TOGGLE_STATUS') ?? false;
+    @endphp
 
     <section class="panel-card">
         <div class="fw-bold mb-3">Liste des utilisateurs internes</div>
@@ -62,7 +67,8 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse ($systemUsers as $systemUser)
+                    @if ($systemUsers->isNotEmpty())
+                        @foreach ($systemUsers as $systemUser)
                         <tr>
                             <td>
                                 <div class="fw-semibold">{{ $systemUser->name }}</div>
@@ -78,7 +84,7 @@
                                     @if ($canManageSystemUsers)
                                         <a href="{{ route('super-admin.system-users.edit', $systemUser) }}" class="btn btn-sm btn-outline-dark">Modifier</a>
                                     @endif
-                                    @if ($canManageSystemUsers && auth()->user()?->hasEffectivePermissionCode('SA_SYSTEM_USERS_TOGGLE_STATUS'))
+                                    @if ($canManageSystemUsers && $canToggleSystemUsers)
                                         <form method="POST" action="{{ route('super-admin.system-users.toggle-status', $systemUser) }}">
                                             @csrf
                                             @method('PATCH')
@@ -95,9 +101,10 @@
                                 </div>
                             </td>
                         </tr>
-                    @empty
+                        @endforeach
+                    @else
                         <tr><td colspan="4" class="text-center text-secondary">Aucun utilisateur interne enregistré.</td></tr>
-                    @endforelse
+                    @endif
                 </tbody>
             </table>
         </div>
@@ -148,7 +155,8 @@
                                 <label class="form-label">Rôles</label>
                                 <div class="small text-secondary mb-2">Les rôles regroupent plusieurs permissions. C’est désormais la seule méthode d’attribution des droits.</div>
                                 <div class="border rounded-3 p-3" style="max-height: 360px; overflow:auto;">
-                                    @forelse ($roles as $role)
+                                    @if ($roles->isNotEmpty())
+                                        @foreach ($roles as $role)
                                         <div class="border rounded-3 p-2 mb-2">
                                             <div class="form-check">
                                                 <input class="form-check-input" type="checkbox" value="{{ $role->id }}" name="role_ids[]" id="create-role-{{ $role->id }}" @checked(in_array($role->id, old('role_ids', [])))>
@@ -159,9 +167,10 @@
                                                 </label>
                                             </div>
                                         </div>
-                                    @empty
+                                        @endforeach
+                                    @else
                                         <div class="text-secondary small">Aucun rôle actif disponible.</div>
-                                    @endforelse
+                                    @endif
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -179,7 +188,8 @@
                                 <div class="small text-secondary mb-1">Ce paramètre est utile si ce compte doit voir les activités de certains utilisateurs internes choisis par le super admin.</div>
                                 <div class="small text-secondary mb-2">Le rôle attribué doit inclure <span class="fw-semibold">Voir les activités des utilisateurs internes</span> dans la catégorie <span class="fw-semibold">Journaux d’activité</span>.</div>
                                 <div class="border rounded-3 p-3" style="max-height: 220px; overflow:auto;">
-                                    @forelse ($visibleActivityUsers as $visibleUser)
+                                    @if ($visibleActivityUsers->isNotEmpty())
+                                        @foreach ($visibleActivityUsers as $visibleUser)
                                         <div class="form-check mb-2">
                                             <input class="form-check-input" type="checkbox" value="{{ $visibleUser->id }}" name="activity_visible_user_ids[]" id="create-activity-visible-user-{{ $visibleUser->id }}" @checked(in_array($visibleUser->id, old('activity_visible_user_ids', [])))>
                                             <label class="form-check-label" for="create-activity-visible-user-{{ $visibleUser->id }}">
@@ -187,9 +197,10 @@
                                                 <span class="small text-secondary">{{ $visibleUser->email }}</span>
                                             </label>
                                         </div>
-                                    @empty
+                                        @endforeach
+                                    @else
                                         <div class="text-secondary small">Aucun utilisateur interne disponible.</div>
-                                    @endforelse
+                                    @endif
                                 </div>
                             </div>
                         </div>
