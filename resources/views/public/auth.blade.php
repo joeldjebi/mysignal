@@ -175,11 +175,11 @@
                                 <div class="small text-white-50 fw-bold text-uppercase mb-3">Signalement consommateur</div>
                                 <h1 class="display-6 fw-bold mb-3">Connectez-vous pour signaler maintenant.</h1>
                                 <p class="text-white text-opacity-75 mb-4">
-                                    Authentifiez-vous ou creez votre compte pour acceder a votre espace, declarer un signalement et suivre son traitement.
+                                    Authentifiez-vous ou créez votre compte pour accéder à votre espace, déclarer un signalement et suivre son traitement.
                                 </p>
                                 <div class="row g-3">
                                     <div class="col-6">
-                                        <div class="status-box text-white" style="background:rgba(255,255,255,.10)">Compte securise</div>
+                                        <div class="status-box text-white" style="background:rgba(255,255,255,.10)">Compte sécurisé</div>
                                     </div>
                                     <div class="col-6">
                                         <div class="status-box text-white" style="background:rgba(255,255,255,.10)">Suivi des dossiers</div>
@@ -188,7 +188,7 @@
                                         <div class="status-box text-white" style="background:rgba(255,255,255,.10)">Abonnement UP</div>
                                     </div>
                                     <div class="col-6">
-                                        <div class="status-box text-white" style="background:rgba(255,255,255,.10)">REX après traitement</div>
+                                        <div class="status-box text-white" style="background:rgba(255,255,255,.10)">Retour d’expérience</div>
                                     </div>
                                 </div>
                             </div>
@@ -238,7 +238,7 @@
                                 <form id="forgotPasswordForm" class="row g-3">
                                     <div class="col-12">
                                         <div class="status-box">
-                                            Renseignez votre numéro UP, recevez le code OTP, puis choisissez un nouveau mot de passe.
+                                            Renseignez votre numéro de téléphone, recevez le code OTP, puis choisissez un nouveau mot de passe.
                                         </div>
                                     </div>
                                     <div class="col-12">
@@ -408,7 +408,7 @@
                 function setLoading(button, isLoading) {
                     button.disabled = isLoading;
                     button.dataset.originalText = button.dataset.originalText || button.textContent;
-                    button.textContent = isLoading ? 'Traitement...' : button.dataset.originalText;
+                    button.textContent = isLoading ? 'Traitement…' : button.dataset.originalText;
                 }
 
                 function populateDialCodeSelects() {
@@ -540,7 +540,7 @@
                     const token = data?.data?.access_token;
 
                     if (!token) {
-                        throw new Error('Token de session introuvable.');
+                        throw new Error('Session introuvable.');
                     }
 
                     localStorage.setItem(tokenKey, token);
@@ -634,7 +634,7 @@
                         const code = form.querySelector('[name="otp_code"]').value;
                         const response = await publicApi('/auth/verify-otp', { phone, code });
                         enableRegistrationSubmit(response.data.verification_token, phone);
-                        showAlert('Numéro vérifié. Vous pouvez créer le compte.', 'success');
+                        showAlert('Numéro vérifié. Vous pouvez créer votre compte.', 'success');
                     } catch (error) {
                         showAlert(error.message);
                     } finally {
@@ -699,7 +699,7 @@
 
                         if (!payload.verification_token || payload.phone !== resetVerifiedPhone) {
                             setPasswordResetVerified(payload.phone);
-                            showAlert('Veuillez vérifier votre numéro avec le code OTP avant de changer le mot de passe.');
+                            showAlert('Veuillez vérifier votre numéro avec le code OTP avant de changer votre mot de passe.');
                             return;
                         }
 
@@ -711,7 +711,7 @@
                         form.reset();
                         setPasswordResetVerified();
                         activateAuthTab('login');
-                        showAlert('Mot de passe réinitialisé avec succès. Vous pouvez vous connecter.', 'success');
+                        showAlert('Votre mot de passe a été réinitialisé avec succès. Vous pouvez vous connecter.', 'success');
                     } catch (error) {
                         showAlert(error.message);
                     } finally {
@@ -732,7 +732,7 @@
 
                         if (!payload.verification_token || payload.phone !== verifiedPhone) {
                             setRegistrationVerified(payload.phone);
-                            showAlert('Veuillez vérifier votre numéro avec le code OTP avant de créer le compte.');
+                            showAlert('Veuillez vérifier votre numéro avec le code OTP avant de créer votre compte.');
                             return;
                         }
 
