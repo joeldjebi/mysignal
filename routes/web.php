@@ -492,6 +492,7 @@ Route::prefix('sa')->name('super-admin.')->group(function (): void {
         Route::patch('public-users/{publicUser}/toggle-status', [PublicUserController::class, 'toggleStatus'])->middleware('super_admin_permission:SA_PUBLIC_USERS_TOGGLE_STATUS,SA_PUBLIC_USERS_MANAGE')->name('public-users.toggle-status');
         Route::get('public-reports', [PublicIncidentReportController::class, 'index'])->middleware('super_admin_permission:SA_PUBLIC_REPORTS_VIEW')->name('public-reports.index');
         Route::get('public-reports/{report}', [PublicIncidentReportController::class, 'show'])->middleware('super_admin_permission:SA_PUBLIC_REPORTS_VIEW')->name('public-reports.show');
+        Route::delete('public-reports/{report}', [PublicIncidentReportController::class, 'destroy'])->middleware('super_admin_permission:SA_PUBLIC_REPORTS_DELETE')->name('public-reports.destroy');
         Route::get('payments', [PaymentController::class, 'index'])->middleware('super_admin_permission:SA_PAYMENTS_VIEW')->name('payments.index');
         Route::post('payments/sessions/{paymentSession}/validate', [PaymentController::class, 'validateSession'])->middleware('super_admin_permission:SA_PAYMENTS_MANUAL_VALIDATE')->name('payments.sessions.validate');
         Route::get('maintenance/cleanup', [MaintenanceCleanupController::class, 'index'])->middleware('super_admin_permission:SA_MAINTENANCE_CLEANUP')->name('maintenance.cleanup.index');

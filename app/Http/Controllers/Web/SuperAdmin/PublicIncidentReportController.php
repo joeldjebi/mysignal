@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Application;
 use App\Models\IncidentReport;
 use App\Models\Organization;
+use App\Services\Reports\IncidentReportDeletionService;
+use App\Support\Audit\ActivityLogger;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\View\View;
@@ -215,5 +218,37 @@ class PublicIncidentReportController extends Controller
         return view('super-admin.public-reports.show', [
             'report' => $report,
         ]);
+    }
+
+    public function destroy(Request $request, IncidentReport $report, IncidentReportDeletionService $deletionService, ActivityLogger $activityLogger): RedirectResponse
+    {
+        $reference = $report->reference;
+        $summary = $deletionService->delete($report);
+
+        $activityLogger->log(
+            'public_report.deleted',
+            'Suppression d’un signalement public.',
+            null,
+            [
+                'incident_report_id' => $report->id,
+                'reference' => $reference,
+                'deleted' => $summary,
+                'meter_preserved' => true,
+            ],
+            $request,
+            $request->user(),
+        );
+
+        $message = "Le signalement {$reference} a été supprimé avec ses éléments liés. L’identifiant associé a été conservé.";
+
+        if (($summary['failed_files'] ?? 0) > 0) {
+            return redirect()
+                ->route('super-admin.public-reports.index')
+                ->with('warning', $message.' Certains fichiers Wasabi n’ont pas pu être supprimés, consultez les logs.');
+        }
+
+        return redirect()
+            ->route('super-admin.public-reports.index')
+            ->with('success', $message);
     }
 }

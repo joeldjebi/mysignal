@@ -10,6 +10,11 @@
 @endsection
 
 @section('content')
+    @php
+        $authUser = auth()->user();
+        $canDeleteReports = (bool) ($authUser?->is_super_admin || $authUser?->hasEffectivePermissionCode('SA_PUBLIC_REPORTS_DELETE'));
+    @endphp
+
     @include('partials.page-loader', [
         'title' => 'Chargement des signalements',
         'message' => 'Nous préparons les données demandées.',
@@ -278,6 +283,13 @@
                                     @if ($report->reparationCase)
                                         <a href="{{ route('super-admin.reparation-cases.show', $report->reparationCase) }}" class="btn btn-sm btn-outline-secondary">Voir le dossier</a>
                                     @endif
+                                    @if ($canDeleteReports)
+                                        <form method="POST" action="{{ route('super-admin.public-reports.destroy', $report) }}" data-delete-report-form data-reference="{{ $report->reference }}">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">Supprimer</button>
+                                        </form>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -292,6 +304,31 @@
             {{ $reports->links() }}
         </div>
     </section>
+
+    <div class="modal fade" id="deletePublicReportModal" tabindex="-1" aria-labelledby="deletePublicReportTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header border-0 pb-0">
+                    <div>
+                        <h5 class="modal-title fw-bold" id="deletePublicReportTitle">Supprimer le signalement</h5>
+                        <div class="small text-secondary">Cette action est définitive.</div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="rounded-3 border border-danger-subtle bg-danger-subtle text-danger-emphasis p-3 mb-3">
+                        <div class="fw-semibold mb-1" id="deletePublicReportMessage">Confirmer la suppression ?</div>
+                        <div class="small">Les paiements, sessions de paiement, dossiers liés, historiques et fichiers Wasabi associés seront supprimés. L’identifiant lié au signalement sera conservé.</div>
+                    </div>
+                    <div class="small text-secondary">Vérifiez bien le signalement avant de continuer.</div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-danger" id="deletePublicReportSubmit">Supprimer définitivement</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
@@ -302,6 +339,44 @@
             const damageBreakdown = @json($damageBreakdown);
             const confirmationBreakdown = @json($confirmationBreakdown);
             const trend = @json($trend);
+            const deleteModalElement = document.getElementById('deletePublicReportModal');
+            const deleteMessageElement = document.getElementById('deletePublicReportMessage');
+            const deleteSubmitButton = document.getElementById('deletePublicReportSubmit');
+            let pendingDeleteForm = null;
+
+            if (deleteModalElement && deleteSubmitButton && typeof bootstrap !== 'undefined') {
+                const deleteModal = bootstrap.Modal.getOrCreateInstance(deleteModalElement);
+
+                document.querySelectorAll('form[data-delete-report-form]').forEach((form) => {
+                    form.addEventListener('submit', (event) => {
+                        if (form.dataset.confirmed === '1') {
+                            return;
+                        }
+
+                        event.preventDefault();
+                        pendingDeleteForm = form;
+
+                        if (deleteMessageElement) {
+                            deleteMessageElement.textContent = `Supprimer le signalement ${form.dataset.reference || ''} ?`;
+                        }
+
+                        deleteModal.show();
+                    });
+                });
+
+                deleteSubmitButton.addEventListener('click', () => {
+                    if (!pendingDeleteForm) {
+                        return;
+                    }
+
+                    pendingDeleteForm.dataset.confirmed = '1';
+                    pendingDeleteForm.submit();
+                });
+
+                deleteModalElement.addEventListener('hidden.bs.modal', () => {
+                    pendingDeleteForm = null;
+                });
+            }
 
             new ApexCharts(document.querySelector('#publicReportStatusChart'), {
                 chart: { type: 'donut', height: 280 },
