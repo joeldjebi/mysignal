@@ -48,6 +48,10 @@ class PublicIncidentReportController extends Controller
 
         return ApiResponse::success([
             'total_reports' => (int) (($previousMonthStats['total_reports'] ?? 0) + ($currentMonthStats['total_reports'] ?? 0)),
+            'categories' => $this->mergeMonthlyCategoryStats(
+                $previousMonthStats['categories'] ?? [],
+                $currentMonthStats['categories'] ?? [],
+            ),
             'previous_month' => $previousMonthStats,
             'current_month' => $currentMonthStats,
         ]);
@@ -292,6 +296,26 @@ class PublicIncidentReportController extends Controller
             'total_reports' => (int) $categories->sum('reports_count'),
             'categories' => $categories->all(),
         ];
+    }
+
+    private function mergeMonthlyCategoryStats(array ...$categoryGroups): array
+    {
+        return collect($categoryGroups)
+            ->flatten(1)
+            ->groupBy(fn (array $category): string => (string) ($category['application_id'] ?? 'none'))
+            ->map(function ($categories): array {
+                $first = $categories->first();
+
+                return [
+                    'application_id' => $first['application_id'] ?? null,
+                    'category_code' => $first['category_code'] ?? 'UNKNOWN',
+                    'category_name' => $first['category_name'] ?? 'Sans catégorie',
+                    'reports_count' => (int) $categories->sum('reports_count'),
+                ];
+            })
+            ->sortByDesc('reports_count')
+            ->values()
+            ->all();
     }
 
     private function resolveDamagePurchaseReceipt(Request $request, array $attributes): ?PurchaseReceipt

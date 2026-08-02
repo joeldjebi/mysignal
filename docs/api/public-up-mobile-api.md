@@ -82,6 +82,7 @@ Autres statuts importants :
 
 ### 1. Catalogues publics
 Avant authentification, l application mobile peut charger :
+- `GET /v1/public/app-update`
 - `GET /v1/public/applications`
 - `GET /v1/public/application-types?application_id={id}`
 - `GET /v1/public/organizations?application_id={id}&organization_type_id={id}`
@@ -90,6 +91,7 @@ Avant authentification, l application mobile peut charger :
 - `GET /v1/public/signal-types`
 
 Ces endpoints servent a alimenter :
+- la verification de version et de mise a jour obligatoire
 - categories, sous categories et institutions
 - pays, villes, communes, quartiers
 - secteurs d activite pour les profils UPE/UPTI
@@ -186,6 +188,44 @@ Il consulte seulement les dossiers ouverts par le `SA` et leur historique via :
 ## Endpoints documentes
 
 ### Auth
+
+#### GET `/v1/public/app-update`
+Retourne la configuration de mise a jour mobile. Cette route est publique pour permettre a l application de verifier la version avant la connexion.
+
+Cette reponse n utilise pas l enveloppe standard `success/message/data`, afin de rester simple pour le demarrage de l app.
+
+Reponse :
+```json
+{
+  "app_name": "mysignal",
+  "latest_version_android": "1.0.5",
+  "build_version_android": 5,
+  "play_store_url": "https://play.google.com/store/apps/details?id=com.bwan.mysignal",
+  "latest_version_ios": "1.0.5",
+  "build_version_ios": 5,
+  "app_store_url": "https://apps.apple.com/ci/app/my-signal/id6764384980",
+  "update_type": "urgent",
+  "messages": {
+    "minor": {
+      "title": "Nouvelle version disponible",
+      "message": "Une nouvelle version est disponible avec des améliorations et des corrections de bugs."
+    },
+    "major": {
+      "title": "Mise à jour recommandée",
+      "message": "Cette mise à jour apporte des fonctionnalités importantes. Nous vous recommandons de mettre l’application à jour."
+    },
+    "urgent": {
+      "title": "Mise à jour obligatoire",
+      "message": "Une nouvelle version est requise pour continuer à utiliser l’application. Veuillez effectuer la mise à jour."
+    }
+  }
+}
+```
+
+Interpretation cote mobile :
+- `minor` : informer l usager, sans bloquer
+- `major` : recommander la mise a jour, sans bloquer
+- `urgent` : bloquer l acces et obliger l usager a ouvrir le store
 
 #### POST `/v1/public/auth/request-otp`
 Demande un OTP pour un numero.
@@ -554,6 +594,15 @@ Reponse :
 {
   "success": true,
   "data": {
+    "total_reports": 30,
+    "categories": [
+      {
+        "application_id": 1,
+        "category_code": "SERVICE_PUBLIC",
+        "category_name": "Service public",
+        "reports_count": 19
+      }
+    ],
     "previous_month": {
       "month": "2026-06",
       "label": "juin 2026",

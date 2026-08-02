@@ -115,6 +115,37 @@
           }
         },
         {
+          "name": "Configuration de mise à jour mobile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Mobile update config returned', function () {",
+                  "  pm.expect(json).to.have.property('app_name');",
+                  "  pm.expect(json).to.have.property('latest_version_android');",
+                  "  pm.expect(json).to.have.property('build_version_android');",
+                  "  pm.expect(json).to.have.property('latest_version_ios');",
+                  "  pm.expect(json).to.have.property('build_version_ios');",
+                  "  pm.expect(json).to.have.property('update_type');",
+                  "  pm.expect(json).to.have.property('messages');",
+                  "});",
+                  "pm.test('Update type is supported', function () { pm.expect(['minor', 'major', 'urgent']).to.include(json.update_type); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/app-update",
+            "description": "Retourne la configuration de mise à jour mobile. Cette route est publique pour permettre à l app de vérifier la version avant la connexion. Les valeurs sont modifiables uniquement par les SA dans le back-office."
+          }
+        },
+        {
           "name": "Application Types",
           "event": [
             {
@@ -1020,6 +1051,8 @@
                   "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
                   "const json = pm.response.json();",
                   "pm.test('Monthly stats returned', function () {",
+                  "  pm.expect(json?.data).to.have.property('total_reports');",
+                  "  pm.expect(json?.data?.categories).to.be.an('array');",
                   "  pm.expect(json?.data?.previous_month).to.be.an('object');",
                   "  pm.expect(json?.data?.current_month).to.be.an('object');",
                   "  pm.expect(json.data.previous_month).to.have.property('categories');",
