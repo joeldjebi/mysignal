@@ -1,14 +1,15 @@
 @extends('super-admin.layouts.app')
 
-@section('title', config('app.name').' | Utilisateurs internes')
-@section('page-title', 'Utilisateurs internes')
-@section('page-description', 'Créer les comptes internes, puis leur attribuer des rôles pour le pilotage des dossiers et opérations.')
+@section('title', config('app.name').' | Utilisateurs SA et internes')
+@section('page-title', 'Utilisateurs SA et internes')
+@section('page-description', 'Créer les comptes du back-office global, y compris les SA secondaires.')
 
 @section('header-badges')
     @php
         $canManageSystemUsers = auth()->user()?->hasEffectivePermissionCode('SA_SYSTEM_USERS_MANAGE') ?? false;
     @endphp
     <span class="badge-soft">{{ $systemUsers->total() }} utilisateurs</span>
+    <span class="badge-soft">{{ $rootSuperAdminsCount }} SA suprême{{ $rootSuperAdminsCount > 1 ? 's' : '' }} protégé{{ $rootSuperAdminsCount > 1 ? 's' : '' }}</span>
     <span class="badge-soft">{{ $roles->count() }} rôle{{ $roles->count() > 1 ? 's' : '' }} actif{{ $roles->count() > 1 ? 's' : '' }}</span>
     @if ($canManageSystemUsers)
         <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#createSystemUserModal">Nouvel utilisateur</button>
@@ -22,7 +23,12 @@
     @endphp
 
     <section class="panel-card">
-        <div class="fw-bold mb-3">Liste des utilisateurs internes</div>
+        <div class="fw-bold mb-3">Liste des utilisateurs SA et internes</div>
+        <div class="alert alert-info border rounded-4 mb-4">
+            <div class="fw-bold mb-1">SA suprême et SA secondaires</div>
+            <div class="small text-secondary mb-1">Le premier SA, marqué comme SA suprême, reste hors de cette liste et ne peut pas être modifié ni supprimé depuis cette page.</div>
+            <div class="small text-secondary mb-0">Pour créer un autre SA, utilisez le rôle <span class="fw-semibold">Administrateur SA</span>. Ce compte aura accès au portail SA, mais restera un utilisateur secondaire administrable.</div>
+        </div>
         <form method="GET" class="filter-bar">
             <div class="row g-2 align-items-end">
                 <div class="col-md-5">
@@ -120,7 +126,7 @@
             <div class="modal-content border-0 shadow-lg">
                 <div class="modal-header">
                     <div>
-                        <h5 class="modal-title fw-bold">Nouvel utilisateur interne</h5>
+                        <h5 class="modal-title fw-bold">Nouvel utilisateur SA ou interne</h5>
                         <div class="small text-secondary">Créer un compte et attribuer ses rôles.</div>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
@@ -132,6 +138,7 @@
                             <div class="fw-bold mb-2">Comment attribuer les droits</div>
                             <div class="small text-secondary mb-1">Les utilisateurs internes héritent maintenant de leurs droits uniquement via les rôles.</div>
                             <div class="small text-secondary mb-1">Choisissez donc un ou plusieurs rôles cohérents avec le métier du compte.</div>
+                            <div class="small text-secondary mb-1">Pour créer un SA secondaire, sélectionnez le rôle <span class="fw-semibold">Administrateur SA</span>.</div>
                             <div class="small text-secondary mb-0">Exemple : un huissier ou un avocat reçoit un rôle métier, et ses permissions viennent automatiquement de ce rôle.</div>
                         </div>
 

@@ -63,6 +63,7 @@ class SystemUserController extends Controller
         return view('super-admin.system-users.index', [
             'systemUsers' => $systemUsers,
             'roles' => $this->systemAssignableRoles(),
+            'rootSuperAdminsCount' => User::query()->where('is_super_admin', true)->count(),
             'partnerOrganizations' => $this->partnerOrganizations(),
             'visibleActivityUsers' => User::query()
                 ->whereNull('organization_id')
@@ -117,7 +118,7 @@ class SystemUserController extends Controller
         }
 
         return redirect()->route('super-admin.system-users.index')
-            ->with('success', 'L’utilisateur interne a été créé.');
+            ->with('success', $this->createdMessageFor($createdUser));
     }
 
     public function edit(User $systemUser): View
@@ -215,7 +216,7 @@ class SystemUserController extends Controller
         );
 
         return redirect()->route('super-admin.system-users.index')
-            ->with('success', 'L’utilisateur interne a été mis à jour.');
+            ->with('success', $this->updatedMessageFor($systemUser));
     }
 
     public function destroy(Request $request, User $systemUser, ActivityLogger $activityLogger): RedirectResponse
@@ -410,8 +411,27 @@ class SystemUserController extends Controller
             ->whereNull('organization_id')
             ->where('status', 'active')
             ->where('code', '!=', 'CALLCENTER')
+            ->orderByRaw("CASE WHEN code = 'SA_ADMIN' THEN 0 ELSE 1 END")
             ->orderBy('name')
             ->get();
+    }
+
+    private function createdMessageFor(?User $user): string
+    {
+        if ($user instanceof User && $user->roles()->where('code', 'SA_ADMIN')->exists()) {
+            return 'Le SA secondaire a été créé. Le SA suprême reste le seul compte principal protégé.';
+        }
+
+        return 'L’utilisateur interne a été créé.';
+    }
+
+    private function updatedMessageFor(User $user): string
+    {
+        if ($user->roles()->where('code', 'SA_ADMIN')->exists()) {
+            return 'Le SA secondaire a été mis à jour.';
+        }
+
+        return 'L’utilisateur interne a été mis à jour.';
     }
 
     private function selectedRolesContainPartnerScanAgent(array $roleIds): bool

@@ -524,6 +524,12 @@
                         <span><span class="d-block fw-semibold">Avis des usagers</span><span class="small text-white-50">Retours d’expérience</span></span>
                     </a>
                 @endif
+                @if ($canAccess('SA_MOBILE_APP_UPDATE_MANAGE'))
+                    <a href="{{ route('super-admin.mobile-app-update.edit') }}" class="nav-pill {{ request()->routeIs('super-admin.mobile-app-update.*') ? 'active' : '' }}">
+                        <span class="nav-icon">MA</span>
+                        <span><span class="d-block fw-semibold">Mise à jour mobile</span><span class="small text-white-50">Versions et messages</span></span>
+                    </a>
+                @endif
                 @if ($canAccess('SA_REPARATION_CASES_MANAGE'))
                     <a href="{{ route('super-admin.reparation-damages.index') }}" class="nav-pill {{ request()->routeIs('super-admin.reparation-damages.*') ? 'active' : '' }}">
                         <span class="nav-icon">DM</span>
@@ -562,8 +568,8 @@
                 @endif
                 @if ($canAccess('SA_SYSTEM_USERS_VIEW') || $canAccess('SA_SYSTEM_USERS_MANAGE'))
                     <a href="{{ route('super-admin.system-users.index') }}" class="nav-pill {{ request()->routeIs('super-admin.system-users.*') ? 'active' : '' }}">
-                        <span class="nav-icon">AI</span>
-                        <span><span class="d-block fw-semibold">Utilisateurs AI</span><span class="small text-white-50">Comptes rattaches aux institutions</span></span>
+                        <span class="nav-icon">SI</span>
+                        <span><span class="d-block fw-semibold">Utilisateurs système</span><span class="small text-white-50">SA secondaires et métiers</span></span>
                     </a>
                 @endif
                 @if ($canAccess('SA_ROLES_VIEW') || $canAccess('SA_ROLES_MANAGE'))
@@ -605,7 +611,37 @@
             </header>
 
             @if (session('success'))
-                <div class="alert alert-success">{{ session('success') }}</div>
+                <div class="alert alert-success">
+                    <div>{{ session('success') }}</div>
+                    @if (session('access_credentials'))
+                        @php
+                            $accessCredentials = session('access_credentials');
+                        @endphp
+                        <div class="mt-3 p-3 rounded-3 bg-white border border-success-subtle">
+                            <div class="fw-bold mb-2">{{ $accessCredentials['label'] ?? 'Accès de connexion' }}</div>
+                            <div class="small mb-1">Lien de connexion : <a href="{{ $accessCredentials['login_url'] ?? '#' }}" target="_blank" rel="noopener">{{ $accessCredentials['login_url'] ?? '-' }}</a></div>
+                            <div class="small mb-1">Identifiant : <strong>{{ $accessCredentials['email'] ?? '-' }}</strong></div>
+                            <div class="small">Mot de passe temporaire : <strong>{{ $accessCredentials['password'] ?? '-' }}</strong></div>
+                        </div>
+                    @endif
+                </div>
+            @endif
+
+            @if (session('warning'))
+                <div class="alert alert-warning">
+                    <div>{{ session('warning') }}</div>
+                    @if (session('access_credentials'))
+                        @php
+                            $accessCredentials = session('access_credentials');
+                        @endphp
+                        <div class="mt-3 p-3 rounded-3 bg-white border border-warning-subtle">
+                            <div class="fw-bold mb-2">{{ $accessCredentials['label'] ?? 'Accès de connexion' }}</div>
+                            <div class="small mb-1">Lien de connexion : <a href="{{ $accessCredentials['login_url'] ?? '#' }}" target="_blank" rel="noopener">{{ $accessCredentials['login_url'] ?? '-' }}</a></div>
+                            <div class="small mb-1">Identifiant : <strong>{{ $accessCredentials['email'] ?? '-' }}</strong></div>
+                            <div class="small">Mot de passe temporaire : <strong>{{ $accessCredentials['password'] ?? '-' }}</strong></div>
+                        </div>
+                    @endif
+                </div>
             @endif
 
             @php

@@ -42,6 +42,7 @@ use App\Http\Controllers\Web\SuperAdmin\LandingPageController;
 use App\Http\Controllers\Web\SuperAdmin\LandingPageContactController;
 use App\Http\Controllers\Web\SuperAdmin\ApplicationController;
 use App\Http\Controllers\Web\SuperAdmin\MaintenanceCleanupController;
+use App\Http\Controllers\Web\SuperAdmin\MobileAppUpdateSettingController;
 use App\Http\Controllers\Web\SuperAdmin\NeighborhoodController;
 use App\Http\Controllers\Web\SuperAdmin\OrganizationController;
 use App\Http\Controllers\Web\SuperAdmin\OrganizationTypeSignalSlaController;
@@ -501,6 +502,8 @@ Route::prefix('sa')->name('super-admin.')->group(function (): void {
         Route::patch('maintenance/report-grouping', [MaintenanceCleanupController::class, 'updateReportGrouping'])->middleware('super_admin_permission:SA_MAINTENANCE_CLEANUP')->name('maintenance.report-grouping.update');
         Route::delete('maintenance/cleanup', [MaintenanceCleanupController::class, 'destroy'])->middleware('super_admin_permission:SA_MAINTENANCE_CLEANUP')->name('maintenance.cleanup.destroy');
         Route::delete('maintenance/cleanup/table', [MaintenanceCleanupController::class, 'destroyTable'])->middleware('super_admin_permission:SA_MAINTENANCE_CLEANUP')->name('maintenance.cleanup.table.destroy');
+        Route::get('mobile-app-update', [MobileAppUpdateSettingController::class, 'edit'])->middleware('super_admin_permission:SA_MOBILE_APP_UPDATE_MANAGE')->name('mobile-app-update.edit');
+        Route::put('mobile-app-update', [MobileAppUpdateSettingController::class, 'update'])->middleware('super_admin_permission:SA_MOBILE_APP_UPDATE_MANAGE')->name('mobile-app-update.update');
         Route::get('discount-cards', [DiscountCardController::class, 'index'])->middleware('super_admin_permission:SA_DISCOUNT_CARDS_VIEW')->name('discount-cards.index');
         Route::get('discount-transactions', [DiscountTransactionController::class, 'index'])->middleware('super_admin_permission:SA_DISCOUNT_TRANSACTIONS_VIEW')->name('discount-transactions.index');
         Route::get('activity-logs', [SuperAdminActivityLogController::class, 'index'])->name('activity-logs.index');

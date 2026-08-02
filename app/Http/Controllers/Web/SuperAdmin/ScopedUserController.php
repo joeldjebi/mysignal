@@ -204,7 +204,9 @@ class ScopedUserController extends Controller
             $actor,
         );
 
-        return back()->with('success', 'Les accès ont été envoyés par SMS. L’email sera activé dès que le service d’envoi sera configuré.');
+        return back()
+            ->with('success', 'Les accès ont été envoyés par SMS. L’email sera activé dès que le service d’envoi sera configuré.')
+            ->with('access_credentials', $this->temporaryAccessCredentials($scopedUser, $password, $loginUrl));
     }
 
     private function validatePayload(Request $request, ?User $user = null): array
@@ -285,7 +287,8 @@ class ScopedUserController extends Controller
         if (blank($user->phone)) {
             return redirect()
                 ->route('super-admin.scoped-users.index')
-                ->with('warning', 'Le compte centre d’appels a été créé, mais aucun SMS n’a été envoyé car le numéro de téléphone est absent.');
+                ->with('warning', 'Le compte centre d’appels a été créé, mais aucun SMS n’a été envoyé car le numéro de téléphone est absent.')
+                ->with('access_credentials', $this->temporaryAccessCredentials($user, $password, $this->loginUrlFor($user)));
         }
 
         $loginUrl = $this->loginUrlFor($user);
@@ -308,7 +311,8 @@ class ScopedUserController extends Controller
 
             return redirect()
                 ->route('super-admin.scoped-users.index')
-                ->with('warning', 'Le compte centre d’appels a été créé, mais l’envoi SMS a échoué. Utilisez le bouton d’envoi des accès pour générer un nouveau mot de passe.');
+                ->with('warning', 'Le compte centre d’appels a été créé, mais l’envoi SMS a échoué. Utilisez le bouton d’envoi des accès pour générer un nouveau mot de passe.')
+                ->with('access_credentials', $this->temporaryAccessCredentials($user, $password, $loginUrl));
         }
 
         $activityLogger->log(
@@ -326,7 +330,8 @@ class ScopedUserController extends Controller
 
         return redirect()
             ->route('super-admin.scoped-users.index')
-            ->with('success', 'Le compte centre d’appels a été créé et les accès ont été envoyés par SMS.');
+            ->with('success', 'Le compte centre d’appels a été créé et les accès ont été envoyés par SMS.')
+            ->with('access_credentials', $this->temporaryAccessCredentials($user, $password, $loginUrl));
     }
 
     private function loginUrlFor(User $user): string
@@ -338,6 +343,16 @@ class ScopedUserController extends Controller
         }
 
         return route('super-admin.login');
+    }
+
+    private function temporaryAccessCredentials(User $user, string $password, string $loginUrl): array
+    {
+        return [
+            'label' => $user->roles->contains('code', 'CALLCENTER') ? 'Accès centre d’appels' : 'Accès utilisateur SA',
+            'login_url' => $loginUrl,
+            'email' => $user->email,
+            'password' => $password,
+        ];
     }
 
     private function scopedUserQuery(User $actor): Builder

@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\V1\Partner\Discounts\PartnerDiscountOfferController
 use App\Http\Controllers\Api\V1\Partner\Discounts\PartnerDiscountTransactionController;
 use App\Http\Controllers\Api\V1\Partner\Profile\PartnerPasswordController;
 use App\Http\Controllers\Api\V1\Partner\Profile\PartnerProfileController;
+use App\Http\Controllers\Api\V1\Public\AppUpdateController;
 use App\Http\Controllers\Api\V1\Public\Auth\AuthenticatedPublicUserController;
 use App\Http\Controllers\Api\V1\Public\Auth\PublicAuthController;
 use App\Http\Controllers\Api\V1\Public\Catalogs\PublicCatalogController;
@@ -54,6 +55,7 @@ Route::prefix('v1/public')->group(function (): void {
     Route::get('communes', [PublicLocationController::class, 'communes']);
     Route::get('signal-types', [PublicSignalTypeController::class, 'index']);
     Route::get('user-types', [PublicUserTypeController::class, 'index']);
+    Route::get('app-update', [AppUpdateController::class, 'show']);
 
     Route::prefix('auth')->group(function (): void {
         Route::post('request-otp', [PublicAuthController::class, 'requestOtp'])

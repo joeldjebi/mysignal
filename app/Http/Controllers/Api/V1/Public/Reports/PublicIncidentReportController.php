@@ -43,10 +43,13 @@ class PublicIncidentReportController extends Controller
     {
         $currentMonth = CarbonImmutable::now()->startOfMonth();
         $previousMonth = $currentMonth->subMonth();
+        $previousMonthStats = $this->monthlyCategoryStatsPayload($previousMonth);
+        $currentMonthStats = $this->monthlyCategoryStatsPayload($currentMonth);
 
         return ApiResponse::success([
-            'previous_month' => $this->monthlyCategoryStatsPayload($previousMonth),
-            'current_month' => $this->monthlyCategoryStatsPayload($currentMonth),
+            'total_reports' => (int) (($previousMonthStats['total_reports'] ?? 0) + ($currentMonthStats['total_reports'] ?? 0)),
+            'previous_month' => $previousMonthStats,
+            'current_month' => $currentMonthStats,
         ]);
     }
 

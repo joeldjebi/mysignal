@@ -50,6 +50,7 @@ class SuperAdminPermissionSeeder extends Seeder
             ['code' => 'SA_ACTIVITY_LOGS_VIEW_INTERNAL', 'name' => 'Voir activites utilisateurs internes', 'description' => 'Permet de consulter les activites de certains utilisateurs internes autorises par le super admin.'],
             ['code' => 'SA_REX_FEEDBACKS_VIEW', 'name' => 'Voir REX UP', 'description' => 'Permet de consulter les retours d experience des usagers publics.'],
             ['code' => 'SA_REX_FEEDBACKS_MANAGE', 'name' => 'Parametrer REX UP', 'description' => 'Permet de parametrer le module de retours d experience.'],
+            ['code' => 'SA_MOBILE_APP_UPDATE_MANAGE', 'name' => 'Gerer mises a jour mobiles', 'description' => 'Permet de modifier les versions mobiles, les liens stores et les messages de mise a jour.'],
             ['code' => 'SA_REPARATION_CASES_MANAGE', 'name' => 'Gerer dossiers contentieux', 'description' => 'Permet de gerer les dossiers contentieux et de reparation.'],
             ['code' => 'BO_REPARATION_CASES_HUISSIER', 'name' => 'Traiter dossiers huissier', 'description' => 'Permet a un huissier de traiter ses dossiers de constat.'],
             ['code' => 'BO_REPARATION_CASES_AODA', 'name' => 'Gerer dossiers AODA', 'description' => 'Permet a l admin ordre des avocats de consulter et attribuer les dossiers termines par huissier.'],

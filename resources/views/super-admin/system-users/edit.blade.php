@@ -1,7 +1,7 @@
 @extends('super-admin.layouts.app')
 
 @section('title', config('app.name').' | Modifier '.$systemUser->name)
-@section('page-title', 'Modifier un utilisateur interne')
+@section('page-title', 'Modifier un utilisateur SA ou interne')
 @section('page-description', 'Mettre à jour le compte, ses rôles et ses droits de consultation des activités.')
 
 @section('content')
@@ -61,6 +61,7 @@
             <div class="fw-bold mb-2">Comment gérer les droits de cet utilisateur</div>
             <div class="small text-secondary mb-1">Les rôles doivent rester la base du profil, car ils regroupent un ensemble cohérent de permissions.</div>
             <div class="small text-secondary mb-1">Les permissions des rôles sont héritées automatiquement par le compte.</div>
+            <div class="small text-secondary mb-1">Le rôle <span class="fw-semibold">Administrateur SA</span> correspond à un SA secondaire administrable.</div>
             <div class="small text-secondary mb-1">Les permissions directes ne sont plus utilisées pour les utilisateurs internes créés par le super admin.</div>
             <div class="small text-secondary mb-0">Le mot de passe est optionnel ici : laissez le champ vide pour conserver l’accès actuel.</div>
         </div>
