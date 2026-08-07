@@ -115,7 +115,7 @@ class PublicPortalController extends Controller
     {
         $periodStart = now()->subDays(30);
         $baseQuery = IncidentReport::query()
-            ->with(['application', 'organization', 'commune'])
+            ->with(['application', 'organization', 'city', 'commune', 'publicUser.publicUserType'])
             ->where('created_at', '>=', $periodStart);
 
         $query = clone $baseQuery;

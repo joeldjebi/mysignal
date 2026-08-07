@@ -449,10 +449,15 @@
                   <th>Commune</th>
                   <th>Statut</th>
                   <th>Dommage</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 @forelse ($reports as $report)
+                  @php
+                    $publicUser = $report->publicUser;
+                    $declarantName = trim((string) (($publicUser?->first_name ?: '').' '.($publicUser?->last_name ?: '')));
+                  @endphp
                   <tr>
                     <td>
                       <div class="report-reference">{{ $report->reference }}</div>
@@ -469,15 +474,86 @@
                     <td><span class="cell-icon"><i class="bi bi-geo-alt-fill"></i>{{ $report->commune?->name ?: '-' }}</span></td>
                     <td><span class="status-chip">{{ $statusLabels[$report->status] ?? $report->status }}</span></td>
                     <td>{{ $report->damage_declared_at ? 'Declare' : 'Aucun' }}</td>
+                    <td>
+                      <button type="button" class="btn btn-sm btn-outline-primary fw-bold" data-bs-toggle="modal" data-bs-target="#reportDetails{{ $report->id }}">
+                        Détails
+                      </button>
+                    </td>
                   </tr>
                 @empty
                   <tr>
-                    <td colspan="7" class="empty-state">Aucun signalement ne correspond a votre recherche.</td>
+                    <td colspan="8" class="empty-state">Aucun signalement ne correspond a votre recherche.</td>
                   </tr>
                 @endforelse
               </tbody>
             </table>
           </div>
+          @foreach ($reports as $report)
+            @php
+              $publicUser = $report->publicUser;
+              $declarantName = trim((string) (($publicUser?->first_name ?: '').' '.($publicUser?->last_name ?: '')));
+            @endphp
+            <div class="modal fade" id="reportDetails{{ $report->id }}" tabindex="-1" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content border-0 shadow-lg">
+                  <div class="modal-header">
+                    <div>
+                      <h5 class="modal-title fw-bold">{{ $report->reference }}</h5>
+                      <div class="small text-secondary">{{ $report->created_at?->format('d/m/Y H:i') ?: '-' }}</div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                  </div>
+                  <div class="modal-body">
+                    <div class="row g-3">
+                      <div class="col-md-6">
+                        <div class="small text-secondary">Déclarant</div>
+                        <div class="fw-semibold">{{ $declarantName ?: '-' }}</div>
+                        <div class="small text-secondary">{{ $publicUser?->phone ?: '-' }}</div>
+                        <div class="small text-secondary">{{ $publicUser?->email ?: '-' }}</div>
+                        <div class="small text-secondary">{{ $publicUser?->publicUserType?->name ?: '-' }}</div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="small text-secondary">Catégorie et institution</div>
+                        <div class="fw-semibold">{{ $report->application?->name ?: '-' }}</div>
+                        <div class="small text-secondary">{{ $report->organization?->name ?: '-' }}</div>
+                        <div class="small text-secondary">{{ $report->commune?->name ?: '-' }}</div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="small text-secondary">Type de signalement</div>
+                        <div class="fw-semibold">{{ $report->signal_label ?: $report->signal_code ?: $report->incident_type ?: 'Signalement' }}</div>
+                        <div class="small text-secondary">{{ $report->signal_sub_type_label ?: '-' }}</div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="small text-secondary">Statut</div>
+                        <div class="fw-semibold">{{ $statusLabels[$report->status] ?? $report->status }}</div>
+                        <div class="small text-secondary">Paiement : {{ $report->payment_status ?: '-' }}</div>
+                      </div>
+                      <div class="col-12">
+                        <div class="small text-secondary">Description</div>
+                        <div>{{ $report->description ?: '-' }}</div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="small text-secondary">Localisation</div>
+                        <div class="fw-semibold">{{ collect([$report->city?->name, $report->commune?->name])->filter()->join(' / ') ?: '-' }}</div>
+                        <div class="small text-secondary">{{ $report->address ?: '-' }}</div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="small text-secondary">Dommage</div>
+                        <div class="fw-semibold">{{ $report->damage_declared_at ? 'Déclaré' : 'Aucun dommage déclaré' }}</div>
+                        @if ($report->damage_declared_at)
+                          <div class="small text-secondary">{{ $report->damage_declared_at?->format('d/m/Y H:i') }}</div>
+                          <div class="small text-secondary">{{ $report->damage_summary ?: '-' }}</div>
+                        @endif
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fermer</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          @endforeach
           @if ($reports->hasPages())
             <div class="pagination-wrap">
               <div class="reports-panel-count">Page {{ $reports->currentPage() }} sur {{ $reports->lastPage() }}</div>

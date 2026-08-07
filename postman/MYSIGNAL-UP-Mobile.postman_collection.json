@@ -1070,6 +1070,37 @@
           }
         },
         {
+          "name": "Reports by Monthly Category",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Reports by category returned', function () {",
+                  "  pm.expect(json?.data?.category).to.be.an('object');",
+                  "  pm.expect(json?.data?.reports).to.be.an('array');",
+                  "  pm.expect(json?.data).to.have.property('total_reports');",
+                  "});",
+                  "pm.test('No public user identity exposed', function () {",
+                  "  const report = json?.data?.reports?.[0] || {};",
+                  "  pm.expect(report).to.not.have.property('public_user');",
+                  "  pm.expect(report).to.not.have.property('public_user_id');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/v1/public/reports/monthly-category-stats/categories/{{applicationId}}/reports?period=all&per_page=15",
+            "description": "Retourne les signalements d une categorie issue des statistiques mensuelles. period=all couvre le mois precedent et le mois en cours. period=previous ou period=current limite la periode. La reponse contient les dommages eventuels mais n expose pas les informations du UP declarant."
+          }
+        },
+        {
           "name": "Create Report",
           "event": [
             {

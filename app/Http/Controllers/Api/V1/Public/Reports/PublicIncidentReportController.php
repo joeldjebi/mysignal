@@ -12,6 +12,7 @@ use App\Http\Requests\Api\V1\Public\Reports\UpdateIncidentReportDamageRequest;
 use App\Http\Resources\Api\V1\Public\Payments\IncidentReportPaymentSessionResource;
 use App\Http\Resources\Api\V1\Public\Reports\IncidentReportDamageResource;
 use App\Http\Resources\Api\V1\Public\Reports\IncidentReportResource;
+use App\Models\Application;
 use App\Models\IncidentReport;
 use App\Models\PurchaseReceipt;
 use App\Services\WasabiService;
@@ -54,6 +55,45 @@ class PublicIncidentReportController extends Controller
             ),
             'previous_month' => $previousMonthStats,
             'current_month' => $currentMonthStats,
+        ]);
+    }
+
+    public function monthlyCategoryReports(Request $request, Application $application)
+    {
+        $currentMonth = CarbonImmutable::now()->startOfMonth();
+        $previousMonth = $currentMonth->subMonth();
+        $period = (string) $request->query('period', 'all');
+        $start = $period === 'current' ? $currentMonth : $previousMonth;
+        $end = $period === 'previous' ? $previousMonth->endOfMonth() : $currentMonth->endOfMonth();
+        $perPage = min(max((int) $request->query('per_page', 15), 1), 50);
+
+        $reports = IncidentReport::query()
+            ->with(['application', 'organization', 'meter.organization', 'country', 'city', 'commune', 'purchaseReceipt', 'payments.pricingRule'])
+            ->where('application_id', $application->id)
+            ->whereBetween('created_at', [$start->startOfMonth(), $end])
+            ->latest('id')
+            ->paginate($perPage)
+            ->withQueryString();
+
+        return ApiResponse::success([
+            'category' => [
+                'id' => $application->id,
+                'code' => $application->code,
+                'name' => $application->name,
+            ],
+            'period' => [
+                'code' => in_array($period, ['previous', 'current'], true) ? $period : 'all',
+                'date_from' => $start->startOfMonth()->toDateString(),
+                'date_to' => $end->toDateString(),
+            ],
+            'total_reports' => $reports->total(),
+            'reports' => IncidentReportResource::collection($reports->getCollection()),
+            'pagination' => [
+                'current_page' => $reports->currentPage(),
+                'last_page' => $reports->lastPage(),
+                'per_page' => $reports->perPage(),
+                'total' => $reports->total(),
+            ],
         ]);
     }
 

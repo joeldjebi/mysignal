@@ -630,6 +630,59 @@ Reponse :
 }
 ```
 
+#### GET `/v1/public/reports/monthly-category-stats/categories/{application}/reports`
+Retourne les signalements d une categorie retournee par les statistiques mensuelles. `{application}` correspond a `application_id`.
+
+Parametres optionnels :
+- `period=all` : mois precedent + mois en cours
+- `period=previous` : mois precedent uniquement
+- `period=current` : mois en cours uniquement
+- `per_page` : nombre d elements par page, maximum 50
+
+La reponse contient les informations du signalement, sa localisation, ses paiements et ses dommages eventuels. Elle n expose pas les informations personnelles du UP declarant.
+
+Reponse :
+```json
+{
+  "success": true,
+  "data": {
+    "category": {
+      "id": 1,
+      "code": "SERVICE_PUBLIC",
+      "name": "Service public"
+    },
+    "period": {
+      "code": "all",
+      "date_from": "2026-06-01",
+      "date_to": "2026-07-31"
+    },
+    "total_reports": 19,
+    "reports": [
+      {
+        "id": 12,
+        "reference": "SIG-202607-00012",
+        "application": {},
+        "organization": {},
+        "signal_label": "Coupure prolongée",
+        "description": "Description du signalement",
+        "damage_declaration": {
+          "declared_at": "2026-07-21T10:00:00+00:00",
+          "summary": "Dommage déclaré",
+          "amount_estimated": 25000
+        },
+        "location": {}
+      }
+    ],
+    "pagination": {
+      "current_page": 1,
+      "last_page": 2,
+      "per_page": 15,
+      "total": 19
+    }
+  }
+}
+```
+
 #### POST `/v1/public/reports`
 Initialise le paiement FineoPay d un signalement. Le signalement n est cree en base qu apres callback FineoPay avec `status: success`.
 
