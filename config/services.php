@@ -62,6 +62,8 @@ return [
         'business_code' => env('FINEOPAY_BUSINESS_CODE'),
         'api_key' => env('FINEOPAY_API_KEY'),
         'callback_token' => env('FINEOPAY_CALLBACK_TOKEN'),
+        'connect_timeout' => (int) env('FINEOPAY_CONNECT_TIMEOUT', 10),
+        'timeout' => (int) env('FINEOPAY_TIMEOUT', 45),
     ],
 
     'public_auth' => [
@@ -74,6 +76,10 @@ return [
         'send_sms' => (bool) env('PUBLIC_AUTH_SEND_SMS', ! in_array(env('APP_ENV', 'production'), ['local', 'testing'], true)),
         'sms_sender' => env('PUBLIC_AUTH_SMS_SENDER', 'MY-SIGNAL'),
         'sms_country_code' => env('PUBLIC_AUTH_SMS_COUNTRY_CODE', '225'),
+    ],
+
+    'public_reports' => [
+        'request_timeout' => (int) env('PUBLIC_REPORT_REQUEST_TIMEOUT', 240),
     ],
 
     'partner_auth' => [

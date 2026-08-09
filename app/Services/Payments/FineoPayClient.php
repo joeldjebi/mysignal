@@ -98,16 +98,23 @@ class FineoPayClient
             CURLOPT_HTTPHEADER => $headers,
             CURLOPT_POSTFIELDS => json_encode($payload, JSON_THROW_ON_ERROR),
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT => 30,
+            CURLOPT_CONNECTTIMEOUT => max(1, (int) config('services.fineopay.connect_timeout', 10)),
+            CURLOPT_TIMEOUT => max(1, (int) config('services.fineopay.timeout', 45)),
         ]);
 
         $body = curl_exec($curl);
         $error = curl_error($curl);
+        $errno = (int) curl_errno($curl);
         $status = (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
+        $totalTime = (float) curl_getinfo($curl, CURLINFO_TOTAL_TIME);
 
         curl_close($curl);
 
         if ($body === false) {
+            if ($errno === CURLE_OPERATION_TIMEDOUT || $totalTime >= (float) config('services.fineopay.timeout', 45)) {
+                $error = 'délai d’attente FineoPay dépassé';
+            }
+
             throw ValidationException::withMessages([
                 'payment' => ['Erreur FineoPay: '.$error],
             ]);

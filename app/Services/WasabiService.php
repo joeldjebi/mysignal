@@ -20,6 +20,12 @@ class WasabiService
                 'endpoint' => config('wasabi.endpoint'),
                 'url' => config('wasabi.url'),
                 'use_path_style_endpoint' => true,
+                'throw' => true,
+                'http' => [
+                    'connect_timeout' => max(1, (int) config('wasabi.connect_timeout', 10)),
+                    'timeout' => max(1, (int) config('wasabi.timeout', 180)),
+                ],
+                'retries' => max(0, (int) config('wasabi.retries', 2)),
             ],
         ]);
 

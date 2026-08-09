@@ -22,6 +22,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class PublicIncidentReportController extends Controller
 {
@@ -102,25 +103,65 @@ class PublicIncidentReportController extends Controller
         $attributes = $request->validated();
         unset($attributes['signal_attachment']);
 
-        $paymentSession = $action->handle(
-            $request->user('public_api'),
-            $attributes,
-            $request->file('signal_attachment')
-        );
+        $publicUser = $request->user('public_api');
 
         $activityLogger->log(
-            'public.report.payment_session_created',
-            'Initialisation du paiement FineoPay pour un signalement public.',
-            $paymentSession,
+            'public.report.payment_session_started',
+            'Début d’initialisation du paiement pour un signalement public.',
+            IncidentReport::class,
             [
-                'sync_ref' => $paymentSession->sync_ref,
-                'status' => $paymentSession->status,
-                'amount' => $paymentSession->amount,
-                'currency' => $paymentSession->currency,
-                'provider' => $paymentSession->provider,
+                'payload' => $this->reportPayloadForLog($attributes),
+                'signal_attachment' => $this->uploadedFileForLog($request->file('signal_attachment')),
             ],
-            $request
+            $request,
+            $publicUser,
+            'public'
         );
+
+        try {
+            $paymentSession = $action->handle(
+                $publicUser,
+                $attributes,
+                $request->file('signal_attachment')
+            );
+
+            $activityLogger->log(
+                'public.report.payment_session_created',
+                'Initialisation du paiement FineoPay pour un signalement public.',
+                $paymentSession,
+                [
+                    'sync_ref' => $paymentSession->sync_ref,
+                    'status' => $paymentSession->status,
+                    'amount' => $paymentSession->amount,
+                    'currency' => $paymentSession->currency,
+                    'provider' => $paymentSession->provider,
+                    'payload' => $this->reportPayloadForLog($attributes),
+                    'signal_attachment' => $this->uploadedFileForLog($request->file('signal_attachment')),
+                ],
+                $request,
+                $publicUser,
+                'public'
+            );
+        } catch (Throwable $exception) {
+            $activityLogger->log(
+                'public.report.payment_session_failed',
+                'Échec d’initialisation du paiement pour un signalement public.',
+                IncidentReport::class,
+                [
+                    'error' => [
+                        'type' => $exception::class,
+                        'message' => $exception->getMessage(),
+                    ],
+                    'payload' => $this->reportPayloadForLog($attributes),
+                    'signal_attachment' => $this->uploadedFileForLog($request->file('signal_attachment')),
+                ],
+                $request,
+                $publicUser,
+                'public'
+            );
+
+            throw $exception;
+        }
 
         return ApiResponse::success([
             'payment_session' => new IncidentReportPaymentSessionResource($paymentSession),
@@ -356,6 +397,41 @@ class PublicIncidentReportController extends Controller
             ->sortByDesc('reports_count')
             ->values()
             ->all();
+    }
+
+    private function reportPayloadForLog(array $attributes): array
+    {
+        return collect($attributes)
+            ->only([
+                'meter_id',
+                'application_id',
+                'organization_type_id',
+                'organization_id',
+                'signal_code',
+                'signal_sub_type_code',
+                'occurred_at',
+                'latitude',
+                'longitude',
+                'location_accuracy',
+                'location_source',
+            ])
+            ->all();
+    }
+
+    private function uploadedFileForLog(mixed $file): array
+    {
+        if (! $file instanceof UploadedFile) {
+            return ['present' => false];
+        }
+
+        return [
+            'present' => true,
+            'original_name' => $file->getClientOriginalName(),
+            'mime_type' => $file->getMimeType(),
+            'client_mime_type' => $file->getClientMimeType(),
+            'size' => $file->getSize(),
+            'error' => $file->getError(),
+        ];
     }
 
     private function resolveDamagePurchaseReceipt(Request $request, array $attributes): ?PurchaseReceipt

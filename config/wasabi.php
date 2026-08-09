@@ -16,4 +16,7 @@ return [
     'report_signal_directory' => env('WASABI_REPORT_SIGNAL_DIRECTORY', 'reports/signals'),
     'report_damage_directory' => env('WASABI_REPORT_DAMAGE_DIRECTORY', 'reports/damages'),
     'purchase_receipt_directory' => env('WASABI_PURCHASE_RECEIPT_DIRECTORY', 'purchase-receipts'),
+    'connect_timeout' => (int) env('WASABI_CONNECT_TIMEOUT', 10),
+    'timeout' => (int) env('WASABI_TIMEOUT', 180),
+    'retries' => (int) env('WASABI_RETRIES', 2),
 ];

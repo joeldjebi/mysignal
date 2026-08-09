@@ -1135,7 +1135,7 @@
                 { "key": "longitude", "value": "{{longitude}}", "type": "text" },
                 { "key": "location_accuracy", "value": "{{locationAccuracy}}", "type": "text" },
                 { "key": "location_source", "value": "gps", "type": "text" },
-                { "key": "signal_attachment", "type": "file", "src": [], "disabled": true }
+                { "key": "signal_attachment", "type": "file", "src": [], "disabled": true, "description": "Piece jointe optionnelle. Images: jpeg, png, webp, gif, heic, heif. Videos: mp4, mov/quicktime, avi, mpeg, 12 secondes maximum. Le backend ne fixe plus de limite applicative de poids." }
               ]
             },
             "url": "{{baseUrl}}/v1/public/reports",
@@ -1177,7 +1177,7 @@
                 { "key": "longitude", "value": "{{longitude}}", "type": "text" },
                 { "key": "location_accuracy", "value": "{{locationAccuracy}}", "type": "text" },
                 { "key": "location_source", "value": "gps", "type": "text" },
-                { "key": "signal_attachment", "type": "file", "src": [], "disabled": true }
+                { "key": "signal_attachment", "type": "file", "src": [], "disabled": true, "description": "Piece jointe optionnelle. Images: jpeg, png, webp, gif, heic, heif. Videos: mp4, mov/quicktime, avi, mpeg, 12 secondes maximum. Le backend ne fixe plus de limite applicative de poids." }
               ]
             },
             "url": "{{baseUrl}}/v1/public/reports",
@@ -1214,7 +1214,7 @@
                 { "key": "longitude", "value": "{{longitude}}", "type": "text" },
                 { "key": "location_accuracy", "value": "{{locationAccuracy}}", "type": "text" },
                 { "key": "location_source", "value": "gps", "type": "text" },
-                { "key": "signal_attachment", "type": "file", "src": [], "disabled": true }
+                { "key": "signal_attachment", "type": "file", "src": [], "disabled": true, "description": "Piece jointe optionnelle. Images: jpeg, png, webp, gif, heic, heif. Videos: mp4, mov/quicktime, avi, mpeg, 12 secondes maximum. Le backend ne fixe plus de limite applicative de poids." }
               ]
             },
             "url": "{{baseUrl}}/v1/public/reports",

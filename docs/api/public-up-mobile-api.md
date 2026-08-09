@@ -788,7 +788,7 @@ Regle d affichage mobile pour l identifiant :
 - ou afficher le champ si `selectedSignalType.requires_public_user_identifier === true`
 - sinon, ne pas afficher le champ
 
-`signal_attachment` est optionnel. Formats acceptes : images `jpeg`, `png`, `webp`, `gif`, `heic`, `heif` et videos `mp4`, `mov/quicktime`, `avi`, `mpeg`. Taille max : 50 Mo.
+`signal_attachment` est optionnel. Formats acceptes : images `jpeg`, `png`, `webp`, `gif`, `heic`, `heif` et videos `mp4`, `mov/quicktime`, `avi`, `mpeg`. Pour les videos, la duree maximale est de 12 secondes. Le backend ne fixe plus de limite applicative de poids pour ce champ, mais l equipe mobile doit garder une compression raisonnable pour eviter les limites reseau, PHP, Nginx ou Apache.
 
 `signal_sub_type_code` est obligatoire uniquement si le `signal_code` choisi a `requires_sub_type: true` dans `GET /v1/public/signal-types`.
 
