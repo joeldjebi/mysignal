@@ -75,6 +75,7 @@
                     @foreach ($reports as $report)
                         @php
                             $signalPayload = $report->resolvedSignalPayload();
+                            $signalAttachment = $report->resolvedSignalAttachment();
                             $damageAttachment = $report->resolvedDamageAttachment();
                             $hasDamage = $report->damage_declared_at !== null || filled($report->damage_summary) || filled($report->damage_amount_estimated);
                             $slaBreached = filled($report->target_sla_hours) && $report->created_at !== null
@@ -139,6 +140,7 @@
         @foreach ($reports as $report)
             @php
                 $signalPayload = $report->resolvedSignalPayload();
+                $signalAttachment = $report->resolvedSignalAttachment();
                 $damageAttachment = $report->resolvedDamageAttachment();
                 $hasDamage = $report->damage_declared_at !== null || filled($report->damage_summary) || filled($report->damage_amount_estimated);
                 $slaBreached = filled($report->target_sla_hours) && $report->created_at !== null
@@ -190,6 +192,10 @@
                                         <div class="small text-secondary fw-semibold mb-2">Description</div>
                                         <div>{{ $report->description ?: 'Aucune description fournie.' }}</div>
                                     </div>
+                                    @include('partials.report-signal-attachment', [
+                                        'attachment' => $signalAttachment,
+                                        'title' => 'Fichier joint par l’usager',
+                                    ])
                                     @if (!empty($signalPayload))
                                         <div class="border rounded-4 p-3 mb-3">
                                             <div class="small text-secondary fw-semibold mb-2">Donnees complementaires</div>
