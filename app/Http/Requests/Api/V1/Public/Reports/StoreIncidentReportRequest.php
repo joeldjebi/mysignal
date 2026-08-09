@@ -13,6 +13,8 @@ use Throwable;
 class StoreIncidentReportRequest extends FormRequest
 {
     private const MAX_VIDEO_DURATION_SECONDS = 12.0;
+    private const MAX_VIDEO_SIZE_BYTES = 100 * 1024 * 1024;
+    private const MAX_IMAGE_SIZE_BYTES = 20 * 1024 * 1024;
 
     public function authorize(): bool
     {
@@ -56,7 +58,21 @@ class StoreIncidentReportRequest extends FormRequest
             $mimeType = (string) ($file->getMimeType() ?: $file->getClientMimeType());
 
             if (! str_starts_with($mimeType, 'video/')) {
+                if (str_starts_with($mimeType, 'image/') && $file->getSize() > self::MAX_IMAGE_SIZE_BYTES) {
+                    $validator->errors()->add(
+                        'signal_attachment',
+                        'La photo ne doit pas dépasser 20 Mo.'
+                    );
+                }
+
                 return;
+            }
+
+            if ($file->getSize() > self::MAX_VIDEO_SIZE_BYTES) {
+                $validator->errors()->add(
+                    'signal_attachment',
+                    'La vidéo ne doit pas dépasser 100 Mo.'
+                );
             }
 
             $duration = $this->videoDurationInSeconds($file);

@@ -13,6 +13,7 @@ use App\Models\OrganizationTypeSignalSla;
 use App\Models\PublicUser;
 use App\Models\SignalSubType;
 use App\Models\SignalType;
+use App\Services\Media\SignalVideoConverter;
 use App\Services\WasabiService;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\UploadedFile;
@@ -24,6 +25,7 @@ class CreateIncidentReportAction
 {
     public function __construct(
         private readonly WasabiService $wasabiService,
+        private readonly SignalVideoConverter $signalVideoConverter,
     ) {}
 
     public function handle(
@@ -384,11 +386,18 @@ class CreateIncidentReportAction
 
     private function storeSignalAttachmentFile(UploadedFile $file, string $reference): array
     {
-        $path = $this->wasabiService->uploadFile(
-            $file,
-            config('wasabi.report_signal_directory', 'reports/signals').'/'.$reference,
-            'attachment'
-        );
+        $normalized = $this->signalVideoConverter->normalizeForSignalAttachment($file);
+        $fileToUpload = $normalized['file'];
+
+        try {
+            $path = $this->wasabiService->uploadFile(
+                $fileToUpload,
+                config('wasabi.report_signal_directory', 'reports/signals').'/'.$reference,
+                'attachment'
+            );
+        } finally {
+            $this->signalVideoConverter->cleanup($normalized['temporary_path'] ?? null);
+        }
 
         if (! $path) {
             throw ValidationException::withMessages([
@@ -396,14 +405,18 @@ class CreateIncidentReportAction
             ]);
         }
 
-        $mimeType = $file->getMimeType() ?: 'application/octet-stream';
+        $mimeType = $fileToUpload->getMimeType() ?: 'application/octet-stream';
 
         return [
             'type' => str_starts_with($mimeType, 'video/') ? 'video' : 'image',
-            'name' => $file->getClientOriginalName() ?: 'piece-jointe-signalement',
+            'name' => $fileToUpload->getClientOriginalName() ?: 'piece-jointe-signalement',
             'mime_type' => $mimeType,
-            'size' => $file->getSize(),
+            'size' => $fileToUpload->getSize(),
             'path' => $path,
+            'conversion' => [
+                'converted_to_mp4' => (bool) ($normalized['converted'] ?? false),
+                'original' => $normalized['original'] ?? null,
+            ],
         ];
     }
 

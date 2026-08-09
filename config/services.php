@@ -80,6 +80,7 @@ return [
 
     'public_reports' => [
         'request_timeout' => (int) env('PUBLIC_REPORT_REQUEST_TIMEOUT', 240),
+        'video_conversion_timeout' => (int) env('PUBLIC_REPORT_VIDEO_CONVERSION_TIMEOUT', 120),
     ],
 
     'partner_auth' => [

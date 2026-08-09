@@ -137,6 +137,7 @@ class PublicIncidentReportController extends Controller
                     'provider' => $paymentSession->provider,
                     'payload' => $this->reportPayloadForLog($attributes),
                     'signal_attachment' => $this->uploadedFileForLog($request->file('signal_attachment')),
+                    'stored_signal_attachment' => $paymentSession->signal_attachment,
                 ],
                 $request,
                 $publicUser,

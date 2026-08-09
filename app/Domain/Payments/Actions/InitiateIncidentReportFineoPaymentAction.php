@@ -7,6 +7,7 @@ use App\Domain\Reports\Actions\CreateIncidentReportAction;
 use App\Models\IncidentReportPaymentSession;
 use App\Models\PricingRule;
 use App\Models\PublicUser;
+use App\Services\Media\SignalVideoConverter;
 use App\Services\Payments\FineoPayClient;
 use App\Services\WasabiService;
 use Carbon\CarbonImmutable;
@@ -19,6 +20,7 @@ class InitiateIncidentReportFineoPaymentAction
         private readonly CreateIncidentReportAction $createIncidentReportAction,
         private readonly FineoPayClient $fineoPayClient,
         private readonly WasabiService $wasabiService,
+        private readonly SignalVideoConverter $signalVideoConverter,
     ) {}
 
     public function handle(PublicUser $user, array $payload, ?UploadedFile $signalAttachmentFile = null): IncidentReportPaymentSession
@@ -85,11 +87,18 @@ class InitiateIncidentReportFineoPaymentAction
 
     private function storePendingSignalAttachment(UploadedFile $file, string $syncRef): array
     {
-        $path = $this->wasabiService->uploadFile(
-            $file,
-            config('wasabi.report_signal_directory', 'reports/signals').'/pending/'.$syncRef,
-            'attachment'
-        );
+        $normalized = $this->signalVideoConverter->normalizeForSignalAttachment($file);
+        $fileToUpload = $normalized['file'];
+
+        try {
+            $path = $this->wasabiService->uploadFile(
+                $fileToUpload,
+                config('wasabi.report_signal_directory', 'reports/signals').'/pending/'.$syncRef,
+                'attachment'
+            );
+        } finally {
+            $this->signalVideoConverter->cleanup($normalized['temporary_path'] ?? null);
+        }
 
         if (! $path) {
             throw ValidationException::withMessages([
@@ -97,14 +106,18 @@ class InitiateIncidentReportFineoPaymentAction
             ]);
         }
 
-        $mimeType = $file->getMimeType() ?: 'application/octet-stream';
+        $mimeType = $fileToUpload->getMimeType() ?: 'application/octet-stream';
 
         return [
             'type' => str_starts_with($mimeType, 'video/') ? 'video' : 'image',
-            'name' => $file->getClientOriginalName() ?: 'piece-jointe-signalement',
+            'name' => $fileToUpload->getClientOriginalName() ?: 'piece-jointe-signalement',
             'mime_type' => $mimeType,
-            'size' => $file->getSize(),
+            'size' => $fileToUpload->getSize(),
             'path' => $path,
+            'conversion' => [
+                'converted_to_mp4' => (bool) ($normalized['converted'] ?? false),
+                'original' => $normalized['original'] ?? null,
+            ],
         ];
     }
 

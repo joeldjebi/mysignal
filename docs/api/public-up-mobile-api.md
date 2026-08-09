@@ -788,7 +788,7 @@ Regle d affichage mobile pour l identifiant :
 - ou afficher le champ si `selectedSignalType.requires_public_user_identifier === true`
 - sinon, ne pas afficher le champ
 
-`signal_attachment` est optionnel. Formats acceptes : images `jpeg`, `png`, `webp`, `gif`, `heic`, `heif` et videos `mp4`, `mov/quicktime`, `avi`, `mpeg`. Pour les videos, la duree maximale est de 12 secondes. Le backend ne fixe plus de limite applicative de poids pour ce champ, mais l equipe mobile doit garder une compression raisonnable pour eviter les limites reseau, PHP, Nginx ou Apache.
+`signal_attachment` est optionnel. Formats acceptes : images `jpeg`, `png`, `webp`, `gif`, `heic`, `heif` et videos `mp4`, `mov/quicktime`, `avi`, `mpeg`. Les photos sont limitees a 20 Mo. Les videos sont limitees a 100 Mo et 12 secondes maximum. Les videos iPhone en `.mov`/HEVC sont acceptees et converties en `.mp4` cote serveur avant stockage sur Wasabi.
 
 `signal_sub_type_code` est obligatoire uniquement si le `signal_code` choisi a `requires_sub_type: true` dans `GET /v1/public/signal-types`.
 
