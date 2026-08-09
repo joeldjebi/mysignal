@@ -1,8 +1,11 @@
 <?php
 
+use App\Models\IncidentReport;
+use App\Support\Audit\ActivityLogger;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Exceptions\PostTooLargeException;
 use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -97,5 +100,51 @@ $middleware->append(\App\Http\Middleware\PrometheusMiddleware::class);
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->report(function (PostTooLargeException $exception): void {
+            $request = request();
+
+            if (! $request instanceof Request || ! $request->is('api/v1/public/reports')) {
+                return;
+            }
+
+            try {
+                app(ActivityLogger::class)->log(
+                    'public.report.upload_too_large',
+                    'Le fichier du signalement a été rejeté avant la validation Laravel.',
+                    IncidentReport::class,
+                    [
+                        'cause' => 'post_max_size ou upload_max_filesize trop bas côté PHP/serveur.',
+                        'limits' => [
+                            'upload_max_filesize' => ini_get('upload_max_filesize'),
+                            'post_max_size' => ini_get('post_max_size'),
+                            'max_input_time' => ini_get('max_input_time'),
+                            'max_execution_time' => ini_get('max_execution_time'),
+                        ],
+                        'content_length' => $request->server('CONTENT_LENGTH'),
+                        'content_type' => $request->server('CONTENT_TYPE'),
+                    ],
+                    $request,
+                    $request->user('public_api'),
+                    'public'
+                );
+            } catch (Throwable) {
+                //
+            }
+        });
+
+        $exceptions->render(function (PostTooLargeException $exception, Request $request) {
+            if (! $request->is('api/v1/public/reports') && ! $request->is('api/v1/public/reports/*')) {
+                return null;
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Le fichier envoyé est trop volumineux pour être reçu par le serveur.',
+                'errors' => [
+                    'signal_attachment' => [
+                        'Le fichier dépasse la limite actuellement acceptée par le serveur. Réessayez avec une photo de 20 Mo maximum ou une vidéo de 100 Mo maximum.',
+                    ],
+                ],
+            ], 413);
+        });
     })->create();

@@ -149,10 +149,7 @@ class PublicIncidentReportController extends Controller
                 'Échec d’initialisation du paiement pour un signalement public.',
                 IncidentReport::class,
                 [
-                    'error' => [
-                        'type' => $exception::class,
-                        'message' => $exception->getMessage(),
-                    ],
+                    'error' => $this->exceptionForLog($exception),
                     'payload' => $this->reportPayloadForLog($attributes),
                     'signal_attachment' => $this->uploadedFileForLog($request->file('signal_attachment')),
                 ],
@@ -432,7 +429,37 @@ class PublicIncidentReportController extends Controller
             'client_mime_type' => $file->getClientMimeType(),
             'size' => $file->getSize(),
             'error' => $file->getError(),
+            'error_label' => $this->uploadErrorLabel((int) $file->getError()),
         ];
+    }
+
+    private function exceptionForLog(Throwable $exception): array
+    {
+        $payload = [
+            'type' => $exception::class,
+            'message' => $exception->getMessage(),
+        ];
+
+        if ($exception instanceof ValidationException) {
+            $payload['validation_errors'] = $exception->errors();
+        }
+
+        return $payload;
+    }
+
+    private function uploadErrorLabel(int $error): string
+    {
+        return match ($error) {
+            UPLOAD_ERR_OK => 'Aucune erreur',
+            UPLOAD_ERR_INI_SIZE => 'Le fichier dépasse upload_max_filesize',
+            UPLOAD_ERR_FORM_SIZE => 'Le fichier dépasse la limite du formulaire',
+            UPLOAD_ERR_PARTIAL => 'Le fichier a été envoyé partiellement',
+            UPLOAD_ERR_NO_FILE => 'Aucun fichier reçu',
+            UPLOAD_ERR_NO_TMP_DIR => 'Le dossier temporaire PHP est absent',
+            UPLOAD_ERR_CANT_WRITE => 'Impossible d’écrire le fichier temporaire',
+            UPLOAD_ERR_EXTENSION => 'Une extension PHP a interrompu l’upload',
+            default => 'Erreur d’upload inconnue',
+        };
     }
 
     private function resolveDamagePurchaseReceipt(Request $request, array $attributes): ?PurchaseReceipt

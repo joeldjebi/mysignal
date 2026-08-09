@@ -76,10 +76,12 @@ class SignalVideoConverter
             $process->run();
 
             if (! $process->isSuccessful() || ! is_file($outputPath) || filesize($outputPath) === 0) {
+                $failureOutput = $this->shorten($process->getErrorOutput() ?: $process->getOutput());
                 @unlink($outputPath);
 
                 throw ValidationException::withMessages([
                     'signal_attachment' => ['Impossible de convertir la vidéo au format MP4.'],
+                    'signal_attachment_cause' => [$failureOutput ?: 'ffmpeg n’a pas pu produire un fichier MP4 valide.'],
                 ]);
             }
 
@@ -104,11 +106,12 @@ class SignalVideoConverter
             ];
         } catch (ValidationException $exception) {
             throw $exception;
-        } catch (Throwable) {
+        } catch (Throwable $exception) {
             @unlink($outputPath);
 
             throw ValidationException::withMessages([
                 'signal_attachment' => ['Impossible de convertir la vidéo au format MP4.'],
+                'signal_attachment_cause' => [$this->shorten($exception->getMessage())],
             ]);
         }
     }
@@ -125,5 +128,16 @@ class SignalVideoConverter
         $filename = preg_replace('/[^A-Za-z0-9_-]+/', '-', $filename) ?: 'video-signalement';
 
         return trim($filename, '-') ?: 'video-signalement';
+    }
+
+    private function shorten(string $value, int $limit = 700): string
+    {
+        $value = trim(preg_replace('/\s+/', ' ', $value) ?? $value);
+
+        if (mb_strlen($value) <= $limit) {
+            return $value;
+        }
+
+        return mb_substr($value, 0, $limit).'...';
     }
 }

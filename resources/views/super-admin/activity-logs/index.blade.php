@@ -101,6 +101,12 @@
                                 @endif
                             </td>
                             <td class="text-end">
+                                @if (! empty($log->properties))
+                                    <button type="button" class="btn btn-sm btn-outline-primary mb-1" data-bs-toggle="modal" data-bs-target="#activityLogDetails{{ $log->id }}">
+                                        Voir le journal
+                                    </button>
+                                @endif
+
                                 @if ($log->actorPublicUser)
                                     <a href="{{ route('super-admin.public-users.show', $log->actorPublicUser) }}" class="btn btn-sm btn-outline-dark">Détails</a>
                                 @elseif ($log->actorUser && ! $log->actorUser->is_super_admin && $log->actorUser->organization_id === null)
@@ -112,12 +118,35 @@
                                 @endif
                             </td>
                         </tr>
+
                     @empty
                         <tr><td colspan="7" class="text-center text-secondary">Aucune activité visible.</td></tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
+
+        @foreach ($logs as $log)
+            @if (! empty($log->properties))
+                <div class="modal fade" id="activityLogDetails{{ $log->id }}" tabindex="-1" aria-labelledby="activityLogDetailsLabel{{ $log->id }}" aria-hidden="true">
+                    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <div>
+                                    <h5 class="modal-title" id="activityLogDetailsLabel{{ $log->id }}">Détails du journal</h5>
+                                    <div class="small text-secondary">{{ $log->created_at?->format('d/m/Y H:i:s') }} - {{ $log->action }}</div>
+                                </div>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                            </div>
+                            <div class="modal-body">
+                                <pre class="bg-light border rounded p-3 small mb-0" style="white-space: pre-wrap;">{{ json_encode($log->properties, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
+        @endforeach
+
         <div class="d-flex justify-content-between align-items-center mt-3">
             <div class="table-meta">Page {{ $logs->currentPage() }} sur {{ $logs->lastPage() }}</div>
             {{ $logs->links() }}
