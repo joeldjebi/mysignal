@@ -4,6 +4,7 @@
     $url = is_array($attachment) ? ($attachment['temporary_url'] ?? null) : null;
     $name = is_array($attachment) ? ($attachment['name'] ?? 'Pièce jointe') : 'Pièce jointe';
     $mimeType = is_array($attachment) ? (string) ($attachment['mime_type'] ?? '') : '';
+    $sourceMimeType = $mimeType !== '' ? $mimeType : 'video/mp4';
     $type = is_array($attachment) ? ($attachment['type'] ?? null) : null;
     $isImage = $type === 'image' || str_starts_with($mimeType, 'image/');
     $isVideo = $type === 'video' || str_starts_with($mimeType, 'video/');
@@ -32,13 +33,19 @@
             >
         @elseif ($isVideo && filled($url))
             <video
-                src="{{ $url }}"
                 controls
                 preload="metadata"
                 playsinline
+                data-report-video
                 class="w-100 rounded-4 border"
                 style="max-height: 460px; background: #111827;"
-            ></video>
+            >
+                <source src="{{ $url }}" type="{{ $sourceMimeType }}">
+                Votre navigateur ne peut pas lire cette vidéo directement.
+            </video>
+            <div class="small text-secondary mt-2">
+                Si la lecture ne démarre pas, ouvrez la vidéo dans un nouvel onglet.
+            </div>
         @elseif (blank($url))
             <div class="text-secondary small">Le lien temporaire du fichier n’a pas pu être généré.</div>
         @else
@@ -46,3 +53,26 @@
         @endif
     </div>
 @endif
+
+@once
+    @push('scripts')
+        <script>
+            document.addEventListener('shown.bs.modal', function (event) {
+                event.target.querySelectorAll('video[data-report-video]').forEach(function (video) {
+                    try {
+                        video.load();
+                    } catch (error) {}
+                });
+            });
+
+            document.addEventListener('hidden.bs.modal', function (event) {
+                event.target.querySelectorAll('video[data-report-video]').forEach(function (video) {
+                    try {
+                        video.pause();
+                        video.currentTime = 0;
+                    } catch (error) {}
+                });
+            });
+        </script>
+    @endpush
+@endonce
