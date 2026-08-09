@@ -50,6 +50,12 @@
                             <div class="small text-secondary">Description</div>
                             <div class="fw-semibold">{{ $report->description ?: 'Aucune description renseignée.' }}</div>
                         </div>
+                        <div class="col-12">
+                            @include('partials.report-signal-attachment', [
+                                'attachment' => $resolvedSignalAttachment ?? null,
+                                'title' => 'Fichier joint par l’usager',
+                            ])
+                        </div>
                     </div>
                 </div>
             </div>

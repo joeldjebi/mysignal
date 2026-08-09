@@ -217,6 +217,7 @@ class PublicIncidentReportController extends Controller
 
         return view('super-admin.public-reports.show', [
             'report' => $report,
+            'resolvedSignalAttachment' => $report->resolvedSignalAttachment(),
         ]);
     }
 
