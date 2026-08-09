@@ -388,6 +388,11 @@ class CreateIncidentReportAction
     {
         $normalized = $this->signalVideoConverter->normalizeForSignalAttachment($file);
         $fileToUpload = $normalized['file'];
+        $preparedFileMetadata = [
+            'mime_type' => $fileToUpload->getMimeType() ?: 'application/octet-stream',
+            'name' => $fileToUpload->getClientOriginalName() ?: 'piece-jointe-signalement',
+            'size' => $fileToUpload->getSize(),
+        ];
 
         try {
             $path = $this->wasabiService->uploadFile(
@@ -405,13 +410,11 @@ class CreateIncidentReportAction
             ]);
         }
 
-        $mimeType = $fileToUpload->getMimeType() ?: 'application/octet-stream';
-
         return [
-            'type' => str_starts_with($mimeType, 'video/') ? 'video' : 'image',
-            'name' => $fileToUpload->getClientOriginalName() ?: 'piece-jointe-signalement',
-            'mime_type' => $mimeType,
-            'size' => $fileToUpload->getSize(),
+            'type' => str_starts_with($preparedFileMetadata['mime_type'], 'video/') ? 'video' : 'image',
+            'name' => $preparedFileMetadata['name'],
+            'mime_type' => $preparedFileMetadata['mime_type'],
+            'size' => $preparedFileMetadata['size'],
             'path' => $path,
             'conversion' => [
                 'converted_to_mp4' => (bool) ($normalized['converted'] ?? false),

@@ -133,6 +133,12 @@ class InitiateIncidentReportFineoPaymentAction
             'prepared_file' => $this->uploadedFileForLog($fileToUpload),
         ]);
 
+        $preparedFileMetadata = [
+            'mime_type' => $fileToUpload->getMimeType() ?: 'application/octet-stream',
+            'name' => $fileToUpload->getClientOriginalName() ?: 'piece-jointe-signalement',
+            'size' => $fileToUpload->getSize(),
+        ];
+
         try {
             $this->logReportStep($user, 'public.report.signal_attachment_wasabi_started', 'Début du téléversement de la pièce jointe sur Wasabi.', [
                 'sync_ref' => $syncRef,
@@ -154,12 +160,11 @@ class InitiateIncidentReportFineoPaymentAction
             ]);
         }
 
-        $mimeType = $fileToUpload->getMimeType() ?: 'application/octet-stream';
         $payload = [
-            'type' => str_starts_with($mimeType, 'video/') ? 'video' : 'image',
-            'name' => $fileToUpload->getClientOriginalName() ?: 'piece-jointe-signalement',
-            'mime_type' => $mimeType,
-            'size' => $fileToUpload->getSize(),
+            'type' => str_starts_with($preparedFileMetadata['mime_type'], 'video/') ? 'video' : 'image',
+            'name' => $preparedFileMetadata['name'],
+            'mime_type' => $preparedFileMetadata['mime_type'],
+            'size' => $preparedFileMetadata['size'],
             'path' => $path,
             'conversion' => [
                 'converted_to_mp4' => (bool) ($normalized['converted'] ?? false),
