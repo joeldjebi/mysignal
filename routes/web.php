@@ -6,6 +6,7 @@ use App\Http\Controllers\Web\Backoffice\DashboardController as BackofficeDashboa
 use App\Http\Controllers\Web\Backoffice\LegalCaseController as BackofficeLegalCaseController;
 use App\Http\Controllers\Web\Institution\AuthController as InstitutionAuthController;
 use App\Http\Controllers\Web\Institution\ActivityLogController as InstitutionActivityLogController;
+use App\Http\Controllers\Web\Institution\InstitutionActivationController;
 use App\Http\Controllers\Web\Institution\DashboardController as InstitutionDashboardController;
 use App\Http\Controllers\Web\Institution\DeviceTokenController as InstitutionDeviceTokenController;
 use App\Http\Controllers\Web\Institution\DamageController as InstitutionDamageController;
@@ -36,6 +37,7 @@ use App\Http\Controllers\Web\SuperAdmin\DiscountTransactionController;
 use App\Http\Controllers\Web\SuperAdmin\FeatureController;
 use App\Http\Controllers\Web\SuperAdmin\ActivityLogController as SuperAdminActivityLogController;
 use App\Http\Controllers\Web\SuperAdmin\InstitutionAdminController;
+use App\Http\Controllers\Web\SuperAdmin\InstitutionActivationLetterController;
 use App\Http\Controllers\Web\SuperAdmin\InternalAccessController;
 use App\Http\Controllers\Web\SuperAdmin\InternalHomeController;
 use App\Http\Controllers\Web\SuperAdmin\LandingPageController;
@@ -216,6 +218,9 @@ Route::prefix('callcenter')->name('callcenter.')->group(function (): void {
 });
 
 Route::prefix('institution')->name('institution.')->group(function (): void {
+    Route::get('activation', [InstitutionActivationController::class, 'show'])->name('activation.show');
+    Route::post('activation', [InstitutionActivationController::class, 'store'])->name('activation.store');
+
     Route::middleware('guest')->group(function (): void {
         Route::get('login', [InstitutionAuthController::class, 'create'])->name('login');
         Route::post('login', [InstitutionAuthController::class, 'store'])->name('login.store');
@@ -447,6 +452,11 @@ Route::prefix('sa')->name('super-admin.')->group(function (): void {
         Route::get('institution-admins', [InstitutionAdminController::class, 'index'])->middleware('super_admin_permission:SA_INSTITUTION_ADMINS_VIEW,SA_INSTITUTION_ADMINS_MANAGE')->name('institution-admins.index');
         Route::get('institution-admins/orphaned', [InstitutionAdminController::class, 'orphaned'])->middleware('super_admin_permission:SA_INSTITUTION_ADMINS_VIEW,SA_INSTITUTION_ADMINS_MANAGE')->name('institution-admins.orphaned');
         Route::post('institution-admins', [InstitutionAdminController::class, 'store'])->middleware('super_admin_permission:SA_INSTITUTION_ADMINS_CREATE,SA_INSTITUTION_ADMINS_MANAGE')->name('institution-admins.store');
+        Route::get('institution-admins/{institutionAdmin}/activation-letter', [InstitutionActivationLetterController::class, 'edit'])->middleware('super_admin_permission:SA_INSTITUTION_ADMINS_UPDATE,SA_INSTITUTION_ADMINS_MANAGE')->name('institution-admins.activation-letter.edit');
+        Route::put('institution-admins/{institutionAdmin}/activation-letter', [InstitutionActivationLetterController::class, 'update'])->middleware('super_admin_permission:SA_INSTITUTION_ADMINS_UPDATE,SA_INSTITUTION_ADMINS_MANAGE')->name('institution-admins.activation-letter.update');
+        Route::post('institution-admins/{institutionAdmin}/activation-letter/send-access', [InstitutionActivationLetterController::class, 'approveAndSendAccess'])->middleware('super_admin_permission:SA_INSTITUTION_ADMINS_UPDATE,SA_INSTITUTION_ADMINS_MANAGE')->name('institution-admins.activation-letter.send-access');
+        Route::get('institution-admins/{institutionAdmin}/activation-letter/pdf', [InstitutionActivationLetterController::class, 'download'])->middleware('super_admin_permission:SA_INSTITUTION_ADMINS_VIEW,SA_INSTITUTION_ADMINS_MANAGE')->name('institution-admins.activation-letter.pdf');
+        Route::get('institution-admins/{institutionAdmin}/activation-letter/print', [InstitutionActivationLetterController::class, 'print'])->middleware('super_admin_permission:SA_INSTITUTION_ADMINS_VIEW,SA_INSTITUTION_ADMINS_MANAGE')->name('institution-admins.activation-letter.print');
         Route::get('institution-admins/{institutionAdmin}/edit', [InstitutionAdminController::class, 'edit'])->middleware('super_admin_permission:SA_INSTITUTION_ADMINS_UPDATE,SA_INSTITUTION_ADMINS_MANAGE')->name('institution-admins.edit');
         Route::put('institution-admins/{institutionAdmin}', [InstitutionAdminController::class, 'update'])->middleware('super_admin_permission:SA_INSTITUTION_ADMINS_UPDATE,SA_INSTITUTION_ADMINS_MANAGE')->name('institution-admins.update');
         Route::patch('institution-admins/{institutionAdmin}', [InstitutionAdminController::class, 'update'])->middleware('super_admin_permission:SA_INSTITUTION_ADMINS_UPDATE,SA_INSTITUTION_ADMINS_MANAGE');

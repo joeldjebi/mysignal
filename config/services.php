@@ -100,4 +100,9 @@ return [
         'token' => env('TOP_TEASER_TOKEN'),
     ],
 
+    'institution_activation' => [
+        'base_url' => rtrim(env('INSTITUTION_ACTIVATION_BASE_URL', env('APP_URL', 'https://my-signal.pro')), '/'),
+        'send_email' => (bool) env('INSTITUTION_ACTIVATION_SEND_EMAIL', false),
+    ],
+
 ];

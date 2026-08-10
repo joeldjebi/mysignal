@@ -1,0 +1,409 @@
+<?php
+
+namespace App\Http\Controllers\Web\SuperAdmin;
+
+use App\Http\Controllers\Controller;
+use App\Models\InstitutionActivationLetter;
+use App\Models\User;
+use App\Models\UserType;
+use App\Services\SmsService;
+use App\Services\TopTeaserEmailService;
+use App\Services\WasabiService;
+use App\Support\Audit\ActivityLogger;
+use App\Support\Pdf\SimpleInstitutionActivationLetterPdf;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+use Illuminate\View\View;
+use Throwable;
+
+class InstitutionActivationLetterController extends Controller
+{
+    public function edit(Request $request, User $institutionAdmin): View
+    {
+        $this->abortIfNotInstitutionAdmin($institutionAdmin);
+
+        return view('super-admin.institution-admins.activation-letter', [
+            'institutionAdmin' => $institutionAdmin->load('organization'),
+            'letter' => $this->letterFor($institutionAdmin, $request),
+            'logoPositions' => $this->logoPositions(),
+        ]);
+    }
+
+    public function update(Request $request, User $institutionAdmin, ActivityLogger $activityLogger, WasabiService $wasabiService): RedirectResponse
+    {
+        $this->abortIfNotInstitutionAdmin($institutionAdmin);
+        $letter = $this->letterFor($institutionAdmin, $request);
+
+        $attributes = $request->validate([
+            'letter_subject' => ['required', 'string', 'max:255'],
+            'letter_content' => ['required', 'string', 'max:20000'],
+            'signature_name' => ['nullable', 'string', 'max:180'],
+            'signature_title' => ['nullable', 'string', 'max:180'],
+            'signature_content' => ['nullable', 'string', 'max:3000'],
+            'logo_position' => ['required', 'string', 'in:left,center,right,none'],
+            'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'remove_logo' => ['nullable', 'boolean'],
+            'expires_at' => ['nullable', 'date'],
+        ]);
+
+        if ($request->boolean('remove_logo') && filled($letter->logo_path)) {
+            $wasabiService->deleteFile($letter->logo_path);
+            $letter->forceFill(['logo_path' => null])->save();
+        }
+
+        if ($request->hasFile('logo')) {
+            if (filled($letter->logo_path)) {
+                $wasabiService->deleteFile($letter->logo_path);
+            }
+
+            $letter->forceFill([
+                'logo_path' => $wasabiService->uploadFile($request->file('logo'), 'institution-activation-letters/logos', 'letter-logo'),
+            ])->save();
+        }
+
+        $letter->update([
+            'letter_subject' => $attributes['letter_subject'],
+            'letter_content' => $this->cleanLetterContent($attributes['letter_content']),
+            'signature_name' => $attributes['signature_name'] ?? null,
+            'signature_title' => $attributes['signature_title'] ?? null,
+            'signature_content' => $this->cleanLetterContent($attributes['signature_content'] ?? ''),
+            'logo_position' => $attributes['logo_position'],
+            'expires_at' => $attributes['expires_at'] ?? null,
+            'status' => $letter->status === 'draft' ? 'generated' : $letter->status,
+            'activation_url' => $this->activationUrl($letter->activation_code),
+        ]);
+
+        $activityLogger->log(
+            'institution_activation_letter.updated',
+            'Mise à jour du courrier de désignation du point focal.',
+            $letter,
+            [
+                'organization_id' => $letter->organization_id,
+                'institution_admin_id' => $letter->institution_admin_id,
+                'activation_code' => $letter->activation_code,
+                'logo_changed' => $request->hasFile('logo') || $request->boolean('remove_logo'),
+            ],
+            $request,
+            $request->user(),
+        );
+
+        return back()->with('success', 'Le courrier a été enregistré.');
+    }
+
+    public function download(Request $request, User $institutionAdmin, SimpleInstitutionActivationLetterPdf $pdf): Response
+    {
+        $this->abortIfNotInstitutionAdmin($institutionAdmin);
+        $letter = $this->letterFor($institutionAdmin, $request);
+        $filename = 'courrier-point-focal-'.$letter->activation_code.'.pdf';
+
+        return response($pdf->make($letter), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+        ]);
+    }
+
+    public function print(Request $request, User $institutionAdmin): View
+    {
+        $this->abortIfNotInstitutionAdmin($institutionAdmin);
+
+        return view('super-admin.institution-admins.activation-letter-print', [
+            'institutionAdmin' => $institutionAdmin->load('organization'),
+            'letter' => $this->letterFor($institutionAdmin, $request),
+        ]);
+    }
+
+    public function approveAndSendAccess(Request $request, User $institutionAdmin, SmsService $smsService, TopTeaserEmailService $emailService, ActivityLogger $activityLogger): RedirectResponse
+    {
+        $this->abortIfNotInstitutionAdmin($institutionAdmin);
+
+        $letter = $this->letterFor($institutionAdmin, $request);
+
+        if ($letter->status !== 'submitted') {
+            return back()->withErrors([
+                'activation' => 'Le point focal doit d’abord soumettre ses informations avant l’envoi des accès.',
+            ]);
+        }
+
+        if (blank($letter->focal_phone) || blank($letter->focal_email)) {
+            return back()->withErrors([
+                'activation' => 'Le téléphone et l’email du point focal sont obligatoires pour envoyer les accès.',
+            ]);
+        }
+
+        $emailOwner = User::query()
+            ->where('email', $letter->focal_email)
+            ->whereKeyNot($institutionAdmin->id)
+            ->first();
+
+        if ($emailOwner && ! $this->canArchiveDuplicateInstitutionAdmin($emailOwner, $institutionAdmin)) {
+            return back()->withErrors([
+                'activation' => 'L’email du point focal est déjà utilisé par un autre compte qui ne dépend pas de cette institution.',
+            ]);
+        }
+
+        $previousUserData = $institutionAdmin->only(['name', 'email', 'phone', 'password', 'status']);
+        $previousEmailOwnerData = $emailOwner?->only(['name', 'email', 'phone', 'password', 'status']);
+        $previousLetterStatus = $letter->status;
+        $password = $this->temporaryPassword();
+        $loginUrl = $this->portalUrl('/institution/login');
+
+        if ($emailOwner) {
+            $emailOwner->forceFill([
+                'name' => trim(($emailOwner->name ?: 'Compte provisoire').' - remplacé'),
+                'email' => $this->archivedEmail($emailOwner),
+                'phone' => null,
+                'status' => 'inactive',
+            ])->save();
+        }
+
+        $institutionAdmin->update([
+            'name' => trim($letter->focal_first_names.' '.$letter->focal_last_name),
+            'email' => $letter->focal_email,
+            'phone' => $letter->focal_phone,
+            'password' => Hash::make($password),
+            'status' => 'active',
+        ]);
+
+        $letter->update([
+            'status' => 'approved',
+            'approved_by' => $request->user()?->id,
+        ]);
+
+        $message = "My-Signal: votre acces au portail institutionnel est active. Lien: {$loginUrl} Identifiant: {$institutionAdmin->email} Mot de passe temporaire: {$password}";
+        $mailSent = false;
+        $mailError = null;
+
+        try {
+            $smsService->sendSmsMtarget($message, (string) $institutionAdmin->phone);
+        } catch (Throwable $exception) {
+            $institutionAdmin->forceFill($previousUserData)->save();
+            if ($emailOwner && $previousEmailOwnerData) {
+                $emailOwner->forceFill($previousEmailOwnerData)->save();
+            }
+            $letter->forceFill(['status' => $previousLetterStatus, 'approved_by' => null])->save();
+
+            $activityLogger->log(
+                'institution_activation.access_send_failed',
+                'Échec d’envoi des accès du point focal institutionnel.',
+                $letter,
+                [
+                    'organization_id' => $letter->organization_id,
+                    'institution_admin_id' => $institutionAdmin->id,
+                    'error' => $exception->getMessage(),
+                ],
+                $request,
+                $request->user(),
+            );
+
+            return back()->withErrors([
+                'activation' => 'L’envoi SMS a échoué. Cause: '.$exception->getMessage(),
+            ]);
+        }
+
+        if ((bool) config('services.institution_activation.send_email', false)) {
+            try {
+                $emailService->send(
+                    (string) $institutionAdmin->email,
+                    'Vos accès au portail institutionnel My-Signal',
+                    $this->accessEmailHtml($institutionAdmin, $loginUrl, $password),
+                    $this->accessEmailText($institutionAdmin, $loginUrl, $password),
+                );
+                $mailSent = true;
+            } catch (Throwable $exception) {
+                $mailError = $exception->getMessage();
+            }
+        }
+
+        $activityLogger->log(
+            'institution_activation.access_sent',
+            'Validation du point focal et envoi des accès institutionnels.',
+            $letter,
+            [
+                'organization_id' => $letter->organization_id,
+                'institution_admin_id' => $institutionAdmin->id,
+                'login_url' => $loginUrl,
+                'archived_duplicate_user_id' => $emailOwner?->id,
+                'mail_sent' => $mailSent,
+                'mail_error' => $mailError,
+            ],
+            $request,
+            $request->user(),
+        );
+
+        $success = 'Le point focal a été validé et les accès ont été envoyés par SMS. Lien: '.$loginUrl.' Identifiant: '.$institutionAdmin->email.' Mot de passe temporaire: '.$password;
+
+        if ($mailError) {
+            $success .= ' L’envoi par e-mail est prévu mais a échoué. Cause: '.$mailError;
+        } elseif ($mailSent) {
+            $success .= ' Les accès ont également été envoyés par e-mail.';
+        }
+
+        return back()->with('success', $success);
+    }
+
+    private function letterFor(User $institutionAdmin, Request $request): InstitutionActivationLetter
+    {
+        $institutionAdmin->loadMissing('organization');
+
+        $letter = InstitutionActivationLetter::query()
+            ->where('institution_admin_id', $institutionAdmin->id)
+            ->where('organization_id', $institutionAdmin->organization_id)
+            ->latest('id')
+            ->first();
+
+        if ($letter) {
+            $activationUrl = $this->activationUrl($letter->activation_code);
+
+            if ($letter->activation_url !== $activationUrl) {
+                $letter->forceFill([
+                    'activation_url' => $activationUrl,
+                ])->save();
+            }
+
+            return $letter->loadMissing(['organization', 'institutionAdmin']);
+        }
+
+        $code = $this->uniqueActivationCode($institutionAdmin);
+
+        return InstitutionActivationLetter::query()->create([
+            'organization_id' => $institutionAdmin->organization_id,
+            'institution_admin_id' => $institutionAdmin->id,
+            'created_by' => $request->user()?->id,
+            'activation_code' => $code,
+            'activation_url' => $this->activationUrl($code),
+            'letter_subject' => 'Désignation du point focal My-Signal',
+            'letter_content' => $this->defaultLetterContent($institutionAdmin, $code),
+            'signature_name' => 'Le Coordonnateur du programme My-Signal',
+            'signature_title' => 'Union Fédérale des Consommateurs',
+            'signature_content' => '<p>Pour l’Union Fédérale des Consommateurs</p>',
+            'logo_position' => 'left',
+            'status' => 'draft',
+            'expires_at' => now()->addDays(30),
+        ])->loadMissing(['organization', 'institutionAdmin']);
+    }
+
+    private function uniqueActivationCode(User $institutionAdmin): string
+    {
+        $organization = $institutionAdmin->organization;
+        $seed = $organization?->code ?: $organization?->name ?: 'INST';
+        $prefix = 'UFC-'.Str::upper(Str::slug((string) $seed, '-'));
+        $prefix = Str::limit($prefix, 28, '');
+
+        do {
+            $code = $prefix.'-'.Str::upper(Str::random(5));
+        } while (InstitutionActivationLetter::query()->where('activation_code', $code)->exists());
+
+        return $code;
+    }
+
+    private function defaultLetterContent(User $institutionAdmin, string $code): string
+    {
+        $organizationName = $institutionAdmin->organization?->name ?: 'votre institution';
+        $activationUrl = $this->activationUrl($code);
+
+        return <<<HTML
+<p>Madame, Monsieur,</p>
+<p>Dans le cadre du déploiement de la plateforme <strong>My-Signal</strong>, initiative portée par l’Union Fédérale des Consommateurs, nous vous prions de bien vouloir désigner officiellement le point focal habilité à administrer l’espace institutionnel de <strong>{$organizationName}</strong>.</p>
+<p>Cette personne sera l’interlocuteur opérationnel chargé du suivi, de l’orientation et du traitement des signalements relevant de votre institution.</p>
+<p>Le point focal désigné devra renseigner ses informations à partir du lien sécurisé ci-dessous :</p>
+<p><strong>{$activationUrl}</strong></p>
+<p>Code d’activation : <strong>{$code}</strong></p>
+<p>Ce code est strictement rattaché à votre institution. Il permet de garantir l’identification correcte de la structure concernée et la traçabilité de la désignation.</p>
+<p>Nous vous remercions de transmettre ce courrier à la personne dûment mandatée afin de finaliser l’activation de votre espace institutionnel.</p>
+<p>Veuillez agréer, Madame, Monsieur, l’expression de nos salutations distinguées.</p>
+<p><strong>L’équipe My-Signal</strong></p>
+HTML;
+    }
+
+    private function cleanLetterContent(string $html): string
+    {
+        $allowedTags = '<p><br><strong><b><em><i><u><ul><ol><li><blockquote><h2><h3><h4><div><span><a>';
+        $html = strip_tags($html, $allowedTags);
+        $html = preg_replace('/\s+on[a-z]+\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+)/i', '', $html) ?? $html;
+        $html = preg_replace('/\s+style\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+)/i', '', $html) ?? $html;
+        $html = preg_replace('/javascript\s*:/i', '', $html) ?? $html;
+        $html = preg_replace('/<(span|div)>\s*<\/\1>/i', '', $html) ?? $html;
+
+        return trim($html);
+    }
+
+    private function activationUrl(string $code): string
+    {
+        return $this->portalUrl('/institution/activation?code='.urlencode($code));
+    }
+
+    private function portalUrl(string $path): string
+    {
+        return rtrim((string) config('services.institution_activation.base_url', 'https://my-signal.pro'), '/').'/'.ltrim($path, '/');
+    }
+
+    private function canArchiveDuplicateInstitutionAdmin(User $emailOwner, User $institutionAdmin): bool
+    {
+        return ! $emailOwner->is_super_admin
+            && (int) $emailOwner->organization_id === (int) $institutionAdmin->organization_id
+            && (int) $emailOwner->user_type_id === (int) UserType::idFor(UserType::INSTITUTION_ADMIN);
+    }
+
+    private function archivedEmail(User $user): string
+    {
+        $base = 'archive-ai-'.$user->id.'-'.now()->format('YmdHis').'@my-signal.local';
+
+        return Str::lower($base);
+    }
+
+    private function accessEmailHtml(User $institutionAdmin, string $loginUrl, string $password): string
+    {
+        $name = e($institutionAdmin->name ?: 'Point focal');
+        $email = e($institutionAdmin->email);
+        $url = e($loginUrl);
+        $temporaryPassword = e($password);
+
+        return <<<HTML
+<div style="font-family:Arial,sans-serif;color:#152536;line-height:1.55">
+  <h2 style="margin:0 0 12px">Vos accès My-Signal</h2>
+  <p>Bonjour {$name},</p>
+  <p>Votre accès au portail institutionnel My-Signal est activé.</p>
+  <p><strong>Lien de connexion :</strong> <a href="{$url}">{$url}</a><br>
+  <strong>Identifiant :</strong> {$email}<br>
+  <strong>Mot de passe temporaire :</strong> {$temporaryPassword}</p>
+  <p>Pour des raisons de sécurité, veuillez modifier ce mot de passe après votre première connexion.</p>
+</div>
+HTML;
+    }
+
+    private function accessEmailText(User $institutionAdmin, string $loginUrl, string $password): string
+    {
+        return "Bonjour {$institutionAdmin->name},\n\nVotre accès au portail institutionnel My-Signal est activé.\nLien de connexion: {$loginUrl}\nIdentifiant: {$institutionAdmin->email}\nMot de passe temporaire: {$password}\n\nVeuillez modifier ce mot de passe après votre première connexion.";
+    }
+
+    private function temporaryPassword(): string
+    {
+        return 'MS-'.Str::upper(Str::random(4)).'-'.random_int(1000, 9999);
+    }
+
+    private function logoPositions(): array
+    {
+        return [
+            'left' => 'À gauche',
+            'center' => 'Au centre',
+            'right' => 'À droite',
+            'none' => 'Sans logo',
+        ];
+    }
+
+    private function abortIfNotInstitutionAdmin(User $user): void
+    {
+        $user->loadMissing('organization.organizationType');
+
+        abort_if(
+            $user->is_super_admin
+                || (int) $user->user_type_id !== (int) UserType::idFor(UserType::INSTITUTION_ADMIN)
+                || $user->organization_id === null
+                || $user->organization?->organizationType?->code === 'PARTNER_ESTABLISHMENT',
+            404
+        );
+    }
+}
