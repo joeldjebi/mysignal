@@ -11,15 +11,20 @@ class SimpleInstitutionActivationLetterPdf
         $letter->loadMissing(['organization', 'institutionAdmin']);
         $organization = $letter->organization;
         $admin = $letter->institutionAdmin;
+        $header = $letter->headerSettings();
+        $footer = $letter->footerSettings();
 
-        $instructions = [
+        $firstPageInstructions = [
             ['fill', '1 0.63 0.09'],
             ['rect', 36, 748, 523, 58],
             ['fill'],
-            ['text', 48, 785, 'F2', 18, '0.05 0.10 0.18', 'UNION FEDERALE DES CONSOMMATEURS'],
-            ['text', 48, 766, 'F1', 11, '0.05 0.10 0.18', 'Programme My-Signal - Courrier officiel de designation du point focal'],
-            ['text', 390, 784, 'F1', 10, '0.05 0.10 0.18', 'Ref. '.$letter->activation_code],
+            ['text', 48, 786, 'F2', 16, '0.05 0.10 0.18', (string) ($header['title']['text'] ?? 'UNION FEDERALE DES CONSOMMATEURS')],
+            ['text', 48, 770, 'F2', 14, '0.05 0.10 0.18', (string) ($header['subtitle']['text'] ?? "DE COTE D'IVOIRE")],
+            ['text', 48, 754, 'F1', 9, '0.05 0.10 0.18', (string) ($header['description']['text'] ?? 'UFC - Cote d Ivoire - Association de defense des consommateurs')],
+            ['text', 370, 784, 'F1', 10, '0.05 0.10 0.18', 'No '.$this->letterNumber($letter)],
+            ['text', 370, 768, 'F1', 9, '0.05 0.10 0.18', 'Code '.$letter->activation_code],
 
+            ['text', 410, 724, 'F1', 10, '0.42 0.48 0.54', ($letter->issue_place ?: 'Abidjan').', le '.($letter->issue_date ?: now())->format('d/m/Y')],
             ['text', 36, 720, 'F1', 10, '0.42 0.48 0.54', 'Institution'],
             ['text', 36, 702, 'F2', 14, '0.13 0.19 0.25', (string) ($organization?->name ?: '-')],
             ['text', 36, 684, 'F1', 11, '0.30 0.36 0.42', 'Admin de reference: '.($admin?->name ?: '-').' | '.($admin?->email ?: '-')],
@@ -27,40 +32,81 @@ class SimpleInstitutionActivationLetterPdf
             ['text', 36, 642, 'F1', 10, '0.42 0.48 0.54', 'Objet'],
             ['text', 36, 624, 'F2', 13, '0.13 0.19 0.25', (string) $letter->letter_subject],
 
-            ['fill', '1 0.98 0.94'],
-            ['rect', 36, 536, 523, 58],
-            ['fill'],
-            ['text', 48, 575, 'F1', 10, '0.42 0.48 0.54', 'Code officiel'],
-            ['text', 48, 555, 'F2', 16, '0.13 0.19 0.25', (string) $letter->activation_code],
-            ['text', 220, 575, 'F1', 10, '0.42 0.48 0.54', 'Lien du formulaire'],
-            ['text', 220, 555, 'F1', 10, '0.13 0.19 0.25', (string) $letter->activation_url],
         ];
 
-        $y = 500;
-        foreach ($this->wrapLines($this->plainContent((string) $letter->letter_content), 92) as $line) {
+        [$firstContent, $secondContent] = $this->splitContentAfterClosing((string) $letter->letter_content);
+
+        $y = 590;
+        foreach ($this->wrapLines($this->plainContent($firstContent), 92) as $line) {
             if ($y < 150) {
                 break;
             }
 
-            $instructions[] = ['text', 36, $y, 'F1', 10, '0.16 0.22 0.29', $line];
+            $firstPageInstructions[] = ['text', 36, $y, 'F1', 10, '0.16 0.22 0.29', $line];
             $y -= 15;
         }
 
-        $signatureY = max(90, $y - 25);
-        foreach ($this->wrapLines($this->plainContent((string) ($letter->signature_content ?: 'Pour l’Union Fédérale des Consommateurs')), 42) as $line) {
-            if ($signatureY < 72) {
+        $secondPageInstructions = [];
+        $secondPageY = 650;
+        foreach ($this->wrapLines($this->plainContent($secondContent), 92) as $line) {
+            if ($secondPageY < 470) {
                 break;
             }
 
-            $instructions[] = ['text', 330, $signatureY, 'F1', 10, '0.16 0.22 0.29', $line];
+            $secondPageInstructions[] = ['text', 36, $secondPageY, 'F1', 10, '0.16 0.22 0.29', $line];
+            $secondPageY -= 15;
+        }
+
+        $signatureY = min(430, $secondPageY - 30);
+        foreach ($this->wrapLines($this->plainContent((string) ($letter->signature_content ?: 'Pour l’Union Fédérale des Consommateurs')), 42) as $line) {
+            if ($signatureY < 375) {
+                break;
+            }
+
+            $secondPageInstructions[] = ['text', 330, $signatureY, 'F1', 10, '0.16 0.22 0.29', $line];
             $signatureY -= 15;
         }
 
-        $instructions[] = ['text', 330, $signatureY - 8, 'F2', 10, '0.13 0.19 0.25', (string) ($letter->signature_name ?: 'Le Coordonnateur du programme My-Signal')];
-        $instructions[] = ['text', 330, $signatureY - 24, 'F1', 9, '0.42 0.48 0.54', (string) ($letter->signature_title ?: 'Union Federale des Consommateurs')];
-        $instructions[] = ['text', 36, 52, 'F1', 9, '0.42 0.48 0.54', 'Document officiel genere par My-Signal pour la designation du point focal institutionnel.'];
+        $secondPageInstructions[] = ['text', 330, $signatureY - 8, 'F2', 10, '0.13 0.19 0.25', (string) ($letter->signature_name ?: 'Le Coordonnateur du programme My-Signal')];
+        $secondPageInstructions[] = ['text', 330, $signatureY - 24, 'F1', 9, '0.42 0.48 0.54', (string) ($letter->signature_title ?: 'Union Federale des Consommateurs')];
 
-        return $this->buildPdf($this->buildContentStream($instructions));
+        $secondPageInstructions[] = ['fill', '1 0.98 0.94'];
+        $secondPageInstructions[] = ['rect', 36, 190, 523, 58];
+        $secondPageInstructions[] = ['fill'];
+        $secondPageInstructions[] = ['text', 48, 229, 'F1', 10, '0.42 0.48 0.54', 'Code officiel'];
+        $secondPageInstructions[] = ['text', 48, 209, 'F2', 16, '0.13 0.19 0.25', (string) $letter->activation_code];
+        $secondPageInstructions[] = ['text', 220, 229, 'F1', 10, '0.42 0.48 0.54', 'Lien du formulaire'];
+        $secondPageInstructions[] = ['text', 220, 209, 'F1', 10, '0.13 0.19 0.25', (string) $letter->activation_url];
+
+        $secondPageAnnotations = [
+            ['rect' => [220, 202, 559, 224], 'url' => (string) $letter->activation_url],
+        ];
+
+        $footerY = 120;
+        $x = 36;
+        foreach ([
+            'logo' => ['label' => '', 'text' => ''],
+            'address' => $footer['address'] ?? [],
+            'phone' => $footer['phone'] ?? [],
+            'email' => $footer['email'] ?? [],
+            'website' => $footer['website'] ?? [],
+        ] as $key => $column) {
+            $secondPageInstructions[] = ['text', $x, $footerY, 'F2', 8, '0.13 0.19 0.25', (string) ($column['label'] ?? '')];
+            $text = mb_substr(str_replace(["\r", "\n"], ' / ', (string) ($column['text'] ?? '-')), 0, 24);
+            $secondPageInstructions[] = ['text', $x, $footerY - 12, 'F1', 7, '0.42 0.48 0.54', $text];
+
+            $url = $this->footerLinkUrl((string) $key, (string) ($column['text'] ?? ''));
+            if ($url !== null) {
+                $secondPageAnnotations[] = ['rect' => [$x, $footerY - 18, $x + 95, $footerY - 4], 'url' => $url];
+            }
+
+            $x += 105;
+        }
+
+        return $this->buildPdf([
+            ['stream' => $this->buildContentStream($firstPageInstructions), 'annotations' => []],
+            ['stream' => $this->buildContentStream($secondPageInstructions), 'annotations' => $secondPageAnnotations],
+        ]);
     }
 
     private function wrapLines(string $text, int $width): array
@@ -86,15 +132,75 @@ class SimpleInstitutionActivationLetterPdf
         return trim(html_entity_decode(strip_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
     }
 
-    private function buildPdf(string $stream): string
+    private function splitContentAfterClosing(string $html): array
+    {
+        if (preg_match('/(<p[^>]*>.*?L[’\']équipe\s+My-Signal.*?<\/p>)/isu', $html, $match, PREG_OFFSET_CAPTURE)) {
+            $end = $match[0][1] + strlen($match[0][0]);
+
+            return [substr($html, 0, $end), trim(substr($html, $end))];
+        }
+
+        return [$html, ''];
+    }
+
+    private function footerLinkUrl(string $key, string $value): ?string
+    {
+        $firstLine = trim((string) preg_split('/\r\n|\r|\n/', $value)[0]);
+
+        if ($firstLine === '') {
+            return null;
+        }
+
+        return match ($key) {
+            'phone' => 'tel:'.preg_replace('/\s+/', '', $firstLine),
+            'email' => 'mailto:'.$firstLine,
+            'website' => str_starts_with($firstLine, 'http') ? $firstLine : 'https://'.$firstLine,
+            default => null,
+        };
+    }
+
+    private function letterNumber(InstitutionActivationLetter $letter): string
+    {
+        return (string) ($letter->letter_number ?: 'UFC/MS/'.now()->format('Y').'/000001');
+    }
+
+    private function buildPdf(array $pages): string
     {
         $objects = [];
+
         $objects[] = '<< /Type /Catalog /Pages 2 0 R >>';
-        $objects[] = '<< /Type /Pages /Count 1 /Kids [3 0 R] >>';
-        $objects[] = '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> /Contents 4 0 R >>';
-        $objects[] = "<< /Length ".strlen($stream)." >>\nstream\n".$stream."\nendstream";
+        $objects[] = '';
         $objects[] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>';
         $objects[] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>';
+
+        $pageIds = [];
+        foreach ($pages as $page) {
+            $pageId = count($objects) + 1;
+            $contentId = $pageId + 1;
+            $annotationIds = [];
+
+            foreach ($page['annotations'] ?? [] as $annotation) {
+                $annotationIds[] = $contentId + count($annotationIds) + 1;
+            }
+
+            $annots = $annotationIds !== []
+                ? ' /Annots ['.implode(' ', array_map(fn (int $id) => $id.' 0 R', $annotationIds)).']'
+                : '';
+
+            $stream = (string) ($page['stream'] ?? '');
+            $objects[] = '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents '.$contentId.' 0 R'.$annots.' >>';
+            $objects[] = "<< /Length ".strlen($stream)." >>\nstream\n".$stream."\nendstream";
+
+            foreach ($page['annotations'] ?? [] as $annotation) {
+                [$x1, $y1, $x2, $y2] = $annotation['rect'];
+                $url = $this->escapeText((string) $annotation['url']);
+                $objects[] = "<< /Type /Annot /Subtype /Link /Rect [{$x1} {$y1} {$x2} {$y2}] /Border [0 0 0] /A << /S /URI /URI ({$url}) >> >>";
+            }
+
+            $pageIds[] = $pageId.' 0 R';
+        }
+
+        $objects[1] = '<< /Type /Pages /Count '.count($pages).' /Kids ['.implode(' ', $pageIds).'] >>';
 
         $pdf = "%PDF-1.4\n";
         $offsets = [0];

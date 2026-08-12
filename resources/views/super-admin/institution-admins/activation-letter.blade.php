@@ -11,96 +11,57 @@
 @endsection
 
 @section('content')
+    @php
+        $header = $letter->headerSettings();
+        $footer = $letter->footerSettings();
+        $textStyle = function (array $settings): string {
+            return collect([
+                'font-size: '.(int) ($settings['size'] ?? 10).'px',
+                'color: '.($settings['color'] ?? '#475467'),
+                ! empty($settings['bold']) ? 'font-weight: 800' : 'font-weight: 400',
+                ! empty($settings['italic']) ? 'font-style: italic' : 'font-style: normal',
+            ])->implode('; ');
+        };
+        $splitAfterClosing = function (string $html): array {
+            if (preg_match('/(<p[^>]*>.*?L[’\']équipe\s+My-Signal.*?<\/p>)/isu', $html, $match, PREG_OFFSET_CAPTURE)) {
+                $end = $match[0][1] + strlen($match[0][0]);
+
+                return [substr($html, 0, $end), trim(substr($html, $end))];
+            }
+
+            return [$html, ''];
+        };
+        [$mainLetterContent, $secondPageLetterContent] = $splitAfterClosing((string) old('letter_content', $letter->letter_content));
+    @endphp
+
     <style>
-        .letter-grid {
-            display: grid;
-            grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
-            gap: 1.25rem;
-        }
-        .letter-preview {
-            background: #fff;
-            border: 1px solid rgba(15, 23, 42, .08);
-            box-shadow: 0 28px 70px rgba(15, 23, 42, .10);
-            padding: 2.2rem;
-            min-height: 820px;
-            color: #101828;
-        }
-        .letter-logo {
-            max-width: 130px;
-            max-height: 95px;
-            object-fit: contain;
-        }
-        .letter-logo-row.logo-left { text-align: left; }
-        .letter-logo-row.logo-center { text-align: center; }
-        .letter-logo-row.logo-right { text-align: right; }
-        .activation-link-box {
-            border: 1px solid rgba(255, 161, 23, .35);
-            background: rgba(255, 161, 23, .08);
-            border-radius: 12px;
-            padding: 1rem;
-        }
-        .official-header {
-            border-bottom: 3px solid #ffa117;
-            padding-bottom: 1rem;
-            margin-bottom: 1.8rem;
-        }
-        .letter-reference {
-            display: inline-block;
-            border: 1px solid rgba(103, 145, 255, .28);
-            background: rgba(103, 145, 255, .08);
-            border-radius: 999px;
-            padding: .35rem .75rem;
-            font-size: .78rem;
-            color: #24426f;
-        }
-        .rich-toolbar {
-            display: flex;
-            flex-wrap: wrap;
-            gap: .4rem;
-            padding: .55rem;
-            border: 1px solid #d0d5dd;
-            border-bottom: 0;
-            border-radius: .5rem .5rem 0 0;
-            background: #f8fafc;
-        }
-        .rich-toolbar button {
-            min-width: 34px;
-            height: 34px;
-            border: 1px solid #d0d5dd;
-            border-radius: .45rem;
-            background: #fff;
-            font-weight: 700;
-        }
-        .rich-editor {
-            min-height: 360px;
-            border: 1px solid #d0d5dd;
-            border-radius: 0 0 .5rem .5rem;
-            padding: 1rem;
-            line-height: 1.65;
-            background: #fff;
-            outline-color: #6791ff;
-            overflow: auto;
-        }
-        .rich-editor:focus {
-            border-color: #6791ff;
-            box-shadow: 0 0 0 .2rem rgba(103, 145, 255, .12);
-        }
-        .letter-body {
-            line-height: 1.72;
-            font-size: .98rem;
-        }
-        .letter-body p {
-            margin-bottom: .9rem;
-        }
-        .security-box {
-            border: 1px solid rgba(255, 161, 23, .45);
-            background: #fffaf0;
-            border-radius: 14px;
-            padding: 1rem;
-        }
-        @media (max-width: 991.98px) {
-            .letter-grid { grid-template-columns: 1fr; }
-        }
+        .letter-grid { display: grid; grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr); gap: 1.25rem; }
+        .letter-preview { background: #f8fafc; border: 1px solid rgba(15, 23, 42, .08); box-shadow: 0 28px 70px rgba(15, 23, 42, .10); color: #101828; }
+        .letter-preview-page { background: #fff; height: 860px; padding: 2.2rem; overflow: hidden; }
+        .letter-preview-page + .letter-preview-page { margin-top: 1rem; }
+        .letter-preview-page.second-page { display: flex; flex-direction: column; }
+        .second-page-content { flex: 0 0 auto; }
+        .official-header { border-bottom: 3px solid #ffa117; padding-bottom: 1rem; margin-bottom: 1.8rem; }
+        .header-brand-row { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
+        .header-main { display: flex; align-items: center; gap: .55rem; min-width: 0; }
+        .letter-logo { height: auto; object-fit: contain; }
+        .letter-reference { display: inline-block; border: 1px solid rgba(103, 145, 255, .28); background: rgba(103, 145, 255, .08); border-radius: 999px; padding: .35rem .75rem; font-size: .78rem; color: #24426f; }
+        .activation-link-box { border: 1px solid rgba(255, 161, 23, .35); background: rgba(255, 161, 23, .08); border-radius: 12px; padding: 1rem; }
+        .rich-toolbar { display: flex; flex-wrap: wrap; gap: .4rem; padding: .55rem; border: 1px solid #d0d5dd; border-bottom: 0; border-radius: .5rem .5rem 0 0; background: #f8fafc; }
+        .rich-toolbar button { min-width: 34px; height: 34px; border: 1px solid #d0d5dd; border-radius: .45rem; background: #fff; font-weight: 700; }
+        .rich-editor { min-height: 330px; border: 1px solid #d0d5dd; border-radius: 0 0 .5rem .5rem; padding: 1rem; line-height: 1.65; background: #fff; outline-color: #6791ff; overflow: auto; }
+        .letter-body { line-height: 1.72; font-size: .98rem; }
+        .letter-preview-page:first-child .letter-body { max-height: 520px; overflow: hidden; }
+        .letter-body p { margin-bottom: .9rem; }
+        .security-box { border: 1px solid rgba(255, 161, 23, .38); background: #fffaf0; border-radius: 10px; padding: .45rem .6rem; font-size: .82rem; }
+        .security-box a, .footer-preview a { color: inherit; text-decoration: none; }
+        .signature-image { max-width: 180px; max-height: 78px; object-fit: contain; }
+        .signature-space { height: 58px; border-bottom: 1px solid #98a2b3; margin-left: auto; max-width: 220px; }
+        .footer-preview { display: grid; grid-template-columns: .72fr repeat(4, minmax(0, 1fr)); gap: .85rem; align-items: start; border-top: 1px solid #e4e7ec; margin-top: auto; padding-top: 1rem; }
+        .footer-label { min-height: 18px; line-height: 18px; }
+        .style-controls { display: grid; grid-template-columns: 92px 82px repeat(2, minmax(0, 1fr)); gap: .5rem; align-items: end; }
+        @media (max-width: 991.98px) { .letter-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 767.98px) { .footer-preview { grid-template-columns: repeat(2, minmax(0, 1fr)); } .style-controls { grid-template-columns: 1fr 1fr; } }
     </style>
 
     <div class="letter-grid">
@@ -141,10 +102,84 @@
             <form method="POST" action="{{ route('super-admin.institution-admins.activation-letter.update', $institutionAdmin) }}" enctype="multipart/form-data" id="letterForm">
                 @csrf
                 @method('PUT')
+
+                <div class="border rounded-3 p-3 mb-3">
+                    <div class="fw-semibold mb-3">En-tête officiel</div>
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label">Logo du courrier</label>
+                            <input type="file" name="logo" class="form-control" accept="image/png,image/jpeg,image/webp">
+                            <div class="form-text">PNG, JPG ou WebP. Taille maximale : 5 Mo.</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Taille du logo</label>
+                            <input type="number" name="logo_width" value="{{ old('logo_width', $header['logo_width']) }}" min="60" max="260" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Position du logo</label>
+                            <select name="logo_position" class="form-select">
+                                @foreach ($logoPositions as $value => $label)
+                                    <option value="{{ $value }}" @selected(old('logo_position', $letter->logo_position) === $value)>{{ $label }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6 d-flex align-items-end">
+                            <label class="form-check mb-2">
+                                <input type="checkbox" name="remove_logo" value="1" class="form-check-input">
+                                <span class="form-check-label">Retirer le logo personnalisé</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    @foreach ([
+                        'header_title' => ['label' => 'Texte principal', 'settings' => $header['title']],
+                        'header_subtitle' => ['label' => 'Texte secondaire', 'settings' => $header['subtitle']],
+                        'header_description' => ['label' => 'Description', 'settings' => $header['description']],
+                    ] as $prefix => $field)
+                        <div class="mt-3">
+                            <label class="form-label">{{ $field['label'] }}</label>
+                            <input type="text" name="{{ $prefix }}_text" value="{{ old($prefix.'_text', $field['settings']['text']) }}" class="form-control mb-2">
+                            <div class="style-controls">
+                                <div>
+                                    <label class="form-label small text-secondary">Taille</label>
+                                    <input type="number" name="{{ $prefix }}_size" value="{{ old($prefix.'_size', $field['settings']['size']) }}" min="8" max="28" class="form-control">
+                                </div>
+                                <div>
+                                    <label class="form-label small text-secondary">Couleur</label>
+                                    <input type="color" name="{{ $prefix }}_color" value="{{ old($prefix.'_color', $field['settings']['color']) }}" class="form-control form-control-color w-100">
+                                </div>
+                                <label class="form-check mb-2">
+                                    <input type="checkbox" name="{{ $prefix }}_bold" value="1" class="form-check-input" @checked(old($prefix.'_bold', $field['settings']['bold']))>
+                                    <span class="form-check-label">Gras</span>
+                                </label>
+                                <label class="form-check mb-2">
+                                    <input type="checkbox" name="{{ $prefix }}_italic" value="1" class="form-check-input" @checked(old($prefix.'_italic', $field['settings']['italic']))>
+                                    <span class="form-check-label">Italique</span>
+                                </label>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
                 <div class="mb-3">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Numéro du courrier</label>
+                            <input type="text" name="letter_number" value="{{ old('letter_number', $letter->letter_number) }}" class="form-control" placeholder="UFC/MS/2026/000001">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Lieu</label>
+                            <input type="text" name="issue_place" value="{{ old('issue_place', $letter->issue_place ?: 'Abidjan') }}" class="form-control" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Date du courrier</label>
+                            <input type="date" name="issue_date" value="{{ old('issue_date', $letter->issue_date?->format('Y-m-d') ?: now()->toDateString()) }}" class="form-control">
+                        </div>
+                    </div>
                     <label class="form-label">Objet <span class="text-danger">*</span></label>
                     <input type="text" name="letter_subject" value="{{ old('letter_subject', $letter->letter_subject) }}" class="form-control" required>
                 </div>
+
                 <div class="mb-3">
                     <label class="form-label">Contenu du courrier <span class="text-danger">*</span></label>
                     <div class="rich-toolbar" aria-label="Outils de mise en forme">
@@ -159,50 +194,92 @@
                     </div>
                     <div class="rich-editor" id="letterEditor" contenteditable="true">{!! old('letter_content', $letter->letter_content) !!}</div>
                     <textarea name="letter_content" id="letterContentInput" class="d-none" required>{{ old('letter_content', $letter->letter_content) }}</textarea>
-                    <div class="form-text">Le lien, le code et le QR code restent affichés dans le courrier. Vous pouvez enrichir le texte avec du gras, de l’italique, des listes et des alignements.</div>
                 </div>
+
                 <div class="border rounded-3 p-3 mb-3">
                     <div class="fw-semibold mb-3">Signature du courrier</div>
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label">Nom du signataire</label>
-                            <input type="text" name="signature_name" value="{{ old('signature_name', $letter->signature_name) }}" class="form-control" placeholder="Nom et prénoms">
+                            <input type="text" name="signature_name" value="{{ old('signature_name', $letter->signature_name) }}" class="form-control">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Fonction du signataire</label>
-                            <input type="text" name="signature_title" value="{{ old('signature_title', $letter->signature_title) }}" class="form-control" placeholder="Fonction ou qualité">
+                            <input type="text" name="signature_title" value="{{ old('signature_title', $letter->signature_title) }}" class="form-control">
                         </div>
                         <div class="col-12">
                             <label class="form-label">Texte de signature</label>
                             <textarea name="signature_content" rows="3" class="form-control">{{ old('signature_content', $letter->signature_content) }}</textarea>
                         </div>
+                        <div class="col-md-8">
+                            <label class="form-label">Signature scannée</label>
+                            <input type="file" name="signature_image" class="form-control" accept="image/png,image/jpeg,image/webp">
+                            <div class="form-text">Si aucune signature n’est chargée, un espace sera laissé pour signer manuellement.</div>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <label class="form-check mb-2">
+                                <input type="checkbox" name="remove_signature_image" value="1" class="form-check-input">
+                                <span class="form-check-label">Retirer la signature</span>
+                            </label>
+                        </div>
                     </div>
                 </div>
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label">Position du logo</label>
-                        <select name="logo_position" class="form-select">
-                            @foreach ($logoPositions as $value => $label)
-                                <option value="{{ $value }}" @selected(old('logo_position', $letter->logo_position) === $value)>{{ $label }}</option>
-                            @endforeach
-                        </select>
+
+                <div class="border rounded-3 p-3">
+                    <div class="fw-semibold mb-3">Pied de page</div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-8">
+                            <label class="form-label">Logo du pied de page</label>
+                            <input type="file" name="footer_logo" class="form-control" accept="image/png,image/jpeg,image/webp">
+                            <div class="form-text">Ce logo est indépendant du logo d’en-tête.</div>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <label class="form-check mb-2">
+                                <input type="checkbox" name="remove_footer_logo" value="1" class="form-check-input">
+                                <span class="form-check-label">Retirer ce logo</span>
+                            </label>
+                        </div>
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Date d’expiration du code</label>
-                        <input type="datetime-local" name="expires_at" value="{{ old('expires_at', $letter->expires_at?->format('Y-m-d\\TH:i')) }}" class="form-control">
+                    <div class="mb-3">
+                        <label class="form-label">Taille du logo dans le pied de page</label>
+                        <input type="number" name="footer_logo_size" value="{{ old('footer_logo_size', $footer['logo']['size'] ?? 72) }}" min="32" max="120" class="form-control">
                     </div>
-                    <div class="col-md-8">
-                        <label class="form-label">Logo du courrier</label>
-                        <input type="file" name="logo" class="form-control" accept="image/png,image/jpeg,image/webp">
-                        <div class="form-text">PNG, JPG ou WebP. Taille maximale : 5 Mo.</div>
-                    </div>
-                    <div class="col-md-4 d-flex align-items-end">
-                        <label class="form-check mb-2">
-                            <input type="checkbox" name="remove_logo" value="1" class="form-check-input">
-                            <span class="form-check-label">Retirer le logo personnalisé</span>
-                        </label>
-                    </div>
+                    @foreach ([
+                        'footer_address' => ['label' => 'Adresse', 'settings' => $footer['address']],
+                        'footer_phone' => ['label' => 'Téléphone', 'settings' => $footer['phone']],
+                        'footer_email' => ['label' => 'Email', 'settings' => $footer['email']],
+                        'footer_website' => ['label' => 'Site web', 'settings' => $footer['website']],
+                    ] as $prefix => $field)
+                        <div class="mb-3">
+                            <label class="form-label">{{ $field['label'] }}</label>
+                            <textarea name="{{ $prefix }}_text" rows="2" class="form-control mb-2">{{ old($prefix.'_text', $field['settings']['text']) }}</textarea>
+                            <div class="style-controls">
+                                <div>
+                                    <label class="form-label small text-secondary">Taille</label>
+                                    <input type="number" name="{{ $prefix }}_size" value="{{ old($prefix.'_size', $field['settings']['size']) }}" min="8" max="16" class="form-control">
+                                </div>
+                                <div>
+                                    <label class="form-label small text-secondary">Couleur</label>
+                                    <input type="color" name="{{ $prefix }}_color" value="{{ old($prefix.'_color', $field['settings']['color']) }}" class="form-control form-control-color w-100">
+                                </div>
+                                <label class="form-check mb-2">
+                                    <input type="checkbox" name="{{ $prefix }}_bold" value="1" class="form-check-input" @checked(old($prefix.'_bold', $field['settings']['bold']))>
+                                    <span class="form-check-label">Gras</span>
+                                </label>
+                                <label class="form-check mb-2">
+                                    <input type="checkbox" name="{{ $prefix }}_italic" value="1" class="form-check-input" @checked(old($prefix.'_italic', $field['settings']['italic']))>
+                                    <span class="form-check-label">Italique</span>
+                                </label>
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
+
+                <div class="mt-3">
+                    <label class="form-label">Date d’expiration du code</label>
+                    <input type="datetime-local" name="expires_at" value="{{ old('expires_at', $letter->expires_at?->format('Y-m-d\\TH:i')) }}" class="form-control">
+                </div>
+
                 <div class="d-flex justify-content-end gap-2 mt-4">
                     <button class="btn btn-dark">Enregistrer</button>
                 </div>
@@ -216,41 +293,93 @@
                     $logoUrl = $letter->logoUrl();
                     $logoPosition = old('logo_position', $letter->logo_position);
                 @endphp
-                <div class="official-header">
-                    @if ($logoUrl && $logoPosition !== 'none')
-                        <div class="letter-logo-row logo-{{ $logoPosition }} mb-3">
-                            <img src="{{ $logoUrl }}" class="letter-logo" alt="Logo">
+                <div class="letter-preview-page">
+                    <div class="official-header">
+                        <div class="header-brand-row">
+                            <div class="header-main">
+                                @if ($logoUrl && $logoPosition !== 'none')
+                                    <img src="{{ $logoUrl }}" class="letter-logo" id="previewLetterLogo" style="width: {{ (int) old('logo_width', $header['logo_width']) }}px;" alt="Logo">
+                                @endif
+                                <div>
+                                    <div style="{{ $textStyle($header['title']) }}">{{ $header['title']['text'] }}</div>
+                                    <div style="{{ $textStyle($header['subtitle']) }}">{{ $header['subtitle']['text'] }}</div>
+                                    <div style="{{ $textStyle($header['description']) }}">{{ $header['description']['text'] }}</div>
+                                </div>
+                            </div>
                         </div>
-                    @endif
-                    <div class="d-flex justify-content-between flex-wrap gap-2 align-items-end">
+                        <div class="d-flex justify-content-end gap-2 mt-3">
+                            <div class="letter-reference">N° {{ $letter->letter_number ?: 'UFC/MS/'.now()->format('Y').'/000001' }}</div>
+                            <div class="letter-reference">Code {{ $letter->activation_code }}</div>
+                        </div>
+                    </div>
+                    <div class="text-end small text-secondary mb-4">{{ $letter->issue_place ?: 'Abidjan' }}, le {{ ($letter->issue_date ?: now())->format('d/m/Y') }}</div>
+                    <div class="mb-4">
+                        <div class="fw-semibold">À l’attention de {{ $institutionAdmin->organization?->name ?: 'l’institution' }}</div>
+                        <div class="small text-secondary">{{ $institutionAdmin->organization?->address ?: '' }}</div>
+                    </div>
+                    <div class="fw-bold mb-4">Objet : {{ old('letter_subject', $letter->letter_subject) }}</div>
+                    <div class="letter-body mb-4" id="letterPreviewContent">{!! $mainLetterContent !!}</div>
+                </div>
+                <div class="letter-preview-page second-page">
+                    <div class="second-page-content">
+                        @if (filled($secondPageLetterContent))
+                            <div class="letter-body mb-4" id="letterPreviewSecondContent">{!! $secondPageLetterContent !!}</div>
+                        @endif
+                        <div class="mt-5 mb-4 text-end">
+                            <div class="letter-body mb-3">{!! $letter->signatureHtml() !!}</div>
+                            @if ($letter->signatureUrl())
+                                <img src="{{ $letter->signatureUrl() }}" class="signature-image mb-2" alt="Signature">
+                            @else
+                                <div class="signature-space mb-2"></div>
+                            @endif
+                            <div class="fw-bold">{{ old('signature_name', $letter->signature_name) ?: 'Le Coordonnateur du programme My-Signal' }}</div>
+                            <div class="small text-secondary">{{ old('signature_title', $letter->signature_title) ?: 'Union Fédérale des Consommateurs' }}</div>
+                        </div>
+                        <div class="row g-2 align-items-center security-box">
+                            <div class="col-sm-9">
+                                <div class="small text-secondary">Code d’activation</div>
+                                <div class="fw-bold">{{ $letter->activation_code }}</div>
+                                <div class="small text-secondary mt-2">Lien</div>
+                                <a href="{{ $letter->activation_url }}" class="small" target="_blank" rel="noopener">{{ $letter->activation_url }}</a>
+                            </div>
+                            <div class="col-sm-3 text-sm-end">
+                                <div id="activationQr" class="d-inline-block bg-white p-2 rounded-3"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="footer-preview">
                         <div>
-                            <div class="fw-bold h5 mb-1">Union Fédérale des Consommateurs</div>
-                            <div class="text-secondary">Programme My-Signal</div>
+                            @if ($letter->footerLogoUrl())
+                                <img src="{{ $letter->footerLogoUrl() }}" style="width: {{ (int) ($footer['logo']['size'] ?? 72) }}px; height: auto; object-fit: contain;" alt="Logo pied de page">
+                            @endif
                         </div>
-                        <div class="letter-reference">Réf. {{ $letter->activation_code }}</div>
-                    </div>
-                </div>
-                <div class="text-end small text-secondary mb-4">Abidjan, le {{ now()->format('d/m/Y') }}</div>
-                <div class="mb-4">
-                    <div class="fw-semibold">À l’attention de {{ $institutionAdmin->organization?->name ?: 'l’institution' }}</div>
-                    <div class="small text-secondary">{{ $institutionAdmin->organization?->address ?: '' }}</div>
-                </div>
-                <div class="fw-bold mb-4">Objet : {{ old('letter_subject', $letter->letter_subject) }}</div>
-                <div class="letter-body mb-4" id="letterPreviewContent">{!! old('letter_content', $letter->letter_content) !!}</div>
-                <div class="mt-5 mb-4 text-end">
-                    <div class="letter-body mb-3">{!! $letter->signatureHtml() !!}</div>
-                    <div class="fw-bold">{{ old('signature_name', $letter->signature_name) ?: 'Le Coordonnateur du programme My-Signal' }}</div>
-                    <div class="small text-secondary">{{ old('signature_title', $letter->signature_title) ?: 'Union Fédérale des Consommateurs' }}</div>
-                </div>
-                <div class="row g-3 align-items-center security-box">
-                    <div class="col-sm-8">
-                        <div class="small text-secondary">Code d’activation</div>
-                        <div class="fw-bold">{{ $letter->activation_code }}</div>
-                        <div class="small text-secondary mt-2">Lien</div>
-                        <div class="small">{{ $letter->activation_url }}</div>
-                    </div>
-                    <div class="col-sm-4 text-sm-end">
-                        <div id="activationQr" class="d-inline-block bg-white p-2 rounded-3"></div>
+                        @foreach ([
+                            'address' => $footer['address'],
+                            'phone' => $footer['phone'],
+                            'email' => $footer['email'],
+                            'website' => $footer['website'],
+                        ] as $column)
+                            <div style="{{ $textStyle($column) }}">
+                                <div class="fw-semibold mb-1 footer-label">{{ $column['label'] }}</div>
+                                <div style="white-space: pre-line;">
+                                    @if (($column['label'] ?? '') === 'Téléphone' && filled($column['text']))
+                                        @foreach (preg_split('/\r\n|\r|\n/', $column['text']) as $phone)
+                                            <a href="tel:{{ preg_replace('/\s+/', '', $phone) }}">{{ $phone }}</a><br>
+                                        @endforeach
+                                    @elseif (($column['label'] ?? '') === 'Email' && filled($column['text']))
+                                        @foreach (preg_split('/\r\n|\r|\n/', $column['text']) as $email)
+                                            <a href="mailto:{{ trim($email) }}">{{ $email }}</a><br>
+                                        @endforeach
+                                    @elseif (($column['label'] ?? '') === 'Site web' && filled($column['text']))
+                                        @foreach (preg_split('/\r\n|\r|\n/', $column['text']) as $url)
+                                            <a href="{{ str_starts_with(trim($url), 'http') ? trim($url) : 'https://'.trim($url) }}" target="_blank" rel="noopener">{{ $url }}</a><br>
+                                        @endforeach
+                                    @else
+                                        {{ $column['text'] ?: '-' }}
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
                     </div>
                 </div>
             </div>
@@ -267,12 +396,14 @@
             const editor = document.getElementById('letterEditor');
             const input = document.getElementById('letterContentInput');
             const preview = document.getElementById('letterPreviewContent');
+            const logoWidthInput = document.querySelector('input[name="logo_width"]');
+            const previewLetterLogo = document.getElementById('previewLetterLogo');
 
             if (container && window.QRCode) {
                 new QRCode(container, {
                     text: @json($letter->activation_url),
-                    width: 124,
-                    height: 124,
+                    width: 82,
+                    height: 82,
                     correctLevel: QRCode.CorrectLevel.M,
                 });
             }
@@ -281,28 +412,22 @@
                 button.addEventListener('click', function () {
                     editor?.focus();
                     document.execCommand(this.dataset.command, false, null);
-                    if (input && editor) {
-                        input.value = editor.innerHTML;
-                    }
-                    if (preview && editor) {
-                        preview.innerHTML = editor.innerHTML;
-                    }
+                    if (input && editor) input.value = editor.innerHTML;
+                    if (preview && editor) preview.innerHTML = editor.innerHTML;
                 });
             });
 
+            logoWidthInput?.addEventListener('input', function () {
+                if (previewLetterLogo) previewLetterLogo.style.width = `${this.value || 145}px`;
+            });
+
             editor?.addEventListener('input', function () {
-                if (input) {
-                    input.value = editor.innerHTML;
-                }
-                if (preview) {
-                    preview.innerHTML = editor.innerHTML;
-                }
+                if (input) input.value = editor.innerHTML;
+                if (preview) preview.innerHTML = editor.innerHTML;
             });
 
             form?.addEventListener('submit', function () {
-                if (input && editor) {
-                    input.value = editor.innerHTML;
-                }
+                if (input && editor) input.value = editor.innerHTML;
             });
         });
     </script>

@@ -38,12 +38,56 @@ class InstitutionActivationLetterController extends Controller
         $letter = $this->letterFor($institutionAdmin, $request);
 
         $attributes = $request->validate([
+            'letter_number' => ['nullable', 'string', 'max:80'],
+            'issue_place' => ['required', 'string', 'max:120'],
+            'issue_date' => ['nullable', 'date'],
             'letter_subject' => ['required', 'string', 'max:255'],
             'letter_content' => ['required', 'string', 'max:20000'],
             'signature_name' => ['nullable', 'string', 'max:180'],
             'signature_title' => ['nullable', 'string', 'max:180'],
             'signature_content' => ['nullable', 'string', 'max:3000'],
+            'signature_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'remove_signature_image' => ['nullable', 'boolean'],
+            'footer_logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'remove_footer_logo' => ['nullable', 'boolean'],
             'logo_position' => ['required', 'string', 'in:left,center,right,none'],
+            'logo_width' => ['required', 'integer', 'min:60', 'max:260'],
+            'header_title_text' => ['required', 'string', 'max:180'],
+            'header_title_size' => ['required', 'integer', 'min:9', 'max:28'],
+            'header_title_color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'header_title_bold' => ['nullable', 'boolean'],
+            'header_title_italic' => ['nullable', 'boolean'],
+            'header_subtitle_text' => ['nullable', 'string', 'max:180'],
+            'header_subtitle_size' => ['required', 'integer', 'min:9', 'max:28'],
+            'header_subtitle_color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'header_subtitle_bold' => ['nullable', 'boolean'],
+            'header_subtitle_italic' => ['nullable', 'boolean'],
+            'header_description_text' => ['nullable', 'string', 'max:255'],
+            'header_description_size' => ['required', 'integer', 'min:8', 'max:20'],
+            'header_description_color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'header_description_bold' => ['nullable', 'boolean'],
+            'header_description_italic' => ['nullable', 'boolean'],
+            'footer_address_text' => ['nullable', 'string', 'max:1000'],
+            'footer_logo_size' => ['required', 'integer', 'min:32', 'max:120'],
+            'footer_address_size' => ['required', 'integer', 'min:8', 'max:16'],
+            'footer_address_color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'footer_address_bold' => ['nullable', 'boolean'],
+            'footer_address_italic' => ['nullable', 'boolean'],
+            'footer_phone_text' => ['nullable', 'string', 'max:1000'],
+            'footer_phone_size' => ['required', 'integer', 'min:8', 'max:16'],
+            'footer_phone_color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'footer_phone_bold' => ['nullable', 'boolean'],
+            'footer_phone_italic' => ['nullable', 'boolean'],
+            'footer_email_text' => ['nullable', 'string', 'max:1000'],
+            'footer_email_size' => ['required', 'integer', 'min:8', 'max:16'],
+            'footer_email_color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'footer_email_bold' => ['nullable', 'boolean'],
+            'footer_email_italic' => ['nullable', 'boolean'],
+            'footer_website_text' => ['nullable', 'string', 'max:1000'],
+            'footer_website_size' => ['required', 'integer', 'min:8', 'max:16'],
+            'footer_website_color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'footer_website_bold' => ['nullable', 'boolean'],
+            'footer_website_italic' => ['nullable', 'boolean'],
             'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'remove_logo' => ['nullable', 'boolean'],
             'expires_at' => ['nullable', 'date'],
@@ -64,13 +108,48 @@ class InstitutionActivationLetterController extends Controller
             ])->save();
         }
 
+        if ($request->boolean('remove_signature_image') && filled($letter->signature_path)) {
+            $wasabiService->deleteFile($letter->signature_path);
+            $letter->forceFill(['signature_path' => null])->save();
+        }
+
+        if ($request->hasFile('signature_image')) {
+            if (filled($letter->signature_path)) {
+                $wasabiService->deleteFile($letter->signature_path);
+            }
+
+            $letter->forceFill([
+                'signature_path' => $wasabiService->uploadFile($request->file('signature_image'), 'institution-activation-letters/signatures', 'signature'),
+            ])->save();
+        }
+
+        if ($request->boolean('remove_footer_logo') && filled($letter->footer_logo_path)) {
+            $wasabiService->deleteFile($letter->footer_logo_path);
+            $letter->forceFill(['footer_logo_path' => null])->save();
+        }
+
+        if ($request->hasFile('footer_logo')) {
+            if (filled($letter->footer_logo_path)) {
+                $wasabiService->deleteFile($letter->footer_logo_path);
+            }
+
+            $letter->forceFill([
+                'footer_logo_path' => $wasabiService->uploadFile($request->file('footer_logo'), 'institution-activation-letters/footer-logos', 'footer-logo'),
+            ])->save();
+        }
+
         $letter->update([
             'letter_subject' => $attributes['letter_subject'],
+            'letter_number' => $attributes['letter_number'] ?: $letter->letter_number ?: $this->nextLetterNumber(),
+            'issue_place' => $attributes['issue_place'],
+            'issue_date' => $attributes['issue_date'] ?? now()->toDateString(),
             'letter_content' => $this->cleanLetterContent($attributes['letter_content']),
             'signature_name' => $attributes['signature_name'] ?? null,
             'signature_title' => $attributes['signature_title'] ?? null,
             'signature_content' => $this->cleanLetterContent($attributes['signature_content'] ?? ''),
             'logo_position' => $attributes['logo_position'],
+            'header_settings' => $this->headerSettingsFromRequest($request),
+            'footer_settings' => $this->footerSettingsFromRequest($request),
             'expires_at' => $attributes['expires_at'] ?? null,
             'status' => $letter->status === 'draft' ? 'generated' : $letter->status,
             'activation_url' => $this->activationUrl($letter->activation_code),
@@ -274,12 +353,17 @@ class InstitutionActivationLetterController extends Controller
             'created_by' => $request->user()?->id,
             'activation_code' => $code,
             'activation_url' => $this->activationUrl($code),
+            'letter_number' => $this->nextLetterNumber(),
+            'issue_place' => 'Abidjan',
+            'issue_date' => now()->toDateString(),
             'letter_subject' => 'Désignation du point focal My-Signal',
             'letter_content' => $this->defaultLetterContent($institutionAdmin, $code),
             'signature_name' => 'Le Coordonnateur du programme My-Signal',
             'signature_title' => 'Union Fédérale des Consommateurs',
             'signature_content' => '<p>Pour l’Union Fédérale des Consommateurs</p>',
             'logo_position' => 'left',
+            'header_settings' => (new InstitutionActivationLetter())->defaultHeaderSettings(),
+            'footer_settings' => (new InstitutionActivationLetter())->defaultFooterSettings(),
             'status' => 'draft',
             'expires_at' => now()->addDays(30),
         ])->loadMissing(['organization', 'institutionAdmin']);
@@ -328,6 +412,49 @@ HTML;
         $html = preg_replace('/<(span|div)>\s*<\/\1>/i', '', $html) ?? $html;
 
         return trim($html);
+    }
+
+    private function headerSettingsFromRequest(Request $request): array
+    {
+        return [
+            'logo_width' => (int) $request->input('logo_width', 145),
+            'show_platform_logo' => false,
+            'platform_logo_width' => (int) $request->input('platform_logo_width', 72),
+            'title' => $this->textStyleFromRequest($request, 'header_title', 'UNION FÉDÉRALE DES CONSOMMATEURS'),
+            'subtitle' => $this->textStyleFromRequest($request, 'header_subtitle', "DE CÔTE D'IVOIRE"),
+            'description' => $this->textStyleFromRequest($request, 'header_description', 'UFC - Côte d’Ivoire • Association de défense des consommateurs'),
+        ];
+    }
+
+    private function footerSettingsFromRequest(Request $request): array
+    {
+        return [
+            'logo' => [
+                'label' => 'Logo',
+                'size' => (int) $request->input('footer_logo_size', 72),
+            ],
+            'address' => $this->textStyleFromRequest($request, 'footer_address', 'Abidjan, Côte d’Ivoire', 'Adresse'),
+            'phone' => $this->textStyleFromRequest($request, 'footer_phone', '', 'Téléphone'),
+            'email' => $this->textStyleFromRequest($request, 'footer_email', '', 'Email'),
+            'website' => $this->textStyleFromRequest($request, 'footer_website', 'https://my-signal.pro', 'Site web'),
+        ];
+    }
+
+    private function textStyleFromRequest(Request $request, string $prefix, string $defaultText = '', ?string $label = null): array
+    {
+        $settings = [
+            'text' => (string) $request->input($prefix.'_text', $defaultText),
+            'size' => (int) $request->input($prefix.'_size', 10),
+            'color' => (string) $request->input($prefix.'_color', '#475467'),
+            'bold' => $request->boolean($prefix.'_bold'),
+            'italic' => $request->boolean($prefix.'_italic'),
+        ];
+
+        if ($label !== null) {
+            $settings['label'] = $label;
+        }
+
+        return $settings;
     }
 
     private function activationUrl(string $code): string
@@ -382,6 +509,13 @@ HTML;
     private function temporaryPassword(): string
     {
         return 'MS-'.Str::upper(Str::random(4)).'-'.random_int(1000, 9999);
+    }
+
+    private function nextLetterNumber(): string
+    {
+        $next = InstitutionActivationLetter::query()->count() + 1;
+
+        return 'UFC/MS/'.now()->format('Y').'/'.str_pad((string) $next, 6, '0', STR_PAD_LEFT);
     }
 
     private function logoPositions(): array
