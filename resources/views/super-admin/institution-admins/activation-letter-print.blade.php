@@ -16,22 +16,102 @@
                 ! empty($settings['italic']) ? 'font-style: italic' : 'font-style: normal',
             ])->implode('; ');
         };
-        $splitAfterClosing = function (string $html): array {
-            if (preg_match('/(<p[^>]*>.*?L[’\']équipe\s+My-Signal.*?<\/p>)/isu', $html, $match, PREG_OFFSET_CAPTURE)) {
-                $end = $match[0][1] + strlen($match[0][0]);
+        $splitForTwoPages = function (string $html): array {
+            $blocks = preg_split('/(?=<p\b|<div\b|<h[2-4]\b|<ul\b|<ol\b)/i', trim($html), -1, PREG_SPLIT_NO_EMPTY) ?: [];
 
-                return [substr($html, 0, $end), trim(substr($html, $end))];
+            if ($blocks === []) {
+                return [$html, ''];
             }
 
-            return [$html, ''];
+            $first = '';
+            $second = '';
+            $firstLineBudget = 22;
+            $usedLines = 0;
+            $lineWidth = 92;
+
+            foreach ($blocks as $block) {
+                $blockText = trim(html_entity_decode(strip_tags($block), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+                $blockLength = mb_strlen($blockText);
+                $blockLines = max(1, (int) ceil($blockLength / $lineWidth)) + 1;
+
+                if ($first !== '' && ($usedLines + $blockLines) > $firstLineBudget) {
+                    $remainingLines = max(0, $firstLineBudget - $usedLines);
+
+                    if ($remainingLines > 1) {
+                        $words = preg_split('/\s+/u', $blockText, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+                        $firstWords = [];
+                        $secondWords = [];
+                        $lineCount = 1;
+                        $lineLength = 0;
+
+                        foreach ($words as $word) {
+                            $wordLength = mb_strlen($word);
+                            $nextLength = $lineLength + $wordLength + ($lineLength > 0 ? 1 : 0);
+
+                            if ($nextLength > $lineWidth) {
+                                $lineCount++;
+                                $lineLength = $wordLength;
+                            } else {
+                                $lineLength = $nextLength;
+                            }
+
+                            if ($lineCount <= $remainingLines) {
+                                $firstWords[] = $word;
+                            } else {
+                                $secondWords[] = $word;
+                            }
+                        }
+
+                        $first .= '<p>'.e(implode(' ', $firstWords)).'</p>';
+                        $second .= '<p>'.e(implode(' ', $secondWords)).'</p>';
+                        $usedLines = $firstLineBudget;
+                    } else {
+                        $second .= $block;
+                    }
+                } elseif ($first === '' && $blockLines > $firstLineBudget) {
+                    $words = preg_split('/\s+/u', $blockText, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+                    $firstWords = [];
+                    $secondWords = [];
+                    $lineCount = 1;
+                    $lineLength = 0;
+
+                    foreach ($words as $word) {
+                        $wordLength = mb_strlen($word);
+                        $nextLength = $lineLength + $wordLength + ($lineLength > 0 ? 1 : 0);
+
+                        if ($nextLength > $lineWidth) {
+                            $lineCount++;
+                            $lineLength = $wordLength;
+                        } else {
+                            $lineLength = $nextLength;
+                        }
+
+                        if ($lineCount <= $firstLineBudget) {
+                            $firstWords[] = $word;
+                        } else {
+                            $secondWords[] = $word;
+                        }
+                    }
+
+                    $first .= '<p>'.e(implode(' ', $firstWords)).'</p>';
+                    $second .= '<p>'.e(implode(' ', $secondWords)).'</p>';
+                    $usedLines = $firstLineBudget;
+                } else {
+                    $first .= $block;
+                    $usedLines += $blockLines;
+                }
+            }
+
+            return [trim($first), trim($second)];
         };
-        [$mainLetterContent, $secondPageLetterContent] = $splitAfterClosing((string) $letter->letter_content);
+        [$mainLetterContent, $secondPageLetterContent] = $splitForTwoPages((string) $letter->letter_content);
     @endphp
     <style>
         body { margin: 0; background: #eef2f7; color: #111827; font-family: Arial, sans-serif; }
         .toolbar { position: sticky; top: 0; display: flex; justify-content: flex-end; gap: 10px; padding: 12px 18px; background: #fff; border-bottom: 1px solid #e5e7eb; }
         .toolbar button { border: 0; border-radius: 8px; padding: 10px 14px; background: #111827; color: #fff; cursor: pointer; }
-        .page { width: 210mm; height: 297mm; margin: 18px auto; padding: 18mm 20mm; background: #fff; box-shadow: 0 20px 50px rgba(15, 23, 42, .12); box-sizing: border-box; overflow: hidden; }
+        .page { display: flex; flex-direction: column; width: 210mm; height: 297mm; margin: 18px auto; padding: 18mm 20mm; background: #fff; box-shadow: 0 20px 50px rgba(15, 23, 42, .12); box-sizing: border-box; overflow: hidden; }
+        .page-content { flex: 1 1 auto; min-height: 0; overflow: hidden; }
         .second-page { display: flex; flex-direction: column; }
         .second-page-content { flex: 0 0 auto; }
         .official-header { border-bottom: 3px solid #ffa117; padding-bottom: 16px; margin-bottom: 28px; }
@@ -42,6 +122,8 @@
         .date { text-align: right; color: #475467; margin: 16px 0 36px; }
         .subject { font-weight: 700; margin: 28px 0; }
         .content { line-height: 1.72; font-size: 15px; }
+        .page:first-of-type .content { max-height: 130mm; overflow: hidden; }
+        .second-page-content .content { max-height: 70mm; overflow: hidden; }
         .content p { margin: 0 0 13px; }
         .activation { display: flex; justify-content: space-between; gap: 14px; align-items: center; margin-top: 22px; padding: 9px 11px; border: 1px solid rgba(255, 161, 23, .42); background: #fffaf0; border-radius: 9px; font-size: 13px; }
         .activation a, .footer a { color: inherit; text-decoration: none; }
@@ -60,7 +142,6 @@
             .toolbar { display: none; }
             .page { width: 210mm; height: 297mm; margin: 0; padding: 16mm 18mm; box-shadow: none; page-break-after: always; break-after: page; }
             .page:last-child { page-break-after: auto; }
-            .content { max-height: 175mm; overflow: hidden; }
         }
     </style>
 </head>
@@ -72,28 +153,31 @@
         @php
             $logoUrl = $letter->logoUrl();
         @endphp
-        <header class="official-header">
-            <div class="header-brand-row">
-                <div class="header-main">
-                    @if ($logoUrl && $letter->logo_position !== 'none')
-                        <img src="{{ $logoUrl }}" class="logo" style="width: {{ (int) $header['logo_width'] }}px;" alt="Logo">
-                    @endif
-                    <div>
-                        <div style="{{ $textStyle($header['title']) }}">{{ $header['title']['text'] }}</div>
-                        <div style="{{ $textStyle($header['subtitle']) }}">{{ $header['subtitle']['text'] }}</div>
-                        <div style="{{ $textStyle($header['description']) }}">{{ $header['description']['text'] }}</div>
+        <div class="page-content">
+            <header class="official-header">
+                <div class="header-brand-row">
+                    <div class="header-main">
+                        @if ($logoUrl && $letter->logo_position !== 'none')
+                            <img src="{{ $logoUrl }}" class="logo" style="width: {{ (int) $header['logo_width'] }}px;" alt="Logo">
+                        @endif
+                        <div>
+                            <div style="{{ $textStyle($header['title']) }}">{{ $header['title']['text'] }}</div>
+                            <div style="{{ $textStyle($header['subtitle']) }}">{{ $header['subtitle']['text'] }}</div>
+                            <div style="{{ $textStyle($header['description']) }}">{{ $header['description']['text'] }}</div>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div style="text-align: right;">
-                <span class="reference">N° {{ $letter->letter_number ?: 'UFC/MS/'.now()->format('Y').'/000001' }}</span>
-                <span class="reference">Code {{ $letter->activation_code }}</span>
-            </div>
-        </header>
-        <div class="date">{{ $letter->issue_place ?: 'Abidjan' }}, le {{ ($letter->issue_date ?: now())->format('d/m/Y') }}</div>
-        <p><strong>À l’attention de {{ $institutionAdmin->organization?->name ?: 'l’institution' }}</strong></p>
-        <p class="subject">Objet : {{ $letter->letter_subject }}</p>
-        <div class="content">{!! $letter->safeHtml($mainLetterContent) !!}</div>
+                <div style="text-align: right;">
+                    <span class="reference">N° {{ $letter->letter_number ?: 'UFC/MS/'.now()->format('Y').'/000001' }}</span>
+                    <span class="reference">Code {{ $letter->activation_code }}</span>
+                </div>
+            </header>
+            <div class="date">{{ $letter->issue_place ?: 'Abidjan' }}, le {{ ($letter->issue_date ?: now())->format('d/m/Y') }}</div>
+            <p><strong>À l’attention de {{ $institutionAdmin->organization?->name ?: 'l’institution' }}</strong></p>
+            <p class="subject">Objet : {{ $letter->letter_subject }}</p>
+            <div class="content">{!! $letter->safeHtml($mainLetterContent) !!}</div>
+        </div>
+        @include('super-admin.institution-admins.partials.activation-letter-footer', ['footerClass' => 'footer'])
     </main>
     <main class="page second-page">
         <div class="second-page-content">
@@ -120,40 +204,7 @@
             <div id="activationQr"></div>
         </div>
         </div>
-        <footer class="footer">
-            <div>
-                @if ($letter->footerLogoUrl())
-                    <img src="{{ $letter->footerLogoUrl() }}" style="width: {{ (int) ($footer['logo']['size'] ?? 72) }}px; height: auto; object-fit: contain;" alt="Logo pied de page">
-                @endif
-            </div>
-            @foreach ([
-                'address' => $footer['address'],
-                'phone' => $footer['phone'],
-                'email' => $footer['email'],
-                'website' => $footer['website'],
-            ] as $column)
-                <div style="{{ $textStyle($column) }}">
-                    <div class="footer-label">{{ $column['label'] }}</div>
-                    <div style="white-space: pre-line;">
-                        @if (($column['label'] ?? '') === 'Téléphone' && filled($column['text']))
-                            @foreach (preg_split('/\r\n|\r|\n/', $column['text']) as $phone)
-                                <a href="tel:{{ preg_replace('/\s+/', '', $phone) }}">{{ $phone }}</a><br>
-                            @endforeach
-                        @elseif (($column['label'] ?? '') === 'Email' && filled($column['text']))
-                            @foreach (preg_split('/\r\n|\r|\n/', $column['text']) as $email)
-                                <a href="mailto:{{ trim($email) }}">{{ $email }}</a><br>
-                            @endforeach
-                        @elseif (($column['label'] ?? '') === 'Site web' && filled($column['text']))
-                            @foreach (preg_split('/\r\n|\r|\n/', $column['text']) as $url)
-                                <a href="{{ str_starts_with(trim($url), 'http') ? trim($url) : 'https://'.trim($url) }}">{{ $url }}</a><br>
-                            @endforeach
-                        @else
-                            {{ $column['text'] ?: '-' }}
-                        @endif
-                    </div>
-                </div>
-            @endforeach
-        </footer>
+        @include('super-admin.institution-admins.partials.activation-letter-footer', ['footerClass' => 'footer'])
     </main>
     <script>
         window.addEventListener('load', function () {

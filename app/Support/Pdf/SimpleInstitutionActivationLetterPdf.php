@@ -34,11 +34,11 @@ class SimpleInstitutionActivationLetterPdf
 
         ];
 
-        [$firstContent, $secondContent] = $this->splitContentAfterClosing((string) $letter->letter_content);
+        [$firstContentLines, $secondContentLines] = $this->splitContentLines((string) $letter->letter_content);
 
         $y = 590;
-        foreach ($this->wrapLines($this->plainContent($firstContent), 92) as $line) {
-            if ($y < 150) {
+        foreach ($firstContentLines as $line) {
+            if ($y < 185) {
                 break;
             }
 
@@ -46,9 +46,12 @@ class SimpleInstitutionActivationLetterPdf
             $y -= 15;
         }
 
+        $firstPageAnnotations = [];
+        $this->appendFooter($firstPageInstructions, $firstPageAnnotations, $footer);
+
         $secondPageInstructions = [];
-        $secondPageY = 650;
-        foreach ($this->wrapLines($this->plainContent($secondContent), 92) as $line) {
+        $secondPageY = 710;
+        foreach ($secondContentLines as $line) {
             if ($secondPageY < 470) {
                 break;
             }
@@ -82,6 +85,16 @@ class SimpleInstitutionActivationLetterPdf
             ['rect' => [220, 202, 559, 224], 'url' => (string) $letter->activation_url],
         ];
 
+        $this->appendFooter($secondPageInstructions, $secondPageAnnotations, $footer);
+
+        return $this->buildPdf([
+            ['stream' => $this->buildContentStream($firstPageInstructions), 'annotations' => $firstPageAnnotations],
+            ['stream' => $this->buildContentStream($secondPageInstructions), 'annotations' => $secondPageAnnotations],
+        ]);
+    }
+
+    private function appendFooter(array &$instructions, array &$annotations, array $footer): void
+    {
         $footerY = 120;
         $x = 36;
         foreach ([
@@ -91,22 +104,17 @@ class SimpleInstitutionActivationLetterPdf
             'email' => $footer['email'] ?? [],
             'website' => $footer['website'] ?? [],
         ] as $key => $column) {
-            $secondPageInstructions[] = ['text', $x, $footerY, 'F2', 8, '0.13 0.19 0.25', (string) ($column['label'] ?? '')];
+            $instructions[] = ['text', $x, $footerY, 'F2', 8, '0.13 0.19 0.25', (string) ($column['label'] ?? '')];
             $text = mb_substr(str_replace(["\r", "\n"], ' / ', (string) ($column['text'] ?? '-')), 0, 24);
-            $secondPageInstructions[] = ['text', $x, $footerY - 12, 'F1', 7, '0.42 0.48 0.54', $text];
+            $instructions[] = ['text', $x, $footerY - 12, 'F1', 7, '0.42 0.48 0.54', $text];
 
             $url = $this->footerLinkUrl((string) $key, (string) ($column['text'] ?? ''));
             if ($url !== null) {
-                $secondPageAnnotations[] = ['rect' => [$x, $footerY - 18, $x + 95, $footerY - 4], 'url' => $url];
+                $annotations[] = ['rect' => [$x, $footerY - 18, $x + 95, $footerY - 4], 'url' => $url];
             }
 
             $x += 105;
         }
-
-        return $this->buildPdf([
-            ['stream' => $this->buildContentStream($firstPageInstructions), 'annotations' => []],
-            ['stream' => $this->buildContentStream($secondPageInstructions), 'annotations' => $secondPageAnnotations],
-        ]);
     }
 
     private function wrapLines(string $text, int $width): array
@@ -132,15 +140,15 @@ class SimpleInstitutionActivationLetterPdf
         return trim(html_entity_decode(strip_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
     }
 
-    private function splitContentAfterClosing(string $html): array
+    private function splitContentLines(string $html): array
     {
-        if (preg_match('/(<p[^>]*>.*?L[’\']équipe\s+My-Signal.*?<\/p>)/isu', $html, $match, PREG_OFFSET_CAPTURE)) {
-            $end = $match[0][1] + strlen($match[0][0]);
+        $lines = $this->wrapLines($this->plainContent($html), 92);
+        $firstPageCapacity = 27;
 
-            return [substr($html, 0, $end), trim(substr($html, $end))];
-        }
-
-        return [$html, ''];
+        return [
+            array_slice($lines, 0, $firstPageCapacity),
+            array_slice($lines, $firstPageCapacity),
+        ];
     }
 
     private function footerLinkUrl(string $key, string $value): ?string

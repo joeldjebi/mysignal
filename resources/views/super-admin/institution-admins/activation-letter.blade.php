@@ -22,24 +22,104 @@
                 ! empty($settings['italic']) ? 'font-style: italic' : 'font-style: normal',
             ])->implode('; ');
         };
-        $splitAfterClosing = function (string $html): array {
-            if (preg_match('/(<p[^>]*>.*?L[’\']équipe\s+My-Signal.*?<\/p>)/isu', $html, $match, PREG_OFFSET_CAPTURE)) {
-                $end = $match[0][1] + strlen($match[0][0]);
+        $splitForTwoPages = function (string $html): array {
+            $blocks = preg_split('/(?=<p\b|<div\b|<h[2-4]\b|<ul\b|<ol\b)/i', trim($html), -1, PREG_SPLIT_NO_EMPTY) ?: [];
 
-                return [substr($html, 0, $end), trim(substr($html, $end))];
+            if ($blocks === []) {
+                return [$html, ''];
             }
 
-            return [$html, ''];
+            $first = '';
+            $second = '';
+            $firstLineBudget = 22;
+            $usedLines = 0;
+            $lineWidth = 92;
+
+            foreach ($blocks as $block) {
+                $blockText = trim(html_entity_decode(strip_tags($block), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+                $blockLength = mb_strlen($blockText);
+                $blockLines = max(1, (int) ceil($blockLength / $lineWidth)) + 1;
+
+                if ($first !== '' && ($usedLines + $blockLines) > $firstLineBudget) {
+                    $remainingLines = max(0, $firstLineBudget - $usedLines);
+
+                    if ($remainingLines > 1) {
+                        $words = preg_split('/\s+/u', $blockText, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+                        $firstWords = [];
+                        $secondWords = [];
+                        $lineCount = 1;
+                        $lineLength = 0;
+
+                        foreach ($words as $word) {
+                            $wordLength = mb_strlen($word);
+                            $nextLength = $lineLength + $wordLength + ($lineLength > 0 ? 1 : 0);
+
+                            if ($nextLength > $lineWidth) {
+                                $lineCount++;
+                                $lineLength = $wordLength;
+                            } else {
+                                $lineLength = $nextLength;
+                            }
+
+                            if ($lineCount <= $remainingLines) {
+                                $firstWords[] = $word;
+                            } else {
+                                $secondWords[] = $word;
+                            }
+                        }
+
+                        $first .= '<p>'.e(implode(' ', $firstWords)).'</p>';
+                        $second .= '<p>'.e(implode(' ', $secondWords)).'</p>';
+                        $usedLines = $firstLineBudget;
+                    } else {
+                        $second .= $block;
+                    }
+                } elseif ($first === '' && $blockLines > $firstLineBudget) {
+                    $words = preg_split('/\s+/u', $blockText, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+                    $firstWords = [];
+                    $secondWords = [];
+                    $lineCount = 1;
+                    $lineLength = 0;
+
+                    foreach ($words as $word) {
+                        $wordLength = mb_strlen($word);
+                        $nextLength = $lineLength + $wordLength + ($lineLength > 0 ? 1 : 0);
+
+                        if ($nextLength > $lineWidth) {
+                            $lineCount++;
+                            $lineLength = $wordLength;
+                        } else {
+                            $lineLength = $nextLength;
+                        }
+
+                        if ($lineCount <= $firstLineBudget) {
+                            $firstWords[] = $word;
+                        } else {
+                            $secondWords[] = $word;
+                        }
+                    }
+
+                    $first .= '<p>'.e(implode(' ', $firstWords)).'</p>';
+                    $second .= '<p>'.e(implode(' ', $secondWords)).'</p>';
+                    $usedLines = $firstLineBudget;
+                } else {
+                    $first .= $block;
+                    $usedLines += $blockLines;
+                }
+            }
+
+            return [trim($first), trim($second)];
         };
-        [$mainLetterContent, $secondPageLetterContent] = $splitAfterClosing((string) old('letter_content', $letter->letter_content));
+        [$mainLetterContent, $secondPageLetterContent] = $splitForTwoPages((string) old('letter_content', $letter->letter_content));
     @endphp
 
     <style>
         .letter-grid { display: grid; grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr); gap: 1.25rem; }
         .letter-preview { background: #f8fafc; border: 1px solid rgba(15, 23, 42, .08); box-shadow: 0 28px 70px rgba(15, 23, 42, .10); color: #101828; }
-        .letter-preview-page { background: #fff; height: 860px; padding: 2.2rem; overflow: hidden; }
+        .letter-preview-page { display: flex; flex-direction: column; background: #fff; height: 860px; padding: 2.2rem; overflow: hidden; }
         .letter-preview-page + .letter-preview-page { margin-top: 1rem; }
         .letter-preview-page.second-page { display: flex; flex-direction: column; }
+        .page-content { flex: 1 1 auto; min-height: 0; overflow: hidden; }
         .second-page-content { flex: 0 0 auto; }
         .official-header { border-bottom: 3px solid #ffa117; padding-bottom: 1rem; margin-bottom: 1.8rem; }
         .header-brand-row { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
@@ -51,7 +131,8 @@
         .rich-toolbar button { min-width: 34px; height: 34px; border: 1px solid #d0d5dd; border-radius: .45rem; background: #fff; font-weight: 700; }
         .rich-editor { min-height: 330px; border: 1px solid #d0d5dd; border-radius: 0 0 .5rem .5rem; padding: 1rem; line-height: 1.65; background: #fff; outline-color: #6791ff; overflow: auto; }
         .letter-body { line-height: 1.72; font-size: .98rem; }
-        .letter-preview-page:first-child .letter-body { max-height: 520px; overflow: hidden; }
+        .letter-preview-page:first-child .letter-body { max-height: 430px; overflow: hidden; }
+        .second-page-content .letter-body { max-height: 240px; overflow: hidden; }
         .letter-body p { margin-bottom: .9rem; }
         .security-box { border: 1px solid rgba(255, 161, 23, .38); background: #fffaf0; border-radius: 10px; padding: .45rem .6rem; font-size: .82rem; }
         .security-box a, .footer-preview a { color: inherit; text-decoration: none; }
@@ -294,31 +375,34 @@
                     $logoPosition = old('logo_position', $letter->logo_position);
                 @endphp
                 <div class="letter-preview-page">
-                    <div class="official-header">
-                        <div class="header-brand-row">
-                            <div class="header-main">
-                                @if ($logoUrl && $logoPosition !== 'none')
-                                    <img src="{{ $logoUrl }}" class="letter-logo" id="previewLetterLogo" style="width: {{ (int) old('logo_width', $header['logo_width']) }}px;" alt="Logo">
-                                @endif
-                                <div>
-                                    <div style="{{ $textStyle($header['title']) }}">{{ $header['title']['text'] }}</div>
-                                    <div style="{{ $textStyle($header['subtitle']) }}">{{ $header['subtitle']['text'] }}</div>
-                                    <div style="{{ $textStyle($header['description']) }}">{{ $header['description']['text'] }}</div>
+                    <div class="page-content">
+                        <div class="official-header">
+                            <div class="header-brand-row">
+                                <div class="header-main">
+                                    @if ($logoUrl && $logoPosition !== 'none')
+                                        <img src="{{ $logoUrl }}" class="letter-logo" id="previewLetterLogo" style="width: {{ (int) old('logo_width', $header['logo_width']) }}px;" alt="Logo">
+                                    @endif
+                                    <div>
+                                        <div style="{{ $textStyle($header['title']) }}">{{ $header['title']['text'] }}</div>
+                                        <div style="{{ $textStyle($header['subtitle']) }}">{{ $header['subtitle']['text'] }}</div>
+                                        <div style="{{ $textStyle($header['description']) }}">{{ $header['description']['text'] }}</div>
+                                    </div>
                                 </div>
                             </div>
+                            <div class="d-flex justify-content-end gap-2 mt-3">
+                                <div class="letter-reference">N° {{ $letter->letter_number ?: 'UFC/MS/'.now()->format('Y').'/000001' }}</div>
+                                <div class="letter-reference">Code {{ $letter->activation_code }}</div>
+                            </div>
                         </div>
-                        <div class="d-flex justify-content-end gap-2 mt-3">
-                            <div class="letter-reference">N° {{ $letter->letter_number ?: 'UFC/MS/'.now()->format('Y').'/000001' }}</div>
-                            <div class="letter-reference">Code {{ $letter->activation_code }}</div>
+                        <div class="text-end small text-secondary mb-4">{{ $letter->issue_place ?: 'Abidjan' }}, le {{ ($letter->issue_date ?: now())->format('d/m/Y') }}</div>
+                        <div class="mb-4">
+                            <div class="fw-semibold">À l’attention de {{ $institutionAdmin->organization?->name ?: 'l’institution' }}</div>
+                            <div class="small text-secondary">{{ $institutionAdmin->organization?->address ?: '' }}</div>
                         </div>
+                        <div class="fw-bold mb-4">Objet : {{ old('letter_subject', $letter->letter_subject) }}</div>
+                        <div class="letter-body mb-4" id="letterPreviewContent">{!! $mainLetterContent !!}</div>
                     </div>
-                    <div class="text-end small text-secondary mb-4">{{ $letter->issue_place ?: 'Abidjan' }}, le {{ ($letter->issue_date ?: now())->format('d/m/Y') }}</div>
-                    <div class="mb-4">
-                        <div class="fw-semibold">À l’attention de {{ $institutionAdmin->organization?->name ?: 'l’institution' }}</div>
-                        <div class="small text-secondary">{{ $institutionAdmin->organization?->address ?: '' }}</div>
-                    </div>
-                    <div class="fw-bold mb-4">Objet : {{ old('letter_subject', $letter->letter_subject) }}</div>
-                    <div class="letter-body mb-4" id="letterPreviewContent">{!! $mainLetterContent !!}</div>
+                    @include('super-admin.institution-admins.partials.activation-letter-footer')
                 </div>
                 <div class="letter-preview-page second-page">
                     <div class="second-page-content">
@@ -347,40 +431,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="footer-preview">
-                        <div>
-                            @if ($letter->footerLogoUrl())
-                                <img src="{{ $letter->footerLogoUrl() }}" style="width: {{ (int) ($footer['logo']['size'] ?? 72) }}px; height: auto; object-fit: contain;" alt="Logo pied de page">
-                            @endif
-                        </div>
-                        @foreach ([
-                            'address' => $footer['address'],
-                            'phone' => $footer['phone'],
-                            'email' => $footer['email'],
-                            'website' => $footer['website'],
-                        ] as $column)
-                            <div style="{{ $textStyle($column) }}">
-                                <div class="fw-semibold mb-1 footer-label">{{ $column['label'] }}</div>
-                                <div style="white-space: pre-line;">
-                                    @if (($column['label'] ?? '') === 'Téléphone' && filled($column['text']))
-                                        @foreach (preg_split('/\r\n|\r|\n/', $column['text']) as $phone)
-                                            <a href="tel:{{ preg_replace('/\s+/', '', $phone) }}">{{ $phone }}</a><br>
-                                        @endforeach
-                                    @elseif (($column['label'] ?? '') === 'Email' && filled($column['text']))
-                                        @foreach (preg_split('/\r\n|\r|\n/', $column['text']) as $email)
-                                            <a href="mailto:{{ trim($email) }}">{{ $email }}</a><br>
-                                        @endforeach
-                                    @elseif (($column['label'] ?? '') === 'Site web' && filled($column['text']))
-                                        @foreach (preg_split('/\r\n|\r|\n/', $column['text']) as $url)
-                                            <a href="{{ str_starts_with(trim($url), 'http') ? trim($url) : 'https://'.trim($url) }}" target="_blank" rel="noopener">{{ $url }}</a><br>
-                                        @endforeach
-                                    @else
-                                        {{ $column['text'] ?: '-' }}
-                                    @endif
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
+                    @include('super-admin.institution-admins.partials.activation-letter-footer')
                 </div>
             </div>
         </section>
