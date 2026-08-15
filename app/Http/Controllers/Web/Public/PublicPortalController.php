@@ -113,10 +113,9 @@ class PublicPortalController extends Controller
 
     public function reports()
     {
-        $periodStart = now()->subDays(30);
         $baseQuery = IncidentReport::query()
             ->with(['application', 'organization', 'city', 'commune', 'publicUser.publicUserType'])
-            ->where('created_at', '>=', $periodStart);
+            ->where('payment_status', 'paid');
 
         $query = clone $baseQuery;
 
@@ -166,7 +165,6 @@ class PublicPortalController extends Controller
             'in_progress' => (clone $filteredQuery)->where('status', 'in_progress')->count(),
             'damages' => (clone $filteredQuery)->whereNotNull('damage_declared_at')->count(),
             'communes' => (clone $filteredQuery)->whereNotNull('commune_id')->distinct('commune_id')->count('commune_id'),
-            'period_start' => $periodStart,
         ];
 
         return view('public.reports', [

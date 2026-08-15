@@ -345,7 +345,7 @@
       <div class="container position-relative">
         <div class="page-badge"><i class="bi bi-broadcast-pin"></i>Transparence</div>
         <h1>Derniers signalements</h1>
-        <p class="lead">Consultez tous les signalements enregistrés sur My-Signal durant les 30 derniers jours, sans données personnelles des usagers.</p>
+        <p class="lead">Consultez tous les signalements payés enregistrés sur My-Signal, sans données personnelles des usagers.</p>
       </div>
     </section>
 
@@ -435,7 +435,7 @@
           <div class="reports-panel-header">
             <div class="reports-panel-title">Liste des signalements</div>
             <div class="reports-panel-count">
-              {{ $reports->total() }} résultat{{ $reports->total() > 1 ? 's' : '' }} depuis le {{ $stats['period_start']->format('d/m/Y') }}
+              {{ $reports->total() }} résultat{{ $reports->total() > 1 ? 's' : '' }} payé{{ $reports->total() > 1 ? 's' : '' }}
             </div>
           </div>
           <div class="table-responsive">

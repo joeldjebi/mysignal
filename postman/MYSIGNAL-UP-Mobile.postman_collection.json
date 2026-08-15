@@ -1037,11 +1037,12 @@
           "request": {
             "method": "GET",
             "header": [{ "key": "Accept", "value": "application/json" }],
-            "url": "{{baseUrl}}/v1/public/reports"
+            "url": "{{baseUrl}}/v1/public/reports",
+            "description": "Retourne les signalements payes du compte UP connecte, sans filtre de periode. Cette route alimente aussi le dashboard UP."
           }
         },
         {
-          "name": "Global Monthly Category Stats",
+          "name": "Global Paid Category Stats",
           "event": [
             {
               "listen": "test",
@@ -1050,7 +1051,7 @@
                 "exec": [
                   "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
                   "const json = pm.response.json();",
-                  "pm.test('Monthly stats returned', function () {",
+                  "pm.test('Paid category stats returned', function () {",
                   "  pm.expect(json?.data).to.have.property('total_reports');",
                   "  pm.expect(json?.data?.categories).to.be.an('array');",
                   "  pm.expect(json?.data?.previous_month).to.be.an('object');",
@@ -1066,11 +1067,11 @@
             "method": "GET",
             "header": [{ "key": "Accept", "value": "application/json" }],
             "url": "{{baseUrl}}/v1/public/reports/monthly-category-stats",
-            "description": "Retourne les statistiques globales de toute la plateforme pour le mois precedent et le mois en cours, avec le nombre de signalements par categorie."
+            "description": "Retourne les statistiques globales de toute la plateforme pour tous les signalements payes, sans filtre de periode, avec le nombre de signalements par categorie. previous_month et current_month restent presents pour compatibilite."
           }
         },
         {
-          "name": "Reports by Monthly Category",
+          "name": "Paid Reports by Category",
           "event": [
             {
               "listen": "test",
@@ -1097,7 +1098,7 @@
             "method": "GET",
             "header": [{ "key": "Accept", "value": "application/json" }],
             "url": "{{baseUrl}}/v1/public/reports/monthly-category-stats/categories/{{applicationId}}/reports?period=all&per_page=15",
-            "description": "Retourne les signalements d une categorie issue des statistiques mensuelles. period=all couvre le mois precedent et le mois en cours. period=previous ou period=current limite la periode. La reponse contient les dommages eventuels mais n expose pas les informations du UP declarant."
+            "description": "Retourne les signalements payes d une categorie issue des statistiques. period=all retourne tous les signalements payes sans filtre de periode. period=previous ou period=current limite la periode si necessaire. La reponse contient les dommages eventuels mais n expose pas les informations du UP declarant."
           }
         },
         {

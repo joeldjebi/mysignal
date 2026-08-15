@@ -584,10 +584,10 @@ Refuse une invitation.
 ### Signalements
 
 #### GET `/v1/public/reports`
-Liste les signalements du compte.
+Liste les signalements payés du compte, sans filtre de période. Cette route alimente aussi le tableau de bord UP.
 
 #### GET `/v1/public/reports/monthly-category-stats`
-Retourne les statistiques globales de la plateforme pour le mois précédent et le mois en cours. Cette route est disponible pour le web UP et le mobile UP, mais les chiffres ne sont pas limites au compte connecte.
+Retourne les statistiques globales des signalements payés de la plateforme, sans filtre de période. Cette route est disponible pour le web UP et le mobile UP, mais les chiffres ne sont pas limités au compte connecté. Les clés `previous_month` et `current_month` restent disponibles pour compatibilité, mais l’affichage principal doit utiliser `total_reports` et `categories`.
 
 Reponse :
 ```json
@@ -631,10 +631,10 @@ Reponse :
 ```
 
 #### GET `/v1/public/reports/monthly-category-stats/categories/{application}/reports`
-Retourne les signalements d une categorie retournee par les statistiques mensuelles. `{application}` correspond a `application_id`.
+Retourne les signalements payés d une categorie retournee par les statistiques. `{application}` correspond a `application_id`.
 
 Parametres optionnels :
-- `period=all` : mois precedent + mois en cours
+- `period=all` : tous les signalements payés, sans filtre de période
 - `period=previous` : mois precedent uniquement
 - `period=current` : mois en cours uniquement
 - `per_page` : nombre d elements par page, maximum 50

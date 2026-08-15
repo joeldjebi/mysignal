@@ -33,6 +33,7 @@ class PublicIncidentReportController extends Controller
         $reports = IncidentReport::query()
             ->with(['application', 'organization', 'meter.organization', 'country', 'city', 'commune', 'purchaseReceipt', 'payments.pricingRule'])
             ->where('public_user_id', $request->user('public_api')->id)
+            ->where('payment_status', 'paid')
             ->latest('id')
             ->get();
 
@@ -45,15 +46,13 @@ class PublicIncidentReportController extends Controller
     {
         $currentMonth = CarbonImmutable::now()->startOfMonth();
         $previousMonth = $currentMonth->subMonth();
+        $allPaidStats = $this->paidCategoryStatsPayload();
         $previousMonthStats = $this->monthlyCategoryStatsPayload($previousMonth);
         $currentMonthStats = $this->monthlyCategoryStatsPayload($currentMonth);
 
         return ApiResponse::success([
-            'total_reports' => (int) (($previousMonthStats['total_reports'] ?? 0) + ($currentMonthStats['total_reports'] ?? 0)),
-            'categories' => $this->mergeMonthlyCategoryStats(
-                $previousMonthStats['categories'] ?? [],
-                $currentMonthStats['categories'] ?? [],
-            ),
+            'total_reports' => $allPaidStats['total_reports'],
+            'categories' => $allPaidStats['categories'],
             'previous_month' => $previousMonthStats,
             'current_month' => $currentMonthStats,
         ]);
@@ -64,14 +63,14 @@ class PublicIncidentReportController extends Controller
         $currentMonth = CarbonImmutable::now()->startOfMonth();
         $previousMonth = $currentMonth->subMonth();
         $period = (string) $request->query('period', 'all');
-        $start = $period === 'current' ? $currentMonth : $previousMonth;
-        $end = $period === 'previous' ? $previousMonth->endOfMonth() : $currentMonth->endOfMonth();
         $perPage = min(max((int) $request->query('per_page', 15), 1), 50);
 
         $reports = IncidentReport::query()
             ->with(['application', 'organization', 'meter.organization', 'country', 'city', 'commune', 'purchaseReceipt', 'payments.pricingRule'])
             ->where('application_id', $application->id)
-            ->whereBetween('created_at', [$start->startOfMonth(), $end])
+            ->where('payment_status', 'paid')
+            ->when($period === 'previous', fn ($query) => $query->whereBetween('created_at', [$previousMonth->startOfMonth(), $previousMonth->endOfMonth()]))
+            ->when($period === 'current', fn ($query) => $query->whereBetween('created_at', [$currentMonth->startOfMonth(), $currentMonth->endOfMonth()]))
             ->latest('id')
             ->paginate($perPage)
             ->withQueryString();
@@ -83,9 +82,14 @@ class PublicIncidentReportController extends Controller
                 'name' => $application->name,
             ],
             'period' => [
-                'code' => in_array($period, ['previous', 'current'], true) ? $period : 'all',
-                'date_from' => $start->startOfMonth()->toDateString(),
-                'date_to' => $end->toDateString(),
+                'code' => in_array($period, ['previous', 'current'], true) ? $period : 'all_paid',
+                'date_from' => $period === 'previous'
+                    ? $previousMonth->startOfMonth()->toDateString()
+                    : ($period === 'current' ? $currentMonth->startOfMonth()->toDateString() : null),
+                'date_to' => $period === 'previous'
+                    ? $previousMonth->endOfMonth()->toDateString()
+                    : ($period === 'current' ? $currentMonth->endOfMonth()->toDateString() : null),
+                'payment_status' => 'paid',
             ],
             'total_reports' => $reports->total(),
             'reports' => IncidentReportResource::collection($reports->getCollection()),
@@ -348,23 +352,10 @@ class PublicIncidentReportController extends Controller
     {
         $start = $month->startOfMonth();
         $end = $month->endOfMonth();
-        $categories = IncidentReport::query()
-            ->leftJoin('applications', 'applications.id', '=', 'incident_reports.application_id')
+        $categories = $this->categoryStatsQuery()
             ->whereBetween('incident_reports.created_at', [$start, $end])
-            ->selectRaw('incident_reports.application_id')
-            ->selectRaw("COALESCE(applications.name, 'Sans catégorie') as category_name")
-            ->selectRaw("COALESCE(applications.code, 'UNKNOWN') as category_code")
-            ->selectRaw('COUNT(*) as reports_count')
-            ->groupBy('incident_reports.application_id', 'applications.name', 'applications.code')
-            ->orderByDesc('reports_count')
-            ->orderBy('category_name')
             ->get()
-            ->map(fn ($row): array => [
-                'application_id' => $row->application_id !== null ? (int) $row->application_id : null,
-                'category_code' => $row->category_code,
-                'category_name' => $row->category_name,
-                'reports_count' => (int) $row->reports_count,
-            ])
+            ->map(fn ($row): array => $this->categoryStatsRow($row))
             ->values();
 
         return [
@@ -374,6 +365,43 @@ class PublicIncidentReportController extends Controller
             'date_to' => $end->toDateString(),
             'total_reports' => (int) $categories->sum('reports_count'),
             'categories' => $categories->all(),
+        ];
+    }
+
+    private function paidCategoryStatsPayload(): array
+    {
+        $categories = $this->categoryStatsQuery()
+            ->get()
+            ->map(fn ($row): array => $this->categoryStatsRow($row))
+            ->values();
+
+        return [
+            'total_reports' => (int) $categories->sum('reports_count'),
+            'categories' => $categories->all(),
+        ];
+    }
+
+    private function categoryStatsQuery()
+    {
+        return IncidentReport::query()
+            ->leftJoin('applications', 'applications.id', '=', 'incident_reports.application_id')
+            ->where('incident_reports.payment_status', 'paid')
+            ->selectRaw('incident_reports.application_id')
+            ->selectRaw("COALESCE(applications.name, 'Sans catégorie') as category_name")
+            ->selectRaw("COALESCE(applications.code, 'UNKNOWN') as category_code")
+            ->selectRaw('COUNT(*) as reports_count')
+            ->groupBy('incident_reports.application_id', 'applications.name', 'applications.code')
+            ->orderByDesc('reports_count')
+            ->orderBy('category_name');
+    }
+
+    private function categoryStatsRow($row): array
+    {
+        return [
+            'application_id' => $row->application_id !== null ? (int) $row->application_id : null,
+            'category_code' => $row->category_code,
+            'category_name' => $row->category_name,
+            'reports_count' => (int) $row->reports_count,
         ];
     }
 
