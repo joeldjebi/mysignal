@@ -501,9 +501,15 @@
                     </a>
                 @endif
                 @if ($canAccess('SA_PUBLIC_USERS_VIEW') || $canAccess('SA_PUBLIC_USERS_MANAGE'))
-                    <a href="{{ route('super-admin.public-users.index') }}" class="nav-pill {{ request()->routeIs('super-admin.public-users.*') ? 'active' : '' }}">
+                    <a href="{{ route('super-admin.public-users.index') }}" class="nav-pill {{ request()->routeIs('super-admin.public-users.*') && ! request()->routeIs('super-admin.public-users.push-notifications.*') ? 'active' : '' }}">
                         <span class="nav-icon">PU</span>
                         <span><span class="d-block fw-semibold">Usagers publics</span><span class="small text-white-50">Comptes publics</span></span>
+                    </a>
+                @endif
+                @if ($canAccess('SA_PUBLIC_USERS_MANAGE'))
+                    <a href="{{ route('super-admin.send-notif-up.index') }}" class="nav-pill {{ request()->routeIs('super-admin.send-notif-up.*') || request()->routeIs('super-admin.public-users.push-notifications.*') ? 'active' : '' }}">
+                        <span class="nav-icon">NT</span>
+                        <span><span class="d-block fw-semibold">Notifications UP</span><span class="small text-white-50">Envoi ciblé aux usagers</span></span>
                     </a>
                 @endif
                 @if ($canAccess('SA_PUBLIC_REPORTS_VIEW'))

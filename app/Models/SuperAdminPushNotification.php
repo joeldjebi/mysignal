@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'requested_count',
     'sent_count',
     'failed_count',
+    'target_filters',
     'target_user_ids',
     'sent_user_ids',
     'failed_user_ids',
@@ -27,6 +28,7 @@ class SuperAdminPushNotification extends Model
     {
         return [
             'target_user_ids' => 'array',
+            'target_filters' => 'array',
             'sent_user_ids' => 'array',
             'failed_user_ids' => 'array',
             'failure_details' => 'array',

@@ -493,6 +493,8 @@ Route::prefix('sa')->name('super-admin.')->group(function (): void {
         Route::patch('public-user-types/{publicUserType}/toggle-status', [PublicUserTypeController::class, 'toggleStatus'])->middleware('super_admin_permission:SA_PUBLIC_USER_TYPES_TOGGLE_STATUS,SA_PUBLIC_USER_TYPES_MANAGE')->name('public-user-types.toggle-status');
         Route::get('public-users/push-notifications', [PublicUserPushNotificationController::class, 'index'])->middleware('super_admin_permission:SA_PUBLIC_USERS_MANAGE')->name('public-users.push-notifications.index');
         Route::post('public-users/push-notifications', [PublicUserPushNotificationController::class, 'store'])->middleware('super_admin_permission:SA_PUBLIC_USERS_MANAGE')->name('public-users.push-notifications.store');
+        Route::get('send-notif-up', [PublicUserPushNotificationController::class, 'index'])->middleware('super_admin_permission:SA_PUBLIC_USERS_MANAGE')->name('send-notif-up.index');
+        Route::post('send-notif-up', [PublicUserPushNotificationController::class, 'store'])->middleware('super_admin_permission:SA_PUBLIC_USERS_MANAGE')->name('send-notif-up.store');
         Route::get('public-users', [PublicUserController::class, 'index'])->middleware('super_admin_permission:SA_PUBLIC_USERS_VIEW,SA_PUBLIC_USERS_MANAGE')->name('public-users.index');
         Route::get('public-users/create', [PublicUserController::class, 'create'])->middleware('super_admin_permission:SA_PUBLIC_USERS_CREATE,SA_PUBLIC_USERS_MANAGE')->name('public-users.create');
         Route::post('public-users', [PublicUserController::class, 'store'])->middleware('super_admin_permission:SA_PUBLIC_USERS_CREATE,SA_PUBLIC_USERS_MANAGE')->name('public-users.store');
