@@ -234,6 +234,7 @@
                             <th>Montant</th>
                             <th>Fournisseur</th>
                             <th>Statut</th>
+                            <th>Appel UP</th>
                             <th class="text-end">Actions</th>
                         </tr>
                     </thead>
@@ -284,8 +285,18 @@
                                 <td>
                                     <span class="status-chip {{ $statusClass($record->status) }}">{{ $statusLabels[$record->status] ?? $record->status }}</span>
                                 </td>
+                                <td>
+                                    @include('super-admin.call-center.partials.call-status', ['contact' => $record->latestCallCenterContact])
+                                </td>
                                 <td class="text-end">
                                     <div class="actions-wrap">
+                                        @include('super-admin.call-center.partials.call-dropdown', [
+                                            'route' => $isSession
+                                                ? route('super-admin.payments.sessions.call-center-contact', $record)
+                                                : route('super-admin.payments.call-center-contact', $record),
+                                            'buttonLabel' => 'Appel',
+                                            'placeholder' => 'Résumé de l’appel lié au paiement...',
+                                        ])
                                         @if ($isSession && ($record->status !== 'paid' || $record->incident_report_id === null) && $canManuallyValidatePayments)
                                             <form method="POST" action="{{ route('super-admin.payments.sessions.validate', $record) }}" class="d-inline-flex flex-column gap-2 align-items-end" onsubmit="return confirm('Valider manuellement ce paiement et traiter cette session ?');">
                                                 @csrf
@@ -306,7 +317,7 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="7" class="text-center text-secondary py-4">Aucun paiement trouvé.</td></tr>
+                            <tr><td colspan="8" class="text-center text-secondary py-4">Aucun paiement trouvé.</td></tr>
                         @endforelse
                     </tbody>
                 </table>

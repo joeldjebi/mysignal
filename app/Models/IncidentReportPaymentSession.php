@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 class IncidentReportPaymentSession extends Model
 {
@@ -57,6 +59,16 @@ class IncidentReportPaymentSession extends Model
     public function incidentReport(): BelongsTo
     {
         return $this->belongsTo(IncidentReport::class);
+    }
+
+    public function callCenterContacts(): MorphMany
+    {
+        return $this->morphMany(CallCenterContact::class, 'contactable');
+    }
+
+    public function latestCallCenterContact(): MorphOne
+    {
+        return $this->morphOne(CallCenterContact::class, 'contactable')->latestOfMany('called_at');
     }
 
 }

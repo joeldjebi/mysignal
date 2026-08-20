@@ -27,6 +27,7 @@ use App\Http\Controllers\Web\Partner\DashboardController as PartnerDashboardCont
 use App\Http\Controllers\Web\Partner\DiscountOfferController as PartnerDiscountOfferController;
 use App\Http\Controllers\Web\Partner\DiscountTransactionController as PartnerDiscountTransactionController;
 use App\Http\Controllers\Web\Partner\UserController as PartnerUserController;
+use App\Http\Controllers\Web\SuperAdmin\CallCenterContactController;
 use App\Http\Controllers\Web\SuperAdmin\CityController;
 use App\Http\Controllers\Web\SuperAdmin\CommuneController;
 use App\Http\Controllers\Web\SuperAdmin\CountryController;
@@ -503,10 +504,14 @@ Route::prefix('sa')->name('super-admin.')->group(function (): void {
         Route::put('public-users/{publicUser}', [PublicUserController::class, 'update'])->middleware('super_admin_permission:SA_PUBLIC_USERS_UPDATE,SA_PUBLIC_USERS_MANAGE')->name('public-users.update');
         Route::delete('public-users/{publicUser}', [PublicUserController::class, 'destroy'])->middleware('super_admin_permission:SA_PUBLIC_USERS_DELETE,SA_PUBLIC_USERS_MANAGE')->name('public-users.destroy');
         Route::patch('public-users/{publicUser}/toggle-status', [PublicUserController::class, 'toggleStatus'])->middleware('super_admin_permission:SA_PUBLIC_USERS_TOGGLE_STATUS,SA_PUBLIC_USERS_MANAGE')->name('public-users.toggle-status');
+        Route::post('public-users/{publicUser}/call-center-contact', [CallCenterContactController::class, 'publicUser'])->middleware('super_admin_permission:SA_PUBLIC_USERS_VIEW,SA_PUBLIC_USERS_MANAGE')->name('public-users.call-center-contact');
         Route::get('public-reports', [PublicIncidentReportController::class, 'index'])->middleware('super_admin_permission:SA_PUBLIC_REPORTS_VIEW')->name('public-reports.index');
         Route::get('public-reports/{report}', [PublicIncidentReportController::class, 'show'])->middleware('super_admin_permission:SA_PUBLIC_REPORTS_VIEW')->name('public-reports.show');
+        Route::post('public-reports/{report}/call-center-contact', [CallCenterContactController::class, 'report'])->middleware('super_admin_permission:SA_PUBLIC_REPORTS_VIEW')->name('public-reports.call-center-contact');
         Route::delete('public-reports/{report}', [PublicIncidentReportController::class, 'destroy'])->middleware('super_admin_permission:SA_PUBLIC_REPORTS_DELETE')->name('public-reports.destroy');
         Route::get('payments', [PaymentController::class, 'index'])->middleware('super_admin_permission:SA_PAYMENTS_VIEW')->name('payments.index');
+        Route::post('payments/{payment}/call-center-contact', [CallCenterContactController::class, 'payment'])->middleware('super_admin_permission:SA_PAYMENTS_VIEW')->name('payments.call-center-contact');
+        Route::post('payments/sessions/{paymentSession}/call-center-contact', [CallCenterContactController::class, 'paymentSession'])->middleware('super_admin_permission:SA_PAYMENTS_VIEW')->name('payments.sessions.call-center-contact');
         Route::post('payments/sessions/{paymentSession}/validate', [PaymentController::class, 'validateSession'])->middleware('super_admin_permission:SA_PAYMENTS_MANUAL_VALIDATE')->name('payments.sessions.validate');
         Route::get('maintenance/cleanup', [MaintenanceCleanupController::class, 'index'])->middleware('super_admin_permission:SA_MAINTENANCE_CLEANUP')->name('maintenance.cleanup.index');
         Route::patch('maintenance/nearby-report-notifications', [MaintenanceCleanupController::class, 'toggleNearbyReportNotifications'])->middleware('super_admin_permission:SA_MAINTENANCE_CLEANUP')->name('maintenance.nearby-report-notifications.toggle');

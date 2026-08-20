@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
@@ -127,6 +129,16 @@ class PublicUser extends Authenticatable implements JWTSubject
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
+    }
+
+    public function callCenterContacts(): MorphMany
+    {
+        return $this->morphMany(CallCenterContact::class, 'contactable');
+    }
+
+    public function latestCallCenterContact(): MorphOne
+    {
+        return $this->morphOne(CallCenterContact::class, 'contactable')->latestOfMany('called_at');
     }
 
     public function subscriptions(): HasMany

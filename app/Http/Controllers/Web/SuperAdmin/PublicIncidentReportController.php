@@ -19,7 +19,7 @@ class PublicIncidentReportController extends Controller
     {
         $perPage = min(max((int) request()->integer('per_page', 15), 1), 100);
         $query = IncidentReport::query()
-            ->with(['publicUser.publicUserType', 'application', 'organization', 'commune', 'reparationCase'])
+            ->with(['publicUser.publicUserType', 'application', 'organization', 'commune', 'reparationCase', 'latestCallCenterContact.calledBy'])
             ->whereNotNull('public_user_id');
 
         if (filled(request('search'))) {

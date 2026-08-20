@@ -202,6 +202,7 @@
                         <th>Abonnement</th>
                         <th>Notifications</th>
                         <th>Statut</th>
+                        <th>Appel</th>
                         <th class="text-end">Actions</th>
                     </tr>
                 </thead>
@@ -278,8 +279,15 @@
                                 @endif
                             </td>
                             <td><span class="status-chip">{{ $publicUser->status }}</span></td>
+                            <td>
+                                @include('super-admin.call-center.partials.call-status', ['contact' => $publicUser->latestCallCenterContact])
+                            </td>
                             <td class="text-end">
                                 <div class="actions-wrap">
+                                    @include('super-admin.call-center.partials.call-dropdown', [
+                                        'route' => route('super-admin.public-users.call-center-contact', $publicUser),
+                                        'buttonLabel' => 'Appel',
+                                    ])
                                     <a href="{{ route('super-admin.public-users.show', $publicUser) }}" class="btn btn-sm btn-dark">Détails</a>
                                     @if ($canUpdatePublicUsers)
                                         <a href="{{ route('super-admin.public-users.edit', $publicUser) }}" class="btn btn-sm btn-outline-dark">Modifier</a>
@@ -303,7 +311,7 @@
                         </tr>
                         @endforeach
                     @else
-                        <tr><td colspan="8" class="text-center text-secondary">Aucun usager public enregistré.</td></tr>
+                        <tr><td colspan="9" class="text-center text-secondary">Aucun usager public enregistré.</td></tr>
                     @endif
                 </tbody>
             </table>

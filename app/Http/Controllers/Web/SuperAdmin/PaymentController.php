@@ -46,6 +46,7 @@ class PaymentController extends Controller
                 'incidentReport.organization',
                 'incidentReport.reparationCase',
                 'pricingRule',
+                'latestCallCenterContact.calledBy',
             ])
             ->whereIn('id', $sourceRows->where('source_type', 'payment')->pluck('source_id')->all())
             ->get()
@@ -56,6 +57,7 @@ class PaymentController extends Controller
                 'pricingRule',
                 'incidentReport.application',
                 'incidentReport.organization',
+                'latestCallCenterContact.calledBy',
             ])
             ->whereIn('id', $sourceRows->where('source_type', 'session')->pluck('source_id')->all())
             ->get()

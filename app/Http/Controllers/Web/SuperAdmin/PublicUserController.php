@@ -30,6 +30,7 @@ class PublicUserController extends Controller
             'latestSubscription.payments',
             'latestDeviceToken',
             'activeDeviceTokens',
+            'latestCallCenterContact.calledBy',
         ]);
 
         if (filled(request('search'))) {

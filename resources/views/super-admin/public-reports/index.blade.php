@@ -222,6 +222,7 @@
                         <th>Localisation</th>
                         <th>Dommage</th>
                         <th>Dossier</th>
+                        <th>Appel UP</th>
                         <th class="text-end">Actions</th>
                     </tr>
                 </thead>
@@ -275,8 +276,16 @@
                                     <span class="small text-secondary">Aucun dossier</span>
                                 @endif
                             </td>
+                            <td>
+                                @include('super-admin.call-center.partials.call-status', ['contact' => $report->latestCallCenterContact])
+                            </td>
                             <td class="text-end">
                                 <div class="actions-wrap">
+                                    @include('super-admin.call-center.partials.call-dropdown', [
+                                        'route' => route('super-admin.public-reports.call-center-contact', $report),
+                                        'buttonLabel' => 'Appel',
+                                        'placeholder' => 'Résumé de l’appel lié à ce signalement...',
+                                    ])
                                     @if ($report->publicUser)
                                         <a href="{{ route('super-admin.public-users.show', $report->publicUser) }}" class="btn btn-sm btn-outline-dark">Voir l’usager</a>
                                     @endif
@@ -294,7 +303,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="7" class="text-center text-secondary">Aucun signalement public trouvé.</td></tr>
+                        <tr><td colspan="8" class="text-center text-secondary">Aucun signalement public trouvé.</td></tr>
                     @endforelse
                 </tbody>
             </table>

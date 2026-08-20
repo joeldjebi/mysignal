@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -126,6 +128,16 @@ class IncidentReport extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
+    }
+
+    public function callCenterContacts(): MorphMany
+    {
+        return $this->morphMany(CallCenterContact::class, 'contactable');
+    }
+
+    public function latestCallCenterContact(): MorphOne
+    {
+        return $this->morphOne(CallCenterContact::class, 'contactable')->latestOfMany('called_at');
     }
 
     public function signalSubType(): BelongsTo
