@@ -152,12 +152,32 @@
                     </select>
                 </div>
                 <div class="col-md-3">
+                    <label class="form-label small text-secondary">Sous-quartier</label>
+                    <input type="search" class="form-control select-search-input" data-select-filter-target="pushSubNeighborhoodFilter" placeholder="Filtrer les sous-quartiers...">
+                    <select name="sub_neighborhood_id" class="form-select" id="pushSubNeighborhoodFilter">
+                        <option value="">Tous les sous-quartiers</option>
+                        @foreach ($subNeighborhoods as $subNeighborhood)
+                            <option value="{{ $subNeighborhood->id }}" data-neighborhood-id="{{ $subNeighborhood->neighborhood_id }}" @selected((string) old('sub_neighborhood_id') === (string) $subNeighborhood->id)>{{ $subNeighborhood->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3">
                     <label class="form-label small text-secondary">Type de signalement</label>
                     <input type="search" class="form-control select-search-input" data-select-filter-target="pushSignalTypeFilter" placeholder="Filtrer les types...">
                     <select name="signal_type_id" class="form-select" id="pushSignalTypeFilter">
                         <option value="">Tous les types</option>
                         @foreach ($signalTypes as $signalType)
                             <option value="{{ $signalType->id }}" @selected((string) old('signal_type_id') === (string) $signalType->id)>{{ $signalType->label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small text-secondary">Type d’organisation</label>
+                    <input type="search" class="form-control select-search-input" data-select-filter-target="pushOrganizationTypeFilter" placeholder="Filtrer les types d’organisation...">
+                    <select name="organization_type_id" class="form-select" id="pushOrganizationTypeFilter">
+                        <option value="">Tous les types d’organisation</option>
+                        @foreach ($organizationTypes as $organizationType)
+                            <option value="{{ $organizationType->id }}" @selected((string) old('organization_type_id') === (string) $organizationType->id)>{{ $organizationType->name }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -170,9 +190,17 @@
                         <option value="unresolved" @selected(old('report_resolution_status') === 'unresolved')>Non résolu</option>
                     </select>
                 </div>
-                <div class="col-md-9 d-flex align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label small text-secondary">Signalements depuis</label>
+                    <input type="date" name="report_date_from" value="{{ old('report_date_from') }}" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small text-secondary">Signalements jusqu’au</label>
+                    <input type="date" name="report_date_to" value="{{ old('report_date_to') }}" class="form-control">
+                </div>
+                <div class="col-md-6 d-flex align-items-end">
                     <div class="small text-secondary border rounded-4 p-3 w-100">
-                        Les filtres s’appliquent uniquement aux UP ayant un appareil actif. Les filtres “type” et “état” ciblent les UP ayant au moins un signalement correspondant.
+                        Les filtres s’appliquent uniquement aux UP ayant un appareil actif. Les filtres liés aux signalements ciblent les UP ayant au moins un signalement correspondant.
                     </div>
                 </div>
             </div>
@@ -296,13 +324,17 @@
                                 <div>{{ $targetLabels[$item->target_scope] ?? $item->target_scope }}</div>
                                 @if (filled($item->target_filters))
                                     @php
-                                        $filterLabels = collect($item->target_filters)->map(function ($value, $key) use ($cities, $communes, $neighborhoods, $signalTypes) {
+                                        $filterLabels = collect($item->target_filters)->map(function ($value, $key) use ($cities, $communes, $neighborhoods, $subNeighborhoods, $signalTypes, $organizationTypes) {
                                             return match ($key) {
                                                 'city_id' => 'Ville : '.($cities->firstWhere('id', (int) $value)?->name ?? 'sélectionnée'),
                                                 'commune_id' => 'Commune : '.($communes->firstWhere('id', (int) $value)?->name ?? 'sélectionnée'),
                                                 'neighborhood_id' => 'Quartier : '.($neighborhoods->firstWhere('id', (int) $value)?->name ?? 'sélectionné'),
+                                                'sub_neighborhood_id' => 'Sous-quartier : '.($subNeighborhoods->firstWhere('id', (int) $value)?->name ?? 'sélectionné'),
                                                 'signal_type_id' => 'Type : '.($signalTypes->firstWhere('id', (int) $value)?->label ?? 'sélectionné'),
+                                                'organization_type_id' => 'Type d’organisation : '.($organizationTypes->firstWhere('id', (int) $value)?->name ?? 'sélectionné'),
                                                 'report_resolution_status' => 'État : '.($value === 'resolved' ? 'résolu' : 'non résolu'),
+                                                'report_date_from' => 'Depuis : '.\Illuminate\Support\Carbon::parse($value)->format('d/m/Y'),
+                                                'report_date_to' => 'Jusqu’au : '.\Illuminate\Support\Carbon::parse($value)->format('d/m/Y'),
                                                 default => null,
                                             };
                                         })->filter()->values();
@@ -358,14 +390,13 @@
             const citySelect = document.getElementById('pushCityFilter');
             const communeSelect = document.getElementById('pushCommuneFilter');
             const neighborhoodSelect = document.getElementById('pushNeighborhoodFilter');
+            const subNeighborhoodSelect = document.getElementById('pushSubNeighborhoodFilter');
 
             if (!filterInput || !userSelect) {
                 return;
             }
 
             const options = Array.from(userSelect.options);
-            const communeOptions = communeSelect ? Array.from(communeSelect.options) : [];
-            const neighborhoodOptions = neighborhoodSelect ? Array.from(neighborhoodSelect.options) : [];
 
             const normalize = (value) => String(value || '')
                 .toLowerCase()
@@ -412,6 +443,12 @@
             const syncNeighborhoods = () => {
                 const communeId = communeSelect?.value || '';
                 applySelectFilter(neighborhoodSelect, (option) => option.value === '' || communeId === '' || option.dataset.communeId === communeId);
+                syncSubNeighborhoods();
+            };
+
+            const syncSubNeighborhoods = () => {
+                const neighborhoodId = neighborhoodSelect?.value || '';
+                applySelectFilter(subNeighborhoodSelect, (option) => option.value === '' || neighborhoodId === '' || option.dataset.neighborhoodId === neighborhoodId);
             };
 
             const syncUserSelect = () => {
@@ -445,6 +482,9 @@
             communeSelect?.addEventListener('change', () => {
                 syncNeighborhoods();
             });
+            neighborhoodSelect?.addEventListener('change', () => {
+                syncSubNeighborhoods();
+            });
 
             document.querySelectorAll('[data-select-filter-target]').forEach((input) => {
                 input.addEventListener('input', () => {
@@ -457,6 +497,11 @@
 
                     if (select === neighborhoodSelect) {
                         syncNeighborhoods();
+                        return;
+                    }
+
+                    if (select === subNeighborhoodSelect) {
+                        syncSubNeighborhoods();
                         return;
                     }
 
@@ -513,6 +558,7 @@
             applySelectFilter(citySelect);
             syncCommunes();
             applySelectFilter(document.getElementById('pushSignalTypeFilter'));
+            applySelectFilter(document.getElementById('pushOrganizationTypeFilter'));
             applySelectFilter(document.getElementById('pushResolutionStatusFilter'));
             syncUserSelect();
         })();

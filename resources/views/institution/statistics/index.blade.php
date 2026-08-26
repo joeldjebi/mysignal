@@ -316,6 +316,7 @@
 @section('scripts')
     @if ($hasDashboardCharts)
         <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+        @include('partials.apex-rich-labels')
     @endif
     @if ($canViewReportsMap)
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
@@ -341,14 +342,14 @@
                 },
                 yaxis: { labels: { style: { colors: '#6b7c93' } } },
                 stroke: { curve: 'smooth', width: 3 },
-                dataLabels: { enabled: false },
+                dataLabels: MySignalCharts.areaDataLabels(trendSeries),
                 colors: ['#194b70'],
                 fill: {
                     type: 'gradient',
                     gradient: { shadeIntensity: 1, opacityFrom: 0.34, opacityTo: 0.04 }
                 },
                 grid: { borderColor: 'rgba(16,42,67,.08)', strokeDashArray: 4 },
-                tooltip: { theme: 'light' },
+                tooltip: MySignalCharts.tooltip(trendSeries),
                 legend: { show: false }
             }).render();
         @endif
@@ -363,7 +364,8 @@
                 labels: paymentLabels,
                 colors: ['#194b70', '#c49b48', '#c95f5f'],
                 legend: { position: 'bottom', fontSize: '13px' },
-                dataLabels: { enabled: false },
+                dataLabels: MySignalCharts.donutDataLabels(paymentBreakdown),
+                tooltip: MySignalCharts.tooltip(paymentBreakdown),
                 plotOptions: { pie: { donut: { size: '72%' } } }
             }).render();
         @endif
@@ -378,7 +380,8 @@
                 labels: slaLabels,
                 colors: ['#1f7a4f', '#c49b48', '#c95f5f', '#9aa7b3'],
                 legend: { position: 'bottom', fontSize: '13px' },
-                dataLabels: { enabled: false },
+                dataLabels: MySignalCharts.donutDataLabels(slaBreakdown),
+                tooltip: MySignalCharts.tooltip(slaBreakdown),
                 plotOptions: { pie: { donut: { size: '72%' } } }
             }).render();
         @endif
@@ -393,7 +396,8 @@
                 labels: treatmentLabels,
                 colors: ['#9aa7b3', '#194b70', '#1f7a4f', '#c95f5f'],
                 legend: { position: 'bottom', fontSize: '13px' },
-                dataLabels: { enabled: false },
+                dataLabels: MySignalCharts.donutDataLabels(treatmentBreakdown),
+                tooltip: MySignalCharts.tooltip(treatmentBreakdown),
                 plotOptions: { pie: { donut: { size: '72%' } } }
             }).render();
         @endif
@@ -408,7 +412,8 @@
                 xaxis: { categories: topCommuneLabels, labels: { style: { colors: '#6b7c93' } } },
                 yaxis: { labels: { style: { colors: '#6b7c93' } } },
                 plotOptions: { bar: { borderRadius: 8, columnWidth: '48%' } },
-                dataLabels: { enabled: false },
+                dataLabels: MySignalCharts.barDataLabels(topCommuneSeries),
+                tooltip: MySignalCharts.tooltip(topCommuneSeries),
                 colors: ['#c49b48'],
                 grid: { borderColor: 'rgba(16,42,67,.08)', strokeDashArray: 4 },
                 legend: { show: false }
@@ -428,7 +433,8 @@
                 },
                 yaxis: { labels: { style: { colors: '#6b7c93' } } },
                 plotOptions: { bar: { borderRadius: 8, columnWidth: '48%' } },
-                dataLabels: { enabled: false },
+                dataLabels: MySignalCharts.barDataLabels(topSignalSeries),
+                tooltip: MySignalCharts.tooltip(topSignalSeries),
                 colors: ['#0f2940'],
                 grid: { borderColor: 'rgba(16,42,67,.08)', strokeDashArray: 4 },
                 legend: { show: false }
@@ -445,7 +451,8 @@
                 labels: damageResolutionLabels,
                 colors: ['#c49b48', '#194b70', '#1f7a4f', '#c95f5f'],
                 legend: { position: 'bottom', fontSize: '13px' },
-                dataLabels: { enabled: false },
+                dataLabels: MySignalCharts.donutDataLabels(damageResolutionBreakdown),
+                tooltip: MySignalCharts.tooltip(damageResolutionBreakdown),
                 plotOptions: { pie: { donut: { size: '72%' } } }
             }).render();
         @endif

@@ -52,6 +52,21 @@
         ],
     ])
 
+    <div class="row g-3 mb-4">
+        <div class="col-lg-6">
+            <section class="chart-card h-100">
+                <div class="fw-semibold mb-2">Traitement des signalements</div>
+                <div id="institutionReportStatusChart" class="chart-frame"></div>
+            </section>
+        </div>
+        <div class="col-lg-6">
+            <section class="chart-card h-100">
+                <div class="fw-semibold mb-2">{{ $canViewPaymentInfo ? 'Paiements des signalements' : 'Dommages déclarés' }}</div>
+                <div id="institutionReportSecondaryChart" class="chart-frame"></div>
+            </section>
+        </div>
+    </div>
+
     <section class="panel-card mb-4">
         <div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-3">
             <div>
@@ -322,8 +337,42 @@
 @endsection
 
 @section('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    @include('partials.apex-rich-labels')
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            const reportsStats = @json($reportsStats);
+            const treatmentSeries = [
+                Number(reportsStats.submitted || 0),
+                Number(reportsStats.in_progress || 0),
+                Number(reportsStats.resolved || 0),
+            ];
+            const secondarySeries = @json($canViewPaymentInfo)
+                ? [Number(reportsStats.pending_payment || 0), Number(reportsStats.paid || 0)]
+                : [Number(reportsStats.with_damage || 0), Math.max(Number(reportsStats.total || 0) - Number(reportsStats.with_damage || 0), 0)];
+
+            new ApexCharts(document.querySelector('#institutionReportStatusChart'), {
+                chart: { type: 'donut', height: 280 },
+                series: treatmentSeries,
+                labels: ['À traiter', 'En cours', 'Résolus'],
+                colors: ['#ffa117', '#6791ff', '#5bebaf'],
+                legend: { position: 'bottom', fontSize: '13px' },
+                dataLabels: MySignalCharts.donutDataLabels(treatmentSeries),
+                tooltip: MySignalCharts.tooltip(treatmentSeries),
+                plotOptions: { pie: { donut: { size: '72%' } } },
+            }).render();
+
+            new ApexCharts(document.querySelector('#institutionReportSecondaryChart'), {
+                chart: { type: 'donut', height: 280 },
+                series: secondarySeries,
+                labels: @json($canViewPaymentInfo) ? ['En attente', 'Payés'] : ['Avec dommage', 'Sans dommage'],
+                colors: ['#ff0068', '#5bebaf'],
+                legend: { position: 'bottom', fontSize: '13px' },
+                dataLabels: MySignalCharts.donutDataLabels(secondarySeries),
+                tooltip: MySignalCharts.tooltip(secondarySeries),
+                plotOptions: { pie: { donut: { size: '72%' } } },
+            }).render();
+
             const modalElement = document.getElementById('institutionReportConfirmModal');
 
             if (!modalElement || typeof bootstrap === 'undefined') {

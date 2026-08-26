@@ -44,6 +44,21 @@
         ],
     ])
 
+    <div class="row g-3 mb-4">
+        <div class="col-lg-6">
+            <section class="chart-card h-100">
+                <div class="fw-semibold mb-2">Statut des usagers</div>
+                <div id="institutionReportUserStatusChart" class="chart-frame"></div>
+            </section>
+        </div>
+        <div class="col-lg-6">
+            <section class="chart-card h-100">
+                <div class="fw-semibold mb-2">Usagers avec signalement</div>
+                <div id="institutionReportUserActivityChart" class="chart-frame"></div>
+            </section>
+        </div>
+    </div>
+
     <section class="panel-card">
         <div class="fw-bold mb-3">Usagers publics</div>
         <form method="GET" class="filter-bar">
@@ -133,4 +148,40 @@
             {{ $users->links() }}
         </div>
     </section>
+@endsection
+
+@section('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    @include('partials.apex-rich-labels')
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const reportUsersStats = @json($reportUsersStats);
+            const totalUsers = Number(reportUsersStats.total || 0);
+            const withReports = Number(reportUsersStats.with_reports || 0);
+            const reportUserStatusSeries = [Number(reportUsersStats.active || 0), Number(reportUsersStats.inactive || 0)];
+            const reportUserActivitySeries = [withReports, Math.max(totalUsers - withReports, 0)];
+
+            new ApexCharts(document.querySelector('#institutionReportUserStatusChart'), {
+                chart: { type: 'donut', height: 280 },
+                series: reportUserStatusSeries,
+                labels: ['Actifs', 'Inactifs'],
+                colors: ['#5bebaf', '#ff0068'],
+                legend: { position: 'bottom', fontSize: '13px' },
+                dataLabels: MySignalCharts.donutDataLabels(reportUserStatusSeries),
+                tooltip: MySignalCharts.tooltip(reportUserStatusSeries),
+                plotOptions: { pie: { donut: { size: '72%' } } },
+            }).render();
+
+            new ApexCharts(document.querySelector('#institutionReportUserActivityChart'), {
+                chart: { type: 'donut', height: 280 },
+                series: reportUserActivitySeries,
+                labels: ['Avec signalement', 'Sans signalement'],
+                colors: ['#6791ff', '#ffa117'],
+                legend: { position: 'bottom', fontSize: '13px' },
+                dataLabels: MySignalCharts.donutDataLabels(reportUserActivitySeries),
+                tooltip: MySignalCharts.tooltip(reportUserActivitySeries),
+                plotOptions: { pie: { donut: { size: '72%' } } },
+            }).render();
+        });
+    </script>
 @endsection

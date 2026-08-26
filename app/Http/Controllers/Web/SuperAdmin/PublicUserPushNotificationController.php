@@ -7,13 +7,16 @@ use App\Domain\Reports\Enums\IncidentReportStatus;
 use App\Models\City;
 use App\Models\Commune;
 use App\Models\Neighborhood;
+use App\Models\OrganizationType;
 use App\Models\PublicUser;
 use App\Models\SignalType;
+use App\Models\SubNeighborhood;
 use App\Models\SuperAdminPushNotification;
 use App\Services\Notifications\PushNotificationDispatcher;
 use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -36,7 +39,9 @@ class PublicUserPushNotificationController extends Controller
             'cities' => City::query()->where('status', 'active')->orderBy('name')->get(['id', 'name']),
             'communes' => Commune::query()->where('status', 'active')->orderBy('name')->get(['id', 'name', 'city_id']),
             'neighborhoods' => Neighborhood::query()->where('status', 'active')->orderBy('name')->get(['id', 'name', 'commune_id']),
+            'subNeighborhoods' => SubNeighborhood::query()->where('status', 'active')->orderBy('name')->get(['id', 'name', 'neighborhood_id']),
             'signalTypes' => SignalType::query()->where('status', 'active')->orderBy('label')->get(['id', 'label', 'code']),
+            'organizationTypes' => OrganizationType::query()->where('status', 'active')->orderBy('name')->get(['id', 'name']),
             'history' => SuperAdminPushNotification::query()
                 ->with('sender')
                 ->latest('sent_at')
@@ -54,8 +59,12 @@ class PublicUserPushNotificationController extends Controller
             'city_id' => ['nullable', 'integer', 'exists:cities,id'],
             'commune_id' => ['nullable', 'integer', 'exists:communes,id'],
             'neighborhood_id' => ['nullable', 'integer', 'exists:neighborhoods,id'],
+            'sub_neighborhood_id' => ['nullable', 'integer', 'exists:sub_neighborhoods,id'],
             'signal_type_id' => ['nullable', 'integer', 'exists:signal_types,id'],
+            'organization_type_id' => ['nullable', 'integer', 'exists:organization_types,id'],
             'report_resolution_status' => ['nullable', Rule::in(['resolved', 'unresolved'])],
+            'report_date_from' => ['nullable', 'date'],
+            'report_date_to' => ['nullable', 'date', 'after_or_equal:report_date_from'],
             'title' => ['required', 'string', 'max:120'],
             'body' => ['required', 'string', 'max:500'],
         ]);
@@ -222,33 +231,78 @@ class PublicUserPushNotificationController extends Controller
                     $subQuery
                         ->whereRaw('LOWER(address) LIKE ?', [$needle])
                         ->orWhereRaw('LOWER(commune) LIKE ?', [$needle])
+                        ->orWhereHas('meters', fn ($meterQuery) => $meterQuery->whereRaw('LOWER(neighborhood) LIKE ?', [$needle]))
                         ->orWhereHas('incidentReports', fn ($reportQuery) => $reportQuery->whereRaw('LOWER(address) LIKE ?', [$needle]));
                 });
             }
         }
 
-        if (filled($attributes['signal_type_id'] ?? null)) {
-            $signalType = SignalType::query()->find($attributes['signal_type_id']);
+        if (filled($attributes['sub_neighborhood_id'] ?? null)) {
+            $subNeighborhood = SubNeighborhood::query()->find($attributes['sub_neighborhood_id']);
 
-            if ($signalType) {
-                $query->whereHas('incidentReports', fn ($reportQuery) => $reportQuery->where('signal_code', $signalType->code));
+            if ($subNeighborhood) {
+                $needle = '%'.mb_strtolower($subNeighborhood->name).'%';
+
+                $query->where(function ($subQuery) use ($needle): void {
+                    $subQuery
+                        ->whereRaw('LOWER(address) LIKE ?', [$needle])
+                        ->orWhereHas('meters', fn ($meterQuery) => $meterQuery->whereRaw('LOWER(sub_neighborhood) LIKE ?', [$needle]))
+                        ->orWhereHas('incidentReports', function ($reportQuery) use ($needle): void {
+                            $reportQuery
+                                ->whereRaw('LOWER(address) LIKE ?', [$needle])
+                                ->orWhereHas('meter', fn ($meterQuery) => $meterQuery->whereRaw('LOWER(sub_neighborhood) LIKE ?', [$needle]));
+                        });
+                });
             }
         }
 
-        if (filled($attributes['report_resolution_status'] ?? null)) {
-            $query->whereHas('incidentReports', function ($reportQuery) use ($attributes): void {
-                if ($attributes['report_resolution_status'] === 'resolved') {
-                    $reportQuery->where('status', IncidentReportStatus::Resolved->value);
+        if ($this->hasReportFilters($attributes)) {
+            $signalType = filled($attributes['signal_type_id'] ?? null)
+                ? SignalType::query()->find($attributes['signal_type_id'])
+                : null;
 
-                    return;
+            $query->whereHas('incidentReports', function ($reportQuery) use ($attributes, $signalType): void {
+                if ($signalType) {
+                    $reportQuery->where('signal_code', $signalType->code);
                 }
 
-                $reportQuery->whereIn('status', [
-                    IncidentReportStatus::Submitted->value,
-                    IncidentReportStatus::InProgress->value,
-                ]);
+                if (filled($attributes['report_resolution_status'] ?? null)) {
+                    if ($attributes['report_resolution_status'] === 'resolved') {
+                        $reportQuery->where('status', IncidentReportStatus::Resolved->value);
+                    } else {
+                        $reportQuery->whereIn('status', [
+                            IncidentReportStatus::Submitted->value,
+                            IncidentReportStatus::InProgress->value,
+                        ]);
+                    }
+                }
+
+                if (filled($attributes['report_date_from'] ?? null)) {
+                    $reportQuery->where('created_at', '>=', Carbon::parse($attributes['report_date_from'])->startOfDay());
+                }
+
+                if (filled($attributes['report_date_to'] ?? null)) {
+                    $reportQuery->where('created_at', '<=', Carbon::parse($attributes['report_date_to'])->endOfDay());
+                }
+
+                if (filled($attributes['organization_type_id'] ?? null)) {
+                    $organizationTypeId = (int) $attributes['organization_type_id'];
+
+                    $reportQuery->whereHas('organization', fn ($organizationQuery) => $organizationQuery->where('organization_type_id', $organizationTypeId));
+                }
             });
         }
+    }
+
+    private function hasReportFilters(array $attributes): bool
+    {
+        return collect([
+            $attributes['signal_type_id'] ?? null,
+            $attributes['organization_type_id'] ?? null,
+            $attributes['report_resolution_status'] ?? null,
+            $attributes['report_date_from'] ?? null,
+            $attributes['report_date_to'] ?? null,
+        ])->contains(fn ($value) => filled($value));
     }
 
     private function targetFilters(array $attributes): array
@@ -257,8 +311,12 @@ class PublicUserPushNotificationController extends Controller
             'city_id' => $attributes['city_id'] ?? null,
             'commune_id' => $attributes['commune_id'] ?? null,
             'neighborhood_id' => $attributes['neighborhood_id'] ?? null,
+            'sub_neighborhood_id' => $attributes['sub_neighborhood_id'] ?? null,
             'signal_type_id' => $attributes['signal_type_id'] ?? null,
+            'organization_type_id' => $attributes['organization_type_id'] ?? null,
             'report_resolution_status' => $attributes['report_resolution_status'] ?? null,
+            'report_date_from' => $attributes['report_date_from'] ?? null,
+            'report_date_to' => $attributes['report_date_to'] ?? null,
         ])->filter(fn ($value) => filled($value))->all();
     }
 }

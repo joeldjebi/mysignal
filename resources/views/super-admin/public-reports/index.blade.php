@@ -342,12 +342,17 @@
 
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    @include('partials.apex-rich-labels')
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const statusBreakdown = @json($statusBreakdown);
             const damageBreakdown = @json($damageBreakdown);
             const confirmationBreakdown = @json($confirmationBreakdown);
             const trend = @json($trend);
+            const publicReportStatusSeries = statusBreakdown.map((item) => Number(item.value || 0));
+            const publicReportDamageSeries = damageBreakdown.map((item) => Number(item.value || 0));
+            const publicReportConfirmationSeries = confirmationBreakdown.map((item) => Number(item.value || 0));
+            const publicReportTrendSeries = trend.map((item) => Number(item.value || 0));
             const deleteModalElement = document.getElementById('deletePublicReportModal');
             const deleteMessageElement = document.getElementById('deletePublicReportMessage');
             const deleteSubmitButton = document.getElementById('deletePublicReportSubmit');
@@ -390,37 +395,41 @@
             new ApexCharts(document.querySelector('#publicReportStatusChart'), {
                 chart: { type: 'donut', height: 280 },
                 labels: statusBreakdown.map((item) => item.label),
-                series: statusBreakdown.map((item) => Number(item.value || 0)),
+                series: publicReportStatusSeries,
                 colors: ['#ffa117', '#6791ff', '#5bebaf', '#ff0068'],
                 legend: { position: 'bottom' },
-                dataLabels: { enabled: false },
+                dataLabels: MySignalCharts.donutDataLabels(publicReportStatusSeries),
+                tooltip: MySignalCharts.tooltip(publicReportStatusSeries),
             }).render();
 
             new ApexCharts(document.querySelector('#publicReportDamageChart'), {
                 chart: { type: 'donut', height: 280 },
                 labels: damageBreakdown.map((item) => item.label),
-                series: damageBreakdown.map((item) => Number(item.value || 0)),
+                series: publicReportDamageSeries,
                 colors: ['#ff0068', '#6791ff'],
                 legend: { position: 'bottom' },
-                dataLabels: { enabled: false },
+                dataLabels: MySignalCharts.donutDataLabels(publicReportDamageSeries),
+                tooltip: MySignalCharts.tooltip(publicReportDamageSeries),
             }).render();
 
             new ApexCharts(document.querySelector('#publicReportConfirmationChart'), {
                 chart: { type: 'bar', height: 280, toolbar: { show: false } },
-                series: [{ name: 'Signalements', data: confirmationBreakdown.map((item) => Number(item.value || 0)) }],
+                series: [{ name: 'Signalements', data: publicReportConfirmationSeries }],
                 xaxis: { categories: confirmationBreakdown.map((item) => item.label) },
                 colors: ['#5bebaf'],
                 plotOptions: { bar: { borderRadius: 6, columnWidth: '44%' } },
-                dataLabels: { enabled: false },
+                dataLabels: MySignalCharts.barDataLabels(publicReportConfirmationSeries),
+                tooltip: MySignalCharts.tooltip(publicReportConfirmationSeries),
             }).render();
 
             new ApexCharts(document.querySelector('#publicReportTrendChart'), {
                 chart: { type: 'area', height: 280, toolbar: { show: false }, zoom: { enabled: false } },
-                series: [{ name: 'Signalements', data: trend.map((item) => Number(item.value || 0)) }],
+                series: [{ name: 'Signalements', data: publicReportTrendSeries }],
                 xaxis: { categories: trend.map((item) => item.label) },
                 colors: ['#ffa117'],
                 stroke: { curve: 'smooth', width: 3 },
-                dataLabels: { enabled: false },
+                dataLabels: MySignalCharts.areaDataLabels(publicReportTrendSeries),
+                tooltip: MySignalCharts.tooltip(publicReportTrendSeries),
             }).render();
         });
     </script>

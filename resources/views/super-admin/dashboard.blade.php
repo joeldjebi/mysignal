@@ -420,6 +420,7 @@
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
     <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    @include('partials.apex-rich-labels')
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const presentationButton = document.querySelector('[data-presentation-button]');
@@ -468,7 +469,8 @@
             labels: ['Soumis', 'En cours', 'Résolus', 'Rejetés'],
             colors: ['#ffa117', '#6791ff', '#5bebaf', '#ff0068'],
             legend: { position: 'bottom', fontSize: '13px' },
-            dataLabels: { enabled: false },
+            dataLabels: MySignalCharts.donutDataLabels(saReportStatusSeries),
+            tooltip: MySignalCharts.tooltip(saReportStatusSeries),
             plotOptions: { pie: { donut: { size: '72%' } } }
         }).render();
 
@@ -478,7 +480,8 @@
             labels: ['Soumis', 'En cours', 'Résolus', 'Rejetés'],
             colors: ['#ffa117', '#6791ff', '#5bebaf', '#ff0068'],
             legend: { position: 'bottom', fontSize: '13px' },
-            dataLabels: { enabled: false },
+            dataLabels: MySignalCharts.donutDataLabels(saDamageStatusSeries),
+            tooltip: MySignalCharts.tooltip(saDamageStatusSeries),
             plotOptions: { pie: { donut: { size: '72%' } } }
         }).render();
 
@@ -488,7 +491,8 @@
             labels: ['En attente', 'Payés', 'Échoués'],
             colors: ['#ffa117', '#5bebaf', '#ff0068'],
             legend: { position: 'bottom', fontSize: '13px' },
-            dataLabels: { enabled: false },
+            dataLabels: MySignalCharts.donutDataLabels(saPaymentStatusSeries),
+            tooltip: MySignalCharts.tooltip(saPaymentStatusSeries),
             plotOptions: { pie: { donut: { size: '72%' } } }
         }).render();
 
@@ -498,7 +502,8 @@
             labels: ['Dans le délai', 'À surveiller', 'En retard', 'Sans délai défini'],
             colors: ['#5bebaf', '#ffa117', '#ff0068', '#6791ff'],
             legend: { position: 'bottom', fontSize: '13px' },
-            dataLabels: { enabled: false },
+            dataLabels: MySignalCharts.donutDataLabels(saSlaSeries),
+            tooltip: MySignalCharts.tooltip(saSlaSeries),
             plotOptions: { pie: { donut: { size: '72%' } } }
         }).render();
 
@@ -508,7 +513,8 @@
             xaxis: { categories: saApplicationLabels, labels: { style: { colors: '#6b7c93' }, rotate: -12 } },
             yaxis: { labels: { style: { colors: '#6b7c93' } } },
             plotOptions: { bar: { borderRadius: 8, columnWidth: '48%' } },
-            dataLabels: { enabled: false },
+            dataLabels: MySignalCharts.barDataLabels(saApplicationSeries),
+            tooltip: MySignalCharts.tooltip(saApplicationSeries),
             colors: ['#6791ff'],
             grid: { borderColor: 'rgba(16,42,67,.08)', strokeDashArray: 4 },
             legend: { show: false }
@@ -520,7 +526,8 @@
             xaxis: { categories: saOrganizationLabels, labels: { style: { colors: '#6b7c93' }, rotate: -12 } },
             yaxis: { labels: { style: { colors: '#6b7c93' } } },
             plotOptions: { bar: { borderRadius: 8, columnWidth: '48%' } },
-            dataLabels: { enabled: false },
+            dataLabels: MySignalCharts.barDataLabels(saOrganizationSeries),
+            tooltip: MySignalCharts.tooltip(saOrganizationSeries),
             colors: ['#ff0068'],
             grid: { borderColor: 'rgba(16,42,67,.08)', strokeDashArray: 4 },
             legend: { show: false }

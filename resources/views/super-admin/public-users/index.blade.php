@@ -325,37 +325,44 @@
 
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    @include('partials.apex-rich-labels')
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const statusBreakdown = @json($statusBreakdown);
             const typeBreakdown = @json($typeBreakdown);
             const trend = @json($trend);
+            const publicUserStatusSeries = statusBreakdown.map((item) => Number(item.value || 0));
+            const publicUserTypeSeries = typeBreakdown.map((item) => Number(item.value || 0));
+            const publicUserTrendSeries = trend.map((item) => Number(item.value || 0));
 
             new ApexCharts(document.querySelector('#publicUserStatusChart'), {
                 chart: { type: 'donut', height: 280 },
                 labels: statusBreakdown.map((item) => item.label),
-                series: statusBreakdown.map((item) => Number(item.value || 0)),
+                series: publicUserStatusSeries,
                 colors: ['#5bebaf', '#ff0068'],
                 legend: { position: 'bottom' },
-                dataLabels: { enabled: false },
+                dataLabels: MySignalCharts.donutDataLabels(publicUserStatusSeries),
+                tooltip: MySignalCharts.tooltip(publicUserStatusSeries),
             }).render();
 
             new ApexCharts(document.querySelector('#publicUserTypeChart'), {
                 chart: { type: 'bar', height: 280, toolbar: { show: false } },
-                series: [{ name: 'Usagers', data: typeBreakdown.map((item) => Number(item.value || 0)) }],
+                series: [{ name: 'Usagers', data: publicUserTypeSeries }],
                 xaxis: { categories: typeBreakdown.map((item) => item.label) },
                 colors: ['#6791ff'],
                 plotOptions: { bar: { borderRadius: 6, columnWidth: '44%' } },
-                dataLabels: { enabled: false },
+                dataLabels: MySignalCharts.barDataLabels(publicUserTypeSeries),
+                tooltip: MySignalCharts.tooltip(publicUserTypeSeries),
             }).render();
 
             new ApexCharts(document.querySelector('#publicUserTrendChart'), {
                 chart: { type: 'area', height: 280, toolbar: { show: false }, zoom: { enabled: false } },
-                series: [{ name: 'Nouveaux usagers', data: trend.map((item) => Number(item.value || 0)) }],
+                series: [{ name: 'Nouveaux usagers', data: publicUserTrendSeries }],
                 xaxis: { categories: trend.map((item) => item.label) },
                 colors: ['#ffa117'],
                 stroke: { curve: 'smooth', width: 3 },
-                dataLabels: { enabled: false },
+                dataLabels: MySignalCharts.areaDataLabels(publicUserTrendSeries),
+                tooltip: MySignalCharts.tooltip(publicUserTrendSeries),
             }).render();
         });
     </script>
