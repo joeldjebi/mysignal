@@ -148,6 +148,9 @@
     <div class="letter-grid">
         <section class="panel-card">
             <div class="fw-bold mb-3">Paramètres du courrier</div>
+            <div class="alert alert-info small">
+                Une fois enregistrés, le logo, la signature, les couleurs et les éléments du pied de page seront repris par défaut sur les prochains courriers.
+            </div>
             <div class="mb-3 p-3 rounded-3 bg-light">
                 <div class="small text-secondary">Institution</div>
                 <div class="fw-semibold">{{ $institutionAdmin->organization?->name ?: '-' }}</div>

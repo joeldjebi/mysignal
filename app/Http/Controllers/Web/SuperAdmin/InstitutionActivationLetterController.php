@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web\SuperAdmin;
 
 use App\Http\Controllers\Controller;
 use App\Models\InstitutionActivationLetter;
+use App\Models\InstitutionActivationLetterSetting;
 use App\Models\User;
 use App\Models\UserType;
 use App\Services\SmsService;
@@ -15,6 +16,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Throwable;
@@ -94,13 +96,13 @@ class InstitutionActivationLetterController extends Controller
         ]);
 
         if ($request->boolean('remove_logo') && filled($letter->logo_path)) {
-            $wasabiService->deleteFile($letter->logo_path);
+            $this->deleteLetterAssetIfUnused($wasabiService, $letter, 'logo_path');
             $letter->forceFill(['logo_path' => null])->save();
         }
 
         if ($request->hasFile('logo')) {
             if (filled($letter->logo_path)) {
-                $wasabiService->deleteFile($letter->logo_path);
+                $this->deleteLetterAssetIfUnused($wasabiService, $letter, 'logo_path');
             }
 
             $letter->forceFill([
@@ -109,13 +111,13 @@ class InstitutionActivationLetterController extends Controller
         }
 
         if ($request->boolean('remove_signature_image') && filled($letter->signature_path)) {
-            $wasabiService->deleteFile($letter->signature_path);
+            $this->deleteLetterAssetIfUnused($wasabiService, $letter, 'signature_path');
             $letter->forceFill(['signature_path' => null])->save();
         }
 
         if ($request->hasFile('signature_image')) {
             if (filled($letter->signature_path)) {
-                $wasabiService->deleteFile($letter->signature_path);
+                $this->deleteLetterAssetIfUnused($wasabiService, $letter, 'signature_path');
             }
 
             $letter->forceFill([
@@ -124,13 +126,13 @@ class InstitutionActivationLetterController extends Controller
         }
 
         if ($request->boolean('remove_footer_logo') && filled($letter->footer_logo_path)) {
-            $wasabiService->deleteFile($letter->footer_logo_path);
+            $this->deleteLetterAssetIfUnused($wasabiService, $letter, 'footer_logo_path');
             $letter->forceFill(['footer_logo_path' => null])->save();
         }
 
         if ($request->hasFile('footer_logo')) {
             if (filled($letter->footer_logo_path)) {
-                $wasabiService->deleteFile($letter->footer_logo_path);
+                $this->deleteLetterAssetIfUnused($wasabiService, $letter, 'footer_logo_path');
             }
 
             $letter->forceFill([
@@ -155,6 +157,10 @@ class InstitutionActivationLetterController extends Controller
             'activation_url' => $this->activationUrl($letter->activation_code),
         ]);
 
+        $letter->refresh();
+        $this->savePresentationDefaults($letter, $request->user()?->id);
+        $syncedLettersCount = $this->syncPresentationDefaultsToPendingLetters($letter);
+
         $activityLogger->log(
             'institution_activation_letter.updated',
             'Mise à jour du courrier de désignation du point focal.',
@@ -164,12 +170,17 @@ class InstitutionActivationLetterController extends Controller
                 'institution_admin_id' => $letter->institution_admin_id,
                 'activation_code' => $letter->activation_code,
                 'logo_changed' => $request->hasFile('logo') || $request->boolean('remove_logo'),
+                'synced_letters_count' => $syncedLettersCount,
             ],
             $request,
             $request->user(),
         );
 
-        return back()->with('success', 'Le courrier a été enregistré.');
+        return back()->with(
+            'success',
+            'Le courrier a été enregistré. Ces paramètres seront repris par défaut sur les prochains courriers.'
+                .($syncedLettersCount > 0 ? ' '.$syncedLettersCount.' courrier(s) en préparation ont aussi été mis à jour.' : '')
+        );
     }
 
     public function download(Request $request, User $institutionAdmin, SimpleInstitutionActivationLetterPdf $pdf): Response
@@ -346,6 +357,7 @@ class InstitutionActivationLetterController extends Controller
         }
 
         $code = $this->uniqueActivationCode($institutionAdmin);
+        $presentationDefaults = $this->letterPresentationDefaults();
 
         return InstitutionActivationLetter::query()->create([
             'organization_id' => $institutionAdmin->organization_id,
@@ -358,15 +370,141 @@ class InstitutionActivationLetterController extends Controller
             'issue_date' => now()->toDateString(),
             'letter_subject' => 'Désignation du point focal My-Signal',
             'letter_content' => $this->defaultLetterContent($institutionAdmin, $code),
-            'signature_name' => 'Le Coordonnateur du programme My-Signal',
-            'signature_title' => 'Union Fédérale des Consommateurs',
-            'signature_content' => '<p>Pour l’Union Fédérale des Consommateurs</p>',
-            'logo_position' => 'left',
-            'header_settings' => (new InstitutionActivationLetter())->defaultHeaderSettings(),
-            'footer_settings' => (new InstitutionActivationLetter())->defaultFooterSettings(),
+            'signature_name' => $presentationDefaults['signature_name'],
+            'signature_title' => $presentationDefaults['signature_title'],
+            'signature_content' => $presentationDefaults['signature_content'],
+            'signature_path' => $presentationDefaults['signature_path'],
+            'footer_logo_path' => $presentationDefaults['footer_logo_path'],
+            'logo_position' => $presentationDefaults['logo_position'],
+            'logo_path' => $presentationDefaults['logo_path'],
+            'header_settings' => $presentationDefaults['header_settings'],
+            'footer_settings' => $presentationDefaults['footer_settings'],
             'status' => 'draft',
             'expires_at' => now()->addDays(30),
         ])->loadMissing(['organization', 'institutionAdmin']);
+    }
+
+    private function letterPresentationDefaults(): array
+    {
+        $blankLetter = new InstitutionActivationLetter();
+        $headerDefaults = $blankLetter->defaultHeaderSettings();
+        $footerDefaults = $blankLetter->defaultFooterSettings();
+
+        if (Schema::hasTable('institution_activation_letter_settings')) {
+            $setting = InstitutionActivationLetterSetting::current();
+
+            if ($setting) {
+                return $setting->presentationDefaults();
+            }
+        }
+
+        $template = InstitutionActivationLetter::query()
+            ->where(function ($query): void {
+                $query->whereNotNull('header_settings')
+                    ->orWhereNotNull('footer_settings')
+                    ->orWhereNotNull('logo_path')
+                    ->orWhereNotNull('footer_logo_path')
+                    ->orWhereNotNull('signature_path');
+            })
+            ->latest('updated_at')
+            ->latest('id')
+            ->first();
+
+        if (! $template) {
+            return [
+                'logo_position' => 'left',
+                'logo_path' => null,
+                'signature_name' => 'Le Coordonnateur du programme My-Signal',
+                'signature_title' => 'Union Fédérale des Consommateurs',
+                'signature_content' => '<p>Pour l’Union Fédérale des Consommateurs</p>',
+                'signature_path' => null,
+                'footer_logo_path' => null,
+                'header_settings' => $headerDefaults,
+                'footer_settings' => $footerDefaults,
+            ];
+        }
+
+        return [
+            'logo_position' => $template->logo_position ?: 'left',
+            'logo_path' => $template->logo_path,
+            'signature_name' => $template->signature_name ?: 'Le Coordonnateur du programme My-Signal',
+            'signature_title' => $template->signature_title ?: 'Union Fédérale des Consommateurs',
+            'signature_content' => $template->signature_content ?: '<p>Pour l’Union Fédérale des Consommateurs</p>',
+            'signature_path' => $template->signature_path,
+            'footer_logo_path' => $template->footer_logo_path,
+            'header_settings' => array_replace_recursive($headerDefaults, $template->header_settings ?? []),
+            'footer_settings' => array_replace_recursive($footerDefaults, $template->footer_settings ?? []),
+        ];
+    }
+
+    private function savePresentationDefaults(InstitutionActivationLetter $letter, ?int $updatedBy): void
+    {
+        if (! Schema::hasTable('institution_activation_letter_settings')) {
+            return;
+        }
+
+        InstitutionActivationLetterSetting::query()->updateOrCreate(
+            ['key' => InstitutionActivationLetterSetting::DEFAULT_KEY],
+            InstitutionActivationLetterSetting::attributesFromLetter($letter, $updatedBy)
+        );
+    }
+
+    private function syncPresentationDefaultsToPendingLetters(InstitutionActivationLetter $source): int
+    {
+        $presentationAttributes = $this->presentationAttributesFromLetter($source);
+        $syncedCount = 0;
+
+        InstitutionActivationLetter::query()
+            ->whereKeyNot($source->id)
+            ->whereIn('status', ['draft', 'generated'])
+            ->get()
+            ->each(function (InstitutionActivationLetter $letter) use ($presentationAttributes, &$syncedCount): void {
+                $letter->forceFill($presentationAttributes)->save();
+                $syncedCount++;
+            });
+
+        return $syncedCount;
+    }
+
+    private function presentationAttributesFromLetter(InstitutionActivationLetter $letter): array
+    {
+        return [
+            'logo_position' => $letter->logo_position ?: 'left',
+            'logo_path' => $letter->logo_path,
+            'signature_name' => $letter->signature_name,
+            'signature_title' => $letter->signature_title,
+            'signature_content' => $letter->signature_content,
+            'signature_path' => $letter->signature_path,
+            'footer_logo_path' => $letter->footer_logo_path,
+            'header_settings' => $letter->header_settings,
+            'footer_settings' => $letter->footer_settings,
+        ];
+    }
+
+    private function deleteLetterAssetIfUnused(WasabiService $wasabiService, InstitutionActivationLetter $letter, string $column): void
+    {
+        $path = $letter->{$column};
+
+        if (blank($path)) {
+            return;
+        }
+
+        if (Str::startsWith((string) $path, ['public:', 'http://', 'https://']) || file_exists(public_path((string) $path))) {
+            return;
+        }
+
+        $isUsedByAnotherLetter = InstitutionActivationLetter::query()
+            ->whereKeyNot($letter->id)
+            ->where($column, $path)
+            ->exists();
+        $isUsedByDefaultSetting = Schema::hasTable('institution_activation_letter_settings')
+            && InstitutionActivationLetterSetting::query()
+                ->where($column, $path)
+                ->exists();
+
+        if (! $isUsedByAnotherLetter && ! $isUsedByDefaultSetting) {
+            $wasabiService->deleteFile($path);
+        }
     }
 
     private function uniqueActivationCode(User $institutionAdmin): string

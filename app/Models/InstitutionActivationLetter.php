@@ -80,7 +80,7 @@ class InstitutionActivationLetter extends Model
     public function logoUrl(): ?string
     {
         if (filled($this->logo_path)) {
-            return app(WasabiService::class)->temporaryUrl($this->logo_path);
+            return $this->assetUrl($this->logo_path);
         }
 
         return $this->organization?->logoUrl();
@@ -92,7 +92,7 @@ class InstitutionActivationLetter extends Model
             return null;
         }
 
-        return app(WasabiService::class)->temporaryUrl($this->signature_path);
+        return $this->assetUrl($this->signature_path);
     }
 
     public function footerLogoUrl(): ?string
@@ -101,7 +101,30 @@ class InstitutionActivationLetter extends Model
             return null;
         }
 
-        return app(WasabiService::class)->temporaryUrl($this->footer_logo_path);
+        return $this->assetUrl($this->footer_logo_path);
+    }
+
+    private function assetUrl(?string $path): ?string
+    {
+        if (blank($path)) {
+            return null;
+        }
+
+        $path = (string) $path;
+
+        if (Str::startsWith($path, ['http://', 'https://'])) {
+            return $path;
+        }
+
+        if (Str::startsWith($path, 'public:')) {
+            return asset(ltrim(Str::after($path, 'public:'), '/'));
+        }
+
+        if (file_exists(public_path($path))) {
+            return asset(ltrim($path, '/'));
+        }
+
+        return app(WasabiService::class)->temporaryUrl($path);
     }
 
     public function contentHtml(): HtmlString
