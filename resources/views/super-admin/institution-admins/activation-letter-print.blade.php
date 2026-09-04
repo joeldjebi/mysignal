@@ -25,7 +25,7 @@
 
             $first = '';
             $second = '';
-            $firstLineBudget = 30;
+            $firstLineBudget = 24;
             $usedLines = 0;
             $lineWidth = 110;
 
@@ -110,10 +110,9 @@
         body { margin: 0; background: #eef2f7; color: #111827; font-family: Arial, sans-serif; }
         .toolbar { position: sticky; top: 0; display: flex; justify-content: flex-end; gap: 10px; padding: 12px 18px; background: #fff; border-bottom: 1px solid #e5e7eb; }
         .toolbar button { border: 0; border-radius: 8px; padding: 10px 14px; background: #111827; color: #fff; cursor: pointer; }
-        .page { display: flex; flex-direction: column; width: 210mm; height: 297mm; margin: 18px auto; padding: 18mm 20mm; background: #fff; box-shadow: 0 20px 50px rgba(15, 23, 42, .12); box-sizing: border-box; overflow: hidden; }
-        .page-content { flex: 1 1 auto; min-height: 0; overflow: hidden; }
-        .second-page { display: flex; flex-direction: column; }
-        .second-page-content { flex: 0 0 auto; }
+        .page { display: grid; grid-template-rows: minmax(0, 1fr) auto; row-gap: 9mm; width: 210mm; height: 297mm; margin: 18px auto; padding: 18mm 20mm; background: #fff; box-shadow: 0 20px 50px rgba(15, 23, 42, .12); box-sizing: border-box; overflow: hidden; }
+        .page-content { min-height: 0; overflow: hidden; }
+        .second-page-content { min-height: 0; overflow: hidden; }
         .official-header { border-bottom: 3px solid #ffa117; padding-bottom: 16px; margin-bottom: 28px; }
         .header-brand-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
         .header-main { display: flex; align-items: center; gap: 8px; min-width: 0; }
@@ -122,8 +121,8 @@
         .date { text-align: right; color: #475467; margin: 16px 0 36px; }
         .subject { font-weight: 700; margin: 28px 0; }
         .content { line-height: 1.55; font-size: 14px; }
-        .page:first-of-type .content { max-height: 146mm; overflow: hidden; }
-        .second-page-content .content { max-height: 120mm; overflow: hidden; }
+        .page:first-of-type .content { max-height: 122mm; overflow: hidden; }
+        .second-page-content .content { max-height: 108mm; overflow: hidden; }
         .content p { margin: 0 0 10px; }
         .activation { display: flex; justify-content: space-between; gap: 14px; align-items: center; margin-top: 22px; padding: 9px 11px; border: 1px solid rgba(255, 161, 23, .42); background: #fffaf0; border-radius: 9px; font-size: 13px; }
         .activation a, .footer a { color: inherit; text-decoration: none; }
@@ -133,7 +132,7 @@
         .signature-space { height: 62px; border-bottom: 1px solid #98a2b3; margin: 0 0 12px auto; max-width: 220px; }
         .signature-name { font-weight: 800; }
         .signature-title { color: #667085; font-size: 13px; }
-        .footer { display: grid; grid-template-columns: .72fr repeat(4, minmax(0, 1fr)); gap: 14px; align-items: start; margin-top: auto; padding-top: 14px; border-top: 1px solid #e5e7eb; }
+        .footer { display: grid; grid-template-columns: .72fr repeat(4, minmax(0, 1fr)); gap: 14px; align-items: start; min-height: 24mm; max-height: 30mm; overflow: hidden; padding-top: 14px; border-top: 1px solid #e5e7eb; }
         .footer-label { font-weight: 800; margin-bottom: 5px; color: #101828; min-height: 18px; line-height: 18px; }
         .muted { color: #667085; font-size: 13px; }
         @media print {

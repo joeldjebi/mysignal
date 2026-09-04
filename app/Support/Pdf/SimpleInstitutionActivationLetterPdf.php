@@ -148,10 +148,10 @@ class SimpleInstitutionActivationLetterPdf
     {
         $plainText = $this->plainContent($html);
         $layouts = [
-            ['font_size' => 10, 'line_height' => 15, 'line_width' => 92, 'first_min_y' => 150, 'second_min_y' => 300],
-            ['font_size' => 9, 'line_height' => 12, 'line_width' => 108, 'first_min_y' => 145, 'second_min_y' => 295],
-            ['font_size' => 8, 'line_height' => 10, 'line_width' => 124, 'first_min_y' => 140, 'second_min_y' => 290],
-            ['font_size' => 7, 'line_height' => 8, 'line_width' => 148, 'first_min_y' => 138, 'second_min_y' => 285],
+            ['font_size' => 10, 'line_height' => 15, 'line_width' => 92, 'first_min_y' => 175, 'second_min_y' => 300],
+            ['font_size' => 9, 'line_height' => 12, 'line_width' => 108, 'first_min_y' => 172, 'second_min_y' => 295],
+            ['font_size' => 8, 'line_height' => 10, 'line_width' => 124, 'first_min_y' => 170, 'second_min_y' => 290],
+            ['font_size' => 7, 'line_height' => 8, 'line_width' => 148, 'first_min_y' => 168, 'second_min_y' => 285],
         ];
 
         foreach ($layouts as $layout) {
