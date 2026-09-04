@@ -34,16 +34,20 @@ class SimpleInstitutionActivationLetterPdf
 
         ];
 
-        [$firstContentLines, $secondContentLines] = $this->splitContentLines((string) $letter->letter_content);
+        $contentLayout = $this->contentLayout((string) $letter->letter_content);
+        $firstContentLines = $contentLayout['first_lines'];
+        $secondContentLines = $contentLayout['second_lines'];
+        $contentFontSize = $contentLayout['font_size'];
+        $contentLineHeight = $contentLayout['line_height'];
 
         $y = 590;
         foreach ($firstContentLines as $line) {
-            if ($y < 185) {
+            if ($y < $contentLayout['first_min_y']) {
                 break;
             }
 
-            $firstPageInstructions[] = ['text', 36, $y, 'F1', 10, '0.16 0.22 0.29', $line];
-            $y -= 15;
+            $firstPageInstructions[] = ['text', 36, $y, 'F1', $contentFontSize, '0.16 0.22 0.29', $line];
+            $y -= $contentLineHeight;
         }
 
         $firstPageAnnotations = [];
@@ -52,17 +56,17 @@ class SimpleInstitutionActivationLetterPdf
         $secondPageInstructions = [];
         $secondPageY = 710;
         foreach ($secondContentLines as $line) {
-            if ($secondPageY < 470) {
+            if ($secondPageY < $contentLayout['second_min_y']) {
                 break;
             }
 
-            $secondPageInstructions[] = ['text', 36, $secondPageY, 'F1', 10, '0.16 0.22 0.29', $line];
-            $secondPageY -= 15;
+            $secondPageInstructions[] = ['text', 36, $secondPageY, 'F1', $contentFontSize, '0.16 0.22 0.29', $line];
+            $secondPageY -= $contentLineHeight;
         }
 
-        $signatureY = min(430, $secondPageY - 30);
+        $signatureY = min(270, $secondPageY - 22);
         foreach ($this->wrapLines($this->plainContent((string) ($letter->signature_content ?: 'Pour l’Union Fédérale des Consommateurs')), 42) as $line) {
-            if ($signatureY < 375) {
+            if ($signatureY < 225) {
                 break;
             }
 
@@ -74,15 +78,15 @@ class SimpleInstitutionActivationLetterPdf
         $secondPageInstructions[] = ['text', 330, $signatureY - 24, 'F1', 9, '0.42 0.48 0.54', (string) ($letter->signature_title ?: 'Union Federale des Consommateurs')];
 
         $secondPageInstructions[] = ['fill', '1 0.98 0.94'];
-        $secondPageInstructions[] = ['rect', 36, 190, 523, 58];
+        $secondPageInstructions[] = ['rect', 36, 155, 523, 52];
         $secondPageInstructions[] = ['fill'];
-        $secondPageInstructions[] = ['text', 48, 229, 'F1', 10, '0.42 0.48 0.54', 'Code officiel'];
-        $secondPageInstructions[] = ['text', 48, 209, 'F2', 16, '0.13 0.19 0.25', (string) $letter->activation_code];
-        $secondPageInstructions[] = ['text', 220, 229, 'F1', 10, '0.42 0.48 0.54', 'Lien du formulaire'];
-        $secondPageInstructions[] = ['text', 220, 209, 'F1', 10, '0.13 0.19 0.25', (string) $letter->activation_url];
+        $secondPageInstructions[] = ['text', 48, 190, 'F1', 9, '0.42 0.48 0.54', 'Code officiel'];
+        $secondPageInstructions[] = ['text', 48, 171, 'F2', 14, '0.13 0.19 0.25', (string) $letter->activation_code];
+        $secondPageInstructions[] = ['text', 220, 190, 'F1', 9, '0.42 0.48 0.54', 'Lien du formulaire'];
+        $secondPageInstructions[] = ['text', 220, 171, 'F1', 9, '0.13 0.19 0.25', (string) $letter->activation_url];
 
         $secondPageAnnotations = [
-            ['rect' => [220, 202, 559, 224], 'url' => (string) $letter->activation_url],
+            ['rect' => [220, 164, 559, 185], 'url' => (string) $letter->activation_url],
         ];
 
         $this->appendFooter($secondPageInstructions, $secondPageAnnotations, $footer);
@@ -140,15 +144,49 @@ class SimpleInstitutionActivationLetterPdf
         return trim(html_entity_decode(strip_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
     }
 
-    private function splitContentLines(string $html): array
+    private function contentLayout(string $html): array
     {
-        $lines = $this->wrapLines($this->plainContent($html), 92);
-        $firstPageCapacity = 27;
-
-        return [
-            array_slice($lines, 0, $firstPageCapacity),
-            array_slice($lines, $firstPageCapacity),
+        $plainText = $this->plainContent($html);
+        $layouts = [
+            ['font_size' => 10, 'line_height' => 15, 'line_width' => 92, 'first_min_y' => 150, 'second_min_y' => 300],
+            ['font_size' => 9, 'line_height' => 12, 'line_width' => 108, 'first_min_y' => 145, 'second_min_y' => 295],
+            ['font_size' => 8, 'line_height' => 10, 'line_width' => 124, 'first_min_y' => 140, 'second_min_y' => 290],
+            ['font_size' => 7, 'line_height' => 8, 'line_width' => 148, 'first_min_y' => 138, 'second_min_y' => 285],
         ];
+
+        foreach ($layouts as $layout) {
+            $lines = $this->wrapLines($plainText, $layout['line_width']);
+            $firstPageCapacity = $this->lineCapacity(590, $layout['first_min_y'], $layout['line_height']);
+            $secondPageCapacity = $this->lineCapacity(710, $layout['second_min_y'], $layout['line_height']);
+
+            if (count($lines) <= ($firstPageCapacity + $secondPageCapacity)) {
+                return $layout + [
+                    'first_lines' => array_slice($lines, 0, $firstPageCapacity),
+                    'second_lines' => array_slice($lines, $firstPageCapacity),
+                ];
+            }
+        }
+
+        $layout = end($layouts);
+        $lines = $this->wrapLines($plainText, $layout['line_width']);
+        $firstPageCapacity = $this->lineCapacity(590, $layout['first_min_y'], $layout['line_height']);
+        $secondPageCapacity = $this->lineCapacity(710, $layout['second_min_y'], $layout['line_height']);
+        $maxLines = $firstPageCapacity + $secondPageCapacity;
+
+        if (count($lines) > $maxLines) {
+            $lines = array_slice($lines, 0, $maxLines);
+            $lines[$maxLines - 1] = rtrim((string) $lines[$maxLines - 1], '. ').'...';
+        }
+
+        return $layout + [
+            'first_lines' => array_slice($lines, 0, $firstPageCapacity),
+            'second_lines' => array_slice($lines, $firstPageCapacity, $secondPageCapacity),
+        ];
+    }
+
+    private function lineCapacity(int $startY, int $minY, int $lineHeight): int
+    {
+        return (int) floor(($startY - $minY) / $lineHeight) + 1;
     }
 
     private function footerLinkUrl(string $key, string $value): ?string

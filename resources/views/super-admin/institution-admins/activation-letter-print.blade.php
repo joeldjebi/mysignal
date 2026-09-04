@@ -25,9 +25,9 @@
 
             $first = '';
             $second = '';
-            $firstLineBudget = 22;
+            $firstLineBudget = 30;
             $usedLines = 0;
-            $lineWidth = 92;
+            $lineWidth = 110;
 
             foreach ($blocks as $block) {
                 $blockText = trim(html_entity_decode(strip_tags($block), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
@@ -121,10 +121,10 @@
         .reference { display: inline-block; border: 1px solid rgba(103, 145, 255, .28); background: rgba(103, 145, 255, .08); border-radius: 999px; padding: 7px 12px; font-size: 12px; color: #24426f; font-weight: 700; margin-top: 12px; }
         .date { text-align: right; color: #475467; margin: 16px 0 36px; }
         .subject { font-weight: 700; margin: 28px 0; }
-        .content { line-height: 1.72; font-size: 15px; }
-        .page:first-of-type .content { max-height: 130mm; overflow: hidden; }
-        .second-page-content .content { max-height: 70mm; overflow: hidden; }
-        .content p { margin: 0 0 13px; }
+        .content { line-height: 1.55; font-size: 14px; }
+        .page:first-of-type .content { max-height: 146mm; overflow: hidden; }
+        .second-page-content .content { max-height: 120mm; overflow: hidden; }
+        .content p { margin: 0 0 10px; }
         .activation { display: flex; justify-content: space-between; gap: 14px; align-items: center; margin-top: 22px; padding: 9px 11px; border: 1px solid rgba(255, 161, 23, .42); background: #fffaf0; border-radius: 9px; font-size: 13px; }
         .activation a, .footer a { color: inherit; text-decoration: none; }
         .signature { margin: 42px 0 24px auto; max-width: 280px; text-align: right; }
