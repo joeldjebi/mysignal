@@ -23,6 +23,8 @@ class ScopedUserController extends Controller
 {
     use InteractsWithScopedSaAdminManagement;
 
+    private const UFC_ROLE_CODE = 'UFC';
+
     public function index(Request $request): View
     {
         $actor = $request->user()->loadMissing(['roles.permissions', 'permissions']);
@@ -361,13 +363,20 @@ class ScopedUserController extends Controller
             ->where('user_type_id', UserType::idFor(UserType::SA_USER))
             ->where('is_super_admin', false)
             ->whereNotNull('created_by')
-            ->where(function (Builder $builder): void {
-                $builder->whereHas('roles', fn (Builder $roleQuery) => $roleQuery->whereNotNull('roles.created_by'))
-                    ->orWhereHas('roles', fn (Builder $roleQuery) => $roleQuery->where('roles.code', 'CALLCENTER'))
-                    ->orWhereHas('permissions');
-            })
-            ->whereDoesntHave('roles.permissions', fn (Builder $permissionQuery) => $this->nonScopedPortalPermissions($permissionQuery))
-            ->whereDoesntHave('permissions', fn (Builder $permissionQuery) => $this->nonScopedPortalPermissions($permissionQuery));
+            ->where(function (Builder $visibilityQuery): void {
+                $visibilityQuery
+                    ->whereHas('roles', fn (Builder $roleQuery) => $roleQuery->where('roles.code', self::UFC_ROLE_CODE))
+                    ->orWhere(function (Builder $scopedQuery): void {
+                        $scopedQuery
+                            ->where(function (Builder $builder): void {
+                                $builder->whereHas('roles', fn (Builder $roleQuery) => $roleQuery->whereNotNull('roles.created_by'))
+                                    ->orWhereHas('roles', fn (Builder $roleQuery) => $roleQuery->where('roles.code', 'CALLCENTER'))
+                                    ->orWhereHas('permissions');
+                            })
+                            ->whereDoesntHave('roles.permissions', fn (Builder $permissionQuery) => $this->nonScopedPortalPermissions($permissionQuery))
+                            ->whereDoesntHave('permissions', fn (Builder $permissionQuery) => $this->nonScopedPortalPermissions($permissionQuery));
+                    });
+            });
 
         if (! $actor->is_super_admin) {
             $query->where('created_by', $actor->id);
@@ -378,14 +387,19 @@ class ScopedUserController extends Controller
 
     private function abortIfUserIsNotOwnedBy(User $user, int $actorId, bool $actorIsSuperAdmin = false): void
     {
+        $hasUfcRole = $user->roles()
+            ->where('roles.code', self::UFC_ROLE_CODE)
+            ->exists();
+
         abort_if(
             $user->is_super_admin
                 || (int) $user->user_type_id !== (int) UserType::idFor(UserType::SA_USER)
                 || $user->created_by === null
-                || (! $user->roles()->whereNotNull('roles.created_by')->exists()
+                || (! $hasUfcRole
+                    && ! $user->roles()->whereNotNull('roles.created_by')->exists()
                     && ! $user->roles()->where('roles.code', 'CALLCENTER')->exists()
                     && ! $user->permissions()->exists())
-                || $this->hasNonScopedPortalAccess($user)
+                || (! $hasUfcRole && $this->hasNonScopedPortalAccess($user))
                 || (! $actorIsSuperAdmin && (int) $user->created_by !== $actorId),
             404
         );
