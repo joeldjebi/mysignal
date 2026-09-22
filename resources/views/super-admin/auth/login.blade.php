@@ -81,9 +81,6 @@
                         <button type="submit" class="btn btn-premium btn-lg w-100">Se connecter</button>
                     </form>
 
-                    <div class="mt-4 pt-3 border-top text-secondary small">
-                        Compte initial seedé : <strong>jo.djebi@gmail.com</strong>
-                    </div>
                 </div>
             </div>
         </div>
