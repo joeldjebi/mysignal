@@ -9,17 +9,21 @@ use App\Models\Role;
 use App\Models\User;
 use App\Models\UserAccess;
 use App\Models\UserType;
+use App\Services\AccessCredentialDeliveryService;
 use App\Support\Audit\ActivityLogger;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class SystemUserController extends Controller
 {
+    private const UFC_ROLE_CODE = 'UFC';
+
     public function index(): View
     {
         $query = User::query()
@@ -262,6 +266,84 @@ class SystemUserController extends Controller
         return back()->with('success', 'Le statut de l’utilisateur interne a été mis à jour.');
     }
 
+    public function sendAccess(Request $request, User $systemUser, AccessCredentialDeliveryService $accessDelivery, ActivityLogger $activityLogger): RedirectResponse
+    {
+        $this->abortIfNotManageable($systemUser);
+
+        if (blank($systemUser->phone) && blank($systemUser->email)) {
+            return back()->withErrors([
+                'access' => 'Le compte doit avoir un numéro de téléphone ou une adresse e-mail avant l’envoi des accès.',
+            ]);
+        }
+
+        $portal = $this->loginPortalFor($systemUser);
+        $password = $this->temporaryPassword();
+        $previousPasswordHash = $systemUser->password;
+        $previousStatus = $systemUser->status;
+
+        $systemUser->update([
+            'password' => Hash::make($password),
+            'status' => 'active',
+        ]);
+
+        $delivery = $accessDelivery->send(
+            $systemUser,
+            $this->portalLabelForDelivery($portal['label']),
+            $portal['url'],
+            $password,
+        );
+
+        if (! $delivery['sms_sent'] && ! $delivery['mail_sent']) {
+            $systemUser->forceFill([
+                'password' => $previousPasswordHash,
+                'status' => $previousStatus,
+            ])->save();
+
+            $activityLogger->log(
+                'system_user.access_send_failed',
+                'Échec d’envoi des accès utilisateur interne.',
+                $systemUser,
+                [
+                    'phone' => $systemUser->phone,
+                    'email' => $systemUser->email,
+                    'login_url' => $portal['url'],
+                    'errors' => $delivery['errors'],
+                ],
+                $request,
+                $request->user(),
+            );
+
+            return back()->withErrors([
+                'access' => 'L’envoi des accès a échoué. Le mot de passe précédent a été conservé. Cause: '.implode(' | ', $delivery['errors']),
+            ]);
+        }
+
+        $activityLogger->log(
+            'system_user.access_sent',
+            'Envoi des accès utilisateur interne.',
+            $systemUser,
+            [
+                'phone' => $systemUser->phone,
+                'email' => $systemUser->email,
+                'login_url' => $portal['url'],
+                'sms_sent' => $delivery['sms_sent'],
+                'mail_sent' => $delivery['mail_sent'],
+                'errors' => $delivery['errors'],
+            ],
+            $request,
+            $request->user(),
+        );
+
+        return back()
+            ->with('success', $this->deliveryMessage($delivery))
+            ->with('access_credentials', [
+                'label' => 'Accès utilisateur interne',
+                'login_url' => $portal['url'],
+                'email' => $systemUser->email,
+                'password' => $password,
+            ]);
+    }
+
     private function validateRequest(Request $request, ?User $user = null): array
     {
         return $request->validate([
@@ -303,6 +385,7 @@ class SystemUserController extends Controller
 
         return $query->where(function (Builder $builder) use ($saUserTypeId): void {
             $builder->where('user_type_id', '!=', $saUserTypeId)
+                ->orWhereHas('roles', fn (Builder $roleQuery) => $roleQuery->where('roles.code', self::UFC_ROLE_CODE))
                 ->orWhereHas('roles.permissions', fn (Builder $permissionQuery) => $this->systemPortalPermissions($permissionQuery))
                 ->orWhereHas('permissions', fn (Builder $permissionQuery) => $this->systemPortalPermissions($permissionQuery))
                 ->orWhere(function (Builder $saUserQuery): void {
@@ -320,6 +403,7 @@ class SystemUserController extends Controller
             && $user->organization_id === null
             && (int) $user->user_type_id === (int) UserType::idFor(UserType::SA_USER)
             && $user->created_by !== null
+            && ! $user->roles()->where('roles.code', self::UFC_ROLE_CODE)->exists()
             && (
                 $user->roles()->whereNotNull('roles.created_by')->exists()
                 || $user->roles()->where('roles.code', 'CALLCENTER')->exists()
@@ -462,12 +546,29 @@ class SystemUserController extends Controller
     {
         $user->loadMissing(['roles.permissions']);
 
+        $roleCodes = $user->roles->pluck('code');
         $permissions = $user->roles
             ->flatMap(fn (Role $role) => $role->permissions)
             ->unique('id');
 
         $codes = $permissions->pluck('code');
         $scopes = $permissions->pluck('profile_scope')->filter();
+
+        if ($roleCodes->contains('CALLCENTER')) {
+            return ['url' => route('callcenter.login'), 'label' => 'Connexion centre d’appels'];
+        }
+
+        if ($roleCodes->contains(self::UFC_ROLE_CODE) || $roleCodes->contains('SA_ADMIN')) {
+            return ['url' => route('super-admin.login'), 'label' => 'Connexion SA'];
+        }
+
+        if ($roleCodes->contains(fn (string $code) => str_starts_with($code, 'PARTNER_'))) {
+            return ['url' => route('partner.login'), 'label' => 'Connexion partenaire'];
+        }
+
+        if ($roleCodes->intersect(['HUISSIER', 'AODA', 'AVOCAT'])->isNotEmpty()) {
+            return ['url' => route('backoffice.login'), 'label' => 'Connexion back-office'];
+        }
 
         if ($codes->contains(fn (string $code) => str_starts_with($code, 'PARTNER_')) || $scopes->contains('partner')) {
             return ['url' => route('partner.login'), 'label' => 'Connexion partenaire'];
@@ -477,19 +578,47 @@ class SystemUserController extends Controller
             return ['url' => route('institution.login'), 'label' => 'Connexion institution'];
         }
 
-        if (
-            $codes->contains('SA_ACCESS_PORTAL')
-            || $codes->contains(fn (string $code) => str_starts_with($code, 'BO_'))
-            || $scopes->intersect(['backoffice', 'huissier', 'aoda', 'avocat'])->isNotEmpty()
-        ) {
+        if ($codes->contains(fn (string $code) => str_starts_with($code, 'BO_')) || $scopes->intersect(['backoffice', 'huissier', 'aoda', 'avocat'])->isNotEmpty()) {
             return ['url' => route('backoffice.login'), 'label' => 'Connexion back-office'];
         }
 
-        if ($codes->contains(fn (string $code) => str_starts_with($code, 'SA_')) || $scopes->contains('super_admin')) {
+        if ($codes->contains('SA_ACCESS_PORTAL') || $codes->contains(fn (string $code) => str_starts_with($code, 'SA_')) || $scopes->contains('super_admin')) {
             return ['url' => route('super-admin.login'), 'label' => 'Connexion SA'];
         }
 
         return ['url' => route('backoffice.login'), 'label' => 'Connexion back-office'];
+    }
+
+    private function temporaryPassword(): string
+    {
+        return 'MS-'.Str::upper(Str::random(4)).'-'.random_int(1000, 9999);
+    }
+
+    private function portalLabelForDelivery(string $loginLabel): string
+    {
+        return match ($loginLabel) {
+            'Connexion SA' => 'portail SA',
+            'Connexion partenaire' => 'portail partenaire',
+            'Connexion institution' => 'portail institutionnel',
+            'Connexion centre d’appels' => 'portail centre d’appels',
+            default => 'portail back-office',
+        };
+    }
+
+    private function deliveryMessage(array $delivery): string
+    {
+        $channels = collect([
+            $delivery['sms_sent'] ? 'SMS' : null,
+            $delivery['mail_sent'] ? 'e-mail' : null,
+        ])->filter()->implode(' et ');
+
+        $message = 'Les accès ont été envoyés par '.$channels.'.';
+
+        if ($delivery['errors'] !== []) {
+            $message .= ' Un canal n’a pas abouti. Cause: '.implode(' | ', $delivery['errors']);
+        }
+
+        return $message;
     }
 
     private function abortIfProfileAccessIsNotManageable(User $user): void

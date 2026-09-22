@@ -89,6 +89,10 @@
                                     <a href="{{ $systemUser->login_portal_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary">{{ $systemUser->login_portal_label }}</a>
                                     @if ($canManageSystemUsers)
                                         <a href="{{ route('super-admin.system-users.edit', $systemUser) }}" class="btn btn-sm btn-outline-dark">Modifier</a>
+                                        <form method="POST" action="{{ route('super-admin.system-users.send-access', $systemUser) }}" onsubmit="return confirm('Un nouveau mot de passe temporaire sera généré puis envoyé par SMS et par e-mail. Continuer ?')">
+                                            @csrf
+                                            <button class="btn btn-sm btn-outline-primary">Envoyer les accès</button>
+                                        </form>
                                     @endif
                                     @if ($canManageSystemUsers && $canToggleSystemUsers)
                                         <form method="POST" action="{{ route('super-admin.system-users.toggle-status', $systemUser) }}">

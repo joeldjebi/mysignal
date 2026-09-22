@@ -568,6 +568,7 @@ Route::prefix('sa')->name('super-admin.')->group(function (): void {
         Route::get('system-users/{systemUser}/edit', [SystemUserController::class, 'edit'])->middleware('super_admin_permission:SA_SYSTEM_USERS_MANAGE')->name('system-users.edit');
         Route::put('system-users/{systemUser}', [SystemUserController::class, 'update'])->middleware('super_admin_permission:SA_SYSTEM_USERS_MANAGE')->name('system-users.update');
         Route::patch('system-users/{systemUser}', [SystemUserController::class, 'update'])->middleware('super_admin_permission:SA_SYSTEM_USERS_MANAGE');
+        Route::post('system-users/{systemUser}/send-access', [SystemUserController::class, 'sendAccess'])->middleware('super_admin_permission:SA_SYSTEM_USERS_MANAGE')->name('system-users.send-access');
         Route::delete('system-users/{systemUser}', [SystemUserController::class, 'destroy'])->middleware('super_admin_permission:SA_SYSTEM_USERS_MANAGE')->name('system-users.destroy');
         Route::post('system-users/{systemUser}/accesses', [UserAccessController::class, 'store'])->middleware('super_admin_permission:SA_SYSTEM_USERS_MANAGE')->name('system-users.accesses.store');
         Route::put('system-users/{systemUser}/accesses/{access}', [UserAccessController::class, 'update'])->middleware('super_admin_permission:SA_SYSTEM_USERS_MANAGE')->name('system-users.accesses.update');

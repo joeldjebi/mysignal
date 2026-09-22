@@ -7,7 +7,7 @@ use App\Http\Controllers\Web\SuperAdmin\Concerns\InteractsWithScopedSaAdminManag
 use App\Models\Role;
 use App\Models\User;
 use App\Models\UserType;
-use App\Services\SmsService;
+use App\Services\AccessCredentialDeliveryService;
 use App\Support\Audit\ActivityLogger;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -17,7 +17,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
-use Throwable;
 
 class ScopedUserController extends Controller
 {
@@ -58,7 +57,7 @@ class ScopedUserController extends Controller
         ]);
     }
 
-    public function store(Request $request, SmsService $smsService, ActivityLogger $activityLogger): RedirectResponse
+    public function store(Request $request, AccessCredentialDeliveryService $accessDelivery, ActivityLogger $activityLogger): RedirectResponse
     {
         $actor = $request->user()->loadMissing(['roles.permissions', 'permissions']);
         $this->authorizeScopedManagement($actor, 'SA_SCOPED_USERS_MANAGE');
@@ -85,7 +84,7 @@ class ScopedUserController extends Controller
         });
 
         if ($isCallCenterUser && $createdUser instanceof User) {
-            return $this->sendGeneratedAccessToCallCenterUser($request, $createdUser, $password, $smsService, $activityLogger);
+            return $this->sendGeneratedAccessToCallCenterUser($request, $createdUser, $password, $accessDelivery, $activityLogger);
         }
 
         return redirect()->route('super-admin.scoped-users.index')->with('success', 'L’utilisateur a été créé.');
@@ -143,15 +142,15 @@ class ScopedUserController extends Controller
         return back()->with('success', 'L’utilisateur a été supprimé.');
     }
 
-    public function sendAccess(Request $request, User $scopedUser, SmsService $smsService, ActivityLogger $activityLogger): RedirectResponse
+    public function sendAccess(Request $request, User $scopedUser, AccessCredentialDeliveryService $accessDelivery, ActivityLogger $activityLogger): RedirectResponse
     {
         $actor = $request->user()->loadMissing(['roles.permissions', 'permissions']);
         $this->authorizeScopedManagement($actor, 'SA_SCOPED_USERS_MANAGE');
         $this->abortIfUserIsNotOwnedBy($scopedUser, $actor->id, $actor->is_super_admin);
 
-        if (blank($scopedUser->phone)) {
+        if (blank($scopedUser->phone) && blank($scopedUser->email)) {
             return back()->withErrors([
-                'access' => 'Le compte doit avoir un numéro de téléphone avant l’envoi des accès.',
+                'access' => 'Le compte doit avoir un numéro de téléphone ou une adresse e-mail avant l’envoi des accès.',
             ]);
         }
 
@@ -165,49 +164,50 @@ class ScopedUserController extends Controller
             'status' => 'active',
         ]);
 
-        $message = "My-Signal: accès portail. Lien: {$loginUrl} Identifiant: {$scopedUser->email} Mot de passe temporaire: {$password}";
+        $delivery = $accessDelivery->send($scopedUser, $this->portalLabelFor($scopedUser), $loginUrl, $password);
 
-        try {
-            $smsService->sendSmsMtarget($message, (string) $scopedUser->phone);
-        } catch (Throwable $exception) {
+        if (! $delivery['sms_sent'] && ! $delivery['mail_sent']) {
             $scopedUser->forceFill([
                 'password' => $previousPasswordHash,
                 'status' => $previousStatus,
             ])->save();
 
             $activityLogger->log(
-                'scoped_user.access_sms_failed',
-                'Échec d’envoi des accès utilisateur SA par SMS.',
+                'scoped_user.access_send_failed',
+                'Échec d’envoi des accès utilisateur SA.',
                 $scopedUser,
                 [
                     'phone' => $scopedUser->phone,
-                    'error' => $exception->getMessage(),
+                    'email' => $scopedUser->email,
+                    'errors' => $delivery['errors'],
                 ],
                 $request,
                 $actor,
             );
 
             return back()->withErrors([
-                'access' => 'L’envoi SMS a échoué. Le mot de passe précédent a été conservé.',
+                'access' => 'L’envoi des accès a échoué. Le mot de passe précédent a été conservé. Cause: '.implode(' | ', $delivery['errors']),
             ]);
         }
 
         $activityLogger->log(
             'scoped_user.access_sent',
-            'Envoi des accès utilisateur SA par SMS.',
+            'Envoi des accès utilisateur SA.',
             $scopedUser,
             [
                 'phone' => $scopedUser->phone,
                 'email' => $scopedUser->email,
                 'login_url' => $loginUrl,
-                'mail_sent' => false,
+                'sms_sent' => $delivery['sms_sent'],
+                'mail_sent' => $delivery['mail_sent'],
+                'errors' => $delivery['errors'],
             ],
             $request,
             $actor,
         );
 
         return back()
-            ->with('success', 'Les accès ont été envoyés par SMS. L’email sera activé dès que le service d’envoi sera configuré.')
+            ->with('success', $this->deliveryMessage($delivery))
             ->with('access_credentials', $this->temporaryAccessCredentials($scopedUser, $password, $loginUrl));
     }
 
@@ -283,29 +283,28 @@ class ScopedUserController extends Controller
         Request $request,
         User $user,
         string $password,
-        SmsService $smsService,
+        AccessCredentialDeliveryService $accessDelivery,
         ActivityLogger $activityLogger
     ): RedirectResponse {
-        if (blank($user->phone)) {
+        if (blank($user->phone) && blank($user->email)) {
             return redirect()
                 ->route('super-admin.scoped-users.index')
-                ->with('warning', 'Le compte centre d’appels a été créé, mais aucun SMS n’a été envoyé car le numéro de téléphone est absent.')
+                ->with('warning', 'Le compte centre d’appels a été créé, mais aucun accès n’a été envoyé car le numéro de téléphone et l’adresse e-mail sont absents.')
                 ->with('access_credentials', $this->temporaryAccessCredentials($user, $password, $this->loginUrlFor($user)));
         }
 
         $loginUrl = $this->loginUrlFor($user);
-        $message = "My-Signal: accès centre d’appels. Lien: {$loginUrl} Identifiant: {$user->email} Mot de passe temporaire: {$password}";
+        $delivery = $accessDelivery->send($user, $this->portalLabelFor($user), $loginUrl, $password);
 
-        try {
-            $smsService->sendSmsMtarget($message, (string) $user->phone);
-        } catch (Throwable $exception) {
+        if (! $delivery['sms_sent'] && ! $delivery['mail_sent']) {
             $activityLogger->log(
-                'scoped_user.callcenter_access_sms_failed',
-                'Échec d’envoi des accès centre d’appels par SMS.',
+                'scoped_user.callcenter_access_send_failed',
+                'Échec d’envoi des accès centre d’appels.',
                 $user,
                 [
                     'phone' => $user->phone,
-                    'error' => $exception->getMessage(),
+                    'email' => $user->email,
+                    'errors' => $delivery['errors'],
                 ],
                 $request,
                 $request->user(),
@@ -313,18 +312,21 @@ class ScopedUserController extends Controller
 
             return redirect()
                 ->route('super-admin.scoped-users.index')
-                ->with('warning', 'Le compte centre d’appels a été créé, mais l’envoi SMS a échoué. Utilisez le bouton d’envoi des accès pour générer un nouveau mot de passe.')
+                ->with('warning', 'Le compte centre d’appels a été créé, mais l’envoi des accès a échoué. Cause: '.implode(' | ', $delivery['errors']))
                 ->with('access_credentials', $this->temporaryAccessCredentials($user, $password, $loginUrl));
         }
 
         $activityLogger->log(
             'scoped_user.callcenter_access_sent',
-            'Envoi des accès centre d’appels par SMS.',
+            'Envoi des accès centre d’appels.',
             $user,
             [
                 'phone' => $user->phone,
                 'email' => $user->email,
                 'login_url' => $loginUrl,
+                'sms_sent' => $delivery['sms_sent'],
+                'mail_sent' => $delivery['mail_sent'],
+                'errors' => $delivery['errors'],
             ],
             $request,
             $request->user(),
@@ -332,7 +334,7 @@ class ScopedUserController extends Controller
 
         return redirect()
             ->route('super-admin.scoped-users.index')
-            ->with('success', 'Le compte centre d’appels a été créé et les accès ont été envoyés par SMS.')
+            ->with('success', 'Le compte centre d’appels a été créé. '.$this->deliveryMessage($delivery))
             ->with('access_credentials', $this->temporaryAccessCredentials($user, $password, $loginUrl));
     }
 
@@ -355,6 +357,27 @@ class ScopedUserController extends Controller
             'email' => $user->email,
             'password' => $password,
         ];
+    }
+
+    private function portalLabelFor(User $user): string
+    {
+        return $user->roles->contains('code', 'CALLCENTER') ? 'portail centre d’appels' : 'portail SA';
+    }
+
+    private function deliveryMessage(array $delivery): string
+    {
+        $channels = collect([
+            $delivery['sms_sent'] ? 'SMS' : null,
+            $delivery['mail_sent'] ? 'e-mail' : null,
+        ])->filter()->implode(' et ');
+
+        $message = 'Les accès ont été envoyés par '.$channels.'.';
+
+        if ($delivery['errors'] !== []) {
+            $message .= ' Un canal n’a pas abouti. Cause: '.implode(' | ', $delivery['errors']);
+        }
+
+        return $message;
     }
 
     private function scopedUserQuery(User $actor): Builder

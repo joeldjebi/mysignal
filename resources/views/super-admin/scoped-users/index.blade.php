@@ -67,9 +67,9 @@
                                 <div class="actions-wrap">
                                     <a class="btn btn-sm btn-outline-dark" href="{{ route('super-admin.scoped-users.edit', $managedUser) }}">Modifier</a>
                                     <a class="btn btn-sm btn-outline-secondary" href="{{ $managedUser->roles->contains('code', 'CALLCENTER') ? route('callcenter.login') : route('super-admin.login') }}" target="_blank" rel="noopener">Connexion</a>
-                                    <form method="POST" action="{{ route('super-admin.scoped-users.send-access', $managedUser) }}" onsubmit="return confirm('Un nouveau mot de passe temporaire sera généré puis envoyé par SMS. L’envoi e-mail sera activé dès que le service sera configuré. Continuer ?')">
+                                    <form method="POST" action="{{ route('super-admin.scoped-users.send-access', $managedUser) }}" onsubmit="return confirm('Un nouveau mot de passe temporaire sera généré puis envoyé par SMS et par e-mail. Continuer ?')">
                                         @csrf
-                                        <button class="btn btn-sm btn-outline-primary">Envoyer accès SMS / e-mail</button>
+                                        <button class="btn btn-sm btn-outline-primary">Envoyer les accès</button>
                                     </form>
                                     <form method="POST" action="{{ route('super-admin.scoped-users.destroy', $managedUser) }}">
                                         @csrf @method('DELETE')
