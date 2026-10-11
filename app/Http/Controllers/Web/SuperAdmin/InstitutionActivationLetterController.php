@@ -14,6 +14,7 @@ use App\Services\TopTeaserEmailService;
 use App\Services\WasabiService;
 use App\Support\Audit\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
@@ -39,7 +40,7 @@ class InstitutionActivationLetterController extends Controller
         ]);
     }
 
-    public function batchStore(Request $request, ActivityLogger $activityLogger): RedirectResponse
+    public function batchStore(Request $request, ActivityLogger $activityLogger): RedirectResponse|JsonResponse
     {
         $attributes = $request->validate([
             'institution_admin_ids' => ['required', 'array', 'min:1', 'max:100'],
@@ -116,21 +117,82 @@ class InstitutionActivationLetterController extends Controller
             $message .= ' '.$duplicateInstitutionCount.' sélection(s) visant une institution déjà retenue ont été ignorées.';
         }
 
+        $downloadUrl = route('super-admin.institution-activation-letter-batches.download', $batch);
+
+        if ($request->expectsJson()) {
+            $letters = $batch->letters()
+                ->orderBy('id')
+                ->get(['id']);
+
+            return response()->json([
+                'message' => $message,
+                'total' => $letters->count(),
+                'letters' => $letters->map(fn (InstitutionActivationLetter $letter): array => [
+                    'id' => $letter->id,
+                    'prepare_url' => route('super-admin.institution-activation-letter-batches.letters.prepare', [$batch, $letter]),
+                ])->values(),
+                'archive_url' => route('super-admin.institution-activation-letter-batches.archive', $batch),
+            ]);
+        }
+
         return redirect()
-            ->route('super-admin.institution-activation-letter-batches.download', $batch)
+            ->to($downloadUrl)
             ->with('success', $message);
     }
 
+    public function batchPrepareLetter(
+        InstitutionActivationLetterBatch $batch,
+        InstitutionActivationLetter $letter,
+        InstitutionActivationLetterPdfService $pdf,
+    ): JsonResponse {
+        abort_unless((int) $letter->batch_id === (int) $batch->id, 404);
+
+        $this->prepareBatchLetterPdf($batch, $letter, $pdf);
+
+        return response()->json([
+            'letter_id' => $letter->id,
+            'prepared' => true,
+        ]);
+    }
+
+    public function batchArchive(InstitutionActivationLetterBatch $batch, InstitutionActivationLetterPdfService $pdf): JsonResponse
+    {
+        $this->buildBatchArchive($batch, $pdf);
+
+        return response()->json([
+            'download_url' => route('super-admin.institution-activation-letter-batches.download', $batch),
+        ]);
+    }
+
     public function batchDownload(InstitutionActivationLetterBatch $batch, InstitutionActivationLetterPdfService $pdf): BinaryFileResponse
+    {
+        $path = $this->buildBatchArchive($batch, $pdf, false);
+
+        return response()->download($path, 'courriers-'.$batch->reference.'.zip', [
+            'Content-Type' => 'application/zip',
+        ])->deleteFileAfterSend(true);
+    }
+
+    private function buildBatchArchive(
+        InstitutionActivationLetterBatch $batch,
+        InstitutionActivationLetterPdfService $pdf,
+        bool $refresh = true,
+    ): string
     {
         $batch->load(['letters.organization', 'letters.institutionAdmin']);
 
         abort_if($batch->letters->isEmpty(), 404);
         abort_unless(class_exists(ZipArchive::class), 503, 'La génération de fichiers ZIP est indisponible sur ce serveur.');
 
-        $directory = storage_path('app/private/tmp/institution-activation-letter-batches');
+        $directory = $this->batchWorkingDirectory($batch);
         File::ensureDirectoryExists($directory);
-        $path = $directory.'/'.Str::slug($batch->reference).'-'.Str::random(10).'.zip';
+        $path = $directory.'/courriers-'.Str::slug($batch->reference).'.zip';
+
+        if (!$refresh && File::isFile($path)) {
+            return $path;
+        }
+
+        File::delete($path);
         $zip = new ZipArchive();
 
         if ($zip->open($path, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
@@ -140,16 +202,37 @@ class InstitutionActivationLetterController extends Controller
         try {
             foreach ($batch->letters as $letter) {
                 $organization = Str::slug((string) ($letter->organization?->name ?: 'institution'));
-                $filename = 'courrier-'.($letter->letter_number ? Str::replace('/', '-', $letter->letter_number).'-' : '').$organization.'.pdf';
-                $zip->addFromString($filename, $pdf->make($letter));
+                $filename = 'courrier-'.($letter->letter_number ? Str::replace('/', '-', $letter->letter_number).'-' : '').$organization.'-'.$letter->id.'.pdf';
+                $zip->addFile($this->prepareBatchLetterPdf($batch, $letter, $pdf), $filename);
             }
         } finally {
             $zip->close();
         }
 
-        return response()->download($path, 'courriers-'.$batch->reference.'.zip', [
-            'Content-Type' => 'application/zip',
-        ])->deleteFileAfterSend(true);
+        return $path;
+    }
+
+    private function prepareBatchLetterPdf(
+        InstitutionActivationLetterBatch $batch,
+        InstitutionActivationLetter $letter,
+        InstitutionActivationLetterPdfService $pdf,
+    ): string {
+        $directory = $this->batchWorkingDirectory($batch).'/letters';
+        $path = $directory.'/courrier-'.$letter->id.'.pdf';
+
+        if (File::isFile($path) && File::size($path) > 0) {
+            return $path;
+        }
+
+        File::ensureDirectoryExists($directory);
+        File::put($path, $pdf->make($letter->loadMissing(['organization', 'institutionAdmin'])));
+
+        return $path;
+    }
+
+    private function batchWorkingDirectory(InstitutionActivationLetterBatch $batch): string
+    {
+        return storage_path('app/private/tmp/institution-activation-letter-batches/batch-'.$batch->id);
     }
 
     public function history(User $institutionAdmin): View

@@ -58,6 +58,56 @@
             gap: .15rem;
             min-width: 180px;
         }
+        .batch-letters-loader {
+            position: fixed;
+            inset: 0;
+            z-index: 1100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            background: rgba(24, 52, 71, .5);
+            backdrop-filter: blur(7px);
+        }
+        .batch-letters-loader.is-visible { display: flex; }
+        .batch-letters-loader-card {
+            width: min(410px, 100%);
+            padding: 1.5rem;
+            border: 1px solid rgba(16, 42, 67, .1);
+            border-radius: 16px;
+            background: #fff;
+            box-shadow: 0 28px 70px rgba(16, 42, 67, .28);
+            text-align: center;
+        }
+        .batch-letters-loader-ring {
+            width: 52px;
+            height: 52px;
+            margin: 0 auto 1rem;
+            border: 4px solid rgba(255, 161, 23, .2);
+            border-top-color: #ffa117;
+            border-radius: 50%;
+            animation: batchLettersSpin .8s linear infinite;
+        }
+        .batch-letters-loader-bar {
+            height: 6px;
+            overflow: hidden;
+            margin-top: 1rem;
+            border-radius: 999px;
+            background: rgba(103, 145, 255, .16);
+        }
+        .batch-letters-loader-bar span {
+            display: block;
+            width: 42%;
+            height: 100%;
+            border-radius: inherit;
+            background: #6791ff;
+            animation: batchLettersProgress 1.25s ease-in-out infinite;
+        }
+        @keyframes batchLettersSpin { to { transform: rotate(360deg); } }
+        @keyframes batchLettersProgress {
+            0% { transform: translateX(-120%); }
+            100% { transform: translateX(340%); }
+        }
         @media (max-width: 1199.98px) {
             .feature-grid-3 {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -220,6 +270,15 @@
         </div>
     </section>
 
+    <div class="batch-letters-loader" id="batchLettersLoader" aria-hidden="true">
+        <div class="batch-letters-loader-card" role="status" aria-live="polite">
+            <div class="batch-letters-loader-ring" aria-hidden="true"></div>
+            <div class="fw-bold mb-1" id="batchLettersLoaderTitle">Génération des courriers</div>
+            <div class="text-secondary small" id="batchLettersLoaderMessage">Préparation des courriers officiels et de leurs QR codes.</div>
+            <div class="batch-letters-loader-bar" aria-hidden="true"><span></span></div>
+        </div>
+    </div>
+
     <div class="modal fade" id="generateLettersModal" tabindex="-1" aria-labelledby="generateLettersModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content border-0 shadow-lg">
@@ -356,6 +415,46 @@
             const countBadge = document.getElementById('selectedAdminsCount');
             const modalCount = document.getElementById('selectedAdminsModalCount');
             const inputs = document.getElementById('selectedInstitutionAdminsInputs');
+            const batchForm = document.getElementById('batchLettersForm');
+            const loader = document.getElementById('batchLettersLoader');
+            const loaderTitle = document.getElementById('batchLettersLoaderTitle');
+            const loaderMessage = document.getElementById('batchLettersLoaderMessage');
+
+            const setLoader = (visible, title, message) => {
+                if (!loader) {
+                    return;
+                }
+
+                if (title) {
+                    loaderTitle.textContent = title;
+                }
+                if (message) {
+                    loaderMessage.textContent = message;
+                }
+
+                loader.classList.toggle('is-visible', visible);
+                loader.setAttribute('aria-hidden', visible ? 'false' : 'true');
+            };
+
+            const responseMessage = async (response) => {
+                const payload = await response.json().catch(() => ({}));
+                const errors = Object.values(payload.errors || {}).flat();
+
+                return errors[0] || payload.message || 'La génération du lot a échoué. Veuillez réessayer.';
+            };
+
+            const filenameFromResponse = (response) => {
+                const header = response.headers.get('Content-Disposition') || '';
+                const match = header.match(/filename="?([^";]+)"?/i);
+
+                return match?.[1] || 'courriers-institutionnels.zip';
+            };
+
+            const requestHeaders = {
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+            };
 
             const refreshSelection = () => {
                 const selected = selections.filter((input) => input.checked);
@@ -383,6 +482,108 @@
 
             selections.forEach((input) => input.addEventListener('change', refreshSelection));
             refreshSelection();
+
+            batchForm?.addEventListener('submit', async (event) => {
+                if (!window.fetch) {
+                    return;
+                }
+
+                event.preventDefault();
+                const submitButton = batchForm.querySelector('button[type="submit"]');
+                const selectedCount = selections.filter((input) => input.checked).length;
+
+                submitButton.disabled = true;
+                setLoader(
+                    true,
+                    'Courriers générés : 0 / '+selectedCount,
+                    selectedCount+' courrier'+(selectedCount > 1 ? 's' : '')+' à préparer. Préparation des QR codes et des documents officiels.'
+                );
+                bootstrap.Modal.getInstance(document.getElementById('generateLettersModal'))?.hide();
+
+                try {
+                    const generationResponse = await fetch(batchForm.action, {
+                        method: 'POST',
+                        body: new FormData(batchForm),
+                        credentials: 'same-origin',
+                        headers: requestHeaders,
+                    });
+
+                    if (!generationResponse.ok) {
+                        throw new Error(await responseMessage(generationResponse));
+                    }
+
+                    const generation = await generationResponse.json();
+                    let preparedCount = 0;
+
+                    for (const letter of generation.letters || []) {
+                        const prepareResponse = await fetch(letter.prepare_url, {
+                            method: 'POST',
+                            credentials: 'same-origin',
+                            headers: requestHeaders,
+                        });
+
+                        if (!prepareResponse.ok) {
+                            throw new Error(await responseMessage(prepareResponse));
+                        }
+
+                        preparedCount += 1;
+                        setLoader(
+                            true,
+                            'Courriers générés : '+preparedCount+' / '+generation.total,
+                            'Le courrier '+preparedCount+' est prêt. Les autres courriers sont en cours de préparation.'
+                        );
+                    }
+
+                    setLoader(
+                        true,
+                        'Création du fichier ZIP',
+                        preparedCount+' courrier'+(preparedCount > 1 ? 's' : '')+' généré'+(preparedCount > 1 ? 's' : '')+' sur '+generation.total+'. L’archive est en cours de création.'
+                    );
+
+                    const archiveResponse = await fetch(generation.archive_url, {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: requestHeaders,
+                    });
+
+                    if (!archiveResponse.ok) {
+                        throw new Error(await responseMessage(archiveResponse));
+                    }
+
+                    const archivePayload = await archiveResponse.json();
+                    setLoader(
+                        true,
+                        'Téléchargement du fichier ZIP',
+                        preparedCount+' courrier'+(preparedCount > 1 ? 's' : '')+' généré'+(preparedCount > 1 ? 's' : '')+'. Le téléchargement démarre automatiquement.'
+                    );
+
+                    const downloadResponse = await fetch(archivePayload.download_url, {
+                        credentials: 'same-origin',
+                    });
+
+                    if (!downloadResponse.ok) {
+                        throw new Error(await responseMessage(downloadResponse));
+                    }
+
+                    const archive = await downloadResponse.blob();
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = URL.createObjectURL(archive);
+                    downloadLink.download = filenameFromResponse(downloadResponse);
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    downloadLink.remove();
+                    window.setTimeout(() => URL.revokeObjectURL(downloadLink.href), 1000);
+
+                    setLoader(false);
+                    window.setTimeout(() => window.location.reload(), 700);
+                } catch (error) {
+                    setLoader(false);
+                    alert(error.message || 'La génération du lot a échoué. Veuillez réessayer.');
+                    bootstrap.Modal.getOrCreateInstance(document.getElementById('generateLettersModal')).show();
+                } finally {
+                    submitButton.disabled = false;
+                }
+            });
         })();
     </script>
     @if ($errors->any() && old('name'))
