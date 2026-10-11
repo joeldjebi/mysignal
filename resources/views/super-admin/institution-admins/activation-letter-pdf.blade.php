@@ -9,7 +9,7 @@
             return collect([
                 'font-size: '.(int) ($settings['size'] ?? 10).'px',
                 'color: '.($settings['color'] ?? '#475467'),
-                ! empty($settings['bold']) ? 'font-weight: bold' : 'font-weight: normal',
+                ! empty($settings['bold']) ? 'font-weight: 800' : 'font-weight: 400',
                 ! empty($settings['italic']) ? 'font-style: italic' : 'font-style: normal',
             ])->implode('; ');
         };
@@ -81,38 +81,42 @@
     <style>
         @page { margin: 16mm 18mm 16mm 18mm; size: A4; }
         * { box-sizing: border-box; }
-        body { margin: 0; background: #fff; font-family: DejaVu Sans, sans-serif; color: #111827; font-size: 11px; }
+        body { margin: 0; background: #fff; font-family: DejaVu Sans, sans-serif; color: #111827; font-size: 14px; }
         .page { height: 265mm; page-break-after: always; position: relative; overflow: hidden; }
         .page:last-child { page-break-after: auto; }
         .page-content { height: 226mm; overflow: hidden; }
         .second-page-content { height: 226mm; overflow: hidden; }
-        .header { border-bottom: 3px solid #ffa117; padding-bottom: 11px; margin-bottom: 19px; }
+        .header { border-bottom: 3px solid #ffa117; padding-bottom: 16px; margin-bottom: 28px; }
         .header-table, .footer-table, .activation-table { border-collapse: collapse; width: 100%; }
-        .brand-logo { max-height: 66px; object-fit: contain; margin-right: 8px; }
+        .brand-logo { display: block; height: auto; margin-right: 8px; }
         .header-title { line-height: 1.18; }
-        .reference-wrap { text-align: right; padding-left: 12px; vertical-align: top; }
-        .reference { display: inline-block; border: 1px solid #cbd8fb; background: #f4f7ff; border-radius: 12px; padding: 5px 8px; margin-bottom: 4px; color: #24426f; font-size: 8px; font-weight: bold; }
-        .date { text-align: right; color: #475467; margin: 12px 0 24px; }
-        .subject { font-weight: bold; margin: 18px 0; }
-        .content { line-height: 1.55; font-size: 10.5px; color: #1f2937; }
-        .content p { margin: 0 0 8px; }
-        .content ul, .content ol { margin: 0 0 8px 18px; padding: 0; }
-        .signature { width: 44%; margin: 28px 0 15px auto; text-align: right; }
-        .signature-content { line-height: 1.55; margin-bottom: 14px; }
-        .signature-image { max-width: 150px; max-height: 58px; object-fit: contain; margin-bottom: 8px; }
-        .signature-space { height: 42px; border-bottom: 1px solid #98a2b3; margin: 0 0 8px auto; width: 160px; }
-        .signature-name { font-weight: bold; }
-        .signature-title { color: #667085; font-size: 9px; }
-        .activation { margin-top: 15px; border: 1px solid #f5c676; background: #fffaf0; border-radius: 7px; padding: 9px; }
-        .activation-label, .footer-label { color: #101828; font-size: 8px; font-weight: bold; margin-bottom: 4px; }
-        .activation-code { color: #111827; font-size: 16px; font-weight: bold; margin: 2px 0 7px; }
-        .activation-link { color: #344054; font-size: 8px; text-decoration: none; word-break: break-all; }
-        .qr-code { width: 70px; height: 70px; }
-        .footer { position: absolute; left: 0; right: 0; bottom: 0; border-top: 1px solid #e5e7eb; padding-top: 10px; }
-        .footer-logo { max-width: 56px; max-height: 44px; object-fit: contain; }
+        .reference-wrap { margin-top: 12px; text-align: right; white-space: nowrap; }
+        .reference { display: inline-block; border: 1px solid #cbd8fb; background: #f4f7ff; border-radius: 999px; padding: 7px 12px; color: #24426f; font-size: 12px; font-weight: 800; }
+        .reference + .reference { margin-left: 6px; }
+        .date { text-align: right; color: #475467; margin: 16px 0 36px; }
+        .subject { font-weight: 800; margin: 28px 0; }
+        .content { line-height: 1.55; font-size: 14px; color: #111827; }
+        .content p { margin: 0 0 10px; }
+        .content ul, .content ol { margin: 0 0 10px 18px; padding: 0; }
+        .signature { width: 44%; margin: 42px 0 24px auto; text-align: right; }
+        .signature-content { line-height: 1.6; margin-bottom: 22px; }
+        .signature-image { max-width: 190px; max-height: 82px; margin-bottom: 10px; }
+        .signature-space { height: 62px; border-bottom: 1px solid #98a2b3; margin: 0 0 12px auto; width: 220px; }
+        .signature-name { font-weight: 800; }
+        .signature-title { color: #667085; font-size: 13px; }
+        .activation { margin-top: 22px; border: 1px solid #f5c676; background: #fffaf0; border-radius: 9px; padding: 9px 11px; font-size: 13px; }
+        .activation-label { color: #101828; font-size: 13px; font-weight: 800; margin-bottom: 5px; }
+        .activation-code { color: #111827; font-size: 20px; font-weight: 800; margin: 2px 0 9px; }
+        .activation-link { color: #344054; font-size: 13px; text-decoration: none; word-break: break-all; }
+        .qr-code { width: 88px; height: 88px; }
+        .footer { position: absolute; left: 0; right: 0; bottom: 0; height: 30mm; overflow: hidden; border-top: 1px solid #e5e7eb; padding-top: 14px; }
+        .footer-logo { display: block; height: auto; }
         .footer-cell { width: 20%; padding-right: 7px; vertical-align: top; word-break: break-word; }
-        .footer-cell-logo { width: 12%; padding-right: 7px; vertical-align: top; }
-        .footer-value { line-height: 1.35; }
+        .footer-cell-logo { width: 20%; padding-right: 7px; vertical-align: top; }
+        .footer-column-table { border-collapse: collapse; width: 100%; }
+        .footer-column-table td { padding: 0; vertical-align: top; }
+        .footer-label { color: #101828; font-size: 13px; font-weight: 800; line-height: 1.1; margin-bottom: 2px; }
+        .footer-value { line-height: 1.2; margin: 0; white-space: pre-line; }
         .footer-value a { color: inherit; text-decoration: none; }
     </style>
 </head>
@@ -124,7 +128,7 @@
                     <td>
                         <table><tr>
                             @if ($logoUrl && $letter->logo_position !== 'none')
-                                <td style="vertical-align:middle; width:{{ (int) $header['logo_width'] }}px"><img src="{{ $logoUrl }}" class="brand-logo" style="width:{{ (int) $header['logo_width'] }}px" alt="Logo"></td>
+                                <td style="vertical-align:middle; width:{{ (int) $header['logo_width'] }}px"><img src="{{ $logoUrl }}" class="brand-logo" style="width:{{ (int) $header['logo_width'] }}px; height:auto" alt="Logo"></td>
                             @endif
                             <td class="header-title" style="vertical-align:middle">
                                 <div style="{{ $textStyle($header['title']) }}">{{ $header['title']['text'] }}</div>
@@ -133,11 +137,11 @@
                             </td>
                         </tr></table>
                     </td>
-                    <td class="reference-wrap" style="width:165px">
-                        <span class="reference">N° {{ $letter->letter_number ?: 'UFC/MS/'.now()->format('Y').'/000001' }}</span><br>
-                        <span class="reference">Code {{ $letter->activation_code }}</span>
-                    </td>
                 </tr></table>
+                <div class="reference-wrap">
+                    <span class="reference">N° {{ $letter->letter_number ?: 'UFC/MS/'.now()->format('Y').'/000001' }}</span>
+                    <span class="reference">Code {{ $letter->activation_code }}</span>
+                </div>
             </header>
             <div class="date">{{ $letter->issue_place ?: 'Abidjan' }}, le {{ ($letter->issue_date ?: now())->format('d/m/Y') }}</div>
             <p><strong>À l’attention de {{ $institutionAdmin?->organization?->name ?: 'l’institution' }}</strong></p>
@@ -146,17 +150,16 @@
         </div>
         <footer class="footer">
             <table class="footer-table"><tr>
-                <td class="footer-cell-logo">@if($footerLogoUrl)<img src="{{ $footerLogoUrl }}" class="footer-logo" alt="Logo">@endif</td>
+                <td class="footer-cell-logo">@if($footerLogoUrl)<img src="{{ $footerLogoUrl }}" class="footer-logo" style="width:{{ (int) ($footer['logo']['size'] ?? 72) }}px; height:auto" alt="Logo">@endif</td>
                 @foreach($footerColumns as $key => $column)
                     @php($value = (string) ($column['text'] ?? ''))
                     <td class="footer-cell" style="{{ $textStyle($column) }}">
-                        <div class="footer-label">{{ $column['label'] ?? '' }}</div>
-                        <div class="footer-value">
+                        <table class="footer-column-table"><tr><td class="footer-label">{{ $column['label'] ?? '' }}</td></tr><tr><td class="footer-value">
                             @if($key === 'email' && filled($value))<a href="mailto:{{ trim(strtok($value, "\n")) }}">{!! nl2br(e($value)) !!}</a>
                             @elseif($key === 'website' && filled($value))<a href="{{ str_starts_with(trim($value), 'http') ? trim($value) : 'https://'.trim($value) }}">{!! nl2br(e($value)) !!}</a>
                             @elseif($key === 'phone' && filled($value))<a href="tel:{{ preg_replace('/\s+/', '', trim(strtok($value, "\n"))) }}">{!! nl2br(e($value)) !!}</a>
                             @else{!! nl2br(e($value)) !!}@endif
-                        </div>
+                        </td></tr></table>
                     </td>
                 @endforeach
             </tr></table>
@@ -169,12 +172,8 @@
                 <div class="content">{!! $letter->safeHtml($secondPageLetterContent) !!}</div>
             @endif
             <div class="signature">
-                <div class="signature-content">{!! $letter->signatureHtml() !!}</div>
-                @if ($letter->signatureUrl())
-                    <img src="{{ $letter->signatureUrl() }}" class="signature-image" alt="Signature">
-                @else
-                    <div class="signature-space"></div>
-                @endif
+                <div class="signature-content">Cordialement,<br><strong>L’équipe My-Signal</strong></div>
+                <div class="signature-space"></div>
                 <div class="signature-name">{{ $letter->signature_name ?: 'Le Coordonnateur du programme My-Signal' }}</div>
                 <div class="signature-title">{{ $letter->signature_title ?: 'Union Fédérale des Consommateurs' }}</div>
             </div>
@@ -192,12 +191,11 @@
         </div>
         <footer class="footer">
             <table class="footer-table"><tr>
-                <td class="footer-cell-logo">@if($footerLogoUrl)<img src="{{ $footerLogoUrl }}" class="footer-logo" alt="Logo">@endif</td>
+                <td class="footer-cell-logo">@if($footerLogoUrl)<img src="{{ $footerLogoUrl }}" class="footer-logo" style="width:{{ (int) ($footer['logo']['size'] ?? 72) }}px; height:auto" alt="Logo">@endif</td>
                 @foreach($footerColumns as $key => $column)
                     @php($value = (string) ($column['text'] ?? ''))
                     <td class="footer-cell" style="{{ $textStyle($column) }}">
-                        <div class="footer-label">{{ $column['label'] ?? '' }}</div>
-                        <div class="footer-value">{!! nl2br(e($value)) !!}</div>
+                        <table class="footer-column-table"><tr><td class="footer-label">{{ $column['label'] ?? '' }}</td></tr><tr><td class="footer-value">{!! nl2br(e($value)) !!}</td></tr></table>
                     </td>
                 @endforeach
             </tr></table>

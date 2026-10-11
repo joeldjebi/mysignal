@@ -117,7 +117,8 @@
         .header-brand-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
         .header-main { display: flex; align-items: center; gap: 8px; min-width: 0; }
         .logo { height: auto; object-fit: contain; }
-        .reference { display: inline-block; border: 1px solid rgba(103, 145, 255, .28); background: rgba(103, 145, 255, .08); border-radius: 999px; padding: 7px 12px; font-size: 12px; color: #24426f; font-weight: 700; margin-top: 12px; }
+        .reference { display: inline-block; border: 1px solid rgba(103, 145, 255, .28); background: rgba(103, 145, 255, .08); border-radius: 999px; padding: 7px 12px; font-size: 12px; color: #24426f; font-weight: 700; margin-top: 12px; white-space: nowrap; }
+        .reference + .reference { margin-left: 6px; }
         .date { text-align: right; color: #475467; margin: 16px 0 36px; }
         .subject { font-weight: 700; margin: 28px 0; }
         .content { line-height: 1.55; font-size: 14px; }
@@ -133,7 +134,7 @@
         .signature-name { font-weight: 800; }
         .signature-title { color: #667085; font-size: 13px; }
         .footer { display: grid; grid-template-columns: .72fr repeat(4, minmax(0, 1fr)); gap: 14px; align-items: start; min-height: 24mm; max-height: 30mm; overflow: hidden; padding-top: 14px; border-top: 1px solid #e5e7eb; }
-        .footer-label { font-weight: 800; margin-bottom: 5px; color: #101828; min-height: 18px; line-height: 18px; }
+        .footer-label { font-weight: 800; margin-bottom: 2px; color: #101828; min-height: 0; line-height: 1.1; }
         .muted { color: #667085; font-size: 13px; }
         @media print {
             @page { size: A4; margin: 0; }
@@ -184,12 +185,8 @@
             <div class="content">{!! $letter->safeHtml($secondPageLetterContent) !!}</div>
         @endif
         <div class="signature">
-            <div class="signature-content">{!! $letter->signatureHtml() !!}</div>
-            @if ($letter->signatureUrl())
-                <img src="{{ $letter->signatureUrl() }}" class="signature-image" alt="Signature">
-            @else
-                <div class="signature-space"></div>
-            @endif
+            <div class="signature-content">Cordialement,<br><strong>L’équipe My-Signal</strong></div>
+            <div class="signature-space"></div>
             <div class="signature-name">{{ $letter->signature_name ?: 'Le Coordonnateur du programme My-Signal' }}</div>
             <div class="signature-title">{{ $letter->signature_title ?: 'Union Fédérale des Consommateurs' }}</div>
         </div>

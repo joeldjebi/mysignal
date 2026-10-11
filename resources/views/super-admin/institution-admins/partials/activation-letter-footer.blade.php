@@ -11,8 +11,8 @@
         'website' => $footer['website'],
     ] as $column)
         <div style="{{ $textStyle($column) }}">
-            <div class="fw-semibold mb-1 footer-label">{{ $column['label'] }}</div>
-            <div style="white-space: pre-line;">
+            <div class="fw-semibold footer-label">{{ $column['label'] }}</div>
+            <div class="footer-value" style="white-space: pre-line;">
                 @if (($column['label'] ?? '') === 'Téléphone' && filled($column['text']))
                     @foreach (preg_split('/\r\n|\r|\n/', $column['text']) as $phone)
                         <a href="tel:{{ preg_replace('/\s+/', '', $phone) }}">{{ $phone }}</a><br>
