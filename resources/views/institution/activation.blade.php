@@ -65,6 +65,10 @@
                     <div class="error">Ce code d’activation a expiré. Veuillez contacter l’équipe My-Signal.</div>
                 @elseif ($letter?->status === 'submitted' || $letter?->status === 'approved')
                     <div class="notice">Les informations du point focal ont déjà été transmises pour cette institution. Le formulaire est désormais verrouillé.</div>
+                @elseif ($letter && $letter->status !== 'generated')
+                    <div class="error">Ce code d’activation n’est plus valide. Veuillez utiliser le dernier courrier transmis par l’Union Fédérale des Consommateurs.</div>
+                @elseif (! $letter)
+                    <div class="error">Ce code d’activation est introuvable. Veuillez vérifier le lien reçu.</div>
                 @else
                     <form method="POST" action="{{ route('institution.activation.store') }}" id="activationForm">
                         @csrf

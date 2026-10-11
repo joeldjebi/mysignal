@@ -4,22 +4,27 @@ namespace App\Http\Controllers\Web\SuperAdmin;
 
 use App\Http\Controllers\Controller;
 use App\Models\InstitutionActivationLetter;
+use App\Models\InstitutionActivationLetterBatch;
 use App\Models\InstitutionActivationLetterSetting;
 use App\Models\User;
 use App\Models\UserType;
 use App\Services\SmsService;
+use App\Services\InstitutionActivationLetterPdfService;
 use App\Services\TopTeaserEmailService;
 use App\Services\WasabiService;
 use App\Support\Audit\ActivityLogger;
-use App\Support\Pdf\SimpleInstitutionActivationLetterPdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Throwable;
+use ZipArchive;
 
 class InstitutionActivationLetterController extends Controller
 {
@@ -31,6 +36,145 @@ class InstitutionActivationLetterController extends Controller
             'institutionAdmin' => $institutionAdmin->load('organization'),
             'letter' => $this->letterFor($institutionAdmin, $request),
             'logoPositions' => $this->logoPositions(),
+        ]);
+    }
+
+    public function batchStore(Request $request, ActivityLogger $activityLogger): RedirectResponse
+    {
+        $attributes = $request->validate([
+            'institution_admin_ids' => ['required', 'array', 'min:1', 'max:100'],
+            'institution_admin_ids.*' => ['integer', 'distinct', 'exists:users,id'],
+            'batch_label' => ['nullable', 'string', 'max:180'],
+            'letter_subject' => ['required', 'string', 'max:255'],
+            'issue_place' => ['required', 'string', 'max:120'],
+            'issue_date' => ['required', 'date'],
+            'expires_at' => ['nullable', 'date', 'after_or_equal:issue_date'],
+        ]);
+
+        $admins = User::query()
+            ->with('organization')
+            ->whereIn('id', $attributes['institution_admin_ids'])
+            ->where('is_super_admin', false)
+            ->where('user_type_id', UserType::idFor(UserType::INSTITUTION_ADMIN))
+            ->whereNotNull('organization_id')
+            ->get();
+
+        foreach ($admins as $admin) {
+            $this->abortIfNotInstitutionAdmin($admin);
+        }
+
+        if ($admins->count() !== count($attributes['institution_admin_ids'])) {
+            return back()->withErrors([
+                'institution_admin_ids' => 'Au moins un administrateur institutionnel sélectionné est invalide.',
+            ]);
+        }
+
+        $duplicateInstitutionCount = $admins->count() - $admins->unique('organization_id')->count();
+        $admins = $admins->unique('organization_id')->values();
+        $generatedAt = now();
+        $actorId = $request->user()?->id;
+
+        $batch = DB::transaction(function () use ($attributes, $admins, $generatedAt, $actorId): InstitutionActivationLetterBatch {
+            $batch = InstitutionActivationLetterBatch::query()->create([
+                'reference' => $this->nextBatchReference(),
+                'label' => filled($attributes['batch_label']) ? $attributes['batch_label'] : 'Courriers du '.$generatedAt->format('d/m/Y H:i'),
+                'created_by' => $actorId,
+                'generated_at' => $generatedAt,
+                'letters_count' => $admins->count(),
+                'metadata' => [
+                    'issue_place' => $attributes['issue_place'],
+                    'issue_date' => $attributes['issue_date'],
+                    'expires_at' => $attributes['expires_at'] ?? null,
+                ],
+            ]);
+
+            foreach ($admins as $institutionAdmin) {
+                $this->supersedePendingLetters($institutionAdmin, $actorId, $generatedAt);
+                $this->createBatchLetter($batch, $institutionAdmin, $attributes, $actorId, $generatedAt);
+            }
+
+            return $batch;
+        });
+
+        $activityLogger->log(
+            'institution_activation_letter.batch_generated',
+            'Génération groupée de courriers de désignation de points focaux.',
+            $batch,
+            [
+                'batch_reference' => $batch->reference,
+                'letters_count' => $batch->letters_count,
+                'institution_admin_ids' => $admins->pluck('id')->all(),
+                'duplicate_institutions_ignored' => $duplicateInstitutionCount,
+            ],
+            $request,
+            $request->user(),
+        );
+
+        $message = $batch->letters_count.' courrier(s) ont été générés dans le lot '.$batch->reference.'.';
+
+        if ($duplicateInstitutionCount > 0) {
+            $message .= ' '.$duplicateInstitutionCount.' sélection(s) visant une institution déjà retenue ont été ignorées.';
+        }
+
+        return redirect()
+            ->route('super-admin.institution-activation-letter-batches.download', $batch)
+            ->with('success', $message);
+    }
+
+    public function batchDownload(InstitutionActivationLetterBatch $batch, InstitutionActivationLetterPdfService $pdf): BinaryFileResponse
+    {
+        $batch->load(['letters.organization', 'letters.institutionAdmin']);
+
+        abort_if($batch->letters->isEmpty(), 404);
+        abort_unless(class_exists(ZipArchive::class), 503, 'La génération de fichiers ZIP est indisponible sur ce serveur.');
+
+        $directory = storage_path('app/private/tmp/institution-activation-letter-batches');
+        File::ensureDirectoryExists($directory);
+        $path = $directory.'/'.Str::slug($batch->reference).'-'.Str::random(10).'.zip';
+        $zip = new ZipArchive();
+
+        if ($zip->open($path, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+            abort(500, 'Impossible de préparer l’archive des courriers.');
+        }
+
+        try {
+            foreach ($batch->letters as $letter) {
+                $organization = Str::slug((string) ($letter->organization?->name ?: 'institution'));
+                $filename = 'courrier-'.($letter->letter_number ? Str::replace('/', '-', $letter->letter_number).'-' : '').$organization.'.pdf';
+                $zip->addFromString($filename, $pdf->make($letter));
+            }
+        } finally {
+            $zip->close();
+        }
+
+        return response()->download($path, 'courriers-'.$batch->reference.'.zip', [
+            'Content-Type' => 'application/zip',
+        ])->deleteFileAfterSend(true);
+    }
+
+    public function history(User $institutionAdmin): View
+    {
+        $this->abortIfNotInstitutionAdmin($institutionAdmin);
+
+        return view('super-admin.institution-admins.activation-letter-history', [
+            'institutionAdmin' => $institutionAdmin->load('organization'),
+            'letters' => InstitutionActivationLetter::query()
+                ->with(['creator', 'batch'])
+                ->where('institution_admin_id', $institutionAdmin->id)
+                ->latest('generated_at')
+                ->latest('id')
+                ->paginate(20),
+        ]);
+    }
+
+    public function downloadHistoryLetter(User $institutionAdmin, InstitutionActivationLetter $letter, InstitutionActivationLetterPdfService $pdf): Response
+    {
+        $this->abortIfNotInstitutionAdmin($institutionAdmin);
+        abort_unless((int) $letter->institution_admin_id === (int) $institutionAdmin->id, 404);
+
+        return response($pdf->make($letter->loadMissing(['organization', 'institutionAdmin'])), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="courrier-'.$letter->activation_code.'.pdf"',
         ]);
     }
 
@@ -154,6 +298,7 @@ class InstitutionActivationLetterController extends Controller
             'footer_settings' => $this->footerSettingsFromRequest($request),
             'expires_at' => $attributes['expires_at'] ?? null,
             'status' => $letter->status === 'draft' ? 'generated' : $letter->status,
+            'generated_at' => $letter->generated_at ?? now(),
             'activation_url' => $this->activationUrl($letter->activation_code),
         ]);
 
@@ -183,7 +328,7 @@ class InstitutionActivationLetterController extends Controller
         );
     }
 
-    public function download(Request $request, User $institutionAdmin, SimpleInstitutionActivationLetterPdf $pdf): Response
+    public function download(Request $request, User $institutionAdmin, InstitutionActivationLetterPdfService $pdf): Response
     {
         $this->abortIfNotInstitutionAdmin($institutionAdmin);
         $letter = $this->letterFor($institutionAdmin, $request);
@@ -341,6 +486,7 @@ class InstitutionActivationLetterController extends Controller
         $letter = InstitutionActivationLetter::query()
             ->where('institution_admin_id', $institutionAdmin->id)
             ->where('organization_id', $institutionAdmin->organization_id)
+            ->where('status', '!=', 'superseded')
             ->latest('id')
             ->first();
 
@@ -519,6 +665,60 @@ class InstitutionActivationLetterController extends Controller
         } while (InstitutionActivationLetter::query()->where('activation_code', $code)->exists());
 
         return $code;
+    }
+
+    private function createBatchLetter(InstitutionActivationLetterBatch $batch, User $institutionAdmin, array $attributes, ?int $actorId, mixed $generatedAt): InstitutionActivationLetter
+    {
+        $code = $this->uniqueActivationCode($institutionAdmin);
+        $presentationDefaults = $this->letterPresentationDefaults();
+
+        return InstitutionActivationLetter::query()->create([
+            'batch_id' => $batch->id,
+            'organization_id' => $institutionAdmin->organization_id,
+            'institution_admin_id' => $institutionAdmin->id,
+            'created_by' => $actorId,
+            'activation_code' => $code,
+            'activation_url' => $this->activationUrl($code),
+            'letter_number' => $this->nextLetterNumber(),
+            'issue_place' => $attributes['issue_place'],
+            'issue_date' => $attributes['issue_date'],
+            'letter_subject' => $attributes['letter_subject'],
+            'letter_content' => $this->defaultLetterContent($institutionAdmin, $code),
+            'signature_name' => $presentationDefaults['signature_name'],
+            'signature_title' => $presentationDefaults['signature_title'],
+            'signature_content' => $presentationDefaults['signature_content'],
+            'signature_path' => $presentationDefaults['signature_path'],
+            'footer_logo_path' => $presentationDefaults['footer_logo_path'],
+            'logo_position' => $presentationDefaults['logo_position'],
+            'logo_path' => $presentationDefaults['logo_path'],
+            'header_settings' => $presentationDefaults['header_settings'],
+            'footer_settings' => $presentationDefaults['footer_settings'],
+            'status' => 'generated',
+            'generated_at' => $generatedAt,
+            'expires_at' => $attributes['expires_at'] ?? now()->addDays(30),
+        ]);
+    }
+
+    private function supersedePendingLetters(User $institutionAdmin, ?int $actorId, mixed $supersededAt): void
+    {
+        InstitutionActivationLetter::query()
+            ->where('institution_admin_id', $institutionAdmin->id)
+            ->whereIn('status', ['draft', 'generated'])
+            ->update([
+                'status' => 'superseded',
+                'superseded_at' => $supersededAt,
+                'superseded_by_id' => $actorId,
+                'updated_at' => $supersededAt,
+            ]);
+    }
+
+    private function nextBatchReference(): string
+    {
+        do {
+            $reference = 'LOT-UFC-'.now()->format('Ymd-His').'-'.Str::upper(Str::random(4));
+        } while (InstitutionActivationLetterBatch::query()->where('reference', $reference)->exists());
+
+        return $reference;
     }
 
     private function defaultLetterContent(User $institutionAdmin, string $code): string

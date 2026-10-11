@@ -59,9 +59,9 @@ class InstitutionActivationController extends Controller
             ])->withInput();
         }
 
-        if (in_array($letter->status, ['submitted', 'approved'], true)) {
+        if ($letter->status !== 'generated') {
             return back()->withErrors([
-                'activation_code' => 'Les informations du point focal ont déjà été transmises pour cette institution.',
+                'activation_code' => 'Ce code d’activation n’est plus valide. Veuillez utiliser le dernier courrier transmis par l’Union Fédérale des Consommateurs.',
             ])->withInput();
         }
 

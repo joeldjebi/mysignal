@@ -12,6 +12,7 @@ class InstitutionActivationLetter extends Model
 {
     protected $fillable = [
         'organization_id',
+        'batch_id',
         'institution_admin_id',
         'created_by',
         'approved_by',
@@ -43,6 +44,9 @@ class InstitutionActivationLetter extends Model
         'focal_longitude',
         'location_accuracy',
         'submitted_at',
+        'generated_at',
+        'superseded_at',
+        'superseded_by_id',
         'metadata',
     ];
 
@@ -50,6 +54,8 @@ class InstitutionActivationLetter extends Model
         'expires_at' => 'datetime',
         'issue_date' => 'date',
         'submitted_at' => 'datetime',
+        'generated_at' => 'datetime',
+        'superseded_at' => 'datetime',
         'metadata' => 'array',
         'header_settings' => 'array',
         'footer_settings' => 'array',
@@ -65,6 +71,16 @@ class InstitutionActivationLetter extends Model
     public function institutionAdmin(): BelongsTo
     {
         return $this->belongsTo(User::class, 'institution_admin_id');
+    }
+
+    public function batch(): BelongsTo
+    {
+        return $this->belongsTo(InstitutionActivationLetterBatch::class, 'batch_id');
+    }
+
+    public function supersededBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'superseded_by_id');
     }
 
     public function creator(): BelongsTo

@@ -53,6 +53,11 @@
         .feature-more-toggle:hover {
             text-decoration: underline;
         }
+        .letter-history-meta {
+            display: grid;
+            gap: .15rem;
+            min-width: 180px;
+        }
         @media (max-width: 1199.98px) {
             .feature-grid-3 {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -105,21 +110,29 @@
         </form>
         <div class="table-toolbar">
             <div class="table-meta">{{ $admins->total() }} résultat{{ $admins->total() > 1 ? 's' : '' }}</div>
+            <button type="button" class="btn btn-outline-success" id="generateLettersButton" disabled data-bs-toggle="modal" data-bs-target="#generateLettersModal">
+                Générer les courriers sélectionnés <span class="badge text-bg-success ms-1" id="selectedAdminsCount">0</span>
+            </button>
         </div>
         <div class="table-responsive">
             <table class="table table-modern align-middle">
                 <thead>
                     <tr>
+                        <th style="width:42px"><input type="checkbox" class="form-check-input" id="selectAllInstitutionAdmins" aria-label="Sélectionner tous les admins affichés"></th>
                         <th>Admin</th>
                         <th>Organisation</th>
                         <th>Fonctionnalités</th>
                         <th>Statut</th>
+                        <th>Courriers</th>
                         <th class="text-end">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($admins as $admin)
                         <tr>
+                            <td>
+                                <input type="checkbox" class="form-check-input institution-admin-selector" value="{{ $admin->id }}" aria-label="Sélectionner {{ $admin->name }}">
+                            </td>
                             <td>
                                 <div class="fw-semibold">{{ $admin->name }}</div>
                                 <div class="small text-secondary">{{ $admin->email }}</div>
@@ -158,10 +171,22 @@
                                 @endif
                             </td>
                             <td><span class="status-chip">{{ $admin->status }}</span></td>
+                            <td>
+                                @if ($admin->activation_letters_count > 0 && $admin->latestActivationLetter)
+                                    <div class="letter-history-meta small">
+                                        <span class="fw-semibold">{{ $admin->activation_letters_count }} courrier{{ $admin->activation_letters_count > 1 ? 's' : '' }}</span>
+                                        <span class="text-secondary">Dernier : {{ $admin->latestActivationLetter->generated_at?->format('d/m/Y à H:i') ?: $admin->latestActivationLetter->created_at?->format('d/m/Y à H:i') }}</span>
+                                        <span class="text-secondary">Par {{ $admin->latestActivationLetter->creator?->name ?: 'Utilisateur supprimé' }}</span>
+                                    </div>
+                                @else
+                                    <span class="small text-secondary">Jamais généré</span>
+                                @endif
+                            </td>
                             <td class="text-end">
                                 <div class="actions-wrap">
                                     <a href="{{ route('super-admin.institution-admins.edit', $admin) }}" class="btn btn-sm btn-outline-dark">Modifier</a>
                                     <a href="{{ route('super-admin.institution-admins.activation-letter.edit', $admin) }}" class="btn btn-sm btn-outline-success">Générer le courrier</a>
+                                    <a href="{{ route('super-admin.institution-admins.activation-letter.history', $admin) }}" class="btn btn-sm btn-outline-secondary">Historique</a>
                                     @if (auth()->user()?->is_super_admin || auth()->user()?->hasPermissionCode('SA_INSTITUTION_ADMINS_UPDATE') || auth()->user()?->hasPermissionCode('SA_INSTITUTION_ADMINS_MANAGE'))
                                         <form method="POST" action="{{ route('super-admin.institution-admins.send-access', $admin) }}" onsubmit="return confirm('Un nouveau mot de passe temporaire sera généré puis envoyé par SMS et par e-mail. Continuer ?')">
                                             @csrf
@@ -184,7 +209,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="5" class="text-center text-secondary">Aucun admin institutionnel enregistré.</td></tr>
+                        <tr><td colspan="7" class="text-center text-secondary">Aucun admin institutionnel enregistré.</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -194,6 +219,55 @@
             {{ $admins->links() }}
         </div>
     </section>
+
+    <div class="modal fade" id="generateLettersModal" tabindex="-1" aria-labelledby="generateLettersModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header">
+                    <div>
+                        <h5 class="modal-title fw-bold" id="generateLettersModalLabel">Générer un lot de courriers</h5>
+                        <div class="small text-secondary"><span id="selectedAdminsModalCount">0</span> institution(s) sélectionnée(s). Chaque courrier aura son propre code et QR code.</div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <form method="POST" action="{{ route('super-admin.institution-activation-letter-batches.store') }}" id="batchLettersForm">
+                    @csrf
+                    <div id="selectedInstitutionAdminsInputs"></div>
+                    <div class="modal-body">
+                        <div class="alert alert-info small mb-3">
+                            Si un ancien code d’activation est encore en attente pour une institution sélectionnée, il sera remplacé par le nouveau code. Les courriers précédents restent disponibles dans l’historique.
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-7">
+                                <label class="form-label">Nom du lot</label>
+                                <input name="batch_label" class="form-control" placeholder="Ex. Relance des institutions - octobre 2026">
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label">Lieu d’émission <span class="text-danger">*</span></label>
+                                <input name="issue_place" class="form-control" value="Abidjan" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Objet du courrier <span class="text-danger">*</span></label>
+                                <input name="letter_subject" class="form-control" value="Désignation du point focal My-Signal" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Date d’émission <span class="text-danger">*</span></label>
+                                <input type="date" name="issue_date" class="form-control" value="{{ now()->toDateString() }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Validité du code</label>
+                                <input type="date" name="expires_at" class="form-control" value="{{ now()->addDays(30)->toDateString() }}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-success">Générer et télécharger le lot</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <div class="modal fade" id="createInstitutionAdminModal" tabindex="-1" aria-labelledby="createInstitutionAdminModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -274,6 +348,43 @@
 @endsection
 
 @section('scripts')
+    <script>
+        (() => {
+            const selectAll = document.getElementById('selectAllInstitutionAdmins');
+            const selections = Array.from(document.querySelectorAll('.institution-admin-selector'));
+            const actionButton = document.getElementById('generateLettersButton');
+            const countBadge = document.getElementById('selectedAdminsCount');
+            const modalCount = document.getElementById('selectedAdminsModalCount');
+            const inputs = document.getElementById('selectedInstitutionAdminsInputs');
+
+            const refreshSelection = () => {
+                const selected = selections.filter((input) => input.checked);
+                const count = selected.length;
+
+                actionButton.disabled = count === 0;
+                countBadge.textContent = count;
+                modalCount.textContent = count;
+                inputs.replaceChildren(...selected.map((input) => {
+                    const hidden = document.createElement('input');
+                    hidden.type = 'hidden';
+                    hidden.name = 'institution_admin_ids[]';
+                    hidden.value = input.value;
+                    return hidden;
+                }));
+
+                selectAll.checked = count > 0 && count === selections.length;
+                selectAll.indeterminate = count > 0 && count < selections.length;
+            };
+
+            selectAll?.addEventListener('change', () => {
+                selections.forEach((input) => { input.checked = selectAll.checked; });
+                refreshSelection();
+            });
+
+            selections.forEach((input) => input.addEventListener('change', refreshSelection));
+            refreshSelection();
+        })();
+    </script>
     @if ($errors->any() && old('name'))
         <script>
             const createInstitutionAdminModal = document.getElementById('createInstitutionAdminModal');

@@ -24,7 +24,8 @@ class InstitutionAdminController extends Controller
     {
         $perPage = min(max((int) request()->integer('per_page', 12), 1), 100);
         $query = User::query()
-            ->with(['organization.application.features', 'organization.featureOverrides', 'features', 'userType'])
+            ->with(['organization.application.features', 'organization.featureOverrides', 'features', 'userType', 'latestActivationLetter.creator'])
+            ->withCount('activationLetters')
             ->where('is_super_admin', false)
             ->where('user_type_id', UserType::idFor(UserType::INSTITUTION_ADMIN))
             ->whereNotNull('organization_id')
